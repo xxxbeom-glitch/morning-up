@@ -45,6 +45,20 @@ object RingStateMachine {
         }
     }
 
+    /**
+     * 앱이나 서비스가 죽었다 다시 살아났을 때 저장된 상태에서 다시 할 일. 소리, 화면, 타이머를 되살려요.
+     * 이미 지난 타이머는 AlarmManager가 바로 깨워서 상태표가 이어서 처리해요.
+     */
+    fun resume(session: RingSession): List<RingEffect> {
+        val timer = ScheduleTimer(session.phaseEndsAt, TimerKind.entries.first { it.phase == session.phase })
+        return when (session.phase) {
+            RingPhase.Ringing -> listOf(PlaySound(FULL_VOLUME), ShowRingScreen, timer)
+            RingPhase.InMission -> listOf(PlaySound(MISSION_VOLUME), ShowMission(session.missionsDone), timer)
+            RingPhase.WakeCheckAsking -> listOf(ShowWakeCheck, timer)
+            RingPhase.Resting, RingPhase.AwaitingWakeCheck -> listOf(timer)
+        }
+    }
+
     private fun dismissWithoutMission(session: RingSession, now: Long): Transition =
         if (session.plan.missions.isEmpty() && session.phase.isAlarmPhase) finish(session, now) else NoChange(session)
 

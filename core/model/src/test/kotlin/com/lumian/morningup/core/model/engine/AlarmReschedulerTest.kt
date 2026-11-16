@@ -185,4 +185,23 @@ class AlarmReschedulerTest {
         rescheduler(FakeStore()).afterFired(42, at(17, 7, 0))
         assertThat(scheduler.scheduled).isEmpty()
     }
+
+    @Test
+    fun afterFired_calledTwice_stillNextDay() = runTest {
+        // 놓친 알람을 바로 울리면 다시 예약 뒤 상태표가 한 번 더 부를 수 있어요. 하루가 밀리면 안 돼요.
+        val store = FakeStore(alarm(1, 7, 0, next = ms(at(17, 7, 0))))
+        val r = rescheduler(store)
+        r.afterFired(1, at(17, 7, 5))
+        r.afterFired(1, at(17, 7, 5))
+        assertThat(scheduler.scheduled[1]).isEqualTo(ms(at(18, 7, 0)))
+    }
+
+    @Test
+    fun catchUpRingNow_thenStateMachineReschedule_staysNextDay() = runTest {
+        val store = FakeStore(alarm(1, 7, 0, next = ms(at(17, 7, 0))))
+        val r = rescheduler(store)
+        r.rescheduleAll(at(17, 7, 5))
+        r.afterFired(1, at(17, 7, 5))
+        assertThat(scheduler.scheduled[1]).isEqualTo(ms(at(18, 7, 0)))
+    }
 }

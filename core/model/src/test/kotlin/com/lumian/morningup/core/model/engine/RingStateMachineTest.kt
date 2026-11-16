@@ -292,4 +292,47 @@ class RingStateMachineTest {
             assertThat(reduce(null, RingEvent.TimerFired(k), t0).effects).isEmpty()
         }
     }
+
+    // 앱이 죽었다 살아남 ------------------------------------------------------
+
+    @Test
+    fun resume_ringing_restartsSoundScreenAndTimer() {
+        val s = fire().session!!
+        assertThat(RingStateMachine.resume(s)).containsExactly(
+            PlaySound(1f),
+            ShowRingScreen,
+            ScheduleTimer(s.phaseEndsAt, TimerKind.RingTimeout),
+        )
+    }
+
+    @Test
+    fun resume_inMission_returnsToSameMission_quietly() {
+        var s = reduce(fire().session, RingEvent.MissionStarted, t0).session
+        s = reduce(s, RingEvent.MissionCompleted, t0 + 10 * sec).session!!
+        assertThat(RingStateMachine.resume(s)).containsExactly(
+            PlaySound(RingStateMachine.MISSION_VOLUME),
+            ShowMission(1),
+            ScheduleTimer(s.phaseEndsAt, TimerKind.MissionTimeout),
+        )
+    }
+
+    @Test
+    fun resume_resting_onlyRearmsTimer() {
+        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session!!
+        assertThat(RingStateMachine.resume(s)).containsExactly(ScheduleTimer(s.phaseEndsAt, TimerKind.RestEnded))
+    }
+
+    @Test
+    fun resume_wakeCheckAsking_showsQuestionAgain() {
+        val ask = reduce(dismissedWithWakeCheck().session, RingEvent.TimerFired(TimerKind.WakeCheckAsk), t0 + 4 * min)
+        val s = ask.session!!
+        assertThat(RingStateMachine.resume(s))
+            .containsExactly(ShowWakeCheck, ScheduleTimer(s.phaseEndsAt, TimerKind.WakeCheckTimeout))
+    }
+
+    @Test
+    fun resume_awaitingWakeCheck_onlyRearmsTimer() {
+        val s = dismissedWithWakeCheck().session!!
+        assertThat(RingStateMachine.resume(s)).containsExactly(ScheduleTimer(s.phaseEndsAt, TimerKind.WakeCheckAsk))
+    }
 }

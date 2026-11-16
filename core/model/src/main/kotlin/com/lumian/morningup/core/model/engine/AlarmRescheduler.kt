@@ -83,7 +83,11 @@ class AlarmRescheduler(
             return
         }
         val firedAt = alarm.nextTriggerAt
-        val base = if (firedAt != null && firedAt > now.toInstant().toEpochMilli()) {
+        val nowMillis = now.toInstant().toEpochMilli()
+        // 예약 시각보다 조금 일찍 깨어났을 때만 예약 시각을 기준으로 해요.
+        // 그보다 먼 미래면 이미 다음 시각으로 다시 예약된 것이라 지금을 기준으로 같은 시각을 다시 계산해요.
+        val earlyWake = firedAt != null && firedAt > nowMillis && firedAt - nowMillis <= EARLY_WAKE_TOLERANCE_MILLIS
+        val base = if (earlyWake && firedAt != null) {
             ZonedDateTime.ofInstant(Instant.ofEpochMilli(firedAt), now.zone)
         } else {
             now
@@ -107,5 +111,9 @@ class AlarmRescheduler(
     private suspend fun disable(alarm: Alarm) {
         scheduler.cancel(alarm.id)
         store.save(alarm.copy(nextTriggerAt = null))
+    }
+
+    private companion object {
+        const val EARLY_WAKE_TOLERANCE_MILLIS = 60_000L
     }
 }
