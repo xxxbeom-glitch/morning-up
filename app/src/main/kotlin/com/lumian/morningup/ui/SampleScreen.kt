@@ -26,6 +26,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.R
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
@@ -37,9 +39,12 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 private val SwatchSize = 40.dp
 private val BottomNavSpace = 120.dp
 
-/** 디버그 빌드 전용 견본. 폰에서 토큰과 부품이 피그마와 같은지 눈으로 확인하는 화면이에요. */
+/**
+ * 디버그 빌드 전용 견본. 폰에서 토큰과 부품이 피그마와 같은지 눈으로 확인하는 화면이에요.
+ * [tools]에는 시험 알람처럼 앱 연결이 필요한 도구가 들어와요(테스트에서는 비워 둬요).
+ */
 @Composable
-fun SampleScreen(modifier: Modifier = Modifier) {
+fun SampleScreen(modifier: Modifier = Modifier, tools: @Composable () -> Unit = {}) {
     val colors = MorningTheme.colors
     val type = MorningTheme.typography
     Column(
@@ -92,7 +97,33 @@ fun SampleScreen(modifier: Modifier = Modifier) {
                 MorningToggle(checked = true, onCheckedChange = {}, enabled = false)
             }
         }
+        tools()
         Spacer(Modifier.height(BottomNavSpace))
+    }
+}
+
+/** '1분 뒤 울리기' 시험 알람. 폰에서 울림, 다시 울림, 미션, W2 흐름을 확인해요. */
+@Composable
+fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
+    val scheduledAt by viewModel.scheduledAt.collectAsStateWithLifecycle()
+    Section(stringResource(R.string.sample_alarm)) {
+        MorningButton(
+            stringResource(R.string.sample_alarm_button),
+            onClick = { viewModel.scheduleTestAlarm(withMission = false) },
+            size = MorningButtonSize.Medium,
+        )
+        MorningButton(
+            stringResource(R.string.sample_alarm_mission_button),
+            onClick = { viewModel.scheduleTestAlarm(withMission = true) },
+            size = MorningButtonSize.Medium,
+        )
+        scheduledAt?.let {
+            Text(
+                stringResource(R.string.sample_alarm_scheduled, it.toString()),
+                style = MorningTheme.typography.bodyMedium,
+                color = MorningTheme.colors.textSecondary,
+            )
+        }
     }
 }
 

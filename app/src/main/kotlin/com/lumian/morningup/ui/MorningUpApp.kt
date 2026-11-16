@@ -28,9 +28,9 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 /** 앱의 세 탭. 순서가 하단 메뉴 순서예요. */
 enum class TopTab { Alarm, Sleep, Settings }
 
-/** 앱 껍데기: 탭 내용 + 아래 가운데 떠 있는 하단 메뉴. */
+/** 앱 껍데기: 탭 내용 + 아래 가운데 떠 있는 하단 메뉴. [debugTools]는 디버그 견본 아래에 붙어요. */
 @Composable
-fun MorningUpApp(modifier: Modifier = Modifier) {
+fun MorningUpApp(modifier: Modifier = Modifier, debugTools: @Composable () -> Unit = {}) {
     var tab by rememberSaveable { mutableStateOf(TopTab.Alarm) }
     val labels = listOf(
         stringResource(R.string.tab_alarm),
@@ -43,7 +43,7 @@ fun MorningUpApp(modifier: Modifier = Modifier) {
             .background(MorningTheme.colors.backgroundBase),
     ) {
         if (tab == TopTab.Settings && BuildConfig.DEBUG) {
-            SampleScreen()
+            SampleScreen(tools = debugTools)
         } else {
             Placeholder(labels[tab.ordinal])
         }

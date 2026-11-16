@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 알림 통로 이름 (폰 설정의 알림 항목에 보여요) -->
+    <string name="channel_ringing">울리는 알람</string>
+    <string name="channel_ringing_description">알람이 울리는 동안 화면을 띄워요</string>
+    <string name="channel_missed">놓친 알람</string>
+    <string name="channel_missed_description">끄지 못하고 지나간 알람을 알려요</string>
+
+    <!-- 울리는 중 알림 -->
+    <string name="ring_title">알람이 울리고 있어요</string>
+    <string name="ring_text_ringing">눌러서 알람을 꺼요</string>
+    <string name="ring_text_mission">미션을 하고 있어요</string>
+    <string name="ring_text_resting">잠시 뒤 다시 울려요</string>
+    <string name="ring_text_waiting">잠시 뒤 깨어 있는지 물어볼게요</string>
+    <string name="ring_text_wake_check">깨어 있나요? \'깼어요\'를 눌러 주세요</string>
+
+    <!-- 놓친 알람 알림 -->
+    <string name="missed_title">알람을 놓쳤어요</string>
+    <string name="missed_text_ignored">%1$s 알람을 끄지 않아서 멈췄어요</string>
+    <string name="missed_text_powered_off">%1$s 알람은 폰이 꺼져 있는 동안 지나갔어요</string>
+</resources>

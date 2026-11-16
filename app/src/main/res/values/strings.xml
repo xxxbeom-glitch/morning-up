@@ -18,4 +18,22 @@
     <string name="sample_button_large">\'미션 시작\'</string>
     <string name="sample_button_medium">\'저장\'</string>
     <string name="sample_button_circle">\'깼어요\'</string>
+
+    <!-- 임시 울림 화면(2단계). 3~5단계에서 피그마 화면으로 바뀌어요. 버튼 글자에는 따옴표를 넣지 않아요. -->
+    <string name="ring_temp_ringing">알람이 울려요</string>
+    <string name="ring_temp_mission">미션 %1$d</string>
+    <string name="ring_temp_wake_up">잘 일어났어요</string>
+    <string name="ring_temp_wake_check">깨어 있나요?</string>
+    <string name="ring_button_start_mission">미션 시작</string>
+    <string name="ring_button_dismiss">알람 끄기</string>
+    <string name="ring_button_touch">화면 만지기</string>
+    <string name="ring_button_mission_done">미션 완료</string>
+    <string name="ring_button_ok">확인</string>
+    <string name="ring_button_awake">깼어요</string>
+
+    <!-- 디버그 빌드 전용 시험 알람 -->
+    <string name="sample_alarm">시험 알람</string>
+    <string name="sample_alarm_button">1분 뒤 울리기</string>
+    <string name="sample_alarm_mission_button">1분 뒤 미션 알람</string>
+    <string name="sample_alarm_scheduled">%1$s에 울려요</string>
 </resources>

@@ -21,6 +21,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 임시 울림 화면. 잠금 화면 위에 뜨고, 잠금을 풀기 전(재부팅 직후)에도 열려요. -->
+        <activity
+            android:name=".ring.RingActivity"
+            android:directBootAware="true"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:showWhenLocked="true"
+            android:taskAffinity="com.lumian.morningup.ring"
+            android:turnScreenOn="true" />
     </application>
 
 </manifest>
