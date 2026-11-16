@@ -5,7 +5,8 @@ naming:
   TopLevelPropertyNaming:
     constantPattern: '[A-Z][A-Za-z0-9_]*'
   MatchingDeclarationName:
-    active: true
+    # Compose 부품 파일은 부품 함수와 크기 enum을 같이 둬요.
+    active: false
 
 complexity:
   LongParameterList:

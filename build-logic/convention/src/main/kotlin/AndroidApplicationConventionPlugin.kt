@@ -1,6 +1,8 @@
 import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.lumian.morningup.buildlogic.configureCodeQuality
 import com.lumian.morningup.buildlogic.configureKotlinAndroid
+import com.lumian.morningup.buildlogic.configureRobolectricOffline
 import com.lumian.morningup.buildlogic.libs
 import com.lumian.morningup.buildlogic.version
 import org.gradle.api.Plugin
@@ -19,6 +21,11 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 versionName = libs.version("versionName")
             }
         }
+        // 단위 테스트는 debug 변형에서만 돌려요. release 변형에는 Compose 테스트용 빈 Activity가 없어요.
+        extensions.configure<ApplicationAndroidComponentsExtension> {
+            beforeVariants(selector().withBuildType("release")) { it.hostTests.forEach { (_, t) -> t.enable = false } }
+        }
+        configureRobolectricOffline()
         configureCodeQuality()
     }
 }

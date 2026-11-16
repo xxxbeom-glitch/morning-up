@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">morning-up</string>
+
+    <!-- 하단 메뉴 (화면 읽기 프로그램용 이름) -->
+    <string name="tab_alarm">알람</string>
+    <string name="tab_sleep">잠들기</string>
+    <string name="tab_settings">설정</string>
+
+    <!-- 빈 탭 자리. 다음 단계에서 화면이 들어와요. -->
+    <string name="tab_placeholder">%1$s 화면은 준비 중이에요</string>
+
+    <!-- 디버그 빌드 전용 견본 화면 -->
+    <string name="sample_title">견본</string>
+    <string name="sample_colors">색</string>
+    <string name="sample_type">글자</string>
+    <string name="sample_controls">버튼과 토글</string>
+    <string name="sample_button_large">\'미션 시작\'</string>
+    <string name="sample_button_medium">\'저장\'</string>
+    <string name="sample_button_circle">\'깼어요\'</string>
 </resources>
