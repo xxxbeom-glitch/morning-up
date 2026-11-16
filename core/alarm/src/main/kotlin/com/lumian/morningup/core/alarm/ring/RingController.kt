@@ -3,8 +3,10 @@ package com.lumian.morningup.core.alarm.ring
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.model.engine.AlarmStore
+import com.lumian.morningup.core.model.engine.BootCatchUpPolicy
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.core.model.engine.RingOutcome
 import com.lumian.morningup.core.model.engine.RingPlan
 import com.lumian.morningup.core.model.engine.RingSession
 import com.lumian.morningup.core.model.engine.RingStateMachine
@@ -68,9 +70,26 @@ class RingController @Inject constructor(
 
     suspend fun send(event: RingEvent) = mutex.withLock { apply(event) }
 
-    /** 앱이나 서비스가 다시 살아났을 때. 이어갈 울림이 있으면 소리, 화면, 타이머를 되살려요. */
+    /**
+     * 앱이나 서비스가 다시 살아났을 때. 이어갈 울림이 있으면 소리, 화면, 타이머를 되살려요.
+     * 단계가 끝난 지 10분이 넘은 울림(폰이 오래 꺼져 있었던 경우)은 이어가지 않고 '놓친 알람'으로 끝내요.
+     * 놓친 알람에 쓰는 10분 규칙([BootCatchUpPolicy])과 같아요.
+     */
     suspend fun resume(): RingSession? = mutex.withLock {
-        val saved = sessions.load()
+        var saved = sessions.load()
+        if (saved != null && now.millis() - saved.phaseEndsAt > BootCatchUpPolicy.RING_NOW_WINDOW_MILLIS) {
+            sessions.save(null)
+            val id = saved.plan.alarmId
+            val ended = listOf(
+                RingEffect.StopSound,
+                RingEffect.CancelTimer,
+                RingEffect.PostMissedNotification(id),
+                RingEffect.SessionEnded(id, RingOutcome.Missed),
+            )
+            updateScreen(ended)
+            runner.run(saved, ended)
+            saved = null
+        }
         _session.value = saved
         if (saved != null) {
             val effects = RingStateMachine.resume(saved)

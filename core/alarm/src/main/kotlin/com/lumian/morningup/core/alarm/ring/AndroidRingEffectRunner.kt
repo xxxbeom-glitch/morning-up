@@ -9,6 +9,7 @@ import com.lumian.morningup.core.model.engine.RingOutcome
 import com.lumian.morningup.core.model.engine.RingSession
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 
 /**
  * 상태표 효과를 안드로이드에서 실행해요.
@@ -24,7 +25,17 @@ class AndroidRingEffectRunner @Inject constructor(
     private val diagnostics: AlarmDiagnostics,
 ) : RingEffectRunner {
     override suspend fun run(session: RingSession?, effects: List<RingEffect>) {
-        effects.forEach { effect -> runOne(session, effect) }
+        // 효과 하나가 실패해도(소리 장치 오류 등) 뒤의 타이머 예약과 다시 예약은 꼭 해요.
+        effects.forEach { effect ->
+            try {
+                runOne(session, effect)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+                val detail = "${effect.javaClass.simpleName} ${e.javaClass.simpleName}"
+                diagnostics.record("effect_failed", session?.plan?.alarmId, detail)
+            }
+        }
     }
 
     private suspend fun runOne(session: RingSession?, effect: RingEffect) {

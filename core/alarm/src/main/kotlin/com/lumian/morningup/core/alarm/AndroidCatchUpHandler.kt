@@ -20,7 +20,7 @@ class AndroidCatchUpHandler @Inject constructor(
         diagnostics.record("catch_up_ring", alarm.id)
         val intent = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_FIRE)
             .putExtra(AlarmIntents.EXTRA_ALARM_ID, alarm.id)
-        startRingService(context, intent, diagnostics)
+        startRingService(context, intent, diagnostics, notifications)
     }
 
     override fun notifyMissed(alarm: Alarm) {

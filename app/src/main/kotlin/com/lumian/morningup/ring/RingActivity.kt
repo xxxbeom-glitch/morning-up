@@ -31,8 +31,11 @@ import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.core.model.engine.RingPhase
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -44,6 +47,9 @@ class RingActivity : ComponentActivity() {
     @Inject lateinit var controller: RingController
 
     @Inject lateinit var sessions: RingSessionStore
+
+    /** 저장된 울림을 다 읽기 전에는 닫지 않아요(앱이 새로 뜬 경우 처음엔 상태가 비어 있어요). */
+    private val loaded = MutableStateFlow(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         showOverLockScreen()
@@ -63,11 +69,20 @@ class RingActivity : ComponentActivity() {
             MorningTheme {
                 val screen by controller.screen.collectAsStateWithLifecycle()
                 val session by controller.session.collectAsStateWithLifecycle()
-                LaunchedEffect(screen, session) {
-                    if (screen == RingScreen.None && session == null) finish()
+                val ready by loaded.collectAsStateWithLifecycle()
+                LaunchedEffect(screen, session, ready) {
+                    if (session != null) loaded.value = true
+                    if (ready && screen == RingScreen.None && session == null) finish()
+                }
+                // 이어가기로 살아난 쉬는 중, W2 기다림에는 Show 효과가 없어서 단계에 맞는 화면을 골라요.
+                val shown = when {
+                    screen != RingScreen.None -> screen
+                    session?.phase == RingPhase.AwaitingWakeCheck -> RingScreen.WakeUp
+                    session != null -> RingScreen.Ringing
+                    else -> RingScreen.None
                 }
                 RingContent(
-                    screen = screen,
+                    screen = shown,
                     hasMissions = session?.plan?.missions?.isNotEmpty() == true,
                     send = { RingService.send(this, it) },
                     closeWakeUp = ::closeWakeUp,
@@ -78,10 +93,17 @@ class RingActivity : ComponentActivity() {
 
     /** 앱이 죽었다 살아나 화면부터 열렸으면, 저장된 울림을 서비스가 이어가게 해요. */
     private fun resumeIfNeeded() {
-        if (controller.session.value != null) return
+        if (controller.session.value != null || controller.screen.value != RingScreen.None) {
+            loaded.value = true
+            return
+        }
         lifecycleScope.launch {
-            if (sessions.load() == null) return@launch
-            startForegroundService(AlarmIntents.serviceIntent(this@RingActivity, AlarmIntents.ACTION_RESUME))
+            if (sessions.load() != null) {
+                startForegroundService(AlarmIntents.serviceIntent(this@RingActivity, AlarmIntents.ACTION_RESUME))
+                // 오래된 울림이라 이어가지 않고 끝난 경우를 위해 잠시 뒤에는 닫을 수 있게 해요.
+                delay(RESUME_WAIT_MILLIS)
+            }
+            loaded.value = true
         }
     }
 
@@ -103,6 +125,8 @@ class RingActivity : ComponentActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 }
+
+private const val RESUME_WAIT_MILLIS = 5_000L
 
 @Composable
 private fun RingContent(

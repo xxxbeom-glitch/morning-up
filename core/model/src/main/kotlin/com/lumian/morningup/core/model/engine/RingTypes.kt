@@ -77,8 +77,21 @@ sealed interface RingEvent {
     data object WakeCheckConfirmed : RingEvent
 
     companion object {
-        val userEvents: List<RingEvent> =
-            listOf(MissionStarted, MissionInteraction, MissionCompleted, DismissWithoutMission, WakeCheckConfirmed)
+        /**
+         * 화면 버튼 사건을 Intent로 주고받을 때 쓰는 고정 이름. 클래스 이름을 쓰면 출시 빌드의 코드 줄이기(R8)가
+         * 이름을 바꾸거나 합칠 수 있어서 직접 정해 둬요.
+         */
+        val userEventKeys: Map<String, RingEvent> = mapOf(
+            "mission_started" to MissionStarted,
+            "mission_interaction" to MissionInteraction,
+            "mission_completed" to MissionCompleted,
+            "dismiss_without_mission" to DismissWithoutMission,
+            "wake_check_confirmed" to WakeCheckConfirmed,
+        )
+
+        val userEvents: List<RingEvent> = userEventKeys.values.toList()
+
+        fun keyOf(event: RingEvent): String? = userEventKeys.entries.firstOrNull { it.value == event }?.key
     }
 }
 

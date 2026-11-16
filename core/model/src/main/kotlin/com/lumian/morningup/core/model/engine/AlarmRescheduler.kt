@@ -3,6 +3,8 @@ package com.lumian.morningup.core.model.engine
 import com.lumian.morningup.core.model.Alarm
 import java.time.Instant
 import java.time.ZonedDateTime
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /** 알람 저장소(Room이 구현해요). */
 interface AlarmStore {
@@ -43,6 +45,7 @@ object BootCatchUpPolicy {
 /**
  * 알람 예약을 맞추는 한 곳. 부팅, 시간 변경, 시간대 변경, 앱 업데이트, 권한 변경 신호는 모두 [rescheduleAll]을,
  * 알람이 울리면 [afterFired]를, 알람을 저장하면 [reschedule]을 불러요.
+ * 여러 곳(앱 열기, 부팅 신호 두 개, 울림)에서 동시에 불려도 읽고 고치고 저장하는 일이 섞이지 않게 하나씩 처리해요.
  */
 class AlarmRescheduler(
     private val store: AlarmStore,
@@ -50,7 +53,9 @@ class AlarmRescheduler(
     private val catchUp: CatchUpHandler,
     private val holidays: HolidayCalendar,
 ) {
-    suspend fun rescheduleAll(now: ZonedDateTime) {
+    private val mutex = Mutex()
+
+    suspend fun rescheduleAll(now: ZonedDateTime) = mutex.withLock {
         val nowMillis = now.toInstant().toEpochMilli()
         store.all().forEach { alarm ->
             val trigger = alarm.nextTriggerAt
@@ -59,7 +64,7 @@ class AlarmRescheduler(
                 else -> CatchUp.None
             }
             when (decision) {
-                CatchUp.None -> reschedule(alarm, now)
+                CatchUp.None -> scheduleNext(alarm, now)
                 CatchUp.RingNow -> {
                     catchUp.ringNow(alarm)
                     afterFired(alarm, now)
@@ -72,7 +77,7 @@ class AlarmRescheduler(
         }
     }
 
-    suspend fun afterFired(alarmId: Long, now: ZonedDateTime) {
+    suspend fun afterFired(alarmId: Long, now: ZonedDateTime) = mutex.withLock {
         store.get(alarmId)?.let { afterFired(it, now) }
     }
 
@@ -94,10 +99,12 @@ class AlarmRescheduler(
         }
         val today = base.toLocalDate()
         val skip = alarm.skipOnceDate?.takeIf { !it.isBefore(today) }
-        reschedule(alarm.copy(skipOnceDate = skip), base)
+        scheduleNext(alarm.copy(skipOnceDate = skip), base)
     }
 
-    suspend fun reschedule(alarm: Alarm, now: ZonedDateTime) {
+    suspend fun reschedule(alarm: Alarm, now: ZonedDateTime) = mutex.withLock { scheduleNext(alarm, now) }
+
+    private suspend fun scheduleNext(alarm: Alarm, now: ZonedDateTime) {
         val next = NextRingCalculator.next(alarm, now, holidays)
         if (next == null) {
             disable(alarm)

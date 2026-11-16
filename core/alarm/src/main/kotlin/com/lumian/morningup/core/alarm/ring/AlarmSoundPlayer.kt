@@ -3,8 +3,10 @@ package com.lumian.morningup.core.alarm.ring
 import android.content.ContentResolver
 import android.content.Context
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
 import android.os.VibrationEffect
@@ -14,7 +16,6 @@ import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -30,13 +31,14 @@ class AlarmSoundPlayer @Inject constructor(
 ) {
     private var player: MediaPlayer? = null
     private var vibrating = false
+    private var tone: ToneGenerator? = null
 
     private val attributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ALARM)
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
         .build()
 
-    val isPlaying: Boolean get() = player != null
+    val isPlaying: Boolean get() = player != null || tone != null
 
     /** [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. */
     fun play(volume: Float, vibrate: Boolean) {
@@ -52,7 +54,19 @@ class AlarmSoundPlayer @Inject constructor(
             release()
         }
         player = null
+        tone?.run {
+            stopTone()
+            release()
+        }
+        tone = null
         stopVibration()
+    }
+
+    /** 마지막 수단: 어떤 소리 파일도 못 열면 알람 소리 통로로 신호음을 내요. */
+    private fun startTone() {
+        if (tone != null) return
+        tone = runCatching { ToneGenerator(AudioManager.STREAM_ALARM, ToneGenerator.MAX_VOLUME) }.getOrNull()
+        tone?.startTone(ToneGenerator.TONE_SUP_RINGTONE)
     }
 
     private fun start(): MediaPlayer? {
@@ -62,7 +76,10 @@ class AlarmSoundPlayer @Inject constructor(
             diagnostics.record("sound_fallback", detail = "default tone failed")
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)?.let(::open)
         }
-        if (created == null) diagnostics.record("sound_failed")
+        if (created == null) {
+            diagnostics.record("sound_failed")
+            startTone()
+        }
         player = created
         return created
     }
@@ -76,12 +93,9 @@ class AlarmSoundPlayer @Inject constructor(
             mp.prepare()
             mp.start()
             mp
-        } catch (e: IOException) {
-            diagnostics.record("sound_open_failed", detail = e.message.orEmpty())
-            mp.release()
-            null
-        } catch (e: IllegalStateException) {
-            diagnostics.record("sound_open_failed", detail = e.message.orEmpty())
+        } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
+            // IOException, IllegalState, IllegalArgument, Security(잠금 풀기 전 폰 기본음) 모두 여기로 와요.
+            diagnostics.record("sound_open_failed", detail = e.javaClass.simpleName)
             mp.release()
             null
         }

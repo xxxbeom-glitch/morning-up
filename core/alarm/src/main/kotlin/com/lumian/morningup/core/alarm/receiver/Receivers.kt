@@ -8,6 +8,7 @@ import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import dagger.hilt.android.AndroidEntryPoint
@@ -16,12 +17,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /** 서비스를 앞으로 띄워요. 정확한 알람이 깨운 직후라 안드로이드 12 이상의 백그라운드 제한에서 빠져요. */
-internal fun startRingService(context: Context, intent: Intent, diagnostics: AlarmDiagnostics) {
+internal fun startRingService(
+    context: Context,
+    intent: Intent,
+    diagnostics: AlarmDiagnostics,
+    notifications: RingNotifications,
+) {
     try {
         context.startForegroundService(intent)
     } catch (e: IllegalStateException) {
-        // ForegroundServiceStartNotAllowedException도 여기로 와요. 기록을 남겨 아침 확인 때 볼 수 있게 해요.
+        // ForegroundServiceStartNotAllowedException도 여기로 와요.
+        // 정확한 알람 권한이 없어 대신 예약된 알람이면 이렇게 될 수 있어서, 알림 소리로라도 깨워요.
         diagnostics.record("service_start_failed", detail = e.javaClass.simpleName)
+        if (intent.action != AlarmIntents.ACTION_RESUME) notifications.fallbackAlert()
     }
 }
 
@@ -30,12 +38,14 @@ internal fun startRingService(context: Context, intent: Intent, diagnostics: Ala
 class AlarmFireReceiver : BroadcastReceiver() {
     @Inject lateinit var diagnostics: AlarmDiagnostics
 
+    @Inject lateinit var notifications: RingNotifications
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != AlarmIntents.ACTION_FIRE) return
         val id = intent.getLongExtra(AlarmIntents.EXTRA_ALARM_ID, -1)
         val service = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_FIRE)
             .putExtra(AlarmIntents.EXTRA_ALARM_ID, id)
-        startRingService(context, service, diagnostics)
+        startRingService(context, service, diagnostics, notifications)
     }
 }
 
@@ -44,11 +54,13 @@ class AlarmFireReceiver : BroadcastReceiver() {
 class RingTimerReceiver : BroadcastReceiver() {
     @Inject lateinit var diagnostics: AlarmDiagnostics
 
+    @Inject lateinit var notifications: RingNotifications
+
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != AlarmIntents.ACTION_TIMER) return
         val service = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_TIMER)
             .putExtra(AlarmIntents.EXTRA_TIMER_KIND, intent.getStringExtra(AlarmIntents.EXTRA_TIMER_KIND))
-        startRingService(context, service, diagnostics)
+        startRingService(context, service, diagnostics, notifications)
     }
 }
 
@@ -66,6 +78,8 @@ class SystemEventReceiver : BroadcastReceiver() {
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
 
+    @Inject lateinit var notifications: RingNotifications
+
     @Inject
     @AlarmScope
     lateinit var scope: CoroutineScope
@@ -81,7 +95,7 @@ class SystemEventReceiver : BroadcastReceiver() {
                 // 하던 울림이 있으면 이어가요(재부팅 직전에 울리던 알람).
                 if (sessions.load() != null) {
                     val resume = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_RESUME)
-                    startRingService(context, resume, diagnostics)
+                    startRingService(context, resume, diagnostics, notifications)
                 }
             } finally {
                 pending.finish()

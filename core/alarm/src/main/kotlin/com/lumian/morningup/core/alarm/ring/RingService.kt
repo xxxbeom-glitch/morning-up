@@ -42,7 +42,13 @@ class RingService : LifecycleService() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        goForeground()
+        // 알람 시각이나 타이머로 깨어났으면 첫 알림부터 전체 화면 Intent를 달아요(새 알림일 때만 화면이 떠요).
+        val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        if (!goForeground(if (wakeUp) RingPhase.Ringing else controller.session.value?.phase)) {
+            if (wakeUp) notifications.fallbackAlert()
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         inFlight++
         scope.launch {
             try {
@@ -90,18 +96,25 @@ class RingService : LifecycleService() {
         }
     }
 
-    private fun goForeground() {
+    /** 앞 서비스로 올려요. 안드로이드가 막으면(백그라운드 시작 제한) 기록하고 false. */
+    private fun goForeground(phase: RingPhase?): Boolean {
         val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
         } else {
             0
         }
-        ServiceCompat.startForeground(
-            this,
-            RingNotifications.RING_NOTIFICATION_ID,
-            notifications.ringing(controller.session.value?.phase),
-            type,
-        )
+        return try {
+            ServiceCompat.startForeground(
+                this,
+                RingNotifications.RING_NOTIFICATION_ID,
+                notifications.ringing(phase),
+                type,
+            )
+            true
+        } catch (e: IllegalStateException) {
+            diagnostics.record("foreground_denied", detail = e.javaClass.simpleName)
+            false
+        }
     }
 
     override fun onDestroy() {
@@ -117,14 +130,13 @@ class RingService : LifecycleService() {
 
         /** 울림 화면 버튼을 서비스로 보내요. 화면이 앞에 있으니 서비스를 앞으로 띄울 수 있어요. */
         fun send(context: Context, event: RingEvent) {
-            val intent = AlarmIntents.serviceIntent(context, ACTION_EVENT)
-                .putExtra(EXTRA_EVENT, event.javaClass.simpleName)
-            context.startForegroundService(intent)
+            context.startForegroundService(eventIntent(context, event))
         }
 
-        fun eventOf(intent: Intent): RingEvent? {
-            val name = intent.getStringExtra(EXTRA_EVENT) ?: return null
-            return RingEvent.userEvents.firstOrNull { it.javaClass.simpleName == name }
-        }
+        fun eventIntent(context: Context, event: RingEvent): Intent =
+            AlarmIntents.serviceIntent(context, ACTION_EVENT).putExtra(EXTRA_EVENT, RingEvent.keyOf(event))
+
+        fun eventOf(intent: Intent): RingEvent? =
+            intent.getStringExtra(EXTRA_EVENT)?.let { RingEvent.userEventKeys[it] }
     }
 }

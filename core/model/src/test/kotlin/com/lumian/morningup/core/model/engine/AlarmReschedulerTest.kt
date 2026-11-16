@@ -7,7 +7,10 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Test
 
 class AlarmReschedulerTest {
@@ -202,6 +205,24 @@ class AlarmReschedulerTest {
         val r = rescheduler(store)
         r.rescheduleAll(at(17, 7, 5))
         r.afterFired(1, at(17, 7, 5))
+        assertThat(scheduler.scheduled[1]).isEqualTo(ms(at(18, 7, 0)))
+    }
+
+    @Test
+    fun rescheduleAll_calledTwiceAtOnce_ringsMissedAlarmOnlyOnce() = runTest {
+        // 잠금 화면이 없는 폰은 부팅 신호 두 개가 거의 동시에 와요. 중간에 다른 쪽이 끼어들 틈을 줘요.
+        val inner = FakeStore(alarm(1, 7, 0, next = ms(at(17, 7, 0))))
+        val store = object : AlarmStore by inner {
+            override suspend fun all(): List<Alarm> {
+                val list = inner.all()
+                yield()
+                return list
+            }
+        }
+        val r = AlarmRescheduler(store, scheduler, catchUp, KoreanHolidays)
+        val now = at(17, 7, 5)
+        listOf(launch { r.rescheduleAll(now) }, launch { r.rescheduleAll(now) }).joinAll()
+        assertThat(catchUp.rang).containsExactly(1L)
         assertThat(scheduler.scheduled[1]).isEqualTo(ms(at(18, 7, 0)))
     }
 }

@@ -148,9 +148,9 @@ class AlarmWiringTest {
         }
         assertThat(AlarmIntents.timerKindOf(Intent().putExtra(AlarmIntents.EXTRA_TIMER_KIND, "Old"))).isNull()
         RingEvent.userEvents.forEach { event ->
-            val intent = Intent().putExtra("event", event.javaClass.simpleName)
-            assertThat(RingService.eventOf(intent)).isEqualTo(event)
+            assertThat(RingService.eventOf(RingService.eventIntent(context, event))).isEqualTo(event)
         }
+        assertThat(RingService.eventOf(Intent().putExtra("event", "MissionCompleted"))).isNull()
     }
 
     // ---- 울림 흐름 ----
@@ -229,6 +229,30 @@ class AlarmWiringTest {
         assertThat(runner.effects.filterIsInstance<RingEffect.PlaySound>()).isNotEmpty()
         assertThat(runner.effects.filterIsInstance<RingEffect.ScheduleTimer>().single().kind)
             .isEqualTo(TimerKind.RingTimeout)
+    }
+
+    @Test
+    fun resume_staleSession_endsAsMissed_insteadOfRinging() = runTest {
+        val sessions = sessionStore(tmp.newFile("e.preferences_pb").also { it.delete() })
+        RingController(sessions, FakeAlarms(mathAlarm), RecordingRunner(), now).fire(3)
+
+        // 울리던 중 폰이 꺼졌다가 한참 뒤(밤)에 켜졌어요.
+        clock += 15 * 60_000L
+        val runner = RecordingRunner()
+        val revived = RingController(sessions, FakeAlarms(mathAlarm), runner, now)
+        assertThat(revived.resume()).isNull()
+        assertThat(sessions.load()).isNull()
+        assertThat(runner.effects).contains(RingEffect.PostMissedNotification(3))
+        assertThat(runner.effects.filterIsInstance<RingEffect.PlaySound>()).isEmpty()
+    }
+
+    @Test
+    fun resume_recentSession_keepsRinging() = runTest {
+        val sessions = sessionStore(tmp.newFile("f.preferences_pb").also { it.delete() })
+        RingController(sessions, FakeAlarms(mathAlarm), RecordingRunner(), now).fire(3)
+        clock += 5 * 60_000L
+        val revived = RingController(sessions, FakeAlarms(mathAlarm), RecordingRunner(), now)
+        assertThat(revived.resume()?.phase).isEqualTo(RingPhase.Ringing)
     }
 
     @Test

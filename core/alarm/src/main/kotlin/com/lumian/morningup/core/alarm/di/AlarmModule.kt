@@ -21,9 +21,11 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import timber.log.Timber
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -41,7 +43,11 @@ object AlarmModule {
     @Provides
     @Singleton
     @AlarmScope
-    fun scope(): CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    fun scope(): CoroutineScope {
+        // 처리 중 예외가 나도 앱 전체가 죽지 않게 기록만 남겨요. 효과 실행기는 효과마다 따로 잡아요.
+        val handler = CoroutineExceptionHandler { _, e -> Timber.e(e, "alarm scope failure") }
+        return CoroutineScope(SupervisorJob() + Dispatchers.Default + handler)
+    }
 
     @Provides
     @Singleton
