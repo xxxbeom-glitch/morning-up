@@ -1,0 +1,20 @@
+# Gradle
+.gradle/
+build/
+local.properties
+.kotlin/
+
+# Android Studio
+.idea/
+*.iml
+captures/
+.cxx/
+
+# 서명 키는 저장소에 넣지 않아요
+*.jks
+*.keystore
+keystore.properties
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,52 @@
+# 기본 규칙(buildUponDefaultConfig) 위에 Compose와 테스트에 맞게 바꾼 것만 적어요.
+naming:
+  FunctionNaming:
+    ignoreAnnotated: ['Composable']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
+  MatchingDeclarationName:
+    active: true
+
+complexity:
+  LongParameterList:
+    functionThreshold: 8
+    ignoreDefaultParameters: true
+    ignoreAnnotated: ['Composable']
+  LongMethod:
+    threshold: 80
+    ignoreAnnotated: ['Composable', 'Test']
+  TooManyFunctions:
+    thresholdInFiles: 20
+    thresholdInClasses: 20
+    thresholdInInterfaces: 20
+    thresholdInObjects: 20
+    ignorePrivate: true
+  CyclomaticComplexMethod:
+    threshold: 16
+    ignoreSimpleWhenEntries: true
+
+style:
+  MagicNumber:
+    excludes:
+      - '**/test/**'
+      - '**/designsystem/theme/**'
+      - '**/*Tokens.kt'
+      - '**/KoreanHolidays.kt'
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated: ['Preview']
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+  ForbiddenComment:
+    active: false
+  ReturnCount:
+    max: 4
+  WildcardImport:
+    active: true
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - 'Error'
+      - 'Throwable'

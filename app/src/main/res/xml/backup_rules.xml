@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 안드로이드 11 이하 자동 백업 규칙. data_extraction_rules.xml과 같은 내용이에요. -->
+<full-backup-content>
+    <include domain="device_database" path="morningup.db" />
+    <include domain="device_file" path="datastore/settings.preferences_pb" />
+</full-backup-content>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- background/base (Light). 앱이 그려지기 전 창 바탕이에요. -->
+    <color name="window_background">#F2F4F9</color>
+    <!-- primary/default (Light). 런처 아이콘 바탕이에요. -->
+    <color name="launcher_background">#0B6CF0</color>
+</resources>

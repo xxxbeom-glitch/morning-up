@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 화면은 Compose 테마(MorningTheme)가 그려요. 이 테마는 창 바탕과 시스템 바만 정해요. -->
+    <style name="Theme.MorningUp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+    </style>
+</resources>

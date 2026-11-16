@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<lint>
+    <!-- 새 라이브러리 버전 알림은 버전 목록 갱신 때 따로 봐요. 빌드를 막지 않게 정보로만 둬요. -->
+    <issue id="GradleDependency" severity="informational" />
+    <issue id="NewerVersionAvailable" severity="informational" />
+    <issue id="AndroidGradlePluginVersion" severity="informational" />
+    <!-- 앱 문구는 한국어만 써요. -->
+    <issue id="MissingTranslation" severity="ignore" />
+</lint>
