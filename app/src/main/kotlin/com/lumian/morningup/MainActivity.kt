@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
+import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
@@ -19,9 +20,10 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.ring.RingActivity
 import com.lumian.morningup.ui.DebugAlarmTools
-import com.lumian.morningup.ui.MorningUpApp
+import com.lumian.morningup.ui.MorningNavHost
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -35,6 +37,9 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var notifications: RingNotifications
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
+
+    /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
+    private val editRequests = MutableStateFlow<Long?>(null)
 
     private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (!granted) diagnostics.record("notification_permission_denied")
@@ -50,10 +55,30 @@ class MainActivity : ComponentActivity() {
             rescheduler.rescheduleAll(now.now())
         }
         checkAlertPermissions()
+        if (savedInstanceState == null) readEditRequest(intent)
         setContent {
             MorningTheme {
-                MorningUpApp(debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() })
+                MorningNavHost(
+                    editRequests = editRequests,
+                    onEditRequestHandled = { editRequests.value = null },
+                    debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        readEditRequest(intent)
+    }
+
+    /** 상태 표시줄 알람 아이콘으로 열렸으면 그 알람의 편집 화면을 열어 달라고 남겨요. */
+    private fun readEditRequest(intent: Intent?) {
+        val id = intent?.getLongExtra(AlarmIntents.EXTRA_EDIT_ALARM_ID, NO_ALARM) ?: NO_ALARM
+        if (id != NO_ALARM) {
+            editRequests.value = id
+            intent?.removeExtra(AlarmIntents.EXTRA_EDIT_ALARM_ID)
         }
     }
 
@@ -68,5 +93,9 @@ class MainActivity : ComponentActivity() {
             if (!granted) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
         if (!notifications.canShowFullScreen()) diagnostics.record("full_screen_intent_denied")
+    }
+
+    private companion object {
+        const val NO_ALARM = -1L
     }
 }

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="edit_title">알람 편집</string>
+    <string name="edit_back">뒤로</string>
+    <!-- 7시간 20분 후 알림이 울립니다 -->
+    <string name="edit_until">%1$s 후 알림이 울립니다</string>
+    <string name="edit_period">오전 오후</string>
+    <string name="edit_hour">시</string>
+    <string name="edit_minute">분</string>
+    <string name="edit_colon">:</string>
+
+    <string name="edit_card_repeat">반복</string>
+    <string name="edit_skip_holidays">공휴일에는 끄기</string>
+    <string name="edit_skip_holidays_value">대체공휴일 포함</string>
+    <!-- 요일 칸 읽기: 월요일 -->
+    <string name="edit_day_description">%1$s요일</string>
+
+    <string name="edit_card_mission">기상 미션</string>
+    <string name="edit_mission">미션 선택</string>
+    <string name="edit_preview">미리 해보기</string>
+    <string name="edit_ring_again">다시 울림</string>
+    <string name="edit_ring_again_value">%1$d분, %2$d번</string>
+    <string name="edit_ring_again_until_off">%1$d분, 끌 때까지</string>
+    <string name="edit_wake_check">다시 잠들기 방지</string>
+    <string name="edit_wake_check_value">%1$d분 후</string>
+    <string name="edit_power_off">전원 종료 방지</string>
+    <string name="edit_power_off_value">미션 끝날 때까지</string>
+
+    <string name="edit_card_sound">울림 화면과 소리</string>
+    <string name="edit_sound">알람음</string>
+    <string name="edit_sound_default">기본 알람음</string>
+    <string name="edit_volume">볼륨 및 진동</string>
+    <string name="edit_volume_vibrate">%1$d%%, 기본 진동</string>
+    <string name="edit_volume_no_vibrate">%1$d%%, 진동 없음</string>
+    <string name="edit_gentle">부드럽게 깨우기</string>
+    <string name="edit_gentle_value">30초 동안</string>
+    <string name="edit_background">알람 화면 배경</string>
+    <string name="edit_background_value">시간대 하늘</string>
+
+    <string name="edit_save">저장</string>
+
+    <!-- S0-1 저장 안 하고 나가기 -->
+    <string name="edit_exit_title">저장하지 않고 나갈까요?</string>
+    <string name="edit_exit_message">지금 나가면\n바꾼 내용이 저장되지 않아요.</string>
+    <string name="edit_exit_keep">계속 편집</string>
+    <string name="edit_exit_leave">나가기</string>
+</resources>

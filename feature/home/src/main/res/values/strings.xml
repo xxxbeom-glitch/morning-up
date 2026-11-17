@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- H0 상단: 7시간 20분 후,(줄바꿈)알림이 울립니다 -->
+    <string name="home_next_headline">%1$s 후,\n알림이 울립니다</string>
+    <!-- 11월 16일 (월) 오전 6:30 -->
+    <string name="home_next_subline">%1$s %2$s</string>
+    <!-- H1 빈 홈, 켜진 알람이 없을 때 -->
+    <string name="home_empty_headline">울릴 알람이\n아직 없어요</string>
+    <string name="home_empty_title">첫 알람을 만들어 볼까요?</string>
+    <string name="home_empty_button">알람 만들기</string>
+
+    <string name="home_add">알람 추가</string>
+    <string name="home_more">더보기</string>
+    <!-- 카드 읽기: 오전 6:30, 평일, 켜짐 -->
+    <string name="home_card_description">%1$s, %2$s</string>
+
+    <!-- H5 삭제 확인 -->
+    <string name="home_delete_title">이 알람을 삭제할까요?</string>
+    <string name="home_delete_message">%1$s %2$s 알람이에요.</string>
+    <string name="home_delete_message_missions">%1$s %2$s 알람이에요.\n고른 미션도 함께 삭제돼요.</string>
+    <string name="home_delete_cancel">취소</string>
+    <string name="home_delete_confirm">삭제</string>
+
+    <!-- H6 저장 토스트, H7 삭제 스낵바 -->
+    <string name="home_saved">알람을 저장했어요. %1$s 뒤에 울려요</string>
+    <string name="home_saved_off">알람을 저장했어요</string>
+    <string name="home_deleted">알람을 지웠어요</string>
+    <string name="home_undo">되돌리기</string>
+</resources>

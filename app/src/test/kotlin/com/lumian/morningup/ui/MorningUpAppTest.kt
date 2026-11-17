@@ -1,5 +1,6 @@
 package com.lumian.morningup.ui
 
+import androidx.compose.material3.Text
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -31,5 +32,17 @@ class MorningUpAppTest {
         compose.setContent { MorningTheme(darkTheme = true, reduceMotion = false) { MorningUpApp() } }
         compose.onNodeWithContentDescription("설정").performClick().assertIsSelected()
         compose.onNodeWithText("견본").assertExists()
+    }
+
+    @Test
+    fun alarmTab_showsGivenContent() {
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                MorningUpApp(alarmTab = { Text("홈 자리") })
+            }
+        }
+        compose.onNodeWithText("홈 자리").assertExists()
+        compose.onNodeWithContentDescription("잠들기").performClick()
+        compose.onNodeWithText("홈 자리").assertDoesNotExist()
     }
 }

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.morningup.android.application)
     alias(libs.plugins.morningup.android.compose)
     alias(libs.plugins.morningup.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -39,6 +40,8 @@ dependencies {
     implementation(projects.core.designsystem)
     implementation(projects.core.data)
     implementation(projects.core.alarm)
+    implementation(projects.feature.home)
+    implementation(projects.feature.edit)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
