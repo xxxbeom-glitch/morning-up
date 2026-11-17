@@ -45,6 +45,7 @@ dependencies {
     implementation(projects.feature.ring)
     implementation(projects.feature.mission)
     implementation(projects.feature.settings)
+    implementation(projects.feature.sleep)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

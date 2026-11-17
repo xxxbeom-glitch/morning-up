@@ -40,6 +40,9 @@ import com.lumian.morningup.feature.settings.PowerGuardConsentDialog
 import com.lumian.morningup.feature.settings.PowerGuardGuidePage
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
+import com.lumian.morningup.feature.sleep.SleepPlayerPage
+import com.lumian.morningup.feature.sleep.SleepPlayerRoute
+import com.lumian.morningup.feature.sleep.SleepScreen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
@@ -143,6 +146,12 @@ fun MorningNavHost(
                         extra = debugTools,
                     )
                 },
+                sleepTab = { tabModifier ->
+                    SleepScreen(
+                        onOpenTrack = { id -> navController.navigate(SleepPlayerRoute(id)) { launchSingleTop = true } },
+                        modifier = tabModifier,
+                    )
+                },
                 settingsAlert = report.needsAttention,
                 hideNav = homeSelecting,
             )
@@ -158,6 +167,12 @@ fun MorningNavHost(
                 screen = PermissionScreen.valueOf(entry.toRoute<PermissionsRoute>().screen),
                 onBack = { navController.popBackStack() },
                 onOpenPowerGuide = { navController.navigate(PowerGuideRoute) { launchSingleTop = true } },
+            )
+        }
+        composable<SleepPlayerRoute> { entry ->
+            SleepPlayerPage(
+                trackId = entry.toRoute<SleepPlayerRoute>().trackId,
+                onBack = { navController.popBackStack() },
             )
         }
         composable<FaqRoute> { FaqPage(onBack = { navController.popBackStack() }) }

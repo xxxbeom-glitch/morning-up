@@ -5,6 +5,11 @@
     <string name="channel_ringing_description">알람이 울리는 동안 화면을 띄워요</string>
     <string name="channel_fallback">알람 비상 알림</string>
     <string name="channel_fallback_description">알람 화면을 띄우지 못했을 때 소리로 깨워요</string>
+    <string name="channel_sleep">잠들기 재생</string>
+    <string name="channel_sleep_description">잠들기 소리를 트는 동안 재생 조절을 보여 줘요</string>
+    <string name="sleep_play">재생</string>
+    <string name="sleep_pause">일시정지</string>
+    <string name="sleep_stop">끄기</string>
     <string name="channel_missed">놓친 알람</string>
     <string name="channel_missed_description">끄지 못하고 지나간 알람을 알려요</string>
 

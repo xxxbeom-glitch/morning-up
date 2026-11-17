@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- 권한 화면(T2-A, T2-B)의 방해 금지 예외, 다른 앱 위에 표시 줄. 선언해야 기기 설정 목록에 앱이 보여요. -->
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
@@ -31,6 +32,12 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/power_guard_service" />
         </service>
+
+        <!-- 잠들기 재생(Z2). 알람과 다른 종류의 포그라운드 서비스예요. -->
+        <service
+            android:name=".sleep.SleepPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <!-- 잠금을 풀기 전(재부팅 직후)에도 울려야 해서 모두 directBootAware예요. -->
         <service

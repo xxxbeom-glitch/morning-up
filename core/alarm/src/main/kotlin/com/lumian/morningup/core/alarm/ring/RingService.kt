@@ -9,6 +9,7 @@ import androidx.lifecycle.LifecycleService
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
+import com.lumian.morningup.core.alarm.sleep.SleepPlayer
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import dagger.hilt.android.AndroidEntryPoint
@@ -34,6 +35,8 @@ class RingService : LifecycleService() {
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
 
+    @Inject lateinit var sleepPlayer: SleepPlayer
+
     @Inject
     @AlarmScope
     lateinit var scope: CoroutineScope
@@ -44,6 +47,8 @@ class RingService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
         // 알람 시각이나 타이머로 깨어났으면 첫 알림부터 전체 화면 Intent를 달아요(새 알림일 때만 화면이 떠요).
         val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        // 잠들기 소리를 틀어 둔 채 잠들었어도 알람이 이겨요.
+        if (intent?.action == AlarmIntents.ACTION_FIRE) sleepPlayer.stopForAlarm()
         if (!goForeground(if (wakeUp) RingPhase.Ringing else controller.session.value?.phase)) {
             if (wakeUp) notifications.fallbackAlert()
             stopSelf(startId)
