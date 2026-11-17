@@ -17,6 +17,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- 날씨(9단계): 대략적인 위치를 약 5km 칸으로 반올림해 날씨 서비스에 보내요. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application>
         <!-- 전원 종료 방지(F1, P6, P7). 미션 중 전원 메뉴 창이 뜨면 닫아요. 화면 내용은 읽지 않아요. -->

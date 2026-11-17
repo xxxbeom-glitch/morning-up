@@ -51,7 +51,9 @@ fun RingRoute(
     missionContent: @Composable (index: Int) -> Unit,
     viewModel: RingViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val ringState by viewModel.uiState.collectAsStateWithLifecycle()
+    val weather by viewModel.weather.collectAsStateWithLifecycle()
+    val state = ringState.copy(weather = weather)
     var awakeTapped by remember { mutableStateOf(false) }
     // 닫히는 동안(W1 확인 뒤, W2 체크 뒤)에도 마지막 화면을 그대로 그려요.
     val last = remember { LastScreen() }
@@ -125,7 +127,11 @@ private fun RingContent(
             // 미션 순서가 바뀌어도 같은 자리를 유지해요(미션 사이 넘어가기는 미션 화면이 그려요).
             missionContent(shown.index)
         }
-        RingScreen.WakeUp -> WakeUpScreen(dayPart = state.dayPart, onConfirm = onWakeUpConfirmed)
+        RingScreen.WakeUp -> WakeUpScreen(
+            dayPart = state.dayPart,
+            onConfirm = onWakeUpConfirmed,
+            weather = state.weather,
+        )
         RingScreen.WakeCheck -> {
             val endsAt = state.wakeCheckEndsAt
             var remaining by remember { mutableLongStateOf(endsAt?.minus(nowMillis()) ?: 0L) }

@@ -7,6 +7,8 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingLink
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.model.DayPart
+import com.lumian.morningup.core.model.WeatherKind
+import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
@@ -37,6 +39,8 @@ data class RingUiState(
     val wakeCheckAnswerSeconds: Int = 60,
     /** S8 알람 화면 배경. D0에만 써요. */
     val background: String? = null,
+    /** W1 날씨 한마디(화면에서 채워요). */
+    val weather: WeatherKind? = null,
 )
 
 /**
@@ -48,7 +52,15 @@ class RingViewModel @Inject constructor(
     private val link: RingLink,
     private val now: NowProvider,
     ticker: MinuteTicker,
+    weatherSource: WeatherSource,
 ) : ViewModel() {
+    /** W1 날씨 한마디. 위치 동의가 없거나 못 불러왔으면 null이라 짧은 인사만 보여요. */
+    val weather: StateFlow<WeatherKind?> = weatherSource.weather
+
+    init {
+        weatherSource.refresh()
+    }
+
     private val clock = merge(flowOf(Unit), ticker.ticks()).map { now.now() }
 
     val uiState: StateFlow<RingUiState> = combine(link.screen, link.session, clock) { screen, session, at ->

@@ -2,6 +2,7 @@ package com.lumian.morningup.feature.home
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -21,11 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.theme.MorningColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.WeatherKind
 import java.time.LocalTime
 import kotlin.random.Random
 
@@ -95,7 +98,7 @@ private data class Star(
  * '애니메이션 줄이기'가 켜져 있으면 제자리에 멈춘 장면이에요.
  */
 @Composable
-fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier) {
+fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier, weather: WeatherKind? = null) {
     val colors = MorningTheme.colors
     val reduceMotion = MorningTheme.reduceMotion
     val dark = colors.isDark
@@ -106,9 +109,12 @@ fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier) {
         if (!reduceMotion) rise.animateTo(0f, tween(RISE_MILLIS, easing = LinearOutSlowInEasing))
     }
     val float = floatState(reduceMotion)
-    val twinkle = twinkleState(reduceMotion || scene != SkyScene.Night)
+    val falling = weather == WeatherKind.Rain || weather == WeatherKind.Snow
+    val twinkle = twinkleState(reduceMotion || scene != SkyScene.Night || falling)
     val stars = remember { stars() }
-    val (top, bottom) = sceneColors(scene, colors)
+    val (top, bottom) = if (falling) weatherColors(weather, moon, colors) else sceneColors(scene, colors)
+    val fall = fallState(reduceMotion || !falling, weather == WeatherKind.Snow)
+    val particles = remember(weather) { particles(weather) }
     val base = colors.backgroundBase
     Canvas(modifier.fillMaxWidth().height(height)) {
         drawRect(
@@ -119,12 +125,17 @@ fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier) {
                 1f to base,
             ),
         )
-        if (scene == SkyScene.Night) drawStars(stars, twinkle.value, colors)
-        val center = Offset(
-            size.width * BODY_X,
-            BodyCenterY.toPx() + rise.value * RiseFrom.toPx() + float.value * FloatRange.toPx(),
-        )
-        if (moon) drawMoon(center, colors) else drawSun(center, colors)
+        // 비, 눈이 오면 해, 달, 별을 숨기고 빗줄기나 눈송이만 내려요.
+        if (falling) {
+            drawFalling(particles, fall.value, weather == WeatherKind.Snow, moon, colors)
+        } else {
+            if (scene == SkyScene.Night) drawStars(stars, twinkle.value, colors)
+            val center = Offset(
+                size.width * BODY_X,
+                BodyCenterY.toPx() + rise.value * RiseFrom.toPx() + float.value * FloatRange.toPx(),
+            )
+            if (moon) drawMoon(center, colors) else drawSun(center, colors)
+        }
     }
 }
 
@@ -239,5 +250,86 @@ private fun DrawScope.drawMoon(center: Offset, c: MorningColors) {
     }
     Craters.forEach { (x, y, s) ->
         drawCircle(c.celestialMoonCrater, s * r, Offset(center.x + x * r, center.y + y * r), alpha = CRATER_ALPHA)
+    }
+}
+
+private const val RAIN_MILLIS = 4_000
+private const val SNOW_MILLIS = 8_000
+private const val RAIN_COUNT = 70
+private const val SNOW_COUNT = 50
+private const val PARTICLE_SEED = 11
+private const val RAIN_ALPHA = 0.55f
+private const val SNOW_ALPHA = 0.85f
+private const val SNOW_SWAY = 0.015f
+private const val FRONT_LAYER = 0.6f
+private const val RAIN_MIN_LENGTH = 0.6f
+private val RainLength = 14.dp
+private val RainWidth = 1.5.dp
+
+/** 빗줄기, 눈송이 하나: 가로 자리, 처음 세로 자리, 크기(0~1), 빠르기 배수. */
+private class Particle(val x: Float, val y: Float, val size: Float, val speed: Float)
+
+private fun particles(weather: WeatherKind?): List<Particle> {
+    val count = if (weather == WeatherKind.Snow) SNOW_COUNT else RAIN_COUNT
+    val random = Random(PARTICLE_SEED)
+    // 크기가 클수록(앞층) 빠르게 떨어져요. 빠르기는 1이나 2 배라 한 바퀴가 끊김 없이 이어져요.
+    return List(count) {
+        val size = random.nextFloat()
+        Particle(random.nextFloat(), random.nextFloat(), size, if (size > FRONT_LAYER) 2f else 1f)
+    }
+}
+
+/** 비 4초, 눈 8초 한 바퀴로 끝없이 내려요. '애니메이션 줄이기'면 멈춘 자리예요. */
+@Composable
+private fun fallState(still: Boolean, snow: Boolean): State<Float> {
+    if (still) return remember { mutableFloatStateOf(0f) }
+    return rememberInfiniteTransition(label = "fall").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            tween(if (snow) SNOW_MILLIS else RAIN_MILLIS, easing = LinearEasing),
+            RepeatMode.Restart,
+        ),
+        label = "fallProgress",
+    )
+}
+
+/** 비, 눈 하늘 색(아침과 밤). 다크 모드나 달 뜨는 시각은 밤 색이에요. */
+private fun weatherColors(weather: WeatherKind?, night: Boolean, c: MorningColors): Pair<Color, Color> = when {
+    weather == WeatherKind.Snow && night -> c.weatherSnowNightTop to c.weatherSnowNightBottom
+    weather == WeatherKind.Snow -> c.weatherSnowDayTop to c.weatherSnowDayBottom
+    night -> c.weatherRainNightTop to c.weatherRainNightBottom
+    else -> c.weatherRainDayTop to c.weatherRainDayBottom
+}
+
+private fun DrawScope.drawFalling(
+    particles: List<Particle>,
+    progress: Float,
+    snow: Boolean,
+    night: Boolean,
+    c: MorningColors,
+) {
+    val color = if (snow || night) c.weatherParticle else c.weatherRainDayDrop
+    particles.forEach { p ->
+        val y = ((p.y + progress * p.speed) % 1f) * size.height
+        if (snow) {
+            val sway = kotlin.math.sin((progress * p.speed + p.x) * 2f * Math.PI.toFloat()) * SNOW_SWAY * size.width
+            drawCircle(
+                color = color,
+                radius = (1.5f + p.size * 2f).dp.toPx(),
+                center = Offset(p.x * size.width + sway, y),
+                alpha = SNOW_ALPHA * (0.5f + p.size / 2f),
+            )
+        } else {
+            val length = RainLength.toPx() * (RAIN_MIN_LENGTH + p.size)
+            drawLine(
+                color = color,
+                start = Offset(p.x * size.width, y),
+                end = Offset(p.x * size.width, y + length),
+                strokeWidth = RainWidth.toPx(),
+                cap = StrokeCap.Round,
+                alpha = RAIN_ALPHA * (0.5f + p.size / 2f),
+            )
+        }
     }
 }

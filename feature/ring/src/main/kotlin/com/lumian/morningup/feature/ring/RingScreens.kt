@@ -49,6 +49,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningShadows
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.morningShadow
 import com.lumian.morningup.core.model.DayPart
+import com.lumian.morningup.core.model.WeatherKind
 import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.rememberBackgroundPhoto
@@ -171,7 +172,12 @@ private fun BoxScope.RingingContent(
  * 피그마는 홈 위에 딤이지만, 잠금 화면 위 액티비티라 홈 대신 같은 하늘을 깔아요.
  */
 @Composable
-fun WakeUpScreen(dayPart: DayPart, onConfirm: () -> Unit, modifier: Modifier = Modifier) {
+fun WakeUpScreen(
+    dayPart: DayPart,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
+    weather: WeatherKind? = null,
+) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val morning = dayPart == DayPart.Morning
@@ -203,9 +209,7 @@ fun WakeUpScreen(dayPart: DayPart, onConfirm: () -> Unit, modifier: Modifier = M
             )
             Spacer(Modifier.height(WakeTitleGap))
             Text(
-                text = stringResource(
-                    if (morning) R.string.ring_wake_up_message_morning else R.string.ring_wake_up_message_night,
-                ),
+                text = stringResource(wakeUpMessage(morning, weather)),
                 style = typography.bodyMedium,
                 color = colors.textBody,
                 textAlign = TextAlign.Center,
@@ -228,6 +232,14 @@ fun WakeUpScreen(dayPart: DayPart, onConfirm: () -> Unit, modifier: Modifier = M
             }
         }
     }
+}
+
+/** W1 한마디. 날씨를 알면 날씨 한마디, 모르면(위치 동의 없음, 못 불러옴, 꺼 둠) 짧은 인사예요. */
+private fun wakeUpMessage(morning: Boolean, weather: WeatherKind?): Int = when (weather) {
+    WeatherKind.Rain -> R.string.ring_wake_up_weather_rain
+    WeatherKind.Snow -> R.string.ring_wake_up_weather_snow
+    WeatherKind.Clear -> R.string.ring_wake_up_weather_clear
+    null -> if (morning) R.string.ring_wake_up_message_morning else R.string.ring_wake_up_message_night
 }
 
 /**

@@ -7,6 +7,8 @@ import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.model.DayPart
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.WeatherKind
+import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.testing.FakeRingLink
@@ -17,6 +19,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -31,7 +35,7 @@ class RingViewModelTest {
     private val ticker = MinuteTicker { ticks }
     private val math = MissionSetting(MissionType.QuickMath)
 
-    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker)
+    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather)
 
     @Test
     fun ringing_showsDateTimeAndMorning() = runTest {
@@ -101,4 +105,11 @@ class RingViewModelTest {
         assertThat(shown(RingPhase.AwaitingWakeCheck)).isEqualTo(RingScreen.None)
         assertThat(RingViewModel.shownScreen(RingScreen.None, null)).isEqualTo(RingScreen.None)
     }
+}
+
+/** 날씨 없는 시험용 출처. */
+private object NoWeather : WeatherSource {
+    override val weather: StateFlow<WeatherKind?> = MutableStateFlow(null)
+
+    override fun refresh(force: Boolean) = Unit
 }

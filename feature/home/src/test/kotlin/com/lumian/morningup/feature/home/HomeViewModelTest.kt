@@ -7,6 +7,8 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.WeatherKind
+import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.TimeUntil
 import com.lumian.morningup.core.testing.FakeAlarmBook
@@ -17,6 +19,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -54,7 +58,7 @@ class HomeViewModelTest {
             missions = listOf(MissionSetting(MissionType.QuickMath)),
         )
 
-    private fun viewModel(book: FakeAlarmBook) = HomeViewModel(book, now, noHolidays, ticker)
+    private fun viewModel(book: FakeAlarmBook) = HomeViewModel(book, now, noHolidays, ticker, NoWeather)
 
     @Test
     fun showsNextAlarm_inHoursAndMinutes() = runTest {
@@ -227,4 +231,11 @@ class HomeViewModelTest {
             assertThat(state.message).isEqualTo(HomeMessage.Copied(1))
         }
     }
+}
+
+/** 날씨 없는 시험용 출처(홈은 맑은 하늘). */
+private object NoWeather : WeatherSource {
+    override val weather: StateFlow<WeatherKind?> = MutableStateFlow(null)
+
+    override fun refresh(force: Boolean) = Unit
 }

@@ -6,6 +6,8 @@ import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.WeatherKind
+import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.NextAlarm
 import com.lumian.morningup.core.model.engine.NextRingCalculator
@@ -47,6 +49,8 @@ data class HomeUiState(
     val today: LocalDate? = null,
     /** 지금 시각(분 단위). H0 하늘 장면이 따라요. */
     val time: LocalTime? = null,
+    /** H0 하늘 날씨. null이면 시간대만 따르는 맑은 하늘이에요. */
+    val weather: WeatherKind? = null,
     /** H5 삭제 확인 중인 알람. 비어 있으면 확인 창이 없어요. */
     val pendingDelete: List<Alarm> = emptyList(),
     val message: HomeMessage? = null,
@@ -72,6 +76,7 @@ class HomeViewModel @Inject constructor(
     private val now: NowProvider,
     private val holidays: HolidayCalendar,
     ticker: MinuteTicker,
+    private val weatherSource: WeatherSource,
 ) : ViewModel() {
     private data class Overlay(
         val pendingDelete: List<Alarm> = emptyList(),
@@ -85,7 +90,12 @@ class HomeViewModel @Inject constructor(
     /** 처음 한 번, 그 뒤 분이 바뀔 때마다 지금 시각. */
     private val clock = merge(flowOf(Unit), ticker.ticks()).map { now.now() }
 
-    val uiState: StateFlow<HomeUiState> = combine(book.alarms, clock, overlay) { alarms, at, o ->
+    val uiState: StateFlow<HomeUiState> = combine(book.alarms, clock, overlay, weatherSource.weather) {
+            alarms,
+            at,
+            o,
+            weather,
+        ->
         val ids = alarms.mapTo(HashSet()) { it.id }
         HomeUiState(
             loading = false,
@@ -93,6 +103,7 @@ class HomeViewModel @Inject constructor(
             next = NextAlarm.find(alarms, at, holidays),
             today = at.toLocalDate(),
             time = at.toLocalTime().withSecond(0).withNano(0),
+            weather = weather,
             pendingDelete = o.pendingDelete,
             message = o.message,
             restOffers = o.restOffers,
@@ -112,6 +123,9 @@ class HomeViewModel @Inject constructor(
             NextRingCalculator.next(alarm.copy(skipOnceDate = null), at, holidays)?.toLocalDate() == skip
         return if (skipsNext) NextRingCalculator.next(alarm, at, holidays)?.dayOfWeek else null
     }
+
+    /** 홈이 앞으로 나올 때. 날씨가 오래됐으면 새로 받아요. */
+    fun refreshWeather() = weatherSource.refresh()
 
     /** 편집 화면에서 저장하고 돌아왔어요(H6 토스트). */
     fun onAlarmSaved(id: Long) {

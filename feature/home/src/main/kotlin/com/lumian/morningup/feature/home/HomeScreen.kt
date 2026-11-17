@@ -48,6 +48,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.AlarmClockOff
@@ -110,6 +111,10 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshWeather()
+        onPauseOrDispose {}
+    }
     LaunchedEffect(state.selecting) { onSelectingChange(state.selecting) }
     BackHandler(enabled = state.selecting, onBack = viewModel::endSelection)
     LaunchedEffect(savedAlarmId) {
@@ -181,7 +186,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(MorningTheme.colors.backgroundBase),
     ) {
-        HomeSky(time = state.time ?: DEFAULT_SKY_TIME, height = SkyHeight)
+        HomeSky(time = state.time ?: DEFAULT_SKY_TIME, height = SkyHeight, weather = state.weather)
         if (!state.loading) {
             if (state.alarms.isEmpty()) {
                 EmptyHome(state = state, onAdd = onAdd, bottomReserve = navReserve, banner = banner)

@@ -16,8 +16,10 @@ import com.lumian.morningup.core.alarm.ring.AndroidRingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingLink
 import com.lumian.morningup.core.alarm.ring.ServiceRingLink
+import com.lumian.morningup.core.alarm.weather.WeatherRepository
 import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.PermissionChecker
+import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmScheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
@@ -92,6 +94,9 @@ interface AlarmBindings {
 
     @Binds
     fun ticker(impl: SystemMinuteTicker): MinuteTicker
+
+    @Binds
+    fun weather(impl: WeatherRepository): WeatherSource
 
     @Binds
     fun ringLink(impl: ServiceRingLink): RingLink

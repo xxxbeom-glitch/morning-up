@@ -55,7 +55,7 @@ private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 
 /**
  * T1 설정(피그마 `141:1293`). 카드: 알람, 도움말, 앱 정보.
- * 날씨 애니메이션 카드는 9단계, 자주 묻는 질문과 개인정보 처리방침, 오픈소스 라이선스는 내용이 생기면 더해요.
+ * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
  * [extra]는 디버그 빌드에서만 맨 아래에 붙는 개발용 도구예요.
  */
 @Composable
@@ -66,6 +66,7 @@ fun SettingsRoute(
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
     extra: @Composable () -> Unit = {},
+    weatherCard: @Composable () -> Unit = { WeatherCard() },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
@@ -82,6 +83,7 @@ fun SettingsRoute(
         onLicenses = onOpenLicenses,
         modifier = modifier,
         extra = extra,
+        weatherCard = weatherCard,
     )
 }
 
@@ -97,6 +99,7 @@ fun SettingsScreen(
     onFaq: () -> Unit = {},
     onLicenses: () -> Unit = {},
     extra: @Composable () -> Unit = {},
+    weatherCard: @Composable () -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         Column(
@@ -131,6 +134,7 @@ fun SettingsScreen(
                         onClick = onTryAlarm,
                     )
                 }
+                weatherCard()
                 MorningSettingsCard(title = stringResource(R.string.settings_help_card)) {
                     NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
                     NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
@@ -162,7 +166,7 @@ fun SettingsScreen(
  * [alert]면 값 대신 빨간 경고 삼각형 16을 켜요. [onClick]이 없으면 화살표 없이 값만 보여요(버전).
  */
 @Composable
-private fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null, alert: Boolean = false) {
+internal fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null, alert: Boolean = false) {
     val colors = MorningTheme.colors
     val alertText = stringResource(R.string.settings_needs_attention)
     Row(

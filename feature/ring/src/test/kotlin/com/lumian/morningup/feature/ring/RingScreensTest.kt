@@ -6,6 +6,7 @@ import androidx.compose.ui.test.performClick
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.DayPart
+import com.lumian.morningup.core.model.WeatherKind
 import java.time.LocalDate
 import java.time.LocalTime
 import org.junit.Rule
@@ -61,6 +62,16 @@ class RingScreensTest {
         compose.onNodeWithText("좋은 아침이에요").assertExists()
         compose.onNodeWithText("확인").performClick()
         assertThat(confirmed).isTrue()
+    }
+
+    @Test
+    fun wakeUp_rainShowsWeatherLine() {
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                WakeUpScreen(dayPart = DayPart.Morning, onConfirm = {}, weather = WeatherKind.Rain)
+            }
+        }
+        compose.onNodeWithText("밖에 비가 와요", substring = true).assertExists()
     }
 
     @Test
