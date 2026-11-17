@@ -5,6 +5,8 @@ plugins {
 
 android {
     namespace = "com.lumian.morningup.core.alarm"
+    // 디버그 빌드 음소거(RingMute)에 BuildConfig.DEBUG를 써요.
+    buildFeatures { buildConfig = true }
 }
 
 dependencies {

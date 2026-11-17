@@ -67,7 +67,8 @@ class AlarmSoundPlayer @Inject constructor(
         val wanted = requested ?: return
         val out = CallPolicy.output(wanted, calls.inCall())
         val current = player ?: start()
-        current?.setVolume(out.volume, out.volume)
+        val volume = RingMute.volume(out.volume)
+        current?.setVolume(volume, volume)
         if (out.vibrate) startVibration() else stopVibration()
     }
 
@@ -91,7 +92,7 @@ class AlarmSoundPlayer @Inject constructor(
     /** 마지막 수단: 어떤 소리 파일도 못 열면 알람 소리 통로로 신호음을 내요. */
     private fun startTone() {
         if (tone != null) return
-        tone = runCatching { ToneGenerator(AudioManager.STREAM_ALARM, ToneGenerator.MAX_VOLUME) }.getOrNull()
+        tone = runCatching { ToneGenerator(AudioManager.STREAM_ALARM, toneVolume()) }.getOrNull()
         tone?.startTone(ToneGenerator.TONE_SUP_RINGTONE)
     }
 
@@ -149,6 +150,8 @@ class AlarmSoundPlayer @Inject constructor(
     }
 
     @Suppress("DEPRECATION")
+    private fun toneVolume(): Int = if (RingMute.MUTED) 0 else ToneGenerator.MAX_VOLUME
+
     private fun vibrator(): Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         context.getSystemService(VibratorManager::class.java).defaultVibrator
     } else {

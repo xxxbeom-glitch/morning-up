@@ -53,6 +53,7 @@ class RingtonePreviewer(private val context: Context) {
             )
             mp.setDataSource(context, RingtoneFiles.uriFor(context, id))
             mp.prepare()
+            RingMute.volume(1f).let { mp.setVolume(it, it) }
             mp.start()
         }.isSuccess
         if (started) {

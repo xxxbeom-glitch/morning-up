@@ -56,7 +56,12 @@ class RingNotifications @Inject constructor(
             .build()
         val fallback = NotificationChannel(CHANNEL_FALLBACK, text(R.string.channel_fallback), high).apply {
             description = text(R.string.channel_fallback_description)
-            setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), alarmAudio)
+            // 디버그 빌드는 음소거라 대신 울림 알림도 소리 없이 만들어요(이미 만든 채널은 기기에 남은 값을 써요).
+            if (RingMute.MUTED) {
+                setSound(null, null)
+            } else {
+                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), alarmAudio)
+            }
             enableVibration(true)
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setBypassDnd(true)
