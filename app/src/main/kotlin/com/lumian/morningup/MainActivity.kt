@@ -11,6 +11,7 @@ import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
+import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -51,12 +52,14 @@ class MainActivity : ComponentActivity() {
         checkAlertPermissions()
         if (savedInstanceState == null) readEditRequest(intent)
         setContent {
-            MorningTheme {
-                MorningNavHost(
-                    editRequests = editRequests,
-                    onEditRequestHandled = { editRequests.value = null },
-                    debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
-                )
+            FitDesignWidth {
+                MorningTheme {
+                    MorningNavHost(
+                        editRequests = editRequests,
+                        onEditRequestHandled = { editRequests.value = null },
+                        debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
+                    )
+                }
             }
         }
     }

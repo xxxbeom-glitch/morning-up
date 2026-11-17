@@ -118,30 +118,36 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
             ) {
                 MorningSettingsCard(title = stringResource(R.string.settings_alarm_card)) {
-                    NavRow(
-                        label = stringResource(R.string.settings_alarm_ring),
-                        alert = report.needsAttention(PermissionScreen.Ring),
-                        onClick = { onOpenPermissions(PermissionScreen.Ring) },
-                    )
-                    NavRow(
-                        label = stringResource(R.string.settings_alarm_screen),
-                        alert = report.needsAttention(PermissionScreen.Screen),
-                        onClick = { onOpenPermissions(PermissionScreen.Screen) },
-                    )
-                    NavRow(
-                        label = stringResource(R.string.settings_alarm_try),
-                        value = stringResource(R.string.settings_alarm_try_value),
-                        onClick = onTryAlarm,
-                    )
+                    NavRows {
+                        NavRow(
+                            label = stringResource(R.string.settings_alarm_ring),
+                            alert = report.needsAttention(PermissionScreen.Ring),
+                            onClick = { onOpenPermissions(PermissionScreen.Ring) },
+                        )
+                        NavRow(
+                            label = stringResource(R.string.settings_alarm_screen),
+                            alert = report.needsAttention(PermissionScreen.Screen),
+                            onClick = { onOpenPermissions(PermissionScreen.Screen) },
+                        )
+                        NavRow(
+                            label = stringResource(R.string.settings_alarm_try),
+                            value = stringResource(R.string.settings_alarm_try_value),
+                            onClick = onTryAlarm,
+                        )
+                    }
                 }
                 weatherCard()
                 MorningSettingsCard(title = stringResource(R.string.settings_help_card)) {
-                    NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
-                    NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
+                    NavRows {
+                        NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
+                        NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
+                    }
                 }
                 MorningSettingsCard(title = stringResource(R.string.settings_info_card)) {
-                    NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
-                    NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
+                    NavRows {
+                        NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
+                        NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
+                    }
                 }
                 extra()
             }
@@ -159,6 +165,12 @@ fun SettingsScreen(
             }
         }
     }
+}
+
+/** 카드 안 진입 줄 묶음. 줄끼리는 사이 없이 44 간격으로 붙어요(시안 줄 간격 44, 데모와 같음). */
+@Composable
+internal fun NavRows(content: @Composable () -> Unit) {
+    Column { content() }
 }
 
 /**

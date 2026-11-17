@@ -67,13 +67,6 @@ internal fun WeatherCard(viewModel: WeatherSettingsViewModel = hiltViewModel()) 
         onPauseOrDispose {}
     }
     MorningSettingsCard(title = stringResource(R.string.settings_weather_card)) {
-        NavRow(
-            label = stringResource(R.string.settings_weather_location),
-            value = stringResource(
-                if (granted) R.string.permission_granted else R.string.settings_weather_location_off,
-            ),
-            onClick = { if (granted) openAppDetails() else asking = true },
-        )
         MorningSettingRow(
             label = stringResource(R.string.settings_weather_motion),
             value = stringResource(R.string.settings_weather_motion_value),
@@ -89,6 +82,15 @@ internal fun WeatherCard(viewModel: WeatherSettingsViewModel = hiltViewModel()) 
                 }
             },
         )
+        NavRows {
+            NavRow(
+                label = stringResource(R.string.settings_weather_location),
+                value = stringResource(
+                    if (granted) R.string.permission_granted else R.string.settings_weather_location_off,
+                ),
+                onClick = { if (granted) openAppDetails() else asking = true },
+            )
+        }
     }
     if (asking) {
         MorningDialog(

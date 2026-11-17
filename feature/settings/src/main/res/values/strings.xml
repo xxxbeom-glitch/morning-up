@@ -12,7 +12,7 @@
     <string name="settings_weather_location">위치 권한</string>
     <string name="settings_weather_location_off">꺼짐</string>
     <string name="settings_weather_motion">배경 애니메이션</string>
-    <string name="settings_weather_motion_value">비나 눈이 오면 하늘에도 내려요</string>
+    <string name="settings_weather_motion_value">날씨에 따라 앱 화면에도 적용돼요</string>
     <string name="ask_location">위치 권한을 허용해 주세요</string>
     <string name="ask_location_msg">허용하지 않으면
 날씨 애니메이션이 반영되지 않아요.</string>

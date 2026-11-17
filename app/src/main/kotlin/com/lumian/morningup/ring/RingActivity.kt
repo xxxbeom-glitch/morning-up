@@ -16,6 +16,7 @@ import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.data.session.RingSessionStore
+import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.feature.mission.RingMissionRoute
 import com.lumian.morningup.feature.ring.RingRoute
@@ -50,14 +51,16 @@ class RingActivity : ComponentActivity() {
             controller.session.collect { if (it != null) loaded.value = true }
         }
         setContent {
-            MorningTheme {
-                val ready by loaded.collectAsStateWithLifecycle()
-                RingRoute(
-                    canClose = ready,
-                    onClose = ::finish,
-                    onWakeUpConfirmed = ::afterWakeUp,
-                    missionContent = { _ -> RingMissionRoute() },
-                )
+            FitDesignWidth {
+                MorningTheme {
+                    val ready by loaded.collectAsStateWithLifecycle()
+                    RingRoute(
+                        canClose = ready,
+                        onClose = ::finish,
+                        onWakeUpConfirmed = ::afterWakeUp,
+                        missionContent = { _ -> RingMissionRoute() },
+                    )
+                }
             }
         }
     }
