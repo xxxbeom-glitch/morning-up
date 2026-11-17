@@ -97,8 +97,11 @@ class HomeViewModelTest {
         vm.uiState.test {
             awaitItem().let { if (it.loading) awaitItem() else it }
             vm.setEnabled(a630, false)
-            val state = awaitItem()
+            var state = awaitItem()
+            while (state.next?.alarm?.id != 2L) state = awaitItem()
             assertThat(book.calls).containsExactly("enable:1:false")
+            // 반복 알람을 끄면 '내일 다시 켜기'가 붙어요(H8 Rest Offer).
+            assertThat(state.restOffers).containsExactly(1L)
             // 평일 06:30이 꺼지면 다음은 토요일 07:10이에요.
             assertThat(state.next!!.alarm.id).isEqualTo(2)
         }
@@ -110,16 +113,19 @@ class HomeViewModelTest {
         val vm = viewModel(book)
         vm.uiState.test {
             awaitItem().let { if (it.loading) awaitItem() else it }
-            vm.requestDelete(a800)
-            assertThat(awaitItem().pendingDelete).isEqualTo(a800)
+            vm.startSelection(a800)
+            awaitItem()
+            vm.deleteSelected()
+            assertThat(awaitItem().pendingDelete).containsExactly(a800)
             assertThat(book.calls).isEmpty()
 
             vm.confirmDelete()
             var state = awaitItem()
             while (state.message == null) state = awaitItem()
-            assertThat(state.pendingDelete).isNull()
+            assertThat(state.pendingDelete).isEmpty()
+            assertThat(state.selection).isNull()
             assertThat(state.alarms.map { it.id }).containsExactly(1L)
-            assertThat(state.message).isEqualTo(HomeMessage.Deleted(a800))
+            assertThat(state.message).isEqualTo(HomeMessage.Deleted(listOf(a800)))
 
             vm.undoDelete()
             state = awaitItem()
@@ -135,10 +141,12 @@ class HomeViewModelTest {
         val vm = viewModel(book)
         vm.uiState.test {
             awaitItem().let { if (it.loading) awaitItem() else it }
-            vm.requestDelete(a630)
+            vm.startSelection(a630)
+            awaitItem()
+            vm.deleteSelected()
             awaitItem()
             vm.cancelDelete()
-            assertThat(awaitItem().pendingDelete).isNull()
+            assertThat(awaitItem().pendingDelete).isEmpty()
             assertThat(book.calls).isEmpty()
         }
     }
@@ -153,6 +161,70 @@ class HomeViewModelTest {
             assertThat(message).isEqualTo(HomeMessage.Saved(TimeUntil(0, 7, 20)))
             vm.dismissMessage(message!!)
             assertThat(awaitItem().message).isNull()
+        }
+    }
+
+    @Test
+    fun restOnce_skipsOnlyNextRing_andShowsDay() = runTest {
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.alarms.first().enabled) state = awaitItem()
+            vm.restOnce(state.alarms.first())
+            while (1L !in state.resting) state = awaitItem()
+            // 월요일 밤에 쉬면 화요일 한 번만 쉬고 수요일에 다시 울려요.
+            assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 17))
+            assertThat(state.resting[1L]).isEqualTo(DayOfWeek.WEDNESDAY)
+            assertThat(state.shownOn(state.alarms.first())).isFalse()
+            assertThat(state.restOffers).isEmpty()
+            assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 18))
+
+            // 쉬는 중인 카드의 토글을 켜면 쉬기를 풀어요.
+            vm.setEnabled(state.alarms.first(), true)
+            while (1L in state.resting) state = awaitItem()
+            assertThat(state.alarms.first().skipOnceDate).isNull()
+            assertThat(book.calls).containsExactly("enable:1:false", "save:1", "save:1").inOrder()
+        }
+    }
+
+    @Test
+    fun selection_turnOffSelected_offersRestForRepeating() = runTest {
+        val book = FakeAlarmBook(listOf(a630, a710, a800))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection(a630)
+            assertThat(awaitItem().selection).containsExactly(1L)
+            vm.toggleSelected(a800)
+            assertThat(awaitItem().selection).containsExactly(1L, 3L)
+            vm.toggleSelectAll()
+            assertThat(awaitItem().selection).containsExactly(1L, 2L, 3L)
+            vm.turnOffSelected()
+            var state = awaitItem()
+            while (state.alarms.any { it.id != 3L && it.enabled }) state = awaitItem()
+            assertThat(state.selection).isNull()
+            // 이미 꺼져 있던 8:00은 그대로, 켜져 있던 반복 알람마다 '내일 다시 켜기'(H8-4).
+            assertThat(state.restOffers).containsExactly(1L, 2L)
+            assertThat(book.calls).containsExactly("enable:1:false", "enable:2:false")
+        }
+    }
+
+    @Test
+    fun copySelected_makesNewAlarms_andToasts() = runTest {
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection(a630)
+            awaitItem()
+            vm.copySelected()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.alarms).hasSize(2)
+            assertThat(state.message).isEqualTo(HomeMessage.Copied(1))
         }
     }
 }

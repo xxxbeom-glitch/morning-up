@@ -36,6 +36,7 @@ fun MorningUpApp(
     alarmTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_alarm)) },
     settingsTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_settings)) },
     settingsAlert: Boolean = false,
+    hideNav: Boolean = false,
 ) {
     var tab by rememberSaveable { mutableStateOf(TopTab.Alarm) }
     val labels = listOf(
@@ -53,22 +54,25 @@ fun MorningUpApp(
             tab == TopTab.Settings -> settingsTab(Modifier.fillMaxSize())
             else -> Placeholder(labels[tab.ordinal])
         }
-        MorningBottomNav(
-            items = listOf(
-                MorningNavItem(Lucide.AlarmClock, labels[0]),
-                MorningNavItem(Lucide.Moon, labels[1]),
-                MorningNavItem(Lucide.Settings, labels[2]),
-            ),
-            selectedIndex = tab.ordinal,
-            onSelect = { tab = TopTab.entries[it] },
-            // 꺼진 필수 권한이 있으면 설정 아이콘 위에 '확인 필요' 말풍선(design-system 하단 메뉴 Alert).
-            alertIndex = TopTab.Settings.ordinal.takeIf { settingsAlert },
-            alertLabel = stringResource(R.string.tab_settings_alert),
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .navigationBarsPadding()
-                .padding(bottom = MorningDimens.space16),
-        )
+        // 홈 선택 모드(H3-1)에서는 하단 메뉴 자리에 홈의 켜기, 끄기, 복사, 삭제 바가 떠요.
+        if (!hideNav) {
+            MorningBottomNav(
+                items = listOf(
+                    MorningNavItem(Lucide.AlarmClock, labels[0]),
+                    MorningNavItem(Lucide.Moon, labels[1]),
+                    MorningNavItem(Lucide.Settings, labels[2]),
+                ),
+                selectedIndex = tab.ordinal,
+                onSelect = { tab = TopTab.entries[it] },
+                // 꺼진 필수 권한이 있으면 설정 아이콘 위에 '확인 필요' 말풍선(design-system 하단 메뉴 Alert).
+                alertIndex = TopTab.Settings.ordinal.takeIf { settingsAlert },
+                alertLabel = stringResource(R.string.tab_settings_alert),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = MorningDimens.space16),
+            )
+        }
     }
 }
 

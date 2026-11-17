@@ -26,4 +26,21 @@
     <string name="home_saved_off">알람을 저장했어요</string>
     <string name="home_deleted">알람을 지웠어요</string>
     <string name="home_undo">되돌리기</string>
+    <!-- H8 이번만 쉬기 -->
+    <string name="home_rest_offer">내일 다시 켜기</string>
+    <string name="home_resting">%1$s요일에 다시 울려요</string>
+
+    <!-- H3 더보기, 선택 모드 -->
+    <string name="home_menu_all_off">모든 알람 끄기</string>
+    <string name="home_menu_select">선택</string>
+    <string name="home_selected_count">%1$d개 선택됨</string>
+    <string name="home_select_all">전체 선택</string>
+    <string name="home_select_cancel">취소</string>
+    <string name="home_action_on">켜기</string>
+    <string name="home_action_off">끄기</string>
+    <string name="home_action_copy">복사</string>
+    <string name="home_action_delete">삭제</string>
+    <string name="home_delete_many_title">알람 %1$d개를 삭제할까요?</string>
+    <string name="home_delete_many_message">고른 알람과 미션이 함께 삭제돼요.</string>
+    <string name="home_copied">알람 %1$d개를 복사했어요</string>
 </resources>

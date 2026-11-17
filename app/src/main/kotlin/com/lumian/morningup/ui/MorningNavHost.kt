@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -105,6 +106,7 @@ fun MorningNavHost(
             val report by settings.report.collectAsStateWithLifecycle()
             val firstSaveAsked by settings.firstSaveAsked.collectAsStateWithLifecycle()
             var askingFirstSave by rememberSaveable { mutableStateOf(false) }
+            var homeSelecting by remember { mutableStateOf(false) }
             LaunchedEffect(savedId) {
                 // 첫 알람을 저장하고 홈에 돌아오면 저장된 카드를 잠깐 보여 준 뒤 권한을 한 번만 물어요(F21).
                 if (savedId != null && !firstSaveAsked) {
@@ -121,6 +123,7 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         savedAlarmId = savedId,
                         onSavedAlarmShown = { entry.savedStateHandle[SAVED_ALARM_KEY] = null },
+                        onSelectingChange = { homeSelecting = it },
                         banner = if (report.needsAttention) {
                             { PermissionBanner(report) }
                         } else {
@@ -141,6 +144,7 @@ fun MorningNavHost(
                     )
                 },
                 settingsAlert = report.needsAttention,
+                hideNav = homeSelecting,
             )
             if (askingFirstSave) {
                 FirstSavePermissionAsk(report) {
