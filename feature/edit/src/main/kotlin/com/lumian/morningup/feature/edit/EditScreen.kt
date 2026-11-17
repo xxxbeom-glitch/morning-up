@@ -44,11 +44,13 @@ import com.lumian.morningup.core.designsystem.component.WheelItemHeight
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
+import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
-/** 편집 화면의 하위 화면. S4(WakeCheck)만 열리고 나머지는 7단계 이후예요. */
+/** 편집 화면의 하위 화면. S1-2(Mission)와 S4(WakeCheck)만 열리고 나머지는 7단계 이후예요. */
 enum class EditDetail { Mission, Preview, RingAgain, WakeCheck, PowerOff, Sound, Volume, Gentle, Background }
 
 /** 피그마 S0의 요일 순서(일~토). */
@@ -74,7 +76,8 @@ private val SaveFadeHeight = 24.dp
 
 /**
  * 알람 편집 S0. [onSaved]는 저장한 알람 id를, [onClose]는 저장 없이 닫을 때 불러요.
- * [onOpenDetail]은 하위 화면을 열 자리예요(지금은 아무 일 없음).
+ * [onOpenDetail]은 아직 없는 하위 화면을 열 자리예요(지금은 아무 일 없음).
+ * [onPreview]는 '미리 해보기'(S0, 고른 미션 전부)와 시트 '미리보기'(그 미션 하나)에서 불러요.
  */
 @Composable
 fun AlarmEditRoute(
@@ -82,11 +85,13 @@ fun AlarmEditRoute(
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
+    onPreview: (List<MissionSetting>) -> Unit = {},
     viewModel: EditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val saved by rememberUpdatedState(onSaved)
     val close by rememberUpdatedState(onClose)
+    val preview by rememberUpdatedState(onPreview)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
             is EditExit.Saved -> saved(exit.alarmId)
@@ -102,8 +107,7 @@ fun AlarmEditRoute(
                 onTime = viewModel::setTime,
                 onToggleDay = viewModel::toggleDay,
                 onSkipHolidays = viewModel::setSkipHolidays,
-                // 디버그 빌드만 미션을 켜면 Quick Math가 들어가요(미션 고르기는 5단계).
-                onMissions = { on -> viewModel.setMissionsEnabled(on, allowDebugQuickMath = BuildConfig.DEBUG) },
+                onMissions = viewModel::setMissionsEnabled,
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
                 onPowerOff = viewModel::setPowerOffGuard,
@@ -117,10 +121,18 @@ fun AlarmEditRoute(
                 onWakeCheckAsk = viewModel::setWakeCheckAsk,
                 onWakeCheckAnswer = viewModel::setWakeCheckAnswer,
                 onCloseDetail = viewModel::closeDetail,
+                onOpenMissionSheet = viewModel::openMissionSheet,
+                onCloseMissionSheet = viewModel::closeMissionSheet,
+                onMissionLevel = viewModel::stepMissionLevel,
+                onMissionSpeed = viewModel::stepMissionSpeed,
+                onMissionCount = viewModel::stepMissionCount,
+                onConfirmMission = viewModel::confirmMissionSheet,
+                onDeselectMission = viewModel::deselectMission,
+                onPreview = { preview(it) },
             )
         },
         onOpenDetail = { detail ->
-            if (detail == EditDetail.WakeCheck) viewModel.openDetail(detail) else onOpenDetail(detail)
+            if (detail in PAGE_DETAILS) viewModel.openDetail(detail) else onOpenDetail(detail)
         },
         modifier = modifier,
     )
@@ -146,7 +158,18 @@ data class EditActions(
     val onWakeCheckAsk: (Int) -> Unit = {},
     val onWakeCheckAnswer: (Int) -> Unit = {},
     val onCloseDetail: () -> Unit = {},
+    val onOpenMissionSheet: (MissionType) -> Unit = {},
+    val onCloseMissionSheet: () -> Unit = {},
+    val onMissionLevel: (Int) -> Unit = {},
+    val onMissionSpeed: (Int) -> Unit = {},
+    val onMissionCount: (Int) -> Unit = {},
+    val onConfirmMission: () -> Unit = {},
+    val onDeselectMission: () -> Unit = {},
+    val onPreview: (List<MissionSetting>) -> Unit = {},
 )
+
+/** 편집 화면 안에서 페이지로 여는 하위 화면. */
+private val PAGE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck)
 
 /** S0 알람 편집(미션 있음, 없음)과 S0-1 저장 안 하고 나가기. 상태와 콜백만 받아요. */
 @Composable
@@ -207,13 +230,15 @@ fun EditScreen(
                 danger = true,
             )
         }
-        if (state.detail == EditDetail.WakeCheck) {
-            WakeCheckPage(
+        when (state.detail) {
+            EditDetail.WakeCheck -> WakeCheckPage(
                 wakeCheck = state.draft.wakeCheck,
                 onBack = actions.onCloseDetail,
                 onAsk = actions.onWakeCheckAsk,
                 onAnswer = actions.onWakeCheckAnswer,
             )
+            EditDetail.Mission -> MissionPickPage(state = state, actions = actions)
+            else -> Unit
         }
     }
 }
@@ -333,7 +358,7 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
         if (state.hasMissions) {
             MorningPreviewButton(
                 text = stringResource(R.string.edit_preview),
-                onClick = { onOpenDetail(EditDetail.Preview) },
+                onClick = { actions.onPreview(alarm.missions) },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

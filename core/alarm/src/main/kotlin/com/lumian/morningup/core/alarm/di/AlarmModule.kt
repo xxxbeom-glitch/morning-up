@@ -8,6 +8,8 @@ import com.lumian.morningup.core.alarm.AndroidCatchUpHandler
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.SchedulingAlarmBook
+import com.lumian.morningup.core.alarm.SensorShakeSupport
+import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.alarm.SystemMinuteTicker
 import com.lumian.morningup.core.alarm.ring.AndroidRingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingEffectRunner
@@ -68,6 +70,9 @@ object AlarmModule {
 @Module
 @InstallIn(SingletonComponent::class)
 interface AlarmBindings {
+    @Binds
+    fun shakeSupport(impl: SensorShakeSupport): ShakeSupport
+
     @Binds
     fun scheduler(impl: AndroidAlarmScheduler): AlarmScheduler
 

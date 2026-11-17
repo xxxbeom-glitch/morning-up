@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -122,7 +121,8 @@ private fun RingContent(
     when (shown) {
         RingScreen.None, RingScreen.Ringing -> ringing()
         is RingScreen.Mission -> MissionReveal(center = buttonCenter, under = ringing) {
-            key(shown.index) { missionContent(shown.index) }
+            // 미션 순서가 바뀌어도 같은 자리를 유지해요(미션 사이 넘어가기는 미션 화면이 그려요).
+            missionContent(shown.index)
         }
         RingScreen.WakeUp -> WakeUpScreen(dayPart = state.dayPart, onConfirm = onWakeUpConfirmed)
         RingScreen.WakeCheck -> {

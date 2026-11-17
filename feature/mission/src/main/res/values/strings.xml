@@ -9,4 +9,24 @@
     <string name="mission_math_delete">지우기</string>
     <string name="mission_math_confirm">확인</string>
     <string name="mission_math_input_description">입력한 답 %1$s</string>
+
+    <!-- 미리보기, 넘어가기 -->
+    <string name="mission_preview_close">미리보기 닫기</string>
+    <string name="mission_preview_done">잘했어요</string>
+    <string name="mission_next">다음 미션 %1$d / %2$d</string>
+
+    <!-- M1 Drop Words -->
+    <string name="mission_drop_correct">정답 %1$d / %2$d</string>
+
+    <!-- M2 Pop Quiz 분야 -->
+    <string name="mission_quiz_category_economy">경제 용어</string>
+    <string name="mission_quiz_category_society">사회 용어</string>
+    <string name="mission_quiz_category_korean_history">국사</string>
+    <string name="mission_quiz_category_world_history">세계사</string>
+    <string name="mission_quiz_category_science">과학 용어</string>
+    <string name="mission_quiz_category_people">인물</string>
+    <string name="mission_quiz_category_issues">사회 이슈</string>
+
+    <!-- M4 Shake Shake -->
+    <string name="mission_shake_guide">폰을 세게 흔들어요</string>
 </resources>

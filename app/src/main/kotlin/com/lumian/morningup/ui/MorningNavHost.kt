@@ -20,6 +20,8 @@ import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.home.HomeRoute
+import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
+import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -31,7 +33,7 @@ data object MainRoute
 private const val SAVED_ALARM_KEY = "savedAlarmId"
 
 /**
- * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이 옆에서 밀려 들어와요(spatialSlow + 페이드).
+ * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
  * [editRequests]에 알람 id가 오면(상태 표시줄 알람 아이콘) 그 알람의 편집 화면을 열고 [onEditRequestHandled]를 불러요.
  */
 @Composable
@@ -85,7 +87,16 @@ fun MorningNavHost(
                     navController.popBackStack()
                 },
                 onClose = { navController.popBackStack() },
+                onPreview = { missions ->
+                    if (missions.isNotEmpty()) {
+                        navController.navigate(MissionPreviewRoute.of(missions)) { launchSingleTop = true }
+                    }
+                },
             )
+        }
+        // 미리보기: 편집 화면 위에 미션 화면을 띄우고, 닫히면 편집 화면(시트)으로 돌아가요.
+        composable<MissionPreviewRoute> {
+            MissionPreviewRouteScreen(onClosed = { navController.popBackStack<MissionPreviewRoute>(inclusive = true) })
         }
     }
 }

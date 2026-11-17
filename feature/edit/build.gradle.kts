@@ -7,10 +7,6 @@ plugins {
 
 android {
     namespace = "com.lumian.morningup.feature.edit"
-    // 디버그 빌드만 미션 줄에서 Quick Math를 켜는 임시 길(4단계)에 써요.
-    buildFeatures {
-        buildConfig = true
-    }
 }
 
 dependencies {

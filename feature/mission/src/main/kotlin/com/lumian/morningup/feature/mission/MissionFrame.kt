@@ -8,6 +8,8 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,15 +31,21 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.perform
@@ -44,6 +53,11 @@ import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.engine.RingStateMachine
+
+/** 미리보기 닫기 이름표(테스트용). */
+const val MISSION_CLOSE_TAG = "missionClose"
+
+private val CloseTouch = 48.dp
 
 /** 피그마 M 위 줄 타이머: 지름 40, 고리 두께는 반지름의 15%. */
 private val TimerSize = 40.dp
@@ -71,17 +85,20 @@ private val GlowSpots = listOf(
 
 /**
  * 미션 화면 공통 틀. 어두운 바탕(미션마다 색만 다름), 위 줄(왼쪽 상태 글, 오른쪽 59초 고리), 내용.
- * 뒤로 가기는 아무것도 하지 않아요(미션 중 빠져나가지 못해요).
+ * - [status]와 [remainingMillis]가 null이면 위 줄에 그것을 그리지 않아요(Shake Shake는 위 줄 없이 큰 고리만 써요).
+ * - [onClose]가 있으면(미리보기) 왼쪽 위에 닫기를 두고 뒤로 가기도 닫기예요.
+ *   없으면(진짜 울림) 뒤로 가기는 아무것도 하지 않아요(미션 중 빠져나가지 못해요).
  */
 @Composable
 fun MissionFrame(
     backdrop: MissionColors.Backdrop,
-    status: String,
-    remainingMillis: Long,
+    status: String?,
+    remainingMillis: Long?,
     modifier: Modifier = Modifier,
+    onClose: (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    BackHandler(enabled = true) {}
+    BackHandler(enabled = true) { onClose?.invoke() }
     Box(modifier = modifier.fillMaxSize().missionBackdrop(backdrop)) {
         Column(
             modifier = Modifier
@@ -89,20 +106,54 @@ fun MissionFrame(
                 .systemBarsPadding()
                 .padding(horizontal = MorningDimens.space20),
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = status,
-                    style = MorningTheme.typography.bodyMediumStrong.copy(fontWeight = FontWeight.Bold),
-                    color = MissionColors.TextStatus,
-                    modifier = Modifier.weight(1f),
-                )
-                MissionTimer(remainingMillis = remainingMillis)
+            if (status != null || remainingMillis != null || onClose != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (onClose != null) CloseButton(onClose)
+                    Text(
+                        text = status.orEmpty(),
+                        style = MorningTheme.typography.bodyMediumStrong.copy(fontWeight = FontWeight.Bold),
+                        color = MissionColors.TextStatus,
+                        modifier = Modifier.weight(1f),
+                    )
+                    if (remainingMillis != null) MissionTimer(remainingMillis = remainingMillis)
+                }
             }
             content()
         }
+    }
+}
+
+/** 미리보기 왼쪽 위 닫기(Lucide X). 누르는 곳 48. */
+@Composable
+private fun CloseButton(onClose: () -> Unit) {
+    val view = LocalView.current
+    val description = stringResource(R.string.mission_preview_close)
+    Box(
+        modifier = Modifier
+            .size(CloseTouch)
+            .testTag(MISSION_CLOSE_TAG)
+            .clickable(
+                interactionSource = remember {
+                    MutableInteractionSource()
+                },
+                indication = null,
+                role = Role.Button,
+            ) {
+                view.perform(MorningHaptic.Press)
+                onClose()
+            }
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Icon(
+            imageVector = Lucide.X,
+            contentDescription = null,
+            tint = MissionColors.Text,
+            modifier = Modifier.size(MorningDimens.iconMd),
+        )
     }
 }
 
@@ -130,7 +181,13 @@ private fun Modifier.missionBackdrop(backdrop: MissionColors.Backdrop): Modifier
  * 마지막 10초는 숨쉬듯 커졌다 작아지고, 마지막 5초는 1초마다 약하게 진동해요.
  */
 @Composable
-fun MissionTimer(remainingMillis: Long, modifier: Modifier = Modifier) {
+fun MissionTimer(
+    remainingMillis: Long,
+    modifier: Modifier = Modifier,
+    diameter: Dp = TimerSize,
+    strokeWidth: Dp? = null,
+    track: Color = MissionColors.TimerTrack,
+) {
     val reduceMotion = MorningTheme.reduceMotion
     val view = LocalView.current
     val total = RingStateMachine.MISSION_MILLIS.toFloat()
@@ -158,7 +215,7 @@ fun MissionTimer(remainingMillis: Long, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.mission_timer_description, secondsLeft)
     Canvas(
         modifier = modifier
-            .size(TimerSize)
+            .size(diameter)
             .graphicsLayer {
                 val scale = if (breathing) breath else 1f
                 scaleX = scale
@@ -166,11 +223,11 @@ fun MissionTimer(remainingMillis: Long, modifier: Modifier = Modifier) {
             }
             .semantics { contentDescription = description },
     ) {
-        val stroke = size.minDimension / 2 * TIMER_STROKE_RATIO
+        val stroke = strokeWidth?.toPx() ?: (size.minDimension / 2 * TIMER_STROKE_RATIO)
         val inset = stroke / 2
         val arcSize = Size(size.width - stroke, size.height - stroke)
         val topLeft = Offset(inset, inset)
-        drawArc(MissionColors.TimerTrack, 0f, FULL_SWEEP, false, topLeft, arcSize, style = Stroke(stroke))
+        drawArc(track, 0f, FULL_SWEEP, false, topLeft, arcSize, style = Stroke(stroke))
         drawArc(
             color = MissionColors.TimerFill,
             startAngle = TOP_ANGLE,

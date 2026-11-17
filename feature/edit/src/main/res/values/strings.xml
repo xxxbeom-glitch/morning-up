@@ -39,6 +39,61 @@
 
     <string name="edit_save">저장</string>
 
+    <!-- S1-2 미션 고르기 -->
+    <string name="edit_mission_desc_drop_words">떨어지는 단어를 입력해요</string>
+    <string name="edit_mission_desc_pop_quiz">상식 퀴즈를 맞혀요</string>
+    <string name="edit_mission_desc_quick_math">간단한 계산 문제를 풀어요</string>
+    <string name="edit_mission_desc_shake_shake">폰을 세게 흔들어요</string>
+    <!-- 고른 카드 설명: 1단계, 속도 1, 단어 10개 -->
+    <string name="edit_mission_value_drop_words">%1$d단계, 속도 %2$d, 단어 %3$d개</string>
+    <string name="edit_mission_value_questions">%1$d단계, %2$d문제</string>
+    <string name="edit_mission_value_shakes">%1$d번</string>
+
+    <!-- S1-3~S1-7 미션 설정 시트 -->
+    <string name="edit_mission_level">난이도</string>
+    <string name="edit_mission_level_value">%1$d단계</string>
+    <string name="edit_mission_speed">속도</string>
+    <string name="edit_mission_speed_sub">바닥까지 %1$d초</string>
+    <string name="edit_mission_words">단어 수</string>
+    <string name="edit_mission_words_value">%1$d개</string>
+    <string name="edit_mission_questions">문제 수</string>
+    <string name="edit_mission_questions_value">%1$d문제</string>
+    <string name="edit_mission_shakes">흔드는 횟수</string>
+    <string name="edit_mission_shakes_value">%1$d번</string>
+    <!-- 값 버튼 읽기: 난이도 낮추기 -->
+    <string name="edit_mission_decrease">%1$s 낮추기</string>
+    <string name="edit_mission_increase">%1$s 높이기</string>
+    <string name="edit_mission_preview">미리보기</string>
+    <string name="edit_mission_select">선택 완료</string>
+    <string name="edit_mission_deselect">선택 해제</string>
+    <string-array name="edit_mission_examples_drop_words">
+        <item>예: 사과, 나무</item>
+        <item>예: 운동화, 자동차</item>
+        <item>예: 닭볶음, 깻잎전</item>
+        <item>예: 일석이조, 우공이산</item>
+        <item>예: 고혈압, 소멸시효</item>
+        <item>예: 읊조리다, 넓적다리</item>
+        <item>예: 탄산수소나트륨</item>
+    </string-array>
+    <string-array name="edit_mission_examples_pop_quiz">
+        <item>예: 한글을 만든 왕은?</item>
+        <item>예: 물이 끓는 온도는?</item>
+        <item>예: 광합성에 필요한 기체는?</item>
+        <item>예: 물가가 계속 오르는 현상은?</item>
+        <item>예: 임진왜란이 일어난 해는?</item>
+        <item>예: 경기 침체 속 물가 상승은?</item>
+        <item>예: 30년 전쟁을 끝낸 조약은?</item>
+    </string-array>
+    <string-array name="edit_mission_examples_quick_math">
+        <item>예: 7 + 5</item>
+        <item>예: 47 + 38</item>
+        <item>예: 24 × 7</item>
+        <item>예: (24 × 7) + 58</item>
+        <item>예: 38 × 26</item>
+        <item>예: (38 × 26) + 457</item>
+        <item>예: (167 × 37) + 1872</item>
+    </string-array>
+
     <!-- S4 다시 잠들기 방지 -->
     <string name="edit_wake_check_ask_title">언제 물을까요</string>
     <string name="edit_wake_check_ask_option">%1$d분 후</string>

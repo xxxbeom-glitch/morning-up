@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
@@ -46,8 +47,14 @@ class EditViewModelTest {
         enabled = false,
     )
 
-    private fun viewModel(book: FakeAlarmBook, id: Long = EditRoute.NEW_ALARM) =
-        EditViewModel(book, now, noHolidays, MinuteTicker { ticks }, SavedStateHandle(mapOf("alarmId" to id)))
+    private fun viewModel(book: FakeAlarmBook, id: Long = EditRoute.NEW_ALARM, shake: Boolean = true) = EditViewModel(
+        book,
+        now,
+        noHolidays,
+        MinuteTicker { ticks },
+        SavedStateHandle(mapOf("alarmId" to id)),
+        ShakeSupport { shake },
+    )
 
     private suspend fun app.cash.turbine.ReceiveTurbine<EditUiState>.loaded(): EditUiState {
         var state = awaitItem()
@@ -82,9 +89,11 @@ class EditViewModelTest {
             val off = awaitItem()
             assertThat(off.hasMissions).isFalse()
             assertThat(off.changed).isTrue()
-            // 켜기는 미션을 고르는 화면이 필요해서 지금은 그대로예요.
+            // 켜면 미션 고르기(S1-2)가 열려요. 골라야 미션이 생겨요.
             vm.setMissionsEnabled(true)
-            expectNoEvents()
+            val picking = awaitItem()
+            assertThat(picking.detail).isEqualTo(EditDetail.Mission)
+            assertThat(picking.hasMissions).isFalse()
         }
     }
 
@@ -239,14 +248,143 @@ class EditViewModelTest {
     }
 
     @Test
-    fun debugPath_turnsOnQuickMath() = runTest {
+    fun pickMissions_inOrder_upToThree_thenOthersCannotOpen() = runTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.setMissionsEnabled(true, allowDebugQuickMath = true)
-            val state = awaitItem()
-            assertThat(state.draft.missions).containsExactly(MissionSetting.default(MissionType.QuickMath))
-            assertThat(state.hasMissions).isTrue()
+            vm.setMissionsEnabled(true)
+            assertThat(awaitItem().missionOrder).containsExactlyElementsIn(EditUiState.MISSION_LIST_ORDER).inOrder()
+            var full = EditUiState()
+            listOf(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz).forEach { type ->
+                vm.openMissionSheet(type)
+                val sheet = awaitItem().missionSheet!!
+                assertThat(sheet.selected).isFalse()
+                assertThat(sheet.setting).isEqualTo(MissionSetting.default(type))
+                vm.confirmMissionSheet()
+                full = awaitItem()
+                assertThat(full.missionSheet).isNull()
+            }
+            assertThat(full.draft.missionTypes)
+                .containsExactly(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz).inOrder()
+            assertThat(full.missionsFull).isTrue()
+            // 고른 것 먼저(고른 순서), 그다음 남은 것.
+            assertThat(full.missionOrder.take(3)).isEqualTo(full.draft.missionTypes)
+            assertThat(full.canOpen(MissionType.DropWords)).isFalse()
+            assertThat(full.canOpen(MissionType.QuickMath)).isTrue()
+            vm.openMissionSheet(MissionType.DropWords)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun shakeWithoutSensor_cannotBePicked() = runTest {
+        val vm = viewModel(FakeAlarmBook(), shake = false)
+        vm.uiState.test {
+            val state = loaded()
+            assertThat(state.shakeAvailable).isFalse()
+            assertThat(state.canOpen(MissionType.ShakeShake)).isFalse()
+            vm.openMissionSheet(MissionType.ShakeShake)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun sheetValues_stayInRange_andEndsDisableButtons() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openMissionSheet(MissionType.DropWords)
+            var sheet = awaitItem().missionSheet!!
+            // 처음 값은 1단계, 속도 1이라 < 가 막혀 있어요. 단어 수는 10개라 5개까지 줄일 수 있어요.
+            assertThat(sheet.canLevelDown).isFalse()
+            assertThat(sheet.canSpeedDown).isFalse()
+            assertThat(sheet.canCountDown).isTrue()
+            assertThat(sheet.canLevelUp).isTrue()
+            vm.stepMissionLevel(-1)
+            vm.stepMissionCount(-1)
+            vm.stepMissionCount(-1)
+            sheet = expectMostRecentItem().missionSheet!!
+            assertThat(sheet.setting.level).isEqualTo(1)
+            assertThat(sheet.setting.count).isEqualTo(5)
+            assertThat(sheet.canCountDown).isFalse()
+            repeat(10) { vm.stepMissionLevel(1) }
+            repeat(10) { vm.stepMissionSpeed(1) }
+            repeat(10) { vm.stepMissionCount(1) }
+            val top = expectMostRecentItem()
+            sheet = top.missionSheet!!
+            assertThat(sheet.setting.level).isEqualTo(7)
+            assertThat(sheet.setting.speed).isEqualTo(4)
+            assertThat(sheet.setting.count).isEqualTo(30)
+            assertThat(sheet.canLevelUp).isFalse()
+            assertThat(sheet.canSpeedUp).isFalse()
+            assertThat(sheet.canCountUp).isFalse()
+            assertThat(sheet.canLevelDown).isTrue()
+            // 안 고른 미션이라 아직 목록에는 없어요.
+            assertThat(top.hasMissions).isFalse()
+        }
+    }
+
+    @Test
+    fun closingSheet_withoutConfirm_keepsNoMission_butRemembersValues() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openMissionSheet(MissionType.PopQuiz)
+            vm.stepMissionCount(1)
+            vm.closeMissionSheet()
+            val closed = expectMostRecentItem()
+            assertThat(closed.missionSheet).isNull()
+            assertThat(closed.hasMissions).isFalse()
+            vm.openMissionSheet(MissionType.PopQuiz)
+            assertThat(awaitItem().missionSheet!!.setting.count).isEqualTo(4)
+        }
+    }
+
+    @Test
+    fun selectedMission_changesSaveRightAway_andDeselectRemoves() = runTest {
+        val vm = viewModel(FakeAlarmBook(listOf(withMission)), id = 4)
+        vm.uiState.test {
+            loaded()
+            vm.openMissionSheet(MissionType.DropWords)
+            assertThat(awaitItem().missionSheet!!.selected).isTrue()
+            vm.stepMissionLevel(1)
+            assertThat(awaitItem().draft.missions.single().level).isEqualTo(2)
+            vm.deselectMission()
+            val after = awaitItem()
+            assertThat(after.missionSheet).isNull()
+            assertThat(after.hasMissions).isFalse()
+        }
+    }
+
+    @Test
+    fun noMissionAlarm_savesWithEmptyMissions() = runTest {
+        val book = FakeAlarmBook(listOf(withMission))
+        val vm = viewModel(book, id = 4)
+        vm.uiState.test {
+            loaded()
+            vm.setMissionsEnabled(false)
+            awaitItem()
+            vm.save()
+            while (awaitItem().exit == null) Unit
+        }
+        assertThat(book.alarms.value.single().missions).isEmpty()
+    }
+
+    @Test
+    fun backClosesSheetFirst_thenPage() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setMissionsEnabled(true)
+            awaitItem()
+            vm.openMissionSheet(MissionType.QuickMath)
+            awaitItem()
+            vm.onBack()
+            val sheetClosed = awaitItem()
+            assertThat(sheetClosed.missionSheet).isNull()
+            assertThat(sheetClosed.detail).isEqualTo(EditDetail.Mission)
+            vm.onBack()
+            assertThat(awaitItem().detail).isNull()
         }
     }
 }

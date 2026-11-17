@@ -46,6 +46,9 @@ object MissionColors {
 
     val TimerFill = Color.White
 
+    /** M4 큰 시간 고리 바탕 흰색 15%. */
+    val RingTrack = Color.White.copy(alpha = 0.15f)
+
     /** 키, 답 줄, 입력칸 칠 흰색 10%. */
     val Fill = Color.White.copy(alpha = 0.10f)
 

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.MissionSetting
@@ -57,14 +58,50 @@ data class EditUiState(
     val saving: Boolean = false,
     /** 화면을 닫아야 하면 값이 생겨요. */
     val exit: EditExit? = null,
-    /** 열려 있는 하위 페이지(지금은 S4 다시 잠들기 방지만). */
+    /** 열려 있는 하위 페이지(S1-2 미션 고르기, S4 다시 잠들기 방지). */
     val detail: EditDetail? = null,
+    /** 열려 있는 미션 설정 시트(S1-3~S1-7). */
+    val missionSheet: MissionSheet? = null,
+    /** 흔들기 센서가 있어야 Shake Shake를 고를 수 있어요. */
+    val shakeAvailable: Boolean = true,
 ) {
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
+
+    /** 이미 3개(F5)를 골랐으면 더 고를 수 없어요. */
+    val missionsFull: Boolean get() = draft.missions.size >= MissionSetting.MAX_MISSIONS
+
+    /** 고른 미션 순서 그대로 위, 안 고른 미션은 원래 순서로 아래(S1-2). */
+    val missionOrder: List<MissionType>
+        get() = draft.missionTypes + MISSION_LIST_ORDER.filter { it !in draft.missionTypes }
+
+    /** 이 미션 카드를 누를 수 있는지. 고른 카드는 늘 눌러요. */
+    fun canOpen(type: MissionType): Boolean = when {
+        type in draft.missionTypes -> true
+        type == MissionType.ShakeShake && !shakeAvailable -> false
+        else -> !missionsFull
+    }
+
+    companion object {
+        /** S1-2 카드 원래 순서. */
+        val MISSION_LIST_ORDER =
+            listOf(MissionType.DropWords, MissionType.PopQuiz, MissionType.QuickMath, MissionType.ShakeShake)
+    }
 }
 
-/** 알람 편집 S0과 S0-1. */
+/** 미션 설정 시트 하나. [selected]면 이미 고른 미션이라 값이 바로 저장되고 버튼이 '선택 해제'예요. */
+data class MissionSheet(val setting: MissionSetting, val selected: Boolean) {
+    private val range get() = MissionSetting.rangeOf(setting.type)
+    val canLevelDown: Boolean get() = setting.level > range.levels.first
+    val canLevelUp: Boolean get() = setting.level < range.levels.last
+    val canSpeedDown: Boolean get() = setting.speed > MissionSetting.SPEEDS.first
+    val canSpeedUp: Boolean get() = setting.speed < MissionSetting.SPEEDS.last
+    val canCountDown: Boolean get() = setting.count > range.counts.first
+    val canCountUp: Boolean get() = setting.count < range.counts.last
+}
+
+/** 알람 편집 S0과 S0-1. 하위 페이지와 미션 시트도 같은 상태라 화면 하나에 뷰모델 하나로 둬요(ADR 0005). */
+@Suppress("TooManyFunctions")
 @HiltViewModel
 class EditViewModel @Inject constructor(
     private val book: AlarmBook,
@@ -72,6 +109,7 @@ class EditViewModel @Inject constructor(
     private val holidays: HolidayCalendar,
     ticker: MinuteTicker,
     savedStateHandle: SavedStateHandle,
+    shakeSupport: ShakeSupport,
 ) : ViewModel() {
     private data class Editor(
         val loading: Boolean = true,
@@ -81,7 +119,12 @@ class EditViewModel @Inject constructor(
         val saving: Boolean = false,
         val exit: EditExit? = null,
         val detail: EditDetail? = null,
+        val sheet: MissionSheet? = null,
+        /** 안 고른 미션도 시트에서 바꾼 값은 기억해 둬요(이 편집 화면 안에서만). */
+        val remembered: Map<MissionType, MissionSetting> = emptyMap(),
     )
+
+    private val shakeAvailable = shakeSupport.available()
 
     private val alarmId: Long = savedStateHandle.get<Long>(ALARM_ID_KEY) ?: EditRoute.NEW_ALARM
     private val editor = MutableStateFlow(Editor())
@@ -98,6 +141,8 @@ class EditViewModel @Inject constructor(
             saving = e.saving,
             exit = e.exit,
             detail = e.detail,
+            missionSheet = e.sheet,
+            shakeAvailable = shakeAvailable,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), EditUiState())
 
@@ -118,18 +163,69 @@ class EditViewModel @Inject constructor(
 
     fun setSkipHolidays(on: Boolean) = edit { it.copy(skipHolidays = on) }
 
-    /**
-     * 끄면 고른 미션을 비워요. 켜기는 미션 고르기(S1-2, 5단계)에서 미션을 골라야 돼서 지금은 그대로 둬요.
-     * 디버그 빌드만([allowDebugQuickMath]) 켜면 Quick Math 처음 값을 넣는 임시 길이에요(5단계에서 지워요).
-     */
-    fun setMissionsEnabled(on: Boolean, allowDebugQuickMath: Boolean = false) {
-        when {
-            !on -> edit { it.copy(missions = emptyList()) }
-            allowDebugQuickMath -> edit {
-                if (it.missions.isNotEmpty()) it else it.copy(missions = listOf(DEBUG_MISSION))
-            }
+    /** 끄면 고른 미션을 비워요. 켜면 미션 고르기(S1-2)를 열어요(골라야 켜져요). */
+    fun setMissionsEnabled(on: Boolean) {
+        if (on) {
+            editor.update { it.copy(detail = EditDetail.Mission) }
+        } else {
+            edit { it.copy(missions = emptyList()) }
         }
     }
+
+    /** S1-2 카드나 체크 원을 눌러 그 미션 설정 시트를 열어요. 고를 수 없는 카드면 아무 일 없어요. */
+    fun openMissionSheet(type: MissionType) = editor.update { e ->
+        val selected = e.draft.missions.firstOrNull { it.type == type }
+        val full = e.draft.missions.size >= MissionSetting.MAX_MISSIONS
+        when {
+            selected != null -> e.copy(sheet = MissionSheet(selected.normalized(), selected = true))
+            full || (type == MissionType.ShakeShake && !shakeAvailable) -> e
+            else -> e.copy(sheet = MissionSheet(e.remembered[type] ?: MissionSetting.default(type), selected = false))
+        }
+    }
+
+    /** 시트 난이도 < >. */
+    fun stepMissionLevel(delta: Int) = changeSheet { it.copy(level = it.level + delta) }
+
+    /** 시트 속도 < >(Drop Words). */
+    fun stepMissionSpeed(delta: Int) = changeSheet { it.copy(speed = it.speed + delta) }
+
+    /** 시트 개수 − +. 한 번에 [MissionSetting.Range.countStep]씩(Drop Words 5개, 나머지 1). */
+    fun stepMissionCount(delta: Int) = changeSheet {
+        it.copy(count = it.count + delta * MissionSetting.rangeOf(it.type).countStep)
+    }
+
+    /** 범위 밖은 끝 값으로 맞춰요. 고른 미션이면 값이 바로 저장돼요. */
+    private fun changeSheet(change: (MissionSetting) -> MissionSetting) = editor.update { e ->
+        val sheet = e.sheet ?: return@update e
+        val next = change(sheet.setting).normalized()
+        val draft = if (sheet.selected) {
+            e.draft.copy(missions = e.draft.missions.map { m -> if (m.type == next.type) next else m })
+        } else {
+            e.draft
+        }
+        e.copy(sheet = sheet.copy(setting = next), draft = draft, remembered = e.remembered + (next.type to next))
+    }
+
+    /** '선택 완료'. 고른 순서대로 뒤에 붙여요(최대 3개). */
+    fun confirmMissionSheet() = editor.update { e ->
+        val sheet = e.sheet ?: return@update e
+        val canAdd = !sheet.selected &&
+            e.draft.missions.none { it.type == sheet.setting.type } &&
+            e.draft.missions.size < MissionSetting.MAX_MISSIONS
+        val draft = if (canAdd) e.draft.copy(missions = e.draft.missions + sheet.setting) else e.draft
+        e.copy(sheet = null, draft = draft)
+    }
+
+    /** '선택 해제'. 목록에서 빼고 시트를 닫아요(값은 기억해 둬요). */
+    fun deselectMission() = editor.update { e ->
+        val sheet = e.sheet ?: return@update e
+        e.copy(
+            sheet = null,
+            draft = e.draft.copy(missions = e.draft.missions.filterNot { it.type == sheet.setting.type }),
+        )
+    }
+
+    fun closeMissionSheet() = editor.update { it.copy(sheet = null) }
 
     fun setRingAgain(on: Boolean) = edit {
         val count = if (on) it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT else 0
@@ -152,12 +248,12 @@ class EditViewModel @Inject constructor(
         }
     }
 
-    /** 하위 페이지 열기. 지금은 S4만 있고, 나머지 줄은 아직 아무 일 없어요. */
+    /** 하위 페이지 열기. S1-2 미션 고르기와 S4만 있고, 나머지 줄은 아직 아무 일 없어요. */
     fun openDetail(detail: EditDetail) {
-        if (detail == EditDetail.WakeCheck) editor.update { it.copy(detail = detail) }
+        if (detail in OPENABLE_DETAILS) editor.update { it.copy(detail = detail) }
     }
 
-    fun closeDetail() = editor.update { it.copy(detail = null) }
+    fun closeDetail() = editor.update { it.copy(detail = null, sheet = null) }
 
     fun setPowerOffGuard(on: Boolean) = edit { it.copy(powerOffGuard = on) }
 
@@ -174,6 +270,7 @@ class EditViewModel @Inject constructor(
     /** 뒤로가기. 하위 페이지가 열려 있으면 그것만 닫고, 바뀐 게 있으면 S0-1로 묻고, 없으면 바로 닫아요. */
     fun onBack() = editor.update {
         when {
+            it.sheet != null -> it.copy(sheet = null)
             it.detail != null -> it.copy(detail = null)
             it.saving || it.exit != null -> it
             it.draft != it.original -> it.copy(confirmExit = true)
@@ -207,7 +304,7 @@ class EditViewModel @Inject constructor(
         val WAKE_CHECK_ASK_MINUTES = listOf(1, 3, 5, 10)
         val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 120)
 
-        private val DEBUG_MISSION = MissionSetting.default(MissionType.QuickMath)
+        private val OPENABLE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck)
 
         /**
          * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 5분 3번, 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),

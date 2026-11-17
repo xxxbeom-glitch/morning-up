@@ -10,6 +10,7 @@ android {
 dependencies {
     api(libs.lucide.icons)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.activity.compose)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.kotlinx.serialization.json)
 }

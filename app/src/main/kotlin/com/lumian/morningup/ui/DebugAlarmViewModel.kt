@@ -29,6 +29,12 @@ class DebugAlarmViewModel @Inject constructor(
     private val _scheduledAt = MutableStateFlow<LocalTime?>(null)
     val scheduledAt: StateFlow<LocalTime?> = _scheduledAt.asStateFlow()
 
+    private companion object {
+        /** 미션 3개 묶음(F5 최대 개수). 순서대로 돌고 미션 사이 넘어가기를 확인해요. */
+        val SAMPLE_MISSIONS = listOf(MissionType.QuickMath, MissionType.PopQuiz, MissionType.DropWords)
+            .map(MissionSetting::default)
+    }
+
     /** 다음 분 정각에 울리는 한 번 알람을 만들어요. 다시 울림은 3분 간격 1번이라 금방 확인할 수 있어요. */
     fun scheduleTestAlarm(withMission: Boolean) {
         viewModelScope.launch {
@@ -37,7 +43,7 @@ class DebugAlarmViewModel @Inject constructor(
             val alarm = repository.insert(
                 Alarm(
                     time = time,
-                    missions = if (withMission) listOf(MissionSetting.default(MissionType.QuickMath)) else emptyList(),
+                    missions = if (withMission) SAMPLE_MISSIONS else emptyList(),
                     ringAgain = RingAgain(intervalMinutes = 3, count = 1),
                     wakeCheck = WakeCheck(enabled = withMission, askAfterMinutes = 1, answerSeconds = 30),
                 ),

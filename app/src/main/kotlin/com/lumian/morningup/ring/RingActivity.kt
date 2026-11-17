@@ -17,7 +17,7 @@ import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
-import com.lumian.morningup.feature.mission.QuickMathRoute
+import com.lumian.morningup.feature.mission.RingMissionRoute
 import com.lumian.morningup.feature.ring.RingRoute
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -56,10 +56,7 @@ class RingActivity : ComponentActivity() {
                     canClose = ready,
                     onClose = ::finish,
                     onWakeUpConfirmed = ::afterWakeUp,
-                    missionContent = { _ ->
-                        // 5단계 전까지는 어떤 미션이든 Quick Math로 대신해요.
-                        QuickMathRoute()
-                    },
+                    missionContent = { _ -> RingMissionRoute() },
                 )
             }
         }

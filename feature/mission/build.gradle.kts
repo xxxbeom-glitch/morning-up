@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.morningup.android.library)
     alias(libs.plugins.morningup.android.compose)
     alias(libs.plugins.morningup.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,6 +14,7 @@ dependencies {
     implementation(projects.core.alarm)
     implementation(libs.androidx.activity.compose)
     implementation(libs.timber)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.hilt.navigation.compose)

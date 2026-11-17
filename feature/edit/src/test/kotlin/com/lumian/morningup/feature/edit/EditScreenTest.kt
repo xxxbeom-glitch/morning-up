@@ -4,14 +4,20 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import com.google.common.truth.Truth.assertThat
+import com.lumian.morningup.core.designsystem.component.VALUE_DEC_SUFFIX
+import com.lumian.morningup.core.designsystem.component.VALUE_INC_SUFFIX
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
@@ -86,5 +92,95 @@ class EditScreenTest {
         compose.onNodeWithText("2분").performScrollTo().performClick()
         assertThat(ask).isEqualTo(10)
         assertThat(answer).isEqualTo(120)
+    }
+
+    @Test
+    fun previewButton_sendsPickedMissions() {
+        var previewed: List<MissionSetting>? = null
+        val missions = listOf(MissionSetting(MissionType.QuickMath), MissionSetting(MissionType.ShakeShake))
+        val draft = EditViewModel.newAlarm().copy(missions = missions)
+        show(EditUiState(loading = false, draft = draft), EditActions(onPreview = { previewed = it }))
+        compose.onNodeWithText("미리 해보기").performSemanticsAction(SemanticsActions.OnClick)
+        assertThat(previewed).isEqualTo(missions)
+    }
+
+    @Test
+    fun missionPage_threePicked_disablesOthers_andShowsValues() {
+        val picked = listOf(
+            MissionSetting(MissionType.QuickMath, level = 2, count = 4),
+            MissionSetting(MissionType.DropWords, level = 1, count = 10, speed = 2),
+            MissionSetting(MissionType.ShakeShake, count = 25),
+        )
+        val opened = mutableListOf<MissionType>()
+        show(
+            EditUiState(
+                loading = false,
+                detail = EditDetail.Mission,
+                draft = EditViewModel.newAlarm().copy(missions = picked),
+            ),
+            EditActions(onOpenMissionSheet = { opened += it }),
+        )
+        compose.onNodeWithText("2단계, 4문제").assertExists()
+        compose.onNodeWithText("1단계, 속도 2, 단어 10개").assertExists()
+        compose.onNodeWithText("25번").assertExists()
+        compose.onNodeWithTag("${MISSION_CARD_TAG}QuickMath").assertIsSelected().assertIsEnabled()
+        compose.onNodeWithTag("${MISSION_CARD_TAG}PopQuiz").assertIsNotEnabled()
+        compose.onNodeWithTag("${MISSION_CARD_TAG}QuickMath").performClick()
+        assertThat(opened).containsExactly(MissionType.QuickMath)
+    }
+
+    @Test
+    fun missionPage_noMission_showsDescriptions_andShakeDisabledWithoutSensor() {
+        show(EditUiState(loading = false, detail = EditDetail.Mission, shakeAvailable = false))
+        compose.onNodeWithText("떨어지는 단어를 입력해요").assertExists()
+        compose.onNodeWithText("상식 퀴즈를 맞혀요").assertExists()
+        compose.onNodeWithTag("${MISSION_CARD_TAG}DropWords").assertIsEnabled()
+        compose.onNodeWithTag("${MISSION_CARD_TAG}ShakeShake").assertIsNotEnabled()
+    }
+
+    @Test
+    fun sheet_firstValues_disableLowerEnds_andSelectConfirms() {
+        var confirmed = 0
+        var level = 0
+        val sheet = MissionSheet(MissionSetting.default(MissionType.DropWords), selected = false)
+        show(
+            EditUiState(loading = false, detail = EditDetail.Mission, missionSheet = sheet),
+            EditActions(onConfirmMission = { confirmed++ }, onMissionLevel = { level += it }),
+        )
+        compose.onNodeWithText("예: 사과, 나무").assertExists()
+        compose.onNodeWithText("바닥까지 10초").assertExists()
+        compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithTag(SHEET_SPEED_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsEnabled()
+        compose.onNodeWithTag(
+            SHEET_LEVEL_TAG + VALUE_INC_SUFFIX,
+            useUnmergedTree = true,
+        ).assertIsEnabled().performClick()
+        compose.onNodeWithText("선택 완료").performClick()
+        assertThat(level).isEqualTo(1)
+        assertThat(confirmed).isEqualTo(1)
+    }
+
+    @Test
+    fun sheet_topValues_disableUpperEnds_andSelectedShowsDeselect() {
+        var deselected = 0
+        var previewed: List<MissionSetting>? = null
+        val setting = MissionSetting(MissionType.QuickMath, level = 7, count = 10)
+        show(
+            EditUiState(
+                loading = false,
+                detail = EditDetail.Mission,
+                draft = EditViewModel.newAlarm().copy(missions = listOf(setting)),
+                missionSheet = MissionSheet(setting, selected = true),
+            ),
+            EditActions(onDeselectMission = { deselected++ }, onPreview = { previewed = it }),
+        )
+        compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_INC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_INC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithText("선택 완료").assertDoesNotExist()
+        compose.onNodeWithText("미리보기").performClick()
+        compose.onNodeWithText("선택 해제").performClick()
+        assertThat(previewed).containsExactly(setting)
+        assertThat(deselected).isEqualTo(1)
     }
 }

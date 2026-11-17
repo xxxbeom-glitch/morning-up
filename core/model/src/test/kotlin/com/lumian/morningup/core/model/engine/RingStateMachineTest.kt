@@ -166,6 +166,25 @@ class RingStateMachineTest {
     }
 
     @Test
+    fun threeMissions_runInOrder_andTimeoutInMiddle_resumesFromUnfinishedOne() {
+        val three = plan(missions = listOf(MissionType.DropWords, MissionType.PopQuiz, MissionType.ShakeShake))
+        var t = reduce(fire(three).session, RingEvent.MissionStarted, t0)
+        assertThat(t.effects).contains(ShowMission(0))
+        t = reduce(t.session, RingEvent.MissionCompleted, t0 + 10 * sec)
+        assertThat(t.effects).contains(ShowMission(1))
+        // 두 번째 미션 중 손을 놓아 59초가 끝남
+        t = reduce(t.session, RingEvent.TimerFired(TimerKind.MissionTimeout), t0 + 69 * sec)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
+        t = reduce(t.session, RingEvent.MissionStarted, t0 + 80 * sec)
+        assertThat(t.effects).contains(ShowMission(1))
+        t = reduce(t.session, RingEvent.MissionCompleted, t0 + 90 * sec)
+        assertThat(t.effects).contains(ShowMission(2))
+        t = reduce(t.session, RingEvent.MissionCompleted, t0 + 100 * sec)
+        assertThat(t.session).isNull()
+        assertThat(t.effects).contains(ShowWakeUp)
+    }
+
+    @Test
     fun staleMissionTimeout_beforeDeadline_isIgnored() {
         val started = reduce(fire().session, RingEvent.MissionStarted, t0).session
         val s = reduce(started, RingEvent.MissionInteraction, t0 + 50 * sec).session

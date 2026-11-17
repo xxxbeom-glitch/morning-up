@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -40,8 +40,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.Check
 import com.composables.icons.lucide.Delete
 import com.composables.icons.lucide.Lucide
@@ -54,7 +52,9 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.mission.MathKey
 import com.lumian.morningup.core.model.mission.QuickMathKeypad
 import com.lumian.morningup.core.model.mission.QuickMathState
-import com.lumian.morningup.core.model.mission.SubmitResult
+import com.lumian.morningup.feature.mission.play.FeedbackKind
+import com.lumian.morningup.feature.mission.play.MissionFeedback
+import com.lumian.morningup.feature.mission.play.MissionPlay
 import kotlinx.coroutines.delay
 
 /** 피그마 M3 치수. */
@@ -73,72 +73,41 @@ private const val KEY_PRESS_SCALE = 0.94f
 
 /** 정답 칠이 남는 시간, 오답 흔들기 폭. */
 private const val SUCCESS_HOLD_MILLIS = 800L
-private val ShakeDistance = 8.dp
-private const val SHAKE_STEPS = 4
-
-/** 남은 시간 다시 그리는 간격. */
-private const val TIMER_FRAME_MILLIS = 100L
 
 /** 화면 이름표(테스트에서 키 자리를 찾을 때). */
 const val MATH_KEY_TAG = "mathKey"
 const val MATH_INPUT_TAG = "mathInput"
 
-/** :app이 미션 자리에 꽂는 연결 함수. */
+/** M3 Quick Math 내용(미션 틀 안). */
 @Composable
-fun QuickMathRoute(viewModel: QuickMathViewModel = hiltViewModel()) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    var remaining by remember { mutableLongStateOf(remainingOf(state.timerEndsAt, viewModel.nowMillis())) }
-    LaunchedEffect(state.timerEndsAt) {
-        while (true) {
-            remaining = remainingOf(state.timerEndsAt, viewModel.nowMillis())
-            delay(TIMER_FRAME_MILLIS)
-        }
-    }
-    QuickMathScreen(state = state, remainingMillis = remaining, onKey = viewModel::onKey)
-}
-
-/** M3 Quick Math 화면(상태만 받아 그려요). */
-@Composable
-fun QuickMathScreen(state: QuickMathUiState, remainingMillis: Long, onKey: (MathKey) -> Unit) {
-    val game = state.game
-    MissionFrame(
-        backdrop = MissionColors.QuickMath,
-        status = game?.let { stringResource(R.string.mission_math_streak, it.streak, it.target) }.orEmpty(),
-        remainingMillis = remainingMillis,
-    ) {
-        if (game == null) return@MissionFrame
-        Spacer(Modifier.weight(1f))
-        Problem(game = game, feedback = state.feedback)
-        Spacer(Modifier.weight(1f))
-        Keypad(keypad = game.keypad, onKey = onKey)
-        Spacer(Modifier.height(MorningDimens.space24))
-    }
+internal fun ColumnScope.QuickMathContent(play: MissionPlay.Math, onKey: (MathKey) -> Unit) {
+    val game = play.game
+    Spacer(Modifier.weight(1f))
+    Problem(game = game, feedback = play.feedback)
+    Spacer(Modifier.weight(1f))
+    Keypad(keypad = game.keypad, onKey = onKey)
+    Spacer(Modifier.height(MorningDimens.space24))
 }
 
 @Composable
-private fun Problem(game: QuickMathState, feedback: MathFeedback?) {
+private fun Problem(game: QuickMathState, feedback: MissionFeedback?) {
     val view = LocalView.current
     val density = LocalDensity.current
     val shake = remember { Animatable(0f) }
     var success by remember { mutableStateOf(false) }
     LaunchedEffect(feedback?.id) {
-        when (feedback?.result) {
-            SubmitResult.Correct, SubmitResult.Finished -> {
+        when (feedback?.kind) {
+            FeedbackKind.Correct, FeedbackKind.Finished -> {
                 view.perform(MorningHaptic.Confirm)
                 success = true
                 delay(SUCCESS_HOLD_MILLIS)
                 success = false
             }
-            SubmitResult.Wrong -> {
+            FeedbackKind.Wrong -> {
                 view.perform(MorningHaptic.Reject)
-                val distance = with(density) { ShakeDistance.toPx() }
-                repeat(SHAKE_STEPS) { step ->
-                    val target = if (step % 2 == 0) distance else -distance
-                    shake.animateTo(target, MorningMotion.effects(MorningMotion.EffectsFast))
-                }
-                shake.animateTo(0f, MorningMotion.effects(MorningMotion.EffectsFast))
+                shake.shakeSideways(with(density) { ShakeDistance.toPx() })
             }
-            SubmitResult.Empty, null -> Unit
+            null -> Unit
         }
     }
     val fill by animateColorAsState(

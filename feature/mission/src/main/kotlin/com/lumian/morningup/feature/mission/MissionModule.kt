@@ -1,5 +1,8 @@
 package com.lumian.morningup.feature.mission
 
+import com.lumian.morningup.feature.mission.play.MissionContentSource
+import com.lumian.morningup.feature.mission.play.RawMissionContentSource
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,4 +21,11 @@ object MissionModule {
     @Provides
     @MissionRandom
     fun random(): Random = Random.Default
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+interface MissionBindings {
+    @Binds
+    fun content(impl: RawMissionContentSource): MissionContentSource
 }
