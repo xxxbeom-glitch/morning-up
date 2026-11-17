@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ui_am">오전</string>
+    <string name="ui_pm">오후</string>
+    <!-- 오전 6:30 -->
+    <string name="ui_time_12h">%1$s %2$d:%3$02d</string>
+
+    <!-- 월요일부터 일요일 순서 -->
+    <string-array name="ui_day_short">
+        <item>월</item>
+        <item>화</item>
+        <item>수</item>
+        <item>목</item>
+        <item>금</item>
+        <item>토</item>
+        <item>일</item>
+    </string-array>
+
+    <!-- 11월 16일 (월) -->
+    <string name="ui_date_short">%1$d월 %2$d일 (%3$s)</string>
+
+    <!-- 몇 일 몇 시간 몇 분 -->
+    <string name="ui_until_days">%1$d일</string>
+    <string name="ui_until_hours">%1$d시간</string>
+    <string name="ui_until_minutes">%1$d분</string>
+
+    <string name="ui_repeat_once">한 번</string>
+    <string name="ui_repeat_everyday">매일</string>
+    <string name="ui_repeat_weekdays">평일</string>
+    <string name="ui_repeat_weekend">주말</string>
+
+    <string name="ui_mission_quick_math">Quick Math</string>
+    <string name="ui_mission_pop_quiz">Pop Quiz</string>
+    <string name="ui_mission_drop_words">Drop Words</string>
+    <string name="ui_mission_shake_shake">Shake Shake</string>
+    <string name="ui_mission_none">없음</string>
+    <!-- Drop Words 외 1개 -->
+    <string name="ui_mission_more">%1$s 외 %2$d개</string>
+</resources>

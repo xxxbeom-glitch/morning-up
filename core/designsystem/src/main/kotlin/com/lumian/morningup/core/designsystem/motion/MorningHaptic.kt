@@ -22,8 +22,11 @@ enum class MorningHaptic {
     /** 토글 끔. */
     ToggleOff,
 
-    /** 드럼롤 한 칸, 작은 선택. */
+    /** 작은 선택(요일 칸, 미션 타일). */
     Tick,
+
+    /** 드럼롤이 한 칸 지날 때. 지원 안 하는 폰은 [Tick]과 같아요. */
+    SegmentTick,
 
     /** 일반 버튼 누름. */
     Press,
@@ -41,6 +44,12 @@ fun MorningHaptic.toFeedbackConstant(sdkInt: Int): Int = when (this) {
     MorningHaptic.ToggleOff ->
         if (sdkInt >= UPSIDE_DOWN_CAKE) HapticFeedbackConstants.TOGGLE_OFF else HapticFeedbackConstants.CLOCK_TICK
     MorningHaptic.Tick -> HapticFeedbackConstants.CLOCK_TICK
+    MorningHaptic.SegmentTick ->
+        if (sdkInt >= UPSIDE_DOWN_CAKE) {
+            HapticFeedbackConstants.SEGMENT_FREQUENT_TICK
+        } else {
+            HapticFeedbackConstants.CLOCK_TICK
+        }
     MorningHaptic.Press -> HapticFeedbackConstants.VIRTUAL_KEY
 }
 

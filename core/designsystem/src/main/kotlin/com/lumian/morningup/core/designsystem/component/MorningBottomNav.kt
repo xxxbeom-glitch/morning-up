@@ -34,6 +34,9 @@ data class MorningNavItem(val icon: ImageVector, val label: String)
 
 private val NavItemSize = 48.dp
 
+/** 떠 있는 하단 메뉴 높이(48 + 위아래 8). 화면이 아래 여백과 토스트 자리를 잡을 때 써요. */
+val MorningBottomNavHeight = 64.dp
+
 /**
  * 피그마 Bottom Nav(`285:7033`). 가운데 떠 있는 알약(176x64), 칠 `surface/card` + `shadow/float`,
  * 48 원형 아이콘 버튼, 고른 탭 바탕 `primary/subtle`.

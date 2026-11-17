@@ -23,4 +23,11 @@ class MorningHapticTest {
     fun reject_fallsBackToLongPress_beforeApi30() {
         assertThat(MorningHaptic.Reject.toFeedbackConstant(26)).isEqualTo(HapticFeedbackConstants.LONG_PRESS)
     }
+
+    @Test
+    fun segmentTick_usesFrequentTick_fromApi34() {
+        assertThat(MorningHaptic.SegmentTick.toFeedbackConstant(34))
+            .isEqualTo(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
+        assertThat(MorningHaptic.SegmentTick.toFeedbackConstant(33)).isEqualTo(HapticFeedbackConstants.CLOCK_TICK)
+    }
 }

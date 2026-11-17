@@ -32,9 +32,12 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 /** 피그마 Button 크기. Large 56, Medium 48, Circle 112(원형). */
 enum class MorningButtonSize { Large, Medium, Circle }
 
+/** 칠 종류. Primary 파랑, Secondary 회색(다이얼로그 '취소'), Danger 빨강(다이얼로그 '삭제', Button Alt Danger). */
+enum class MorningButtonStyle { Primary, Secondary, Danger }
+
 private const val DISABLED_ALPHA = 0.45f
 
-/** 피그마 Button. 칠 `primary/default`, 누르는 동안 `primary/pressed`와 0.96배. */
+/** 피그마 Button. 기본 칠 `primary/default`, 누르는 동안 `primary/pressed`와 0.96배. */
 @Composable
 fun MorningButton(
     text: String,
@@ -43,14 +46,20 @@ fun MorningButton(
     size: MorningButtonSize = MorningButtonSize.Large,
     enabled: Boolean = true,
     haptic: MorningHaptic = MorningHaptic.Press,
+    style: MorningButtonStyle = MorningButtonStyle.Primary,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val view = LocalView.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
+    val (rest, down, onFill) = when (style) {
+        MorningButtonStyle.Primary -> Triple(colors.primaryDefault, colors.primaryPressed, colors.primaryOn)
+        MorningButtonStyle.Secondary -> Triple(colors.backgroundRaised, colors.controlTrackOff, colors.textBody)
+        MorningButtonStyle.Danger -> Triple(colors.statusError, colors.statusError, colors.textInverse)
+    }
     val fill by animateColorAsState(
-        targetValue = if (pressed) colors.primaryPressed else colors.primaryDefault,
+        targetValue = if (pressed) down else rest,
         animationSpec = MorningMotion.effects(MorningMotion.EffectsFast),
         label = "buttonFill",
     )
@@ -80,7 +89,7 @@ fun MorningButton(
         Text(
             text = text,
             style = if (size == MorningButtonSize.Medium) typography.bodyMediumStrong else typography.titleMedium,
-            color = colors.primaryOn,
+            color = onFill,
             textAlign = TextAlign.Center,
         )
     }
