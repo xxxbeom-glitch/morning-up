@@ -9,9 +9,11 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performSemanticsAction
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import org.junit.Rule
 import org.junit.Test
@@ -45,7 +47,7 @@ class EditScreenTest {
     @Test
     fun withMission_showsPreview_andDetailRowsDoNothingHarmful() {
         var opened: EditDetail? = null
-        val draft = EditViewModel.newAlarm().copy(missions = listOf(MissionType.DropWords))
+        val draft = EditViewModel.newAlarm().copy(missions = listOf(MissionSetting(MissionType.DropWords)))
         show(EditUiState(loading = false, draft = draft), onDetail = { opened = it })
         compose.onNodeWithText("미리 해보기").assertExists()
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
@@ -67,5 +69,22 @@ class EditScreenTest {
         show(EditUiState(loading = false), EditActions(onSave = { saved = true }))
         compose.onNodeWithText("저장").performClick()
         assertThat(saved).isTrue()
+    }
+
+    @Test
+    fun wakeCheckPage_showsOptions_andPicks() {
+        var ask = 0
+        var answer = 0
+        show(
+            EditUiState(loading = false, detail = EditDetail.WakeCheck),
+            actions = EditActions(onWakeCheckAsk = { ask = it }, onWakeCheckAnswer = { answer = it }),
+        )
+        compose.onNodeWithText("언제 물을까요").assertExists()
+        compose.onNodeWithText("답할 시간").assertExists()
+        compose.onNodeWithText("시간 안에 '깼어요'를 누르지 않으면 알람이 다시 울려요").assertExists()
+        compose.onNodeWithText("10분 후").performClick()
+        compose.onNodeWithText("2분").performScrollTo().performClick()
+        assertThat(ask).isEqualTo(10)
+        assertThat(answer).isEqualTo(120)
     }
 }

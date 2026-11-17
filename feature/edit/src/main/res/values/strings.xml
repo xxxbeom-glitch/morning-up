@@ -39,6 +39,12 @@
 
     <string name="edit_save">저장</string>
 
+    <!-- S4 다시 잠들기 방지 -->
+    <string name="edit_wake_check_ask_title">언제 물을까요</string>
+    <string name="edit_wake_check_ask_option">%1$d분 후</string>
+    <string name="edit_wake_check_answer_title">답할 시간</string>
+    <string name="edit_wake_check_help">시간 안에 \'깼어요\'를 누르지 않으면 알람이 다시 울려요</string>
+
     <!-- S0-1 저장 안 하고 나가기 -->
     <string name="edit_exit_title">저장하지 않고 나갈까요?</string>
     <string name="edit_exit_message">지금 나가면\n바꾼 내용이 저장되지 않아요.</string>

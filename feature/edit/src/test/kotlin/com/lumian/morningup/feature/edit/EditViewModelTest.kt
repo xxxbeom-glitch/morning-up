@@ -6,6 +6,7 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
@@ -40,7 +41,7 @@ class EditViewModelTest {
         id = 4,
         time = LocalTime.of(6, 30),
         repeatDays = setOf(DayOfWeek.MONDAY),
-        missions = listOf(MissionType.DropWords),
+        missions = listOf(MissionSetting(MissionType.DropWords)),
         powerOffGuard = true,
         enabled = false,
     )
@@ -199,6 +200,53 @@ class EditViewModelTest {
             assertThat(awaitItem().draft.gentleWake).isTrue()
             vm.setSkipHolidays(true)
             assertThat(awaitItem().draft.skipHolidays).isTrue()
+        }
+    }
+
+    @Test
+    fun wakeCheckPage_opensClosesWithBack_andPicksValues_withoutTurningOn() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openDetail(EditDetail.WakeCheck)
+            assertThat(awaitItem().detail).isEqualTo(EditDetail.WakeCheck)
+            vm.setWakeCheckAsk(5)
+            vm.setWakeCheckAnswer(120)
+            var state = awaitItem()
+            if (state.draft.wakeCheck.answerSeconds != 120) state = awaitItem()
+            assertThat(
+                state.draft.wakeCheck,
+            ).isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 5, answerSeconds = 120))
+            // 고를 수 없는 값은 무시해요.
+            vm.setWakeCheckAsk(7)
+            vm.setWakeCheckAnswer(45)
+            expectNoEvents()
+            vm.onBack()
+            val closed = awaitItem()
+            assertThat(closed.detail).isNull()
+            assertThat(closed.confirmExit).isFalse()
+        }
+    }
+
+    @Test
+    fun otherDetails_doNotOpen() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openDetail(EditDetail.Sound)
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun debugPath_turnsOnQuickMath() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setMissionsEnabled(true, allowDebugQuickMath = true)
+            val state = awaitItem()
+            assertThat(state.draft.missions).containsExactly(MissionSetting.default(MissionType.QuickMath))
+            assertThat(state.hasMissions).isTrue()
         }
     }
 }

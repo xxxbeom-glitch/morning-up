@@ -48,7 +48,7 @@ import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
-/** 편집 화면의 하위 화면(7단계 이후). 지금은 줄만 있고 눌러도 아무 일 없어요. */
+/** 편집 화면의 하위 화면. S4(WakeCheck)만 열리고 나머지는 7단계 이후예요. */
 enum class EditDetail { Mission, Preview, RingAgain, WakeCheck, PowerOff, Sound, Volume, Gentle, Background }
 
 /** 피그마 S0의 요일 순서(일~토). */
@@ -102,7 +102,8 @@ fun AlarmEditRoute(
                 onTime = viewModel::setTime,
                 onToggleDay = viewModel::toggleDay,
                 onSkipHolidays = viewModel::setSkipHolidays,
-                onMissions = viewModel::setMissionsEnabled,
+                // 디버그 빌드만 미션을 켜면 Quick Math가 들어가요(미션 고르기는 5단계).
+                onMissions = { on -> viewModel.setMissionsEnabled(on, allowDebugQuickMath = BuildConfig.DEBUG) },
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
                 onPowerOff = viewModel::setPowerOffGuard,
@@ -113,9 +114,14 @@ fun AlarmEditRoute(
                 onSave = viewModel::save,
                 onKeepEditing = viewModel::keepEditing,
                 onDiscard = viewModel::discard,
+                onWakeCheckAsk = viewModel::setWakeCheckAsk,
+                onWakeCheckAnswer = viewModel::setWakeCheckAnswer,
+                onCloseDetail = viewModel::closeDetail,
             )
         },
-        onOpenDetail = onOpenDetail,
+        onOpenDetail = { detail ->
+            if (detail == EditDetail.WakeCheck) viewModel.openDetail(detail) else onOpenDetail(detail)
+        },
         modifier = modifier,
     )
 }
@@ -137,6 +143,9 @@ data class EditActions(
     val onSave: () -> Unit = {},
     val onKeepEditing: () -> Unit = {},
     val onDiscard: () -> Unit = {},
+    val onWakeCheckAsk: (Int) -> Unit = {},
+    val onWakeCheckAnswer: (Int) -> Unit = {},
+    val onCloseDetail: () -> Unit = {},
 )
 
 /** S0 알람 편집(미션 있음, 없음)과 S0-1 저장 안 하고 나가기. 상태와 콜백만 받아요. */
@@ -196,6 +205,14 @@ fun EditScreen(
                 onDismiss = actions.onKeepEditing,
                 onConfirm = actions.onDiscard,
                 danger = true,
+            )
+        }
+        if (state.detail == EditDetail.WakeCheck) {
+            WakeCheckPage(
+                wakeCheck = state.draft.wakeCheck,
+                onBack = actions.onCloseDetail,
+                onAsk = actions.onWakeCheckAsk,
+                onAnswer = actions.onWakeCheckAnswer,
             )
         }
     }
@@ -308,7 +325,7 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
     MorningSettingsCard(title = stringResource(R.string.edit_card_mission)) {
         MorningSettingRow(
             label = stringResource(R.string.edit_mission),
-            value = AlarmText.missions(resources, alarm.missions),
+            value = AlarmText.missions(resources, alarm.missionTypes),
             state = onOff(state.hasMissions),
             onCheckedChange = actions.onMissions,
             onClick = { onOpenDetail(EditDetail.Mission) },

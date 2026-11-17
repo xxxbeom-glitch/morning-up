@@ -7,6 +7,8 @@ import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.MissionSetting
+import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.NextAlarm
@@ -55,6 +57,8 @@ data class EditUiState(
     val saving: Boolean = false,
     /** 화면을 닫아야 하면 값이 생겨요. */
     val exit: EditExit? = null,
+    /** 열려 있는 하위 페이지(지금은 S4 다시 잠들기 방지만). */
+    val detail: EditDetail? = null,
 ) {
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
@@ -76,6 +80,7 @@ class EditViewModel @Inject constructor(
         val confirmExit: Boolean = false,
         val saving: Boolean = false,
         val exit: EditExit? = null,
+        val detail: EditDetail? = null,
     )
 
     private val alarmId: Long = savedStateHandle.get<Long>(ALARM_ID_KEY) ?: EditRoute.NEW_ALARM
@@ -92,6 +97,7 @@ class EditViewModel @Inject constructor(
             confirmExit = e.confirmExit,
             saving = e.saving,
             exit = e.exit,
+            detail = e.detail,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), EditUiState())
 
@@ -112,9 +118,17 @@ class EditViewModel @Inject constructor(
 
     fun setSkipHolidays(on: Boolean) = edit { it.copy(skipHolidays = on) }
 
-    /** 끄면 고른 미션을 비워요. 켜기는 미션 고르기(S1-2, 5단계)에서 미션을 골라야 돼서 지금은 그대로 둬요. */
-    fun setMissionsEnabled(on: Boolean) {
-        if (!on) edit { it.copy(missions = emptyList()) }
+    /**
+     * 끄면 고른 미션을 비워요. 켜기는 미션 고르기(S1-2, 5단계)에서 미션을 골라야 돼서 지금은 그대로 둬요.
+     * 디버그 빌드만([allowDebugQuickMath]) 켜면 Quick Math 처음 값을 넣는 임시 길이에요(5단계에서 지워요).
+     */
+    fun setMissionsEnabled(on: Boolean, allowDebugQuickMath: Boolean = false) {
+        when {
+            !on -> edit { it.copy(missions = emptyList()) }
+            allowDebugQuickMath -> edit {
+                if (it.missions.isNotEmpty()) it else it.copy(missions = listOf(DEBUG_MISSION))
+            }
+        }
     }
 
     fun setRingAgain(on: Boolean) = edit {
@@ -123,6 +137,27 @@ class EditViewModel @Inject constructor(
     }
 
     fun setWakeCheck(on: Boolean) = edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = on)) }
+
+    /** S4 '언제 물을까요'. 켬, 끔은 S0 줄의 토글만 바꿔요(값을 골라도 켜지지 않아요). */
+    fun setWakeCheckAsk(minutes: Int) {
+        if (minutes in WAKE_CHECK_ASK_MINUTES) {
+            edit { it.copy(wakeCheck = it.wakeCheck.copy(askAfterMinutes = minutes)) }
+        }
+    }
+
+    /** S4 '답할 시간'. */
+    fun setWakeCheckAnswer(seconds: Int) {
+        if (seconds in WAKE_CHECK_ANSWER_SECONDS) {
+            edit { it.copy(wakeCheck = it.wakeCheck.copy(answerSeconds = seconds)) }
+        }
+    }
+
+    /** 하위 페이지 열기. 지금은 S4만 있고, 나머지 줄은 아직 아무 일 없어요. */
+    fun openDetail(detail: EditDetail) {
+        if (detail == EditDetail.WakeCheck) editor.update { it.copy(detail = detail) }
+    }
+
+    fun closeDetail() = editor.update { it.copy(detail = null) }
 
     fun setPowerOffGuard(on: Boolean) = edit { it.copy(powerOffGuard = on) }
 
@@ -136,9 +171,10 @@ class EditViewModel @Inject constructor(
 
     fun setBackground(on: Boolean) = edit { it.copy(background = if (on) null else Alarm.BACKGROUND_PLAIN) }
 
-    /** 뒤로가기. 바뀐 게 있으면 S0-1로 묻고, 없으면 바로 닫아요. */
+    /** 뒤로가기. 하위 페이지가 열려 있으면 그것만 닫고, 바뀐 게 있으면 S0-1로 묻고, 없으면 바로 닫아요. */
     fun onBack() = editor.update {
         when {
+            it.detail != null -> it.copy(detail = null)
             it.saving || it.exit != null -> it
             it.draft != it.original -> it.copy(confirmExit = true)
             else -> it.copy(exit = EditExit.Discarded)
@@ -166,6 +202,12 @@ class EditViewModel @Inject constructor(
         private const val STOP_TIMEOUT_MILLIS = 5_000L
         private const val DEFAULT_RING_AGAIN_COUNT = 3
         private val DEFAULT_TIME: LocalTime = LocalTime.of(7, 0)
+
+        /** S4 고를 수 있는 값(피그마 S4). */
+        val WAKE_CHECK_ASK_MINUTES = listOf(1, 3, 5, 10)
+        val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 120)
+
+        private val DEBUG_MISSION = MissionSetting.default(MissionType.QuickMath)
 
         /**
          * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 5분 3번, 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),
