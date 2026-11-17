@@ -333,7 +333,10 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
     val hour12 = AlarmText.hour12(hour24)
     fun to24(h12: Int, isPm: Boolean) = h12 % HOURS_HALF_DAY + if (isPm) HOURS_HALF_DAY else 0
 
-    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxWidth()) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8),
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -362,7 +365,8 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
                 style = MorningTheme.typography.displayMedium,
                 color = MorningTheme.colors.textPrimary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.width(ColonWidth),
+                // 쌍점은 숫자 가운데보다 살짝 아래로 보여서 4 올려요(데모와 같음).
+                modifier = Modifier.width(ColonWidth).padding(bottom = MorningDimens.space4),
             )
             MorningWheelPicker(
                 items = minutes,

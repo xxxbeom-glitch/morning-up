@@ -40,6 +40,7 @@ import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
+import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.mission.DropWordsSpeed
 import com.lumian.morningup.core.model.mission.FallingWord
 import com.lumian.morningup.core.model.mission.SyllableKeypad
@@ -197,9 +198,18 @@ private fun InputBox(input: String, modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = input, style = MissionText.input, color = MissionColors.Text)
-        Spacer(Modifier.width(CursorGap))
-        Box(Modifier.width(CursorWidth).height(CursorHeight).background(MissionColors.Text))
+        if (input.isEmpty()) {
+            // 비어 있으면 안내 글만(데모와 같음). 치기 시작하면 글자와 커서가 보여요.
+            Text(
+                text = stringResource(R.string.mission_drop_placeholder),
+                style = MorningTheme.typography.bodyMedium,
+                color = MissionColors.TextHint,
+            )
+        } else {
+            Text(text = input, style = MissionText.input, color = MissionColors.Text)
+            Spacer(Modifier.width(CursorGap))
+            Box(Modifier.width(CursorWidth).height(CursorHeight).background(MissionColors.Text))
+        }
     }
 }
 

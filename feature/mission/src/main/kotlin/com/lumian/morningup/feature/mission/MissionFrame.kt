@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
@@ -106,7 +107,9 @@ fun MissionFrame(
                 .systemBarsPadding()
                 .padding(horizontal = MorningDimens.space20),
         ) {
-            if (status != null || remainingMillis != null || onClose != null) {
+            // 위 줄은 글이나 타이머가 있을 때만 만들어요. 닫기만 있으면(M4 미리보기) 겹쳐 둬서 고리가 화면 가운데에 남아요.
+            val topRow = status != null || remainingMillis != null
+            if (topRow) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
                     verticalAlignment = Alignment.CenterVertically,
@@ -122,6 +125,13 @@ fun MissionFrame(
                 }
             }
             content()
+        }
+        if (status == null && remainingMillis == null && onClose != null) {
+            Box(
+                Modifier
+                    .systemBarsPadding()
+                    .padding(start = MorningDimens.space20, top = MorningDimens.space12),
+            ) { CloseButton(onClose) }
         }
     }
 }
@@ -180,6 +190,9 @@ private fun Modifier.missionBackdrop(backdrop: MissionColors.Backdrop): Modifier
  * 59초 고리. 남은 만큼 흰 호가 남아요. 조작해서 다시 차면 스프링으로 차오르고,
  * 마지막 10초는 숨쉬듯 커졌다 작아지고, 마지막 5초는 1초마다 약하게 진동해요.
  */
+/** 위 원형 타이머 가운데 남은 초 글자 크기. */
+private val TimerSecondsSize = 14.sp
+
 @Composable
 fun MissionTimer(
     remainingMillis: Long,
@@ -187,6 +200,7 @@ fun MissionTimer(
     diameter: Dp = TimerSize,
     strokeWidth: Dp? = null,
     track: Color = MissionColors.TimerTrack,
+    showSeconds: Boolean = true,
 ) {
     val reduceMotion = MorningTheme.reduceMotion
     val view = LocalView.current
@@ -213,7 +227,7 @@ fun MissionTimer(
         label = "breath",
     )
     val description = stringResource(R.string.mission_timer_description, secondsLeft)
-    Canvas(
+    Box(
         modifier = modifier
             .size(diameter)
             .graphicsLayer {
@@ -222,7 +236,26 @@ fun MissionTimer(
                 scaleY = scale
             }
             .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
     ) {
+        TimerArcs(fraction.value, strokeWidth, track)
+        // 가운데 남은 초(Bold 14, 데모와 피그마 Mission Timer와 같음). 큰 흔들기 고리는 숫자를 따로 그려요.
+        if (showSeconds) {
+            Text(
+                text = secondsLeft.toString(),
+                style = MorningTheme.typography.captionStrong.copy(
+                    fontSize = TimerSecondsSize,
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = MissionColors.Text,
+            )
+        }
+    }
+}
+
+@Composable
+private fun TimerArcs(fraction: Float, strokeWidth: Dp?, track: Color) {
+    Canvas(Modifier.fillMaxSize()) {
         val stroke = strokeWidth?.toPx() ?: (size.minDimension / 2 * TIMER_STROKE_RATIO)
         val inset = stroke / 2
         val arcSize = Size(size.width - stroke, size.height - stroke)
@@ -231,7 +264,7 @@ fun MissionTimer(
         drawArc(
             color = MissionColors.TimerFill,
             startAngle = TOP_ANGLE,
-            sweepAngle = FULL_SWEEP * fraction.value,
+            sweepAngle = FULL_SWEEP * fraction,
             useCenter = false,
             topLeft = topLeft,
             size = arcSize,

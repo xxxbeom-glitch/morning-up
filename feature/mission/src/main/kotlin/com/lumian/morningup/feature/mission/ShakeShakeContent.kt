@@ -79,6 +79,7 @@ internal fun ColumnScope.ShakeShakeContent(play: MissionPlay.Shake, remainingMil
             diameter = RingSize,
             strokeWidth = RingStroke,
             track = MissionColors.RingTrack,
+            showSeconds = false,
         )
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             RollingText(

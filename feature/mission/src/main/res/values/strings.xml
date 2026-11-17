@@ -29,4 +29,5 @@
 
     <!-- M4 Shake Shake -->
     <string name="mission_shake_guide">폰을 세게 흔들어요</string>
+    <string name="mission_drop_placeholder">떨어지는 단어를 입력해요</string>
 </resources>

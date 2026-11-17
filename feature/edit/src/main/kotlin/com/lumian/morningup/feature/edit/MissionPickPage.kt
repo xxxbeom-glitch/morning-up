@@ -60,6 +60,8 @@ const val SHEET_SPEED_TAG = "sheetSpeed"
 const val SHEET_COUNT_TAG = "sheetCount"
 
 /** 피그마 Mission Card: 높이 88(안쪽 16 + 56), 썸네일 56 모서리 12, 카드 사이 8. */
+/** 이름과 설명 사이(데모와 같음). */
+private val NameGap = 2.dp
 private val ThumbSize = 56.dp
 private val ThumbRadius = 12.dp
 private val PreviewButtonWidth = 106.dp
@@ -91,7 +93,7 @@ fun MissionPickPage(state: EditUiState, actions: EditActions, modifier: Modifier
                 contentPadding = PaddingValues(
                     start = MorningDimens.layoutScreenMargin,
                     end = MorningDimens.layoutScreenMargin,
-                    top = MorningDimens.space8,
+                    top = MorningDimens.space16,
                     bottom = MorningDimens.space32,
                 ),
                 verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
@@ -146,9 +148,10 @@ private fun MissionCard(
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(ThumbSize).clip(RoundedCornerShape(ThumbRadius)),
         )
-        Spacer(Modifier.width(MorningDimens.space12))
+        Spacer(Modifier.width(MorningDimens.space16))
         Column(modifier = Modifier.weight(1f)) {
             Text(text = name, style = typography.bodyMediumStrong, color = colors.textPrimary)
+            Spacer(Modifier.height(NameGap))
             Text(
                 text = selected?.let { missionValue(it) } ?: stringResource(descriptionOf(type)),
                 style = typography.bodySmall,
