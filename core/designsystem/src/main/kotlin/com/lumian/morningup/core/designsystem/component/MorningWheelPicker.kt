@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.perform
+import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -115,13 +116,15 @@ fun MorningWheelPicker(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (value != null) {
-                        Text(
-                            text = items[value],
-                            style = if (centered) typography.displayMedium else typography.displayMediumMuted,
-                            color = if (centered) colors.textPrimary else colors.textDisabled,
-                            textAlign = textAlign,
-                            modifier = Modifier.fillMaxWidth(),
-                        )
+                        FixedFontScale {
+                            Text(
+                                text = items[value],
+                                style = if (centered) typography.displayMedium else typography.displayMediumMuted,
+                                color = if (centered) colors.textPrimary else colors.textDisabled,
+                                textAlign = textAlign,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
                     }
                 }
             }

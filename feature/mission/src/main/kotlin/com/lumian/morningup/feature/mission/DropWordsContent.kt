@@ -37,6 +37,7 @@ import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.perform
+import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.model.mission.DropWordsSpeed
@@ -205,6 +206,11 @@ private fun InputBox(input: String, modifier: Modifier = Modifier) {
 /** 5x4 음절 키. 19칸은 음절, 오른쪽 아래는 지우기(늘 그 자리). 쓴 음절도 흐리게 바꾸지 않아요. */
 @Composable
 private fun SyllableKeys(keypad: List<String>, onKey: (String) -> Unit, onDelete: () -> Unit) {
+    FixedFontScale { SyllableRows(keypad, onKey, onDelete) }
+}
+
+@Composable
+private fun SyllableRows(keypad: List<String>, onKey: (String) -> Unit, onDelete: () -> Unit) {
     val cells: List<String?> = keypad.take(SyllableKeypad.SIZE) + listOf<String?>(null)
     val deleteLabel = stringResource(R.string.mission_math_delete)
     Column(verticalArrangement = Arrangement.spacedBy(MissionGap)) {

@@ -31,8 +31,9 @@ fun MorningTheme(
         LocalMorningColors provides colors,
         LocalMorningTypography provides typography,
         LocalReduceMotion provides reduceMotion,
-        content = content,
-    )
+    ) {
+        CappedFontScale(content)
+    }
 }
 
 object MorningTheme {

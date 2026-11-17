@@ -46,6 +46,7 @@ import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.perform
+import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -156,6 +157,11 @@ private fun Problem(game: QuickMathState, feedback: MissionFeedback?) {
 @Composable
 private fun Keypad(keypad: List<Int>, onKey: (MathKey) -> Unit) {
     val keys = QuickMathKeypad.keys(keypad)
+    FixedFontScale { KeyRows(keys, onKey) }
+}
+
+@Composable
+private fun KeyRows(keys: List<MathKey>, onKey: (MathKey) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(KeyGap)) {
         keys.chunked(KEY_COLUMNS).forEachIndexed { row, rowKeys ->
             Row(horizontalArrangement = Arrangement.spacedBy(KeyGap)) {

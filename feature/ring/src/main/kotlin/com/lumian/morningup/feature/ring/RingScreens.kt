@@ -43,6 +43,7 @@ import com.lumian.morningup.core.designsystem.component.MorningButtonSize
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.morningClickable
+import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningFixedColors
 import com.lumian.morningup.core.designsystem.theme.MorningShadows
@@ -150,11 +151,13 @@ private fun BoxScope.RingingContent(
         ) {
             Text(text = AlarmText.dateLong(resources, date), style = typography.bodySmall, color = colors.textBody)
             Spacer(Modifier.height(MorningDimens.space4))
-            Text(
-                text = stringResource(R.string.ring_clock, AlarmText.hour12(time.hour), time.minute),
-                style = typography.displayLarge12h,
-                color = colors.textPrimary,
-            )
+            FixedFontScale {
+                Text(
+                    text = stringResource(R.string.ring_clock, AlarmText.hour12(time.hour), time.minute),
+                    style = typography.displayLarge12h,
+                    color = colors.textPrimary,
+                )
+            }
             Spacer(Modifier.height(MorningDimens.space40))
             MorningButton(
                 text = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss),
@@ -275,11 +278,13 @@ fun WakeCheckScreen(
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(MorningDimens.space32))
-            Text(
-                text = AlarmText.countdown(resources, remainingMillis),
-                style = typography.displayLarge12h,
-                color = colors.textPrimary,
-            )
+            FixedFontScale {
+                Text(
+                    text = AlarmText.countdown(resources, remainingMillis),
+                    style = typography.displayLarge12h,
+                    color = colors.textPrimary,
+                )
+            }
             Spacer(Modifier.height(MorningDimens.space40))
             AwakeButton(confirmed = confirmed, onClick = onAwake)
         }
