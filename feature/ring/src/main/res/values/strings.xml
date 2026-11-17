@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- D0 알람 울림 -->
+    <string name="ring_clock">%1$d:%2$02d</string>
+    <string name="ring_start_mission">미션 시작</string>
+    <string name="ring_dismiss">알람 끄기</string>
+
+    <!-- W1 해제 완료 -->
+    <string name="ring_wake_up_title_morning">좋은 아침이에요</string>
+    <string name="ring_wake_up_title_night">잘 일어났어요</string>
+    <string name="ring_wake_up_message_morning">물 한 잔 마시고\n천천히 하루를 시작해요</string>
+    <string name="ring_wake_up_message_night">물 한 잔 마시고\n천천히 몸을 깨워 보세요</string>
+    <string name="ring_wake_up_ok">확인</string>
+
+    <!-- W2 깨어 있나요 -->
+    <string name="ring_wake_check_title">깨어 있나요?</string>
+    <string name="ring_wake_check_message">%1$s 안에 눌러 주세요\n누르지 않으면 알람이 다시 울려요</string>
+    <string name="ring_wake_check_awake">깼어요</string>
+    <string name="ring_wake_check_done">확인했어요</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 미션 화면 공통 -->
+    <string name="mission_timer_description">남은 시간 %1$d초</string>
+
+    <!-- M3 Quick Math -->
+    <string name="mission_math_streak">연속 정답 %1$d / %2$d</string>
+    <string name="mission_math_hint">틀리면 새 문제로 처음부터 해요</string>
+    <string name="mission_math_delete">지우기</string>
+    <string name="mission_math_confirm">확인</string>
+    <string name="mission_math_input_description">입력한 답 %1$s</string>
+</resources>

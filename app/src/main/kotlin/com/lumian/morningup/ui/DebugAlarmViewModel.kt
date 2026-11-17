@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
@@ -36,7 +37,7 @@ class DebugAlarmViewModel @Inject constructor(
             val alarm = repository.insert(
                 Alarm(
                     time = time,
-                    missions = if (withMission) listOf(MissionType.QuickMath) else emptyList(),
+                    missions = if (withMission) listOf(MissionSetting.default(MissionType.QuickMath)) else emptyList(),
                     ringAgain = RingAgain(intervalMinutes = 3, count = 1),
                     wakeCheck = WakeCheck(enabled = withMission, askAfterMinutes = 1, answerSeconds = 30),
                 ),

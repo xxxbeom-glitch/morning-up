@@ -1,46 +1,35 @@
 package com.lumian.morningup.ring
 
+import android.app.KeyguardManager
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
-import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import com.lumian.morningup.R
+import com.lumian.morningup.MainActivity
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingScreen
-import com.lumian.morningup.core.alarm.ring.RingService
 import com.lumian.morningup.core.data.session.RingSessionStore
-import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
-import com.lumian.morningup.core.model.engine.RingEvent
-import com.lumian.morningup.core.model.engine.RingPhase
+import com.lumian.morningup.feature.mission.QuickMathRoute
+import com.lumian.morningup.feature.ring.RingRoute
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
- * 임시 울림 화면(2단계). 엔진 흐름을 폰에서 확인할 수 있게 상태만 그려요.
- * 하늘 배경, 날짜, 미션 화면은 3~5단계에서 피그마 D0, W1, W2, M1~M4대로 바꿔요.
+ * 울림 화면을 잠금 화면 위에 띄우는 액티비티. 화면은 `:feature:ring`(D0, W1, W2)이 그리고,
+ * 미션 자리에는 `:feature:mission`을 꽂아요(feature끼리 직접 부르지 않게 여기서 이어요).
+ * 뒤로 가기는 화면 쪽 BackHandler가 막아요(W1만 '확인'과 같게 닫혀요).
  */
 @AndroidEntryPoint
 class RingActivity : ComponentActivity() {
@@ -55,40 +44,38 @@ class RingActivity : ComponentActivity() {
         showOverLockScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        // 울리는 동안 뒤로 가기로 빠져나가지 못해요. W1만 닫을 수 있어요.
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    if (controller.screen.value == RingScreen.WakeUp) closeWakeUp()
-                }
-            },
-        )
         resumeIfNeeded()
+        lifecycleScope.launch {
+            // 세션이 보이면 읽기가 끝난 것이에요.
+            controller.session.collect { if (it != null) loaded.value = true }
+        }
         setContent {
             MorningTheme {
-                val screen by controller.screen.collectAsStateWithLifecycle()
-                val session by controller.session.collectAsStateWithLifecycle()
                 val ready by loaded.collectAsStateWithLifecycle()
-                LaunchedEffect(screen, session, ready) {
-                    if (session != null) loaded.value = true
-                    if (ready && screen == RingScreen.None && session == null) finish()
-                }
-                // 이어가기로 살아난 쉬는 중, W2 기다림에는 Show 효과가 없어서 단계에 맞는 화면을 골라요.
-                val shown = when {
-                    screen != RingScreen.None -> screen
-                    session?.phase == RingPhase.AwaitingWakeCheck -> RingScreen.WakeUp
-                    session != null -> RingScreen.Ringing
-                    else -> RingScreen.None
-                }
-                RingContent(
-                    screen = shown,
-                    hasMissions = session?.plan?.missions?.isNotEmpty() == true,
-                    send = { RingService.send(this, it) },
-                    closeWakeUp = ::closeWakeUp,
+                RingRoute(
+                    canClose = ready,
+                    onClose = ::finish,
+                    onWakeUpConfirmed = ::afterWakeUp,
+                    missionContent = { _ ->
+                        // 5단계 전까지는 어떤 미션이든 Quick Math로 대신해요.
+                        QuickMathRoute()
+                    },
                 )
             }
         }
+    }
+
+    /** W1 '확인'. 잠긴 채 껐으면 닫기만, 풀려 있었으면 앱 홈으로 가요. */
+    private fun afterWakeUp() {
+        val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked ?: true
+        Timber.i("wake_up_closed locked=%s", locked)
+        if (!locked) {
+            startActivity(
+                Intent(this, MainActivity::class.java)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            )
+        }
+        finish()
     }
 
     /** 앱이 죽었다 살아나 화면부터 열렸으면, 저장된 울림을 서비스가 이어가게 해요. */
@@ -107,11 +94,6 @@ class RingActivity : ComponentActivity() {
         }
     }
 
-    private fun closeWakeUp() {
-        controller.clearScreen()
-        finish()
-    }
-
     @Suppress("DEPRECATION")
     private fun showOverLockScreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -127,49 +109,3 @@ class RingActivity : ComponentActivity() {
 }
 
 private const val RESUME_WAIT_MILLIS = 5_000L
-
-@Composable
-private fun RingContent(
-    screen: RingScreen,
-    hasMissions: Boolean,
-    send: (RingEvent) -> Unit,
-    closeWakeUp: () -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxSize().background(MorningTheme.colors.backgroundBase).padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        when (screen) {
-            RingScreen.Ringing -> {
-                Title(stringResource(R.string.ring_temp_ringing))
-                if (hasMissions) {
-                    Button(R.string.ring_button_start_mission) { send(RingEvent.MissionStarted) }
-                } else {
-                    Button(R.string.ring_button_dismiss) { send(RingEvent.DismissWithoutMission) }
-                }
-            }
-            is RingScreen.Mission -> {
-                Title(stringResource(R.string.ring_temp_mission, screen.index + 1))
-                Button(R.string.ring_button_touch) { send(RingEvent.MissionInteraction) }
-                Button(R.string.ring_button_mission_done) { send(RingEvent.MissionCompleted) }
-            }
-            RingScreen.WakeUp -> {
-                Title(stringResource(R.string.ring_temp_wake_up))
-                Button(R.string.ring_button_ok, closeWakeUp)
-            }
-            RingScreen.WakeCheck -> {
-                Title(stringResource(R.string.ring_temp_wake_check))
-                Button(R.string.ring_button_awake) { send(RingEvent.WakeCheckConfirmed) }
-            }
-            RingScreen.None -> Unit
-        }
-    }
-}
-
-@Composable
-private fun Title(text: String) =
-    Text(text, style = MorningTheme.typography.headlineLarge, color = MorningTheme.colors.textPrimary)
-
-@Composable
-private fun Button(label: Int, onClick: () -> Unit) = MorningButton(stringResource(label), onClick = onClick)

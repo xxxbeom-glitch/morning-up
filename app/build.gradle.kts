@@ -42,6 +42,8 @@ dependencies {
     implementation(projects.core.alarm)
     implementation(projects.feature.home)
     implementation(projects.feature.edit)
+    implementation(projects.feature.ring)
+    implementation(projects.feature.mission)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
