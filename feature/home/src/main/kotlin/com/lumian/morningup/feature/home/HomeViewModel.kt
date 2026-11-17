@@ -13,6 +13,7 @@ import com.lumian.morningup.core.model.engine.TimeUntil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +45,8 @@ data class HomeUiState(
     /** 다음에 울릴 알람. 켜진 알람이 없으면 null(H1 문구). */
     val next: NextAlarm? = null,
     val today: LocalDate? = null,
+    /** 지금 시각(분 단위). H0 하늘 장면이 따라요. */
+    val time: LocalTime? = null,
     /** H5 삭제 확인 중인 알람. 비어 있으면 확인 창이 없어요. */
     val pendingDelete: List<Alarm> = emptyList(),
     val message: HomeMessage? = null,
@@ -89,6 +92,7 @@ class HomeViewModel @Inject constructor(
             alarms = alarms,
             next = NextAlarm.find(alarms, at, holidays),
             today = at.toLocalDate(),
+            time = at.toLocalTime().withSecond(0).withNano(0),
             pendingDelete = o.pendingDelete,
             message = o.message,
             restOffers = o.restOffers,

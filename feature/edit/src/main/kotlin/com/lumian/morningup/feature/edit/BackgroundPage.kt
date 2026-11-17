@@ -55,6 +55,8 @@ import com.lumian.morningup.core.designsystem.component.MorningSelectMark
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.designsystem.theme.darkMorningColors
+import com.lumian.morningup.core.designsystem.theme.lightMorningColors
 import com.lumian.morningup.core.ui.AlarmBackground
 import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.BackgroundGroup
@@ -255,7 +257,8 @@ private fun PreviewClock(dark: Boolean) {
     Text(
         text = stringResource(R.string.edit_background_preview_time),
         style = MorningTheme.typography.bodyMediumStrong,
-        color = if (dark) MorningTheme.colors.textPrimary else MorningTheme.colors.textInverse,
+        // 앱 다크 모드와 상관없이 타일 밝기를 따라요.
+        color = remember(dark) { if (dark) lightMorningColors().textPrimary else darkMorningColors().textPrimary },
     )
 }
 

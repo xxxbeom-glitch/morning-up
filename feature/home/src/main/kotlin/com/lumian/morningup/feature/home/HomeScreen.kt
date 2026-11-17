@@ -38,7 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -83,9 +82,10 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
+import java.time.LocalTime
 import kotlinx.coroutines.delay
 
-/** 하늘 자리 높이(Home Sky 360x420). 하늘 장면은 7단계에서 그려요. */
+/** 하늘 자리 높이(Home Sky 360x420). */
 private val SkyHeight = 420.dp
 
 /** 꺼진 카드의 시각과 요일 투명도. */
@@ -181,7 +181,7 @@ fun HomeScreen(
             .fillMaxSize()
             .background(MorningTheme.colors.backgroundBase),
     ) {
-        SkyBackdrop()
+        HomeSky(time = state.time ?: DEFAULT_SKY_TIME, height = SkyHeight)
         if (!state.loading) {
             if (state.alarms.isEmpty()) {
                 EmptyHome(state = state, onAdd = onAdd, bottomReserve = navReserve, banner = banner)
@@ -224,17 +224,8 @@ fun HomeScreen(
     }
 }
 
-/** 하늘 자리: 아침 하늘 토큰 그라데이션(sky/2 → sky/4 → 바탕). 해, 달, 날씨는 7단계. */
-@Composable
-private fun SkyBackdrop() {
-    val colors = MorningTheme.colors
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(SkyHeight)
-            .background(Brush.verticalGradient(listOf(colors.sky2, colors.sky4, colors.backgroundBase))),
-    )
-}
+/** 시각을 아직 모를 때(처음 그리는 순간) 하늘. */
+private val DEFAULT_SKY_TIME: LocalTime = LocalTime.of(7, 0)
 
 @Composable
 private fun Header(
