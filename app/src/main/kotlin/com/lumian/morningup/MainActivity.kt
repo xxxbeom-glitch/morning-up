@@ -17,6 +17,7 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.ring.RingActivity
 import com.lumian.morningup.ui.DebugAlarmTools
@@ -37,6 +38,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var notifications: RingNotifications
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
+
+    @Inject lateinit var permissions: PermissionChecker
 
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
     private val editRequests = MutableStateFlow<Long?>(null)
@@ -65,6 +68,12 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
+    }
+
+    /** 기기 설정에서 권한을 바꾸고 돌아오면 바로 다시 확인해요(3번 흐름 표 14). */
+    override fun onResume() {
+        super.onResume()
+        permissions.refresh()
     }
 
     override fun onNewIntent(intent: Intent) {

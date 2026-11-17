@@ -25,4 +25,9 @@
     <string name="sample_alarm_button">1분 뒤 울리기</string>
     <string name="sample_alarm_mission_button">1분 뒤 미션 알람</string>
     <string name="sample_alarm_scheduled">%1$s에 울려요</string>
+    <string name="sample_permissions">권한 상태</string>
+    <string name="sample_permission_on">%1$s (%2$s): 켜짐</string>
+    <string name="sample_permission_off">%1$s (%2$s): 꺼짐</string>
+    <string name="sample_permission_required">필수</string>
+    <string name="sample_permission_optional">선택</string>
 </resources>

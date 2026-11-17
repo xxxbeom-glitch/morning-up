@@ -5,6 +5,7 @@ import android.content.Context
 import com.lumian.morningup.core.alarm.AlarmScope
 import com.lumian.morningup.core.alarm.AndroidAlarmScheduler
 import com.lumian.morningup.core.alarm.AndroidCatchUpHandler
+import com.lumian.morningup.core.alarm.AndroidPermissionChecker
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.SchedulingAlarmBook
@@ -16,6 +17,7 @@ import com.lumian.morningup.core.alarm.ring.RingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingLink
 import com.lumian.morningup.core.alarm.ring.ServiceRingLink
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmScheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
@@ -72,6 +74,9 @@ object AlarmModule {
 interface AlarmBindings {
     @Binds
     fun shakeSupport(impl: SensorShakeSupport): ShakeSupport
+
+    @Binds
+    fun permissionChecker(impl: AndroidPermissionChecker): PermissionChecker
 
     @Binds
     fun scheduler(impl: AndroidAlarmScheduler): AlarmScheduler
