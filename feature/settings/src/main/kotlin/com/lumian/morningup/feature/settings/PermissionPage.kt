@@ -212,15 +212,11 @@ fun PermissionPage(
                     }
                 }
             }
-            MorningSettingsCard(title = stringResource(R.string.permission_optional)) {
-                val optional = if (screen ==
-                    PermissionScreen.Ring
-                ) {
-                    AlarmPermission.PowerGuard
-                } else {
-                    AlarmPermission.Overlay
+            // 전원 종료 방지는 설정 첫 화면 '기상 미션' 카드로 옮겨서(결정 101) 선택 권한 카드는 T2-B에만 있어요.
+            if (screen == PermissionScreen.Screen) {
+                MorningSettingsCard(title = stringResource(R.string.permission_optional)) {
+                    PermissionRow(AlarmPermission.Overlay, report, onOpen)
                 }
-                PermissionRow(optional, report, onOpen)
             }
         }
     }

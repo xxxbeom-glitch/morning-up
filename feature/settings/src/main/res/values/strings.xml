@@ -28,6 +28,10 @@
     <string name="permission_required">필수 권한</string>
     <string name="permission_optional">선택 권한</string>
     <string name="permission_granted">허용됨</string>
+    <string name="permission_status_partial">일부 허용됨</string>
+    <string name="permission_status_none">허용 안 됨</string>
+    <string name="settings_power_guard">전원 종료 방지</string>
+    <string name="settings_power_guard_desc">미션 중 전원 메뉴를 막아요</string>
     <string name="permission_not_granted">허용 필요</string>
     <string name="permission_exact">정확한 알람</string>
     <string name="permission_exact_desc">정한 시각에 딱 맞춰 울려요</string>

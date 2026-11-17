@@ -143,6 +143,7 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
+                        onOpenPowerGuide = { navController.navigate(PowerGuideRoute) { launchSingleTop = true } },
                         extra = debugTools,
                     )
                 },
@@ -181,11 +182,6 @@ fun MorningNavHost(
             PowerGuardGuidePage(onBack = { navController.popBackStack() })
         }
         composable<EditRoute> {
-            val settings: SettingsViewModel = hiltViewModel()
-            val report by settings.report.collectAsStateWithLifecycle()
-            val powerAgreed by settings.powerGuardAgreed.collectAsStateWithLifecycle()
-            var askPowerConsent by rememberSaveable { mutableStateOf(false) }
-            val openGuide = { navController.navigate(PowerGuideRoute) { launchSingleTop = true } }
             AlarmEditRoute(
                 onSaved = { id ->
                     navController.previousBackStackEntry?.savedStateHandle?.set(SAVED_ALARM_KEY, id)
@@ -197,23 +193,7 @@ fun MorningNavHost(
                         navController.navigate(MissionPreviewRoute.of(missions)) { launchSingleTop = true }
                     }
                 },
-                onPowerGuardOn = {
-                    // 접근성 서비스가 꺼져 있을 때만: 처음이면 P6 동의, 동의했으면 P7 안내로 바로 가요.
-                    if (!report.isGranted(AlarmPermission.PowerGuard)) {
-                        if (powerAgreed) openGuide() else askPowerConsent = true
-                    }
-                },
             )
-            if (askPowerConsent) {
-                PowerGuardConsentDialog(
-                    onDismiss = { askPowerConsent = false },
-                    onAgree = {
-                        settings.agreePowerGuard()
-                        askPowerConsent = false
-                        openGuide()
-                    },
-                )
-            }
         }
         // 미리보기: 편집 화면 위에 미션 화면을 띄우고, 닫히면 편집 화면(시트)으로 돌아가요.
         composable<MissionPreviewRoute> {

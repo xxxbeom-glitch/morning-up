@@ -40,13 +40,14 @@ class EditScreenTest {
     }
 
     @Test
-    fun noMission_showsNone_hidesPreview_dimsPowerOff() {
+    fun noMission_showsNone_hidesPreview_noPowerOffRow() {
         var opened: EditDetail? = null
         show(EditUiState(loading = false), onDetail = { opened = it })
-        // 꺼진 줄은 값이 모두 '사용 안 함'이에요(미션, 다시 울림, 다시 잠들기 방지, 전원 종료 방지, 부드럽게 깨우기).
+        // 꺼진 줄은 값이 모두 '사용 안 함'이에요. 전원 종료 방지 줄은 설정 탭으로 옮겨서 없어요(결정 101).
         compose.onAllNodesWithText("사용 안 함").onFirst().assertExists()
         compose.onNodeWithText("미리 해보기").assertDoesNotExist()
-        compose.onAllNodes(isToggleable() and isNotEnabled()).assertCountEquals(1)
+        compose.onNodeWithText("전원 종료 방지").assertDoesNotExist()
+        compose.onAllNodes(isToggleable() and isNotEnabled()).assertCountEquals(0)
         assertThat(opened).isNull()
     }
 

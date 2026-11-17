@@ -21,6 +21,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -31,15 +34,17 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.TriangleAlert
 import com.lumian.morningup.core.alarm.PermissionSettings
 import com.lumian.morningup.core.designsystem.component.MorningMessageHost
+import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
+import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.component.MorningToast
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionReport
 import com.lumian.morningup.core.model.PermissionScreen
 import java.time.LocalTime
@@ -47,14 +52,13 @@ import java.time.LocalTime
 /** 하단 메뉴가 덮는 높이. 마지막 카드와 메뉴 사이 24를 더해요(design-system T1). */
 private val BottomNavSpace = 120.dp
 private val ChevronSize = 16.dp
-private val AlertSize = 16.dp
 private val NavRowGap = 5.dp
 
 /** 의견 보내기 받는 주소(design-system T1, 11-16 사용자 결정). */
 private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 
 /**
- * T1 설정(피그마 `141:1293`). 카드: 알람, 도움말, 앱 정보.
+ * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보. 제목은 숨겨요.
  * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
  * [extra]는 디버그 빌드에서만 맨 아래에 붙는 개발용 도구예요.
  */
@@ -65,12 +69,16 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
+    onOpenPowerGuide: () -> Unit = {},
     extra: @Composable () -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val tryAt by viewModel.tryAlarmAt.collectAsStateWithLifecycle()
+    val powerOn by viewModel.powerGuardEnabled.collectAsStateWithLifecycle()
+    val powerAgreed by viewModel.powerGuardAgreed.collectAsStateWithLifecycle()
+    var askPowerConsent by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     SettingsScreen(
         report = report,
@@ -84,7 +92,29 @@ fun SettingsRoute(
         modifier = modifier,
         extra = extra,
         weatherCard = weatherCard,
+        // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 처음엔 P6 동의, 동의한 뒤로는 P7 안내로 가요.
+        // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보여요.
+        powerGuard = powerOn && report.isGranted(AlarmPermission.PowerGuard),
+        onPowerGuard = { on ->
+            viewModel.setPowerGuardEnabled(on)
+            if (on && !report.isGranted(AlarmPermission.PowerGuard)) {
+                if (powerAgreed) onOpenPowerGuide() else askPowerConsent = true
+            }
+        },
     )
+    if (askPowerConsent) {
+        PowerGuardConsentDialog(
+            onDismiss = {
+                askPowerConsent = false
+                viewModel.setPowerGuardEnabled(false)
+            },
+            onAgree = {
+                viewModel.agreePowerGuard()
+                askPowerConsent = false
+                onOpenPowerGuide()
+            },
+        )
+    }
 }
 
 @Composable
@@ -100,6 +130,8 @@ fun SettingsScreen(
     onLicenses: () -> Unit = {},
     extra: @Composable () -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
+    powerGuard: Boolean = false,
+    onPowerGuard: (Boolean) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         Column(
@@ -117,18 +149,11 @@ fun SettingsScreen(
                 ),
                 verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
             ) {
-                MorningSettingsCard(title = stringResource(R.string.settings_alarm_card)) {
+                // 카드 제목은 숨겨요(결정 101). 순서: 알람, 기상 미션, 날씨 애니메이션, 도움말, 앱 정보.
+                MorningSettingsCard(title = null) {
                     NavRows {
-                        NavRow(
-                            label = stringResource(R.string.settings_alarm_ring),
-                            alert = report.needsAttention(PermissionScreen.Ring),
-                            onClick = { onOpenPermissions(PermissionScreen.Ring) },
-                        )
-                        NavRow(
-                            label = stringResource(R.string.settings_alarm_screen),
-                            alert = report.needsAttention(PermissionScreen.Screen),
-                            onClick = { onOpenPermissions(PermissionScreen.Screen) },
-                        )
+                        PermissionNavRow(R.string.settings_alarm_ring, report, PermissionScreen.Ring, onOpenPermissions)
+                        PermissionNavRow(R.string.settings_alarm_screen, report, PermissionScreen.Screen, onOpenPermissions)
                         NavRow(
                             label = stringResource(R.string.settings_alarm_try),
                             value = stringResource(R.string.settings_alarm_try_value),
@@ -136,14 +161,22 @@ fun SettingsScreen(
                         )
                     }
                 }
+                MorningSettingsCard(title = null) {
+                    MorningSettingRow(
+                        label = stringResource(R.string.settings_power_guard),
+                        value = stringResource(R.string.settings_power_guard_desc),
+                        state = if (powerGuard) SettingRowState.On else SettingRowState.Off,
+                        onCheckedChange = onPowerGuard,
+                    )
+                }
                 weatherCard()
-                MorningSettingsCard(title = stringResource(R.string.settings_help_card)) {
+                MorningSettingsCard(title = null) {
                     NavRows {
                         NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
                         NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
                     }
                 }
-                MorningSettingsCard(title = stringResource(R.string.settings_info_card)) {
+                MorningSettingsCard(title = null) {
                     NavRows {
                         NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
@@ -174,13 +207,38 @@ internal fun NavRows(content: @Composable () -> Unit) {
 }
 
 /**
- * 피그마 Nav Row. 한 줄 44(`size/row-plain`), 오른쪽에 값과 chevron-right 16(사이 5).
- * [alert]면 값 대신 빨간 경고 삼각형 16을 켜요. [onClick]이 없으면 화살표 없이 값만 보여요(버전).
+ * 권한 줄(결정 102). 그 화면 필수 권한이 모두 켜지면 '허용됨'(회색), 일부만 켜지면 '일부 허용됨', 하나도 안 켜지면
+ * '허용 안 됨'(둘 다 빨강). 필수 권한이 하나뿐인 화면은 '허용됨'과 '허용 안 됨'만 써요. 선택 권한은 세지 않아요.
  */
 @Composable
-internal fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null, alert: Boolean = false) {
+private fun PermissionNavRow(
+    label: Int,
+    report: PermissionReport,
+    screen: PermissionScreen,
+    onOpen: (PermissionScreen) -> Unit,
+) {
+    val required = AlarmPermission.entries.filter { it.required && it.screen == screen }
+    val granted = required.count { report.isGranted(it) }
+    val status = when (granted) {
+        required.size -> R.string.permission_granted
+        0 -> R.string.permission_status_none
+        else -> R.string.permission_status_partial
+    }
+    NavRow(
+        label = stringResource(label),
+        value = stringResource(status),
+        valueError = granted < required.size,
+        onClick = { onOpen(screen) },
+    )
+}
+
+/**
+ * 피그마 Nav Row. 한 줄 44(`size/row-plain`), 오른쪽에 값과 chevron-right 16(사이 5).
+ * [valueError]면 값 글자가 빨강이에요(권한 상태, 결정 102). [onClick]이 없으면 화살표 없이 값만 보여요(버전).
+ */
+@Composable
+internal fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null, valueError: Boolean = false) {
     val colors = MorningTheme.colors
-    val alertText = stringResource(R.string.settings_needs_attention)
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -195,10 +253,12 @@ internal fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null
             color = colors.textBody,
             modifier = Modifier.weight(1f),
         )
-        if (alert) {
-            Icon(Lucide.TriangleAlert, alertText, Modifier.size(AlertSize), tint = colors.statusError)
-        } else if (value != null) {
-            Text(text = value, style = MorningTheme.typography.captionMedium, color = colors.textSecondary)
+        if (value != null) {
+            Text(
+                text = value,
+                style = MorningTheme.typography.captionMedium,
+                color = if (valueError) colors.statusError else colors.textSecondary,
+            )
         }
         if (onClick != null) {
             Icon(Lucide.ChevronRight, null, Modifier.size(ChevronSize), tint = colors.textTertiary)

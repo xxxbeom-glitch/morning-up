@@ -11,19 +11,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
 /**
  * 전원 종료 방지(F1, P6, P7). 미션을 하는 동안 전원 메뉴 창이 뜨면 바로 닫아요.
  * 창이 바뀌었다는 신호와 그 창의 앱 이름, 창 종류만 보고 화면 글이나 내용은 읽지 않아요(P6 약속).
- * 전원 종료 방지를 켠 알람의 미션 중일 때만 동작하고, 그 밖에는 아무것도 하지 않아요.
+ * 설정 탭에서 전원 종료 방지를 켜 두었고(결정 101) 미션이 있는 알람의 미션 중일 때만 동작해요. 그 밖에는 아무것도 하지 않아요.
  */
 @AndroidEntryPoint
 class PowerGuardService : AccessibilityService() {
     @Inject lateinit var sessions: RingSessionStore
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
+
+    @Inject lateinit var setting: PowerGuardConsent
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -32,9 +35,10 @@ class PowerGuardService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         sessions.session
-            .onEach { session ->
-                guarding = session?.phase == RingPhase.InMission && session.plan.powerOffGuard
+            .combine(setting.enabled) { session, on ->
+                on && session?.phase == RingPhase.InMission && session.plan.missions.isNotEmpty()
             }
+            .onEach { guarding = it }
             .launchIn(scope)
     }
 

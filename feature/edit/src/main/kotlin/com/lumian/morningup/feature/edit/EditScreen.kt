@@ -85,14 +85,12 @@ fun AlarmEditRoute(
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
     onPreview: (List<MissionSetting>) -> Unit = {},
-    onPowerGuardOn: () -> Unit = {},
     viewModel: EditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val saved by rememberUpdatedState(onSaved)
     val close by rememberUpdatedState(onClose)
     val preview by rememberUpdatedState(onPreview)
-    val powerGuardOn by rememberUpdatedState(onPowerGuardOn)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
             is EditExit.Saved -> saved(exit.alarmId)
@@ -111,11 +109,6 @@ fun AlarmEditRoute(
                 onMissions = viewModel::setMissionsEnabled,
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
-                // 켤 때 접근성 서비스가 꺼져 있으면 P6 동의와 P7 안내로 이어 줘요(앱이 판단해요).
-                onPowerOff = { on ->
-                    viewModel.setPowerOffGuard(on)
-                    if (on) powerGuardOn()
-                },
                 onSound = viewModel::setSound,
                 onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,
@@ -159,7 +152,6 @@ data class EditActions(
     val onMissions: (Boolean) -> Unit = {},
     val onRingAgain: (Boolean) -> Unit = {},
     val onWakeCheck: (Boolean) -> Unit = {},
-    val onPowerOff: (Boolean) -> Unit = {},
     val onSound: (Boolean) -> Unit = {},
     val onSoundId: (String) -> Unit = {},
     val onVibrate: (Boolean) -> Unit = {},
@@ -453,14 +445,6 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
             state = onOff(alarm.wakeCheck.enabled),
             onCheckedChange = pickOrOff(EditDetail.WakeCheck, onOpenDetail, actions.onWakeCheck),
             onClick = { onOpenDetail(EditDetail.WakeCheck) },
-        )
-        // 고를 값이 없는 줄이라 줄 어디를 눌러도 토글이 바뀌어요.
-        val powerOn = state.hasMissions && alarm.powerOffGuard
-        MorningSettingRow(
-            label = stringResource(R.string.edit_power_off),
-            value = if (powerOn) stringResource(R.string.edit_power_off_value) else offValue(),
-            state = if (state.hasMissions) onOff(alarm.powerOffGuard) else SettingRowState.Disabled,
-            onCheckedChange = actions.onPowerOff,
         )
     }
 }

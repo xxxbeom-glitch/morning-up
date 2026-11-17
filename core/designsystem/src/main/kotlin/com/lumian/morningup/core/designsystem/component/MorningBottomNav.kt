@@ -45,8 +45,9 @@ private val NavItemSize = 48.dp
 val MorningBottomNavHeight = 64.dp
 
 /**
- * 피그마 Bottom Nav(`285:7033`). 가운데 떠 있는 알약(176x64), 칠 `background/raised` + `shadow/float`.
- * 흰 카드 위에 겹쳐도 구분되게 카드보다 한 단계 진한 칠을 써요(11-17 사용자 요청, 피그마는 `surface/card`).
+ * 피그마 Bottom Nav(`285:7033`). 가운데 떠 있는 알약(176x64)과 `shadow/float`.
+ * 라이트 모드는 칠을 `surface/card`(흰색) 그대로 두고 그림자로만 구분해요(11-18 사용자 요청).
+ * 다크 모드는 그림자가 잘 안 보여서 카드보다 한 단계 밝은 `background/raised`를 써요.
  * 48 원형 아이콘 버튼, 고른 탭 바탕 `primary/subtle`.
  */
 @Composable
@@ -60,10 +61,11 @@ fun MorningBottomNav(
 ) {
     val colors = MorningTheme.colors
     val pill = RoundedCornerShape(MorningDimens.radiusFull)
+    val base = navBase()
     Row(
         modifier = modifier
             .morningShadow(MorningShadows.float, pill)
-            .background(colors.backgroundRaised, pill)
+            .background(base, pill)
             .padding(MorningDimens.space8)
             .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8),
@@ -80,11 +82,15 @@ fun MorningBottomNav(
     }
 }
 
+/** 알약 칠. 라이트는 흰 카드색, 다크는 한 단계 밝은 칠. */
+@Composable
+private fun navBase() = MorningTheme.colors.let { if (it.isDark) it.backgroundRaised else it.surfaceCard }
+
 @Composable
 private fun NavButton(item: MorningNavItem, selected: Boolean, onClick: () -> Unit, alert: String?) {
     val colors = MorningTheme.colors
     val fill by animateColorAsState(
-        targetValue = if (selected) colors.primarySubtle else colors.backgroundRaised,
+        targetValue = if (selected) colors.primarySubtle else navBase(),
         animationSpec = MorningMotion.effects(MorningMotion.EffectsDefault),
         label = "navFill",
     )

@@ -37,6 +37,11 @@ class SettingsViewModel @Inject constructor(
 
     fun agreePowerGuard() = powerConsent.agree()
 
+    /** 설정 탭 '전원 종료 방지' 토글(결정 101). */
+    val powerGuardEnabled: StateFlow<Boolean> = powerConsent.enabled
+
+    fun setPowerGuardEnabled(on: Boolean) = powerConsent.setEnabled(on)
+
     val report: StateFlow<PermissionReport> = permissions.report
 
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -1,7 +1,6 @@
 package com.lumian.morningup.feature.settings
 
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.google.common.truth.Truth.assertThat
@@ -37,7 +36,9 @@ class SettingsScreensTest {
                 )
             }
         }
-        compose.onNodeWithContentDescription("확인이 필요해요").assertExists()
+        // 알람 울림은 필수 3개 중 2개만 켜져서 '일부 허용됨', 알람 화면 표시는 '허용됨'(결정 102).
+        compose.onNodeWithText("일부 허용됨").assertExists()
+        compose.onNodeWithText("허용됨").assertExists()
         compose.onNodeWithText("1.0.0").assertExists()
         compose.onNodeWithText("알람 울림").performClick()
         assertThat(opened).isEqualTo(PermissionScreen.Ring)
@@ -50,7 +51,8 @@ class SettingsScreensTest {
                 SettingsScreen(report(), "1.0.0", null, {}, {}, {})
             }
         }
-        compose.onNodeWithContentDescription("확인이 필요해요").assertDoesNotExist()
+        compose.onNodeWithText("일부 허용됨").assertDoesNotExist()
+        compose.onNodeWithText("허용 안 됨").assertDoesNotExist()
     }
 
     @Test
