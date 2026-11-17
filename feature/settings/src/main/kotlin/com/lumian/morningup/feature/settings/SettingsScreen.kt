@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,6 +54,9 @@ import java.time.LocalTime
 private val BottomNavSpace = 120.dp
 private val ChevronSize = 16.dp
 private val NavRowGap = 5.dp
+
+/** 피그마 T1 두 줄짜리 Setting Row 높이(라벨과 설명, 위아래 7). 편집 화면 줄은 그대로 둬요. */
+internal val SettingsToggleRowHeight = 54.dp
 
 /** 의견 보내기 받는 주소(design-system T1, 11-16 사용자 결정). */
 private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
@@ -167,6 +171,7 @@ fun SettingsScreen(
                         value = stringResource(R.string.settings_power_guard_desc),
                         state = if (powerGuard) SettingRowState.On else SettingRowState.Off,
                         onCheckedChange = onPowerGuard,
+                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
                     )
                 }
                 weatherCard()

@@ -77,7 +77,8 @@ fun SleepScreen(onOpenTrack: (String) -> Unit, modifier: Modifier = Modifier) {
             .drawBehind { drawLoungeGlows(t) },
     ) {
         Column(Modifier.fillMaxSize().statusBarsPadding()) {
-            Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 24.dp)) {
+            // 위 여백 24+8(11-18 사용자 요청: 홈 말고 모든 화면 위 여백을 늘림)
+            Column(Modifier.padding(start = 24.dp, end = 24.dp, top = 32.dp)) {
                 Text(
                     stringResource(R.string.sleep_title),
                     style = MorningTheme.typography.headlineLarge,

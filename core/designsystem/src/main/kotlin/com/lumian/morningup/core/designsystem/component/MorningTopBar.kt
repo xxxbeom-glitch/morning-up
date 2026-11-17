@@ -18,6 +18,9 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
 private val TopBarHeight = 56.dp
 
+/** 상태 표시줄과 상단바 사이 여백(11-18 사용자 요청: 홈 말고 모든 화면 위 여백을 늘림). */
+private val TopBarTopGap = 8.dp
+
 /** 아이콘 버튼(48) 안에서 아이콘(24)이 화면 왼쪽 16에 오도록 버튼을 4 들여요. */
 private val BackButtonInset = 4.dp
 
@@ -32,6 +35,7 @@ fun MorningTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .padding(top = TopBarTopGap)
             .height(TopBarHeight),
     ) {
         if (onBack != null) {

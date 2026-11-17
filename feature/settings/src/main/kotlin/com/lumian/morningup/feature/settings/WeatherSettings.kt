@@ -5,11 +5,13 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
@@ -71,6 +73,7 @@ internal fun WeatherCard(viewModel: WeatherSettingsViewModel = hiltViewModel()) 
             label = stringResource(R.string.settings_weather_motion),
             value = stringResource(R.string.settings_weather_motion_value),
             state = if (enabled && granted) SettingRowState.On else SettingRowState.Off,
+            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
             onCheckedChange = { on ->
                 when {
                     !on -> viewModel.setEnabled(false)

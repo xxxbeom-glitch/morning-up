@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningShadows
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -35,7 +36,8 @@ fun MorningSettingsCard(
                 horizontal = MorningDimens.layoutCardPadding,
                 vertical = if (title == null) MorningDimens.space16 else MorningDimens.layoutCardPadding,
             ),
-        verticalArrangement = Arrangement.spacedBy(MorningDimens.space16),
+        // 제목 없는 카드는 줄 사이 0이에요(피그마 T1 카드 gap 0, 줄 높이가 간격을 채워요).
+        verticalArrangement = Arrangement.spacedBy(if (title == null) 0.dp else MorningDimens.space16),
     ) {
         // 제목이 없는 카드(설정 T1, 결정 101)는 내용만 둬요.
         if (title != null) {
