@@ -270,7 +270,8 @@ class EditViewModelTest {
         vm.uiState.test {
             assertThat(loaded().missionOrder).containsExactlyElementsIn(EditUiState.MISSION_LIST_ORDER).inOrder()
             var full = EditUiState()
-            val picks = listOf(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz, MissionType.DropWords)
+            val picks =
+                listOf(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz, MissionType.DropWords)
             picks.forEach { type ->
                 vm.openMissionSheet(type)
                 val sheet = awaitItem().missionSheet!!

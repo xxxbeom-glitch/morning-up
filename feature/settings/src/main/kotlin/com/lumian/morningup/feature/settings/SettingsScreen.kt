@@ -157,7 +157,12 @@ fun SettingsScreen(
                 MorningSettingsCard(title = null) {
                     NavRows {
                         PermissionNavRow(R.string.settings_alarm_ring, report, PermissionScreen.Ring, onOpenPermissions)
-                        PermissionNavRow(R.string.settings_alarm_screen, report, PermissionScreen.Screen, onOpenPermissions)
+                        PermissionNavRow(
+                            R.string.settings_alarm_screen,
+                            report,
+                            PermissionScreen.Screen,
+                            onOpenPermissions,
+                        )
                         NavRow(
                             label = stringResource(R.string.settings_alarm_try),
                             value = stringResource(R.string.settings_alarm_try_value),

@@ -48,7 +48,11 @@ internal fun EditSheetFrame(
     onDone: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    MorningSheetHeader(title = title, description = description, modifier = Modifier.padding(top = MorningDimens.space8))
+    MorningSheetHeader(
+        title = title,
+        description = description,
+        modifier = Modifier.padding(top = MorningDimens.space8),
+    )
     Spacer(Modifier.height(MorningDimens.space16))
     Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space4), content = content)
     Spacer(Modifier.height(MorningDimens.space24))
