@@ -5,6 +5,7 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.TimeUntil
@@ -46,7 +47,12 @@ class HomeViewModelTest {
     private val a630 = Alarm(id = 1, time = LocalTime.of(6, 30), repeatDays = weekdays)
     private val a710 = Alarm(id = 2, time = LocalTime.of(7, 10), repeatDays = setOf(DayOfWeek.SATURDAY))
     private val a800 =
-        Alarm(id = 3, time = LocalTime.of(8, 0), enabled = false, missions = listOf(MissionType.QuickMath))
+        Alarm(
+            id = 3,
+            time = LocalTime.of(8, 0),
+            enabled = false,
+            missions = listOf(MissionSetting(MissionType.QuickMath)),
+        )
 
     private fun viewModel(book: FakeAlarmBook) = HomeViewModel(book, now, noHolidays, ticker)
 

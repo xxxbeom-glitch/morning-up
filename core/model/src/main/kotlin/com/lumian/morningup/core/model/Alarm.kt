@@ -49,7 +49,8 @@ data class Alarm(
     val repeatDays: Set<DayOfWeek> = emptySet(),
     val skipHolidays: Boolean = false,
     val enabled: Boolean = true,
-    val missions: List<MissionType> = emptyList(),
+    /** 고른 순서대로의 미션과 설정. 비어 있으면 미션 없는 알람(4-1)이에요. */
+    val missions: List<MissionSetting> = emptyList(),
     val ringAgain: RingAgain = RingAgain(),
     val wakeCheck: WakeCheck = WakeCheck(),
     val powerOffGuard: Boolean = false,
@@ -64,6 +65,8 @@ data class Alarm(
     val nextTriggerAt: Long? = null,
 ) {
     val isRepeating: Boolean get() = repeatDays.isNotEmpty()
+
+    val missionTypes: List<MissionType> get() = missions.map { it.type }
 
     companion object {
         const val DEFAULT_SOUND_ID = "default"

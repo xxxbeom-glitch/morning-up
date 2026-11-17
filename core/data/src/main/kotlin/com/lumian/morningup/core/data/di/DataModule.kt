@@ -27,7 +27,9 @@ object DataModule {
     @Provides
     @Singleton
     fun database(@ApplicationContext context: Context): MorningDatabase =
-        Room.databaseBuilder(context.deviceProtected(), MorningDatabase::class.java, MorningDatabase.NAME).build()
+        Room.databaseBuilder(context.deviceProtected(), MorningDatabase::class.java, MorningDatabase.NAME)
+            .apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }
+            .build()
 
     @Provides
     fun alarmDao(db: MorningDatabase): AlarmDao = db.alarmDao()

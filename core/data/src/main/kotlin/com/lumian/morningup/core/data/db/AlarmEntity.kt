@@ -3,14 +3,13 @@ package com.lumian.morningup.core.data.db
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.lumian.morningup.core.model.Alarm
-import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 
-/** 알람 표. 요일은 월=1비트 … 일=7비트 묶음, 미션은 이름을 쉼표로 이어 저장해요. */
+/** 알람 표. 요일은 월=1비트 … 일=7비트 묶음, 미션은 설정 목록 JSON으로 저장해요([MissionCodec], v2). */
 @Entity(tableName = "alarms")
 data class AlarmEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -45,10 +44,8 @@ fun AlarmEntity.toModel(): Alarm = Alarm(
     repeatDays = repeatDaysMask.toDays(),
     skipHolidays = skipHolidays,
     enabled = enabled,
-    // 모르는 미션 이름(앞으로 지운 미션)은 건너뛰어요.
-    missions = missions.split(',').filter(String::isNotBlank).mapNotNull { name ->
-        MissionType.entries.firstOrNull { it.name == name }
-    },
+    // 모르는 미션(앞으로 지운 미션)은 건너뛰어요.
+    missions = MissionCodec.decode(missions),
     ringAgain = RingAgain(ringAgainIntervalMinutes, ringAgainCount),
     wakeCheck = WakeCheck(wakeCheckEnabled, wakeCheckAskAfterMinutes, wakeCheckAnswerSeconds),
     powerOffGuard = powerOffGuard,
@@ -68,7 +65,7 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     repeatDaysMask = repeatDays.toMask(),
     skipHolidays = skipHolidays,
     enabled = enabled,
-    missions = missions.joinToString(",") { it.name },
+    missions = MissionCodec.encode(missions),
     ringAgainIntervalMinutes = ringAgain.intervalMinutes,
     ringAgainCount = ringAgain.count,
     wakeCheckEnabled = wakeCheck.enabled,

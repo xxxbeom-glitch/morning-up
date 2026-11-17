@@ -13,6 +13,7 @@ import com.lumian.morningup.core.data.db.toModel
 import com.lumian.morningup.core.data.diagnostics.DiagnosticLog
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
@@ -49,7 +50,7 @@ class DataLayerTest {
         repeatDays = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.SUNDAY),
         skipHolidays = true,
         enabled = true,
-        missions = listOf(MissionType.QuickMath, MissionType.DropWords),
+        missions = listOf(MissionSetting(MissionType.QuickMath, 4, 5), MissionSetting(MissionType.DropWords, 2, 15, 3)),
         ringAgain = RingAgain(10, null),
         wakeCheck = WakeCheck(true, 7, 90),
         powerOffGuard = true,
@@ -79,7 +80,15 @@ class DataLayerTest {
     @Test
     fun unknownMissionName_isSkipped() {
         val entity = full.toEntity().copy(missions = "QuickMath,OldMission,")
-        assertThat(entity.toModel().missions).containsExactly(MissionType.QuickMath)
+        assertThat(entity.toModel().missions).containsExactly(MissionSetting.default(MissionType.QuickMath))
+    }
+
+    @Test
+    fun missionJson_unknownTypeOrBrokenText_isSkipped() {
+        val json = """[{"type":"OldMission","level":1,"count":3},{"type":"QuickMath","level":2,"count":4}]"""
+        assertThat(full.toEntity().copy(missions = json).toModel().missions)
+            .containsExactly(MissionSetting(MissionType.QuickMath, 2, 4))
+        assertThat(full.toEntity().copy(missions = "[{broken").toModel().missions).isEmpty()
     }
 
     @Test
@@ -132,9 +141,11 @@ class DataLayerTest {
     }
 
     @Test
-    fun schemaV1_isExported() {
-        val schema = File("schemas/com.lumian.morningup.core.data.db.MorningDatabase/1.json")
-        assertThat(schema.exists()).isTrue()
-        assertThat(schema.readText()).contains("\"tableName\": \"alarms\"")
+    fun schemas_areExported() {
+        listOf(1, 2).forEach { version ->
+            val schema = File("schemas/com.lumian.morningup.core.data.db.MorningDatabase/$version.json")
+            assertThat(schema.exists()).isTrue()
+            assertThat(schema.readText()).contains("\"tableName\": \"alarms\"")
+        }
     }
 }

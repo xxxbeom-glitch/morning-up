@@ -1,6 +1,7 @@
 package com.lumian.morningup.core.model.engine
 
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import kotlinx.serialization.Serializable
 
@@ -15,11 +16,24 @@ data class RingPlan(
     val wakeCheckEnabled: Boolean,
     val wakeCheckAskAfterMinutes: Int,
     val wakeCheckAnswerSeconds: Int,
+    /**
+     * 미션마다 단계와 개수(4단계에서 더함). 3단계 이전에 저장된 세션에는 없어서 비어 있을 수 있어요.
+     * 그럴 때는 [missionSetting]이 처음 값으로 채워요.
+     */
+    val missionSettings: List<MissionSetting> = emptyList(),
 ) {
+    /** [index]번째 미션 설정. 저장된 값이 없거나 종류가 다르면 그 미션의 처음 값이에요. */
+    fun missionSetting(index: Int): MissionSetting? {
+        val type = missions.getOrNull(index) ?: return null
+        return missionSettings.getOrNull(index)?.takeIf { it.type == type }?.normalized()
+            ?: MissionSetting.default(type)
+    }
+
     companion object {
         fun from(alarm: Alarm) = RingPlan(
             alarmId = alarm.id,
-            missions = alarm.missions,
+            missions = alarm.missionTypes,
+            missionSettings = alarm.missions,
             intervalMinutes = alarm.ringAgain.intervalMinutes,
             ringAgainCount = alarm.ringAgain.count,
             wakeCheckEnabled = alarm.wakeCheck.enabled,
