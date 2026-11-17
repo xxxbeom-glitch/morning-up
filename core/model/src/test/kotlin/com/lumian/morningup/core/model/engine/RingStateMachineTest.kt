@@ -67,6 +67,19 @@ class RingStateMachineTest {
     }
 
     @Test
+    fun ringTimeout_rest_closesScreen_andTellsNextRing() {
+        // 다시 2번이면 1번째 울림 뒤 쉬기 → 다음은 2번째, 2번째 뒤 쉬기 → 다음은 3번째(결정 70)
+        val first = reduce(fire(plan(count = 2)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
+        assertThat(first.effects).contains(RingEffect.RestStarted(t0 + min + 5 * min, 5, 2))
+        val ringing = reduce(first.session, RingEvent.TimerFired(TimerKind.RestEnded), t0 + 6 * min).session
+        val second = reduce(ringing, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + 7 * min)
+        assertThat(second.effects).contains(RingEffect.RestStarted(t0 + 12 * min, 5, 3))
+        // 끌 때까지는 셀 수 없어 번째가 없어요.
+        val endless = reduce(fire(plan(count = null)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
+        assertThat(endless.effects).contains(RingEffect.RestStarted(t0 + 6 * min, 5, null))
+    }
+
+    @Test
     fun restEnded_ringsAgain() {
         var s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session
         val now = t0 + min + 5 * min
@@ -125,15 +138,14 @@ class RingStateMachineTest {
     // 미션 ------------------------------------------------------------------
 
     @Test
-    fun missionStarted_lowersVolume_and59sTimer() {
+    fun missionStarted_stopsSound_and59sTimer() {
         val t = reduce(fire().session, RingEvent.MissionStarted, t0 + 10 * sec)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.InMission)
         assertThat(t.effects).containsAtLeast(
-            PlaySound(RingStateMachine.MISSION_VOLUME),
+            StopSound,
             ShowMission(0),
             ScheduleTimer(t0 + 10 * sec + 59 * sec, TimerKind.MissionTimeout),
         )
-        assertThat(RingStateMachine.MISSION_VOLUME).isEqualTo(0.2f)
     }
 
     @Test
@@ -329,7 +341,7 @@ class RingStateMachineTest {
         var s = reduce(fire().session, RingEvent.MissionStarted, t0).session
         s = reduce(s, RingEvent.MissionCompleted, t0 + 10 * sec).session!!
         assertThat(RingStateMachine.resume(s)).containsExactly(
-            PlaySound(RingStateMachine.MISSION_VOLUME),
+            StopSound,
             ShowMission(1),
             ScheduleTimer(s.phaseEndsAt, TimerKind.MissionTimeout),
         )

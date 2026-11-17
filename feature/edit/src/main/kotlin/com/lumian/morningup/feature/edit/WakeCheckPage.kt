@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
@@ -26,7 +27,7 @@ import com.lumian.morningup.core.ui.alarmResources
 
 /**
  * S4 다시 잠들기 방지(피그마 `170:1672`). '언제 물을까요' 1, 3, 5, 10분 후, '답할 시간' 30초, 1분, 2분.
- * 켬, 끔 토글은 피그마 S4에 없어서 S0 줄의 토글 그대로 둬요.
+ * 맨 위 '사용 안 함'을 고르면 꺼지고, 값을 고르면 켜져요.
  */
 @Composable
 fun WakeCheckPage(
@@ -34,8 +35,10 @@ fun WakeCheckPage(
     onBack: () -> Unit,
     onAsk: (Int) -> Unit,
     onAnswer: (Int) -> Unit,
+    onOff: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val on = wakeCheck.enabled
     val colors = MorningTheme.colors
     val resources = alarmResources()
     Column(
@@ -59,19 +62,23 @@ fun WakeCheckPage(
             verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
         ) {
             MorningSettingsCard(title = stringResource(R.string.edit_wake_check_ask_title)) {
+                MorningRadioRow(label = stringResource(R.string.edit_off_value), selected = !on, onClick = onOff)
                 EditViewModel.WAKE_CHECK_ASK_MINUTES.forEach { minutes ->
                     MorningRadioRow(
                         label = stringResource(R.string.edit_wake_check_ask_option, minutes),
-                        selected = wakeCheck.askAfterMinutes == minutes,
+                        selected = on && wakeCheck.askAfterMinutes == minutes,
                         onClick = { onAsk(minutes) },
                     )
                 }
             }
-            MorningSettingsCard(title = stringResource(R.string.edit_wake_check_answer_title)) {
+            MorningSettingsCard(
+                title = stringResource(R.string.edit_wake_check_answer_title),
+                modifier = Modifier.alpha(if (on) 1f else WAKE_OFF_ALPHA),
+            ) {
                 EditViewModel.WAKE_CHECK_ANSWER_SECONDS.forEach { seconds ->
                     MorningRadioRow(
                         label = AlarmText.duration(resources, seconds),
-                        selected = wakeCheck.answerSeconds == seconds,
+                        selected = on && wakeCheck.answerSeconds == seconds,
                         onClick = { onAnswer(seconds) },
                     )
                 }
@@ -85,3 +92,5 @@ fun WakeCheckPage(
         }
     }
 }
+
+private const val WAKE_OFF_ALPHA = 0.45f

@@ -124,6 +124,12 @@ sealed interface RingEffect {
 
     data object ShowRingScreen : RingEffect
 
+    /**
+     * 1분 울림이 끝나 쉬기 시작했어요. 울림 화면을 닫고, [nextRingAt]에 다시 울린다고 짧게 알려요(11-17 사용자 지시).
+     * [nextRingNumber]는 다음이 몇 번째 울림인지예요. 끌 때까지 울리는 알람은 셀 수 없어 null이에요.
+     */
+    data class RestStarted(val nextRingAt: Long, val intervalMinutes: Int, val nextRingNumber: Int?) : RingEffect
+
     data class ShowMission(val index: Int) : RingEffect
 
     /** W1 해제 완료 화면. */

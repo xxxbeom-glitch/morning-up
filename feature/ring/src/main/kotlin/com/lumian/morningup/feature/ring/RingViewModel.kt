@@ -91,6 +91,8 @@ class RingViewModel @Inject constructor(
             screen != RingScreen.None -> screen
             session == null -> RingScreen.None
             session.phase == RingPhase.AwaitingWakeCheck -> RingScreen.None
+            // 쉬는 중에는 화면을 닫아요. 쉬는 중 알림을 누르면 컨트롤러가 울림 화면을 정해 줘요(결정 70).
+            session.phase == RingPhase.Resting -> RingScreen.None
             session.phase == RingPhase.InMission -> RingScreen.Mission(session.missionsDone)
             session.phase == RingPhase.WakeCheckAsking -> RingScreen.WakeCheck
             else -> RingScreen.Ringing

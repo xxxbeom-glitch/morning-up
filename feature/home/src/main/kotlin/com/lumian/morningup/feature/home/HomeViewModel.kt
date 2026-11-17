@@ -99,7 +99,7 @@ class HomeViewModel @Inject constructor(
         val ids = alarms.mapTo(HashSet()) { it.id }
         HomeUiState(
             loading = false,
-            alarms = alarms,
+            alarms = sortForHome(alarms, at),
             next = NextAlarm.find(alarms, at, holidays),
             today = at.toLocalDate(),
             time = at.toLocalTime().withSecond(0).withNano(0),
@@ -122,6 +122,20 @@ class HomeViewModel @Inject constructor(
         val skipsNext = active &&
             NextRingCalculator.next(alarm.copy(skipOnceDate = null), at, holidays)?.toLocalDate() == skip
         return if (skipsNext) NextRingCalculator.next(alarm, at, holidays)?.dayOfWeek else null
+    }
+
+    /**
+     * 홈 카드 순서. 켜진 알람이 위에서 빨리 울리는 순서로, 꺼진 알람은 그 아래 시각 순서로 둬요.
+     * 꺼진 카드를 켜면 바로 제자리(울릴 순서)로 올라가요.
+     */
+    private fun sortForHome(alarms: List<Alarm>, at: ZonedDateTime): List<Alarm> {
+        val (on, off) = alarms.partition { it.enabled }
+        val onSorted = on.sortedWith(
+            compareBy<Alarm> { NextRingCalculator.next(it, at, holidays)?.toInstant() ?: java.time.Instant.MAX }
+                .thenBy { it.time }
+                .thenBy { it.id },
+        )
+        return onSorted + off.sortedWith(compareBy<Alarm> { it.time }.thenBy { it.id })
     }
 
     /** 홈이 앞으로 나올 때. 날씨가 오래됐으면 새로 받아요. */

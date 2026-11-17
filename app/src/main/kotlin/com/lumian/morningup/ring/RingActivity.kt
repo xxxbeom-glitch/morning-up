@@ -4,6 +4,7 @@ import android.app.KeyguardManager
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,8 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.MainActivity
+import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.ring.RingController
+import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
@@ -38,17 +41,53 @@ class RingActivity : ComponentActivity() {
 
     @Inject lateinit var sessions: RingSessionStore
 
+    @Inject lateinit var diagnostics: AlarmDiagnostics
+
     /** 저장된 울림을 다 읽기 전에는 닫지 않아요(앱이 새로 뜬 경우 처음엔 상태가 비어 있어요). */
     private val loaded = MutableStateFlow(false)
+
+    /** 쉬는 중 알림을 눌러 열었어요(결정 70). 쉬는 동안에도 울림 화면을 보여 줘요. */
+    private var openedFromRest = false
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false)) controller.openDuringRest()
+    }
+
+    /** 울림 화면이 떠 있는 동안 옆 볼륨 버튼은 아무 일도 안 해요(11-17 사용자 지시: 소리를 줄여 끄지 못하게). */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        if (keyCode !in VOLUME_KEYS) return super.onKeyDown(keyCode, event)
+        if (event?.repeatCount == 0) {
+            diagnostics.record(
+                "volume_key_blocked",
+                controller.session.value?.plan?.alarmId,
+                KeyEvent.keyCodeToString(keyCode),
+            )
+        }
+        return true
+    }
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean =
+        keyCode in VOLUME_KEYS || super.onKeyUp(keyCode, event)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         showOverLockScreen()
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        openedFromRest = intent?.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false) == true
+        if (openedFromRest) controller.openDuringRest()
         resumeIfNeeded()
         lifecycleScope.launch {
-            // 세션이 보이면 읽기가 끝난 것이에요.
-            controller.session.collect { if (it != null) loaded.value = true }
+            // 세션이 보이면 읽기가 끝난 것이에요. 앱이 새로 떠서 늦게 읽혔으면 그때 쉬는 중 화면을 열어요.
+            controller.session.collect {
+                if (it != null) {
+                    if (openedFromRest) {
+                        controller.openDuringRest()
+                        openedFromRest = false
+                    }
+                    loaded.value = true
+                }
+            }
         }
         setContent {
             FitDesignWidth {
@@ -109,3 +148,5 @@ class RingActivity : ComponentActivity() {
 }
 
 private const val RESUME_WAIT_MILLIS = 5_000L
+
+private val VOLUME_KEYS = setOf(KeyEvent.KEYCODE_VOLUME_UP, KeyEvent.KEYCODE_VOLUME_DOWN, KeyEvent.KEYCODE_VOLUME_MUTE)

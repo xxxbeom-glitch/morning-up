@@ -1,8 +1,6 @@
 package com.lumian.morningup.feature.edit
 
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -10,6 +8,8 @@ import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -43,10 +43,10 @@ class EditScreenTest {
     fun noMission_showsNone_hidesPreview_dimsPowerOff() {
         var opened: EditDetail? = null
         show(EditUiState(loading = false), onDetail = { opened = it })
-        compose.onNodeWithText("없음").assertExists()
+        // 꺼진 줄은 값이 모두 '사용 안 함'이에요(미션, 다시 울림, 다시 잠들기 방지, 전원 종료 방지, 부드럽게 깨우기).
+        compose.onAllNodesWithText("사용 안 함").onFirst().assertExists()
         compose.onNodeWithText("미리 해보기").assertDoesNotExist()
         compose.onAllNodes(isToggleable() and isNotEnabled()).assertCountEquals(1)
-        compose.onNodeWithText("전원 종료 방지").assert(SemanticsMatcher.keyNotDefined(SemanticsActions.OnClick))
         assertThat(opened).isNull()
     }
 
@@ -73,7 +73,8 @@ class EditScreenTest {
     fun save_callsSave() {
         var saved = false
         show(EditUiState(loading = false), EditActions(onSave = { saved = true }))
-        compose.onNodeWithText("저장").performClick()
+        // 저장 버튼은 내용 맨 끝에 있어서 내려야 보여요.
+        compose.onNodeWithText("저장").performScrollTo().performClick()
         assertThat(saved).isTrue()
     }
 

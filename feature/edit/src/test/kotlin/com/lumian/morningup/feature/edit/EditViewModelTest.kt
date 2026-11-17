@@ -71,7 +71,8 @@ class EditViewModelTest {
             assertThat(state.changed).isFalse()
             assertThat(state.hasMissions).isFalse()
             assertThat(state.draft.time).isEqualTo(LocalTime.of(7, 0))
-            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 3))
+            // 다시 울림은 꺼진 채 시작해요(켜면 5분 3번).
+            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 0))
             assertThat(state.draft.wakeCheck)
                 .isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 1, answerSeconds = 60))
             // 23:10에 내일 07:00 → 7시간 50분 후.
@@ -196,10 +197,10 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.setRingAgain(false)
-            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
             vm.setRingAgain(true)
             assertThat(awaitItem().draft.ringAgain.count).isEqualTo(3)
+            vm.setRingAgain(false)
+            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
             vm.setWakeCheck(true)
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
             vm.setSound(false)
@@ -219,7 +220,7 @@ class EditViewModelTest {
     }
 
     @Test
-    fun wakeCheckPage_opensClosesWithBack_andPicksValues_withoutTurningOn() = runTest {
+    fun wakeCheckPage_opensClosesWithBack_andPickingValueTurnsOn() = runTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
@@ -231,7 +232,7 @@ class EditViewModelTest {
             if (state.draft.wakeCheck.answerSeconds != 120) state = awaitItem()
             assertThat(
                 state.draft.wakeCheck,
-            ).isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 5, answerSeconds = 120))
+            ).isEqualTo(WakeCheck(enabled = true, askAfterMinutes = 5, answerSeconds = 120))
             // 고를 수 없는 값은 무시해요.
             vm.setWakeCheckAsk(7)
             vm.setWakeCheckAnswer(45)

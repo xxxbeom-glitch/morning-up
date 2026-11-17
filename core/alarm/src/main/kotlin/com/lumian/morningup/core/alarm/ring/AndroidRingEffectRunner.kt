@@ -9,6 +9,9 @@ import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingOutcome
 import com.lumian.morningup.core.model.engine.RingSession
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
@@ -43,13 +46,27 @@ class AndroidRingEffectRunner @Inject constructor(
     private suspend fun runOne(session: RingSession?, effect: RingEffect) {
         when (effect) {
             is RingEffect.PlaySound -> playSound(session, effect.volumeFraction)
-            RingEffect.StopSound -> sound.stop()
+            RingEffect.StopSound -> {
+                if (sound.isPlaying) diagnostics.record("sound_stop", session?.plan?.alarmId)
+                sound.stop()
+            }
             RingEffect.ShowRingScreen,
             is RingEffect.ShowMission,
             RingEffect.ShowWakeCheck,
             -> notifications.showRinging(session?.phase)
             RingEffect.ShowWakeUp -> Unit
-            is RingEffect.ScheduleTimer -> timers.schedule(effect.at, effect.kind)
+            is RingEffect.RestStarted -> {
+                diagnostics.record(
+                    "rest_started",
+                    session?.plan?.alarmId,
+                    "next=${clock(effect.nextRingAt)} #${effect.nextRingNumber ?: "-"}",
+                )
+                notifications.restToast(effect.intervalMinutes, effect.nextRingNumber)
+            }
+            is RingEffect.ScheduleTimer -> {
+                diagnostics.record("timer_set", session?.plan?.alarmId, "${effect.kind} at ${clock(effect.at)}")
+                timers.schedule(effect.at, effect.kind)
+            }
             RingEffect.CancelTimer -> timers.cancel()
             is RingEffect.PostMissedNotification -> {
                 alarms.get(effect.alarmId)?.let { notifications.missed(it.id, it.time, poweredOff = false) }
@@ -65,7 +82,7 @@ class AndroidRingEffectRunner @Inject constructor(
     }
 
     /**
-     * 앱 볼륨은 알람마다 정한 볼륨이에요. 진동은 제 볼륨으로 울릴 때만 켜요(미션 중 20%에는 끄기).
+     * 앱 볼륨은 알람마다 정한 볼륨이에요. 진동은 제 볼륨으로 울릴 때만 켜요(미션 중에는 소리와 진동 모두 꺼요, 결정 65).
      * 알람음을 끈 알람(진동만, S5)은 소리 0으로 진동만 울려요. 부드럽게 깨우기면 처음 켤 때 서서히 올려요(S7).
      */
     private suspend fun playSound(session: RingSession?, fraction: Float) {
@@ -73,6 +90,10 @@ class AndroidRingEffectRunner @Inject constructor(
         val silent = alarm?.soundId == Alarm.SILENT_SOUND_ID
         val volume = if (silent) 0f else (alarm?.volumePercent ?: FULL_PERCENT) / FULL_PERCENT.toFloat() * fraction
         val vibrate = ((alarm?.vibrate ?: true) || silent) && fraction >= 1f
+        val gentle = if (alarm?.gentleWake == true) "${alarm.gentleSeconds}s" else "off"
+        val detail = "sound=${alarm?.soundId} volume=${(RingMute.volume(volume) * FULL_PERCENT).toInt()}% " +
+            "vibrate=$vibrate gentle=$gentle"
+        diagnostics.record("sound_play", session?.plan?.alarmId, detail)
         sound.play(
             volume = volume,
             vibrate = vibrate,
@@ -82,7 +103,11 @@ class AndroidRingEffectRunner @Inject constructor(
         )
     }
 
+    private fun clock(millis: Long): String =
+        CLOCK.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()))
+
     private companion object {
+        val CLOCK: DateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss")
         const val FULL_PERCENT = 100
     }
 }

@@ -1,5 +1,7 @@
 package com.lumian.morningup.core.model
 
+import kotlinx.serialization.EncodeDefault
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 
 /**
@@ -9,19 +11,26 @@ import kotlinx.serialization.Serializable
  * - [speed]: Drop Words만 쓰는 속도 1~4. 나머지는 늘 1이에요.
  * 범위를 벗어난 값은 만들 때 가장 가까운 끝 값으로 맞춰요(저장된 옛 값이 범위 밖이어도 앱이 죽지 않게).
  */
+@OptIn(ExperimentalSerializationApi::class)
 @Serializable
 data class MissionSetting(
     val type: MissionType,
     val level: Int = rangeOf(type).defaultLevel,
     val count: Int = rangeOf(type).defaultCount,
     val speed: Int = DEFAULT_SPEED,
+    /**
+     * 개발용 시험 알람만 true예요. 개수를 범위 아래(최소 1)까지 줄일 수 있어요(11-17 사용자 지시: Drop Words 3개).
+     * 사용자 화면에서는 늘 false이고, false면 저장할 때 적지 않아요.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val forTest: Boolean = false,
 ) {
     /** 범위 안으로 맞춘 값. */
     fun normalized(): MissionSetting {
         val range = rangeOf(type)
+        val counts = if (forTest) 1..range.counts.last else range.counts
         return copy(
             level = level.coerceIn(range.levels),
-            count = count.coerceIn(range.counts),
+            count = count.coerceIn(counts),
             speed = if (type == MissionType.DropWords) speed.coerceIn(SPEEDS) else DEFAULT_SPEED,
         )
     }

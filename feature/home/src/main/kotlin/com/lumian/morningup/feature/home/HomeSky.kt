@@ -10,6 +10,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
@@ -333,3 +334,62 @@ private fun DrawScope.drawFalling(
         }
     }
 }
+
+/**
+ * 카드 앞으로 떨어지는 굵은 비, 큰 눈송이(피그마 `Home Weather Front` `227:8850`). 화면 전체에 깔고 하단 메뉴 바로 아래 층에 둬요.
+ * 비는 굵기 2, 길이 18~28, 화면 높이당 14개, 4초에 화면 3번 내려가요. 눈은 지름 5~8, 12개, 8초에 화면 1번이에요.
+ * 터치는 받지 않아요. 비, 눈이 아니거나 '애니메이션 줄이기'면 그리지 않아요.
+ */
+@Composable
+fun HomeWeatherFront(time: LocalTime, weather: WeatherKind?, modifier: Modifier = Modifier) {
+    val falling = weather == WeatherKind.Rain || weather == WeatherKind.Snow
+    if (!falling || MorningTheme.reduceMotion) return
+    val colors = MorningTheme.colors
+    val snow = weather == WeatherKind.Snow
+    val night = showsMoon(time, colors.isDark)
+    val fall = fallState(still = false, snow = snow)
+    val drops = remember(weather) { frontParticles(snow) }
+    val color = if (snow || night) colors.weatherParticle else colors.weatherRainDayDrop
+    Canvas(modifier.fillMaxSize()) {
+        val progress = fall.value
+        drops.forEach { p ->
+            val y = ((p.y + progress * p.speed) % 1f) * size.height
+            if (snow) {
+                val sway = kotlin.math.sin((progress + p.x) * 2f * Math.PI.toFloat()) * SNOW_SWAY * size.width
+                drawCircle(
+                    color = color,
+                    radius = (FRONT_SNOW_MIN + p.size * FRONT_SNOW_RANGE).dp.toPx() / 2f,
+                    center = Offset(p.x * size.width + sway, y),
+                    alpha = FRONT_ALPHA,
+                )
+            } else {
+                val length = (FRONT_RAIN_MIN + p.size * FRONT_RAIN_RANGE).dp.toPx()
+                drawLine(
+                    color = color,
+                    start = Offset(p.x * size.width, y - length),
+                    end = Offset(p.x * size.width, y),
+                    strokeWidth = FrontRainWidth.toPx(),
+                    cap = StrokeCap.Round,
+                    alpha = FRONT_ALPHA,
+                )
+            }
+        }
+    }
+}
+
+private fun frontParticles(snow: Boolean): List<Particle> {
+    val random = Random(PARTICLE_SEED + 1)
+    val count = if (snow) FRONT_SNOW_COUNT else FRONT_RAIN_COUNT
+    val speed = if (snow) 1f else FRONT_RAIN_SPEED
+    return List(count) { Particle(random.nextFloat(), random.nextFloat(), random.nextFloat(), speed) }
+}
+
+private const val FRONT_RAIN_COUNT = 14
+private const val FRONT_SNOW_COUNT = 12
+private const val FRONT_RAIN_SPEED = 3f
+private const val FRONT_RAIN_MIN = 18f
+private const val FRONT_RAIN_RANGE = 10f
+private const val FRONT_SNOW_MIN = 5f
+private const val FRONT_SNOW_RANGE = 3f
+private const val FRONT_ALPHA = 0.6f
+private val FrontRainWidth = 2.dp

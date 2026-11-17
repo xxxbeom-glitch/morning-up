@@ -29,6 +29,13 @@ class MissionSettingTest {
     }
 
     @Test
+    fun normalized_forTest_allowsBelowMinimum() {
+        val test = MissionSetting(MissionType.DropWords, count = 3, forTest = true)
+        assertThat(test.normalized().count).isEqualTo(3)
+        assertThat(MissionSetting(MissionType.DropWords, count = 3).normalized().count).isEqualTo(5)
+    }
+
+    @Test
     fun normalized_clampsOutOfRange() {
         assertThat(MissionSetting(MissionType.QuickMath, level = 9, count = 0).normalized())
             .isEqualTo(MissionSetting(MissionType.QuickMath, 7, 1))

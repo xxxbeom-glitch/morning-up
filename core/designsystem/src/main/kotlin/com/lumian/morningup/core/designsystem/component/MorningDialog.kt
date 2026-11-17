@@ -17,11 +17,13 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
@@ -60,10 +62,31 @@ fun MorningDialog(
     modifier: Modifier = Modifier,
     danger: Boolean = false,
 ) {
+    // 다이얼로그는 따로 뜨는 창이라 기기 원래 밀도로 돌아가요. 시안 폭 맞춤과 글꼴 상한이 적용된 밀도를 그대로 넘겨요.
+    val density = LocalDensity.current
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
+        CompositionLocalProvider(LocalDensity provides density) {
+            DialogBody(title, message, dismissLabel, confirmLabel, onDismiss, onConfirm, modifier, danger)
+        }
+    }
+}
+
+@Composable
+@Suppress("LongParameterList")
+private fun DialogBody(
+    title: String,
+    message: String,
+    dismissLabel: String,
+    confirmLabel: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier,
+    danger: Boolean,
+) {
+    run {
         // 시스템 기본 어둡게 하기 대신 디자인의 막 색을 직접 그려요.
         (LocalView.current.parent as? DialogWindowProvider)?.window?.setDimAmount(0f)
         val reduceMotion = MorningTheme.reduceMotion

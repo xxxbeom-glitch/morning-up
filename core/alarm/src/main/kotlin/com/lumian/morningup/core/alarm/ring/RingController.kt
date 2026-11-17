@@ -7,6 +7,7 @@ import com.lumian.morningup.core.model.engine.BootCatchUpPolicy
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingOutcome
+import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingPlan
 import com.lumian.morningup.core.model.engine.RingSession
 import com.lumian.morningup.core.model.engine.RingStateMachine
@@ -112,6 +113,8 @@ class RingController @Inject constructor(
         effects.forEach { effect ->
             when (effect) {
                 RingEffect.ShowRingScreen -> _screen.value = RingScreen.Ringing
+                // 쉬기 시작하면 울림 화면을 닫아 폰이 평소처럼 잠들게 해요(결정 70).
+                is RingEffect.RestStarted -> _screen.value = RingScreen.None
                 is RingEffect.ShowMission -> _screen.value = RingScreen.Mission(effect.index)
                 RingEffect.ShowWakeUp -> _screen.value = RingScreen.WakeUp
                 RingEffect.ShowWakeCheck -> _screen.value = RingScreen.WakeCheck
@@ -128,5 +131,10 @@ class RingController @Inject constructor(
      */
     fun clearScreen() {
         if (_screen.value == RingScreen.WakeUp) _screen.value = RingScreen.None
+    }
+
+    /** 쉬는 중 알림을 눌렀어요. 쉬는 동안에도 울림 화면을 보여 줘서 미션을 시작하거나 끌 수 있게 해요. */
+    fun openDuringRest() {
+        if (_session.value?.phase == RingPhase.Resting) _screen.value = RingScreen.Ringing
     }
 }

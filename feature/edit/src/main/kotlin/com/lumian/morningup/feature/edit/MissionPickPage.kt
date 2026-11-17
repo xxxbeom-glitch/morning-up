@@ -41,6 +41,7 @@ import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonStyle
 import com.lumian.morningup.core.designsystem.component.MorningMissionCheck
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
+import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.MorningValueSwitchRow
 import com.lumian.morningup.core.designsystem.component.ValueSwitchType
@@ -98,6 +99,17 @@ fun MissionPickPage(state: EditUiState, actions: EditActions, modifier: Modifier
                 ),
                 verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
             ) {
+                // 맨 위 '사용 안 함'. 누르면 고른 미션을 모두 비워요(미션 없는 알람).
+                item(key = "off") {
+                    MorningRadioRow(
+                        label = stringResource(R.string.edit_off_value),
+                        selected = !state.hasMissions,
+                        onClick = { actions.onMissions(false) },
+                        modifier = Modifier
+                            .background(colors.backgroundElevated, RoundedCornerShape(MorningDimens.radiusTile))
+                            .padding(horizontal = MorningDimens.space16),
+                    )
+                }
                 items(state.missionOrder, key = { it.name }) { type ->
                     val setting = state.draft.missions.firstOrNull { it.type == type }
                     MissionCard(

@@ -102,24 +102,21 @@ fun SampleScreen(modifier: Modifier = Modifier, tools: @Composable () -> Unit = 
     }
 }
 
-/** '1분 뒤 울리기' 시험 알람. 폰에서 울림, 다시 울림, 미션, W2 흐름을 확인해요. */
+/** 시험 알람 A~G. 버튼마다 정해진 설정으로 1분 뒤 울려요(docs/test-alarm-cases.md). */
 @Composable
 fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
-    val scheduledAt by viewModel.scheduledAt.collectAsStateWithLifecycle()
+    val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
     Section(stringResource(R.string.sample_alarm)) {
-        MorningButton(
-            stringResource(R.string.sample_alarm_button),
-            onClick = { viewModel.scheduleTestAlarm(withMission = false) },
-            size = MorningButtonSize.Medium,
-        )
-        MorningButton(
-            stringResource(R.string.sample_alarm_mission_button),
-            onClick = { viewModel.scheduleTestAlarm(withMission = true) },
-            size = MorningButtonSize.Medium,
-        )
-        scheduledAt?.let {
+        AlarmTestCase.entries.forEach { case ->
+            MorningButton(
+                stringResource(case.label),
+                onClick = { viewModel.schedule(case) },
+                size = MorningButtonSize.Medium,
+            )
+        }
+        scheduled?.let { (case, time) ->
             Text(
-                stringResource(R.string.sample_alarm_scheduled, it.toString()),
+                stringResource(R.string.sample_alarm_scheduled, case.name, time.toString()),
                 style = MorningTheme.typography.bodyMedium,
                 color = MorningTheme.colors.textSecondary,
             )

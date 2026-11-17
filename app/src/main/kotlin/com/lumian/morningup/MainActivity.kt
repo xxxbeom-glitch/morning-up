@@ -45,7 +45,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         lifecycleScope.launch {
             // 울리는 중인 알람이 있으면 끌 수 있는 울림 화면으로 보내요(알림을 못 띄운 경우의 길).
-            if (sessions.load() != null) startActivity(Intent(this@MainActivity, RingActivity::class.java))
+            if (sessions.load() != null) {
+                startActivity(Intent(this@MainActivity, RingActivity::class.java))
+            } else {
+                // 울리는 알람이 없는데 남은 울림, 기다림 알림이 있으면 지워요(앱을 새로 깐 뒤 등).
+                notifications.cancelRinging()
+            }
             // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
             rescheduler.rescheduleAll(now.now())
         }

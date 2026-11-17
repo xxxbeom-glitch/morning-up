@@ -1,7 +1,10 @@
 package com.lumian.morningup.core.alarm.ring
 
+import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
@@ -15,6 +18,7 @@ import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
@@ -180,17 +184,58 @@ class AlarmSoundPlayer @Inject constructor(
     private fun startVibration() {
         if (vibrating) return
         vibrating = true
+        diagnostics.record("vibrate_on", detail = pattern.name)
+        vibrateNow()
+        if (!screenWatching) {
+            screenWatching = true
+            val filter = IntentFilter().apply {
+                addAction(Intent.ACTION_SCREEN_OFF)
+                addAction(Intent.ACTION_SCREEN_ON)
+            }
+            ContextCompat.registerReceiver(context, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
+        }
+    }
+
+    private fun vibrateNow() {
         vibrator().vibrate(VibrationEffect.createWaveform(pattern.waveform, 0), attributes)
     }
 
     private fun stopVibration() {
+        handler.removeCallbacks(revibrate)
+        if (screenWatching) {
+            screenWatching = false
+            runCatching { context.unregisterReceiver(screenReceiver) }
+        }
         if (!vibrating) return
         vibrating = false
+        diagnostics.record("vibrate_off")
         vibrator().cancel()
     }
 
+    /**
+     * 안드로이드 14부터 화면이 꺼지면 그전에 시작한 진동을 알람 진동까지 멈춰요.
+     * 화면이 꺼지거나 켜지면 잠시 뒤 진동을 다시 걸어서, 울리는 동안 진동이 끊기지 않게 해요.
+     */
+    private var screenWatching = false
+    private val revibrate = Runnable {
+        synchronized(this) {
+            if (vibrating) {
+                diagnostics.record("vibrate_again")
+                vibrateNow()
+            }
+        }
+    }
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val screen = if (intent.action == Intent.ACTION_SCREEN_OFF) "screen_off" else "screen_on"
+            diagnostics.record(screen, detail = "while vibrating")
+            handler.removeCallbacks(revibrate)
+            handler.postDelayed(revibrate, REVIBRATE_DELAY_MILLIS)
+        }
+    }
+
     @Suppress("DEPRECATION")
-    private fun toneVolume(): Int = if (RingMute.MUTED) 0 else ToneGenerator.MAX_VOLUME
+    private fun toneVolume(): Int = (RingMute.volume(1f) * ToneGenerator.MAX_VOLUME).toInt()
 
     private fun vibrator(): Vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         context.getSystemService(VibratorManager::class.java).defaultVibrator
@@ -202,5 +247,6 @@ class AlarmSoundPlayer @Inject constructor(
         const val RAMP_STEP_MILLIS = 500L
         const val MILLIS_PER_SECOND = 1_000L
         const val RAMP_FLOOR = 0.05f
+        const val REVIBRATE_DELAY_MILLIS = 300L
     }
 }

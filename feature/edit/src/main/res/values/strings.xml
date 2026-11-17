@@ -129,4 +129,6 @@
     <string name="edit_exit_message">지금 나가면\n바꾼 내용이 저장되지 않아요.</string>
     <string name="edit_exit_keep">계속 편집</string>
     <string name="edit_exit_leave">나가기</string>
+    <string name="edit_off_value">사용 안 함</string>
+    <string name="edit_vibration_pattern_title">진동 모양</string>
 </resources>

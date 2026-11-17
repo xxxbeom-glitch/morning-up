@@ -38,6 +38,7 @@ import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.RingtoneGroup
 import com.lumian.morningup.core.model.Ringtones
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ fun SoundPage(
     selectedId: String,
     onBack: () -> Unit,
     onSelect: (String) -> Unit,
+    onOff: () -> Unit,
     modifier: Modifier = Modifier,
     groups: List<RingtoneGroup> = Ringtones.groups,
 ) {
@@ -59,11 +61,13 @@ fun SoundPage(
     val context = LocalContext.current
     val previewer = remember(context) { RingtonePreviewer(context.applicationContext) }
     DisposableEffect(previewer) { onDispose { previewer.stop() } }
-    val selected = Ringtones.find(selectedId).id
+    // 알람음을 끈 알람(진동만)은 맨 위 '사용 안 함'만 고른 모양이에요.
+    val off = selectedId == Alarm.SILENT_SOUND_ID
+    val selected = if (off) null else Ringtones.find(selectedId).id
     val listState = rememberLazyListState()
-    // 묶음 제목 줄의 목록 위치. 묶음마다 제목 1줄 + 소리 줄 수.
+    // 묶음 제목 줄의 목록 위치. 맨 위 '사용 안 함' 1줄 뒤로 묶음마다 제목 1줄 + 소리 줄 수.
     val headerIndexes = remember(groups) {
-        groups.runningFold(0) { index, group -> index + 1 + group.ringtones.size }.dropLast(1)
+        groups.runningFold(1) { index, group -> index + 1 + group.ringtones.size }.dropLast(1)
     }
     Column(
         modifier = modifier
@@ -89,6 +93,17 @@ fun SoundPage(
                 bottom = MorningDimens.space32,
             ),
         ) {
+            item(key = "off") {
+                MorningRadioRow(
+                    label = stringResource(R.string.edit_off_value),
+                    selected = off,
+                    onClick = {
+                        previewer.stop()
+                        onOff()
+                    },
+                    modifier = Modifier.padding(bottom = MorningDimens.space24),
+                )
+            }
             groups.forEachIndexed { groupIndex, group ->
                 item(key = "group-${group.name}") {
                     Text(

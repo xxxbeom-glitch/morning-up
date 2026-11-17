@@ -171,4 +171,11 @@ class DropWordsGameTest {
         assertThat(s.target).isEqualTo(30)
         assertThat(s.fallMillis).isEqualTo(4_000L)
     }
+
+    @Test
+    fun testAlarmTarget_belowMinimum_isKept() {
+        // 시험 알람 C는 3개예요(결정 67). 게임이 다시 5개로 올리지 않아야 해요.
+        assertThat(game(target = 3).start(t0).target).isEqualTo(3)
+        assertThat(game(target = 0).start(t0).target).isEqualTo(1)
+    }
 }

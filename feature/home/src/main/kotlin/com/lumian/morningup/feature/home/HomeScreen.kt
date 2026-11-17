@@ -30,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -46,16 +48,15 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.AlarmClockOff
-import com.composables.icons.lucide.BellOff
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.EllipsisVertical
-import com.composables.icons.lucide.ListChecks
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
@@ -203,6 +204,8 @@ fun HomeScreen(
                 )
             }
         }
+        // 카드 앞으로 떨어지는 굵은 비, 큰 눈송이. 하단 메뉴와 안내 글보다는 아래 층이에요.
+        HomeWeatherFront(time = state.time ?: DEFAULT_SKY_TIME, weather = state.weather)
         Messages(
             message = state.message,
             onUndo = onUndo,
@@ -467,41 +470,49 @@ private fun ListActions(onAdd: () -> Unit, extra: HomeExtraActions) {
         MorningIconButton(Lucide.Plus, stringResource(R.string.home_add), onAdd)
         Box {
             MorningIconButton(Lucide.EllipsisVertical, stringResource(R.string.home_more), { menuOpen = true })
+            // 팝업은 따로 뜨는 창이라 시안 폭 맞춤 밀도를 안에 다시 넘겨요.
+            val density = LocalDensity.current
+            // 피그마 H3(`138:230`): 더보기 버튼 오른쪽 위에 맞춰 버튼을 덮고, 글자만 있는 줄 두 개.
             DropdownMenu(
                 expanded = menuOpen,
                 onDismissRequest = { menuOpen = false },
-                shape = RoundedCornerShape(MorningDimens.radiusCard),
+                offset = DpOffset(0.dp, -MoreButtonSize),
+                shape = RoundedCornerShape(MorningDimens.radiusTile),
                 containerColor = MorningTheme.colors.surfaceCard,
             ) {
-                MenuRow(Lucide.BellOff, stringResource(R.string.home_menu_all_off)) {
-                    menuOpen = false
-                    extra.onAllOff()
-                }
-                MenuRow(Lucide.ListChecks, stringResource(R.string.home_menu_select)) {
-                    menuOpen = false
-                    extra.onStartSelection()
+                CompositionLocalProvider(LocalDensity provides density) {
+                    MenuRow(stringResource(R.string.home_menu_all_off)) {
+                        menuOpen = false
+                        extra.onAllOff()
+                    }
+                    MenuRow(stringResource(R.string.home_menu_select)) {
+                        menuOpen = false
+                        extra.onStartSelection()
+                    }
                 }
             }
         }
     }
 }
 
-private val MenuWidth = 200.dp
+private val MenuWidth = 112.dp
+private val MenuRowHeight = 48.dp
 
-/** 피그마 Menu Item: 아이콘 20, `Body/Medium` 글자, 사이 12. */
+/** 더보기 아이콘 버튼 크기(Icon Button Large). 메뉴를 이만큼 올려 버튼을 덮어요. */
+private val MoreButtonSize = 48.dp
+
+/** 피그마 H3 Menu Item: 아이콘 없이 `Body/Medium` `text/body` 글자, 높이 48, 좌우 16. */
 @Composable
-private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit) {
-    val colors = MorningTheme.colors
+private fun MenuRow(label: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .width(MenuWidth)
+            .height(MenuRowHeight)
             .morningClickable(haptic = null, role = Role.Button, onClick = onClick)
-            .padding(horizontal = MorningDimens.space16, vertical = MorningDimens.space12),
+            .padding(horizontal = MorningDimens.space16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MorningDimens.space12),
     ) {
-        Icon(icon, null, Modifier.size(MorningDimens.iconMd), tint = colors.textSecondary)
-        Text(label, style = MorningTheme.typography.bodyMedium, color = colors.textPrimary)
+        Text(label, style = MorningTheme.typography.bodyMedium, color = MorningTheme.colors.textBody)
     }
 }
 

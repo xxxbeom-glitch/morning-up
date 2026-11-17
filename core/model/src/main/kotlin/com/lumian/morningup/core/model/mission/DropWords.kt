@@ -72,7 +72,9 @@ class DropWordsGame(
 ) {
     private val range = MissionSetting.rangeOf(MissionType.DropWords)
     private val level = level.coerceIn(range.levels)
-    private val target = target.coerceIn(range.counts)
+
+    // 개수 범위는 MissionSetting.normalized()가 맞춰 줘요. 시험 알람(forTest)은 5개 아래도 와서 여기서는 1 이상만 봐요(결정 67).
+    private val target = target.coerceIn(1, range.counts.last)
     private val fallMillis = DropWordsSpeed.fallMillis(speed)
     private val maxWords = DropWordsSpeed.maxWords(speed)
     private val bank = words.filter(Hangul::isHangulWord).distinct().ifEmpty { error("단어가 없어요") }

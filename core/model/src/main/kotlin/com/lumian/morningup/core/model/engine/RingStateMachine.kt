@@ -5,6 +5,7 @@ import com.lumian.morningup.core.model.engine.RingEffect.MarkPassed
 import com.lumian.morningup.core.model.engine.RingEffect.PlaySound
 import com.lumian.morningup.core.model.engine.RingEffect.PostMissedNotification
 import com.lumian.morningup.core.model.engine.RingEffect.RescheduleAlarm
+import com.lumian.morningup.core.model.engine.RingEffect.RestStarted
 import com.lumian.morningup.core.model.engine.RingEffect.ScheduleTimer
 import com.lumian.morningup.core.model.engine.RingEffect.SessionEnded
 import com.lumian.morningup.core.model.engine.RingEffect.ShowMission
@@ -20,7 +21,6 @@ import com.lumian.morningup.core.model.engine.RingEffect.StopSound
 object RingStateMachine {
     const val RING_MILLIS = 60_000L
     const val MISSION_MILLIS = 59_000L
-    const val MISSION_VOLUME = 0.2f
     private const val FULL_VOLUME = 1f
     private const val MINUTE = 60_000L
     private const val SECOND = 1_000L
@@ -53,7 +53,7 @@ object RingStateMachine {
         val timer = ScheduleTimer(session.phaseEndsAt, TimerKind.entries.first { it.phase == session.phase })
         return when (session.phase) {
             RingPhase.Ringing -> listOf(PlaySound(FULL_VOLUME), ShowRingScreen, timer)
-            RingPhase.InMission -> listOf(PlaySound(MISSION_VOLUME), ShowMission(session.missionsDone), timer)
+            RingPhase.InMission -> listOf(StopSound, ShowMission(session.missionsDone), timer)
             RingPhase.WakeCheckAsking -> listOf(ShowWakeCheck, timer)
             RingPhase.Resting, RingPhase.AwaitingWakeCheck -> listOf(timer)
         }
@@ -123,7 +123,10 @@ object RingStateMachine {
             ringsLeft = left?.minus(1),
             phaseEndsAt = now + session.plan.intervalMinutes * MINUTE,
         )
-        return Transition(resting, listOf(StopSound, ScheduleTimer(resting.phaseEndsAt, TimerKind.RestEnded)))
+        val total = session.plan.ringAgainCount
+        val nextNumber = if (total != null && resting.ringsLeft != null) total - resting.ringsLeft + 1 else null
+        val rest = RestStarted(resting.phaseEndsAt, session.plan.intervalMinutes, nextNumber)
+        return Transition(resting, listOf(StopSound, rest, ScheduleTimer(resting.phaseEndsAt, TimerKind.RestEnded)))
     }
 
     private fun missionStarted(session: RingSession, now: Long): Transition {
@@ -137,7 +140,8 @@ object RingStateMachine {
         return Transition(
             mission,
             listOf(
-                PlaySound(MISSION_VOLUME),
+                // 미션 중에는 사용자가 손을 쓰는 중이라 소리를 끄고 진동도 멈춰요(11-17 사용자 지시).
+                StopSound,
                 ShowMission(mission.missionsDone),
                 ScheduleTimer(mission.phaseEndsAt, TimerKind.MissionTimeout),
             ),

@@ -104,12 +104,13 @@ class DataLayerTest {
     }
 
     @Test
-    fun diagnosticLog_keepsLatest500() = runTest {
+    fun diagnosticLog_keepsLatestMax() = runTest {
         val log = DiagnosticLog(db.diagnosticLogDao())
-        repeat(510) { log.record(at = it.toLong(), event = "ring", alarmId = 1) }
+        val max = DiagnosticLog.MAX_ENTRIES
+        repeat(max + 10) { log.record(at = it.toLong(), event = "ring", alarmId = 1) }
         val entries = log.entries()
-        assertThat(entries).hasSize(500)
-        assertThat(entries.first().at).isEqualTo(509)
+        assertThat(entries).hasSize(max)
+        assertThat(entries.first().at).isEqualTo(max + 9L)
         assertThat(entries.last().at).isEqualTo(10)
     }
 

@@ -25,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -207,11 +209,18 @@ fun MissionTimer(
     val total = RingStateMachine.MISSION_MILLIS.toFloat()
     val target = (remainingMillis / total).coerceIn(0f, 1f)
     val fraction = remember { Animatable(target) }
-    LaunchedEffect(target) {
-        if (target > fraction.value + REFILL_JUMP) {
-            fraction.animateTo(target, MorningMotion.spatial(MorningMotion.SpatialDefault, reduceMotion))
-        } else {
-            fraction.snapTo(target)
+    val latestTarget by rememberUpdatedState(target)
+    val latestReduceMotion by rememberUpdatedState(reduceMotion)
+    // 남은 시간은 매 프레임 바뀌어요. 값마다 다시 시작하면 다시 채우는 움직임이 처음부터 되풀이돼 원이 덜 찬 채 멈춰요.
+    // 그래서 한 줄로 받아, 다시 채울 때는 움직임을 끝까지 마친 뒤 최신 값으로 이어가요.
+    LaunchedEffect(fraction) {
+        snapshotFlow { latestTarget }.collect { next ->
+            if (next > fraction.value + REFILL_JUMP) {
+                fraction.animateTo(next, MorningMotion.spatial(MorningMotion.SpatialDefault, latestReduceMotion))
+                fraction.snapTo(latestTarget)
+            } else {
+                fraction.snapTo(next)
+            }
         }
     }
     val secondsLeft = ((remainingMillis + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).toInt()

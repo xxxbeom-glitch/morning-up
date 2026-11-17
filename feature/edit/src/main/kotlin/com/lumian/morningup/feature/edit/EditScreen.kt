@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,7 +54,7 @@ import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
 /** 편집 화면의 하위 화면. S1-2(Mission)와 S4(WakeCheck)만 열리고 나머지는 7단계 이후예요. */
-enum class EditDetail { Mission, Preview, RingAgain, WakeCheck, PowerOff, Sound, Volume, Gentle, Background }
+enum class EditDetail { Mission, Preview, RingAgain, WakeCheck, PowerOff, Sound, Vibration, Gentle, Background }
 
 /** 피그마 S0의 요일 순서(일~토). */
 private val DayOrder = listOf(
@@ -70,13 +69,9 @@ private val DayOrder = listOf(
 
 private const val HOURS_HALF_DAY = 12
 private const val MINUTES_PER_HOUR = 60
-private const val RING_AGAIN_SHOWN_WHEN_OFF = 3
 private val PeriodWidth = 96.dp
 private val NumberWidth = 72.dp
 private val ColonWidth = 24.dp
-
-/** 저장 버튼 위로 내용이 비쳐 사라지는 높이. */
-private val SaveFadeHeight = 24.dp
 
 /**
  * 알람 편집 S0. [onSaved]는 저장한 알람 id를, [onClose]는 저장 없이 닫을 때 불러요.
@@ -198,7 +193,7 @@ private val PAGE_DETAILS = setOf(
     EditDetail.WakeCheck,
     EditDetail.Sound,
     EditDetail.RingAgain,
-    EditDetail.Volume,
+    EditDetail.Vibration,
     EditDetail.Gentle,
     EditDetail.Background,
 )
@@ -241,16 +236,20 @@ fun EditScreen(
                     RepeatCard(state.draft, actions)
                     MissionCard(state, actions, onOpenDetail)
                     SoundCard(state.draft, actions, onOpenDetail)
-                    // 고정된 저장 버튼에 마지막 카드가 가리지 않게 비워요.
-                    Spacer(Modifier.height(MorningDimens.sizeButtonLg + MorningDimens.space40))
+                    // 저장 버튼은 고정하지 않고 내용 맨 끝에 둬요. 끝까지 내려 봐야 보여서 아래 설정을 놓치지 않아요.
+                    MorningButton(
+                        text = stringResource(R.string.edit_save),
+                        onClick = actions.onSave,
+                        enabled = !state.saving,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = MorningDimens.space16)
+                            .navigationBarsPadding()
+                            .padding(bottom = MorningDimens.space16),
+                    )
                 }
             }
         }
-        SaveBar(
-            enabled = !state.loading && !state.saving,
-            onSave = actions.onSave,
-            modifier = Modifier.align(Alignment.BottomCenter),
-        )
         if (state.confirmExit) {
             MorningDialog(
                 title = stringResource(R.string.edit_exit_title),
@@ -268,35 +267,40 @@ fun EditScreen(
                 onBack = actions.onCloseDetail,
                 onAsk = actions.onWakeCheckAsk,
                 onAnswer = actions.onWakeCheckAnswer,
+                onOff = { actions.onWakeCheck(false) },
             )
             EditDetail.Mission -> MissionPickPage(state = state, actions = actions)
             EditDetail.Sound -> SoundPage(
                 selectedId = state.draft.soundId,
                 onBack = actions.onCloseDetail,
                 onSelect = actions.onSoundId,
+                onOff = { actions.onSound(false) },
             )
             EditDetail.RingAgain -> RingAgainPage(
                 ringAgain = state.draft.ringAgain,
                 onBack = actions.onCloseDetail,
                 onInterval = actions.onRingAgainInterval,
                 onCount = actions.onRingAgainCount,
+                onOff = { actions.onRingAgain(false) },
             )
-            EditDetail.Volume -> VolumePage(
+            EditDetail.Vibration -> VibrationPage(
                 alarm = state.draft,
                 onBack = actions.onCloseDetail,
-                onVolume = actions.onVolume,
-                onVibrate = actions.onVibrate,
                 onPattern = actions.onVibrationPattern,
+                onOff = { actions.onVibrate(false) },
             )
             EditDetail.Gentle -> GentlePage(
                 seconds = state.draft.gentleSeconds,
+                on = state.draft.gentleWake,
                 onBack = actions.onCloseDetail,
                 onSeconds = actions.onGentleSeconds,
+                onOff = { actions.onGentle(false) },
             )
             EditDetail.Background -> BackgroundPage(
                 selectedId = state.draft.background,
                 onBack = actions.onCloseDetail,
                 onSelect = actions.onBackgroundId,
+                onOff = { actions.onBackground(false) },
             )
             else -> Unit
         }
@@ -414,7 +418,7 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
     MorningSettingsCard(title = stringResource(R.string.edit_card_mission)) {
         MorningSettingRow(
             label = stringResource(R.string.edit_mission),
-            value = AlarmText.missions(resources, alarm.missionTypes),
+            value = if (state.hasMissions) AlarmText.missions(resources, alarm.missionTypes) else offValue(),
             state = onOff(state.hasMissions),
             onCheckedChange = actions.onMissions,
             onClick = { onOpenDetail(EditDetail.Mission) },
@@ -427,31 +431,36 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
             )
         }
         val ringAgain = alarm.ringAgain
-        val shownCount = ringAgain.count?.takeIf { it > 0 } ?: RING_AGAIN_SHOWN_WHEN_OFF
+        val ringAgainCount = ringAgain.count
         MorningSettingRow(
             label = stringResource(R.string.edit_ring_again),
-            value = if (ringAgain.count == null) {
-                stringResource(R.string.edit_ring_again_until_off, ringAgain.intervalMinutes)
-            } else {
-                stringResource(R.string.edit_ring_again_value, ringAgain.intervalMinutes, shownCount)
+            value = when (ringAgainCount) {
+                0 -> offValue()
+                null -> stringResource(R.string.edit_ring_again_until_off, ringAgain.intervalMinutes)
+                else -> stringResource(R.string.edit_ring_again_value, ringAgain.intervalMinutes, ringAgainCount)
             },
-            state = onOff(ringAgain.count != 0),
-            onCheckedChange = actions.onRingAgain,
+            state = onOff(ringAgainCount != 0),
+            onCheckedChange = pickOrOff(EditDetail.RingAgain, onOpenDetail, actions.onRingAgain),
             onClick = { onOpenDetail(EditDetail.RingAgain) },
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_wake_check),
-            value = stringResource(R.string.edit_wake_check_value, alarm.wakeCheck.askAfterMinutes),
+            value = if (alarm.wakeCheck.enabled) {
+                stringResource(R.string.edit_wake_check_value, alarm.wakeCheck.askAfterMinutes)
+            } else {
+                offValue()
+            },
             state = onOff(alarm.wakeCheck.enabled),
-            onCheckedChange = actions.onWakeCheck,
+            onCheckedChange = pickOrOff(EditDetail.WakeCheck, onOpenDetail, actions.onWakeCheck),
             onClick = { onOpenDetail(EditDetail.WakeCheck) },
         )
+        // 고를 값이 없는 줄이라 줄 어디를 눌러도 토글이 바뀌어요.
+        val powerOn = state.hasMissions && alarm.powerOffGuard
         MorningSettingRow(
             label = stringResource(R.string.edit_power_off),
-            value = stringResource(R.string.edit_power_off_value),
+            value = if (powerOn) stringResource(R.string.edit_power_off_value) else offValue(),
             state = if (state.hasMissions) onOff(alarm.powerOffGuard) else SettingRowState.Disabled,
             onCheckedChange = actions.onPowerOff,
-            onClick = { onOpenDetail(EditDetail.PowerOff) },
         )
     }
 }
@@ -460,76 +469,58 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
 private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDetail) -> Unit) {
     val resources = alarmResources()
     MorningSettingsCard(title = stringResource(R.string.edit_card_sound)) {
+        val soundOn = alarm.soundId != Alarm.SILENT_SOUND_ID
         MorningSettingRow(
             label = stringResource(R.string.edit_sound),
-            value = Ringtones.find(alarm.soundId).name,
-            state = onOff(alarm.soundId != Alarm.SILENT_SOUND_ID),
-            onCheckedChange = actions.onSound,
+            value = if (soundOn) Ringtones.find(alarm.soundId).name else offValue(),
+            // 알람음은 토글 없이 '>'로 들어가서 골라요. '사용 안 함'은 들어간 화면 맨 위에 있어요.
+            state = SettingRowState.Navigate,
+            onCheckedChange = {},
             onClick = { onOpenDetail(EditDetail.Sound) },
         )
+        // 반복 카드의 요일처럼 볼륨 막대를 카드 안에 바로 두고, 그 아래 진동 줄을 둬요.
+        VolumeSlider(percent = alarm.volumePercent, onVolume = actions.onVolume)
         MorningSettingRow(
-            label = stringResource(R.string.edit_volume),
-            value = if (alarm.vibrate) {
-                stringResource(
-                    R.string.edit_volume_vibrate,
-                    alarm.volumePercent,
-                    stringResource(alarm.vibrationPattern.label()),
-                )
-            } else {
-                stringResource(R.string.edit_volume_no_vibrate, alarm.volumePercent)
-            },
+            label = stringResource(R.string.edit_vibration_title),
+            value = if (alarm.vibrate) stringResource(alarm.vibrationPattern.label()) else offValue(),
             state = onOff(alarm.vibrate),
-            onCheckedChange = actions.onVibrate,
-            onClick = { onOpenDetail(EditDetail.Volume) },
+            onCheckedChange = pickOrOff(EditDetail.Vibration, onOpenDetail, actions.onVibrate),
+            onClick = { onOpenDetail(EditDetail.Vibration) },
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_gentle),
-            value = stringResource(R.string.edit_gentle_value, AlarmText.duration(resources, alarm.gentleSeconds)),
+            value = if (alarm.gentleWake) {
+                stringResource(R.string.edit_gentle_value, AlarmText.duration(resources, alarm.gentleSeconds))
+            } else {
+                offValue()
+            },
             state = onOff(alarm.gentleWake),
-            onCheckedChange = actions.onGentle,
+            onCheckedChange = pickOrOff(EditDetail.Gentle, onOpenDetail, actions.onGentle),
             onClick = { onOpenDetail(EditDetail.Gentle) },
         )
+        val backgroundOn = alarm.background != Alarm.BACKGROUND_PLAIN
         MorningSettingRow(
             label = stringResource(R.string.edit_background),
-            value = backgroundName(alarm.background),
-            state = onOff(alarm.background != Alarm.BACKGROUND_PLAIN),
-            onCheckedChange = actions.onBackground,
+            value = if (backgroundOn) backgroundName(alarm.background) else offValue(),
+            state = onOff(backgroundOn),
+            onCheckedChange = pickOrOff(EditDetail.Background, onOpenDetail, actions.onBackground),
             onClick = { onOpenDetail(EditDetail.Background) },
         )
     }
 }
 
-/** 화면 아래 고정 저장 버튼. 위쪽은 바탕색으로 서서히 덮어요. */
+/** 꺼진 줄의 값 글자. 고른 것처럼 보이는 값을 남기지 않아요. */
 @Composable
-private fun SaveBar(enabled: Boolean, onSave: () -> Unit, modifier: Modifier = Modifier) {
-    val base = MorningTheme.colors.backgroundBase
-    Column(modifier = modifier.fillMaxWidth()) {
-        Spacer(
-            Modifier
-                .fillMaxWidth()
-                .height(SaveFadeHeight)
-                .background(Brush.verticalGradient(listOf(base.copy(alpha = 0f), base))),
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(base)
-                .navigationBarsPadding()
-                .padding(
-                    start = MorningDimens.layoutScreenMargin,
-                    end = MorningDimens.layoutScreenMargin,
-                    bottom = MorningDimens.space16,
-                ),
-        ) {
-            MorningButton(
-                text = stringResource(R.string.edit_save),
-                onClick = onSave,
-                enabled = enabled,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    }
-}
+private fun offValue(): String = stringResource(R.string.edit_off_value)
+
+/**
+ * 고를 값이 있는 줄의 토글. 켜면 바로 켜지 않고 선택 화면을 열어(값을 골라야 켜져요), 끄면 바로 꺼요.
+ */
+private fun pickOrOff(
+    detail: EditDetail,
+    onOpenDetail: (EditDetail) -> Unit,
+    setOn: (Boolean) -> Unit,
+): (Boolean) -> Unit = { on -> if (on) onOpenDetail(detail) else setOn(false) }
 
 private fun onOff(on: Boolean) = if (on) SettingRowState.On else SettingRowState.Off
 

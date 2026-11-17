@@ -51,12 +51,14 @@ import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.ImagePlus
 import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
+import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningSelectMark
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.darkMorningColors
 import com.lumian.morningup.core.designsystem.theme.lightMorningColors
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.ui.AlarmBackground
 import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.BackgroundGroup
@@ -85,6 +87,7 @@ fun BackgroundPage(
     selectedId: String?,
     onBack: () -> Unit,
     onSelect: (String?) -> Unit,
+    onOff: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MorningTheme.colors
@@ -107,8 +110,8 @@ fun BackgroundPage(
     }
     val groups = BackgroundGroup.entries
     val named = remember { AlarmBackgrounds.all.groupBy { it.group } }
-    // 묶음 제목 칸의 위치. 묶음마다 제목 1칸 + 타일 수(내 사진은 사진 수, 없으면 안내 1칸).
-    val headerIndexes = groups.runningFold(0) { index, group ->
+    // 묶음 제목 칸의 위치. 맨 위 '사용 안 함' 1칸 뒤로 묶음마다 제목 1칸 + 타일 수(내 사진은 사진 수, 없으면 안내 1칸).
+    val headerIndexes = groups.runningFold(1) { index, group ->
         val count = if (group == BackgroundGroup.Photo) photos.size.coerceAtLeast(1) else named[group].orEmpty().size
         index + 1 + count
     }.dropLast(1)
@@ -152,6 +155,14 @@ fun BackgroundPage(
             horizontalArrangement = Arrangement.spacedBy(MorningDimens.space12),
             verticalArrangement = Arrangement.spacedBy(MorningDimens.space12),
         ) {
+            item(key = "off", span = { GridItemSpan(maxLineSpan) }) {
+                MorningRadioRow(
+                    label = stringResource(R.string.edit_off_value),
+                    selected = selectedId == Alarm.BACKGROUND_PLAIN,
+                    onClick = onOff,
+                    modifier = Modifier.padding(bottom = MorningDimens.space12),
+                )
+            }
             groups.forEachIndexed { groupIndex, group ->
                 item(key = "group-$group", span = { GridItemSpan(maxLineSpan) }) {
                     Text(

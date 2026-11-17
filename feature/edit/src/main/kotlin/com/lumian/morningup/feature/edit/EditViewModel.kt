@@ -249,24 +249,27 @@ class EditViewModel @Inject constructor(
 
     fun setWakeCheck(on: Boolean) = edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = on)) }
 
-    /** S4 '언제 물을까요'. 켬, 끔은 S0 줄의 토글만 바꿔요(값을 골라도 켜지지 않아요). */
+    /** S4 '언제 물을까요'. 값을 고르면 켜져요('사용 안 함'은 [setWakeCheck] false). */
     fun setWakeCheckAsk(minutes: Int) {
         if (minutes in WAKE_CHECK_ASK_MINUTES) {
-            edit { it.copy(wakeCheck = it.wakeCheck.copy(askAfterMinutes = minutes)) }
+            edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = true, askAfterMinutes = minutes)) }
         }
     }
 
-    /** S4 '답할 시간'. */
+    /** S4 '답할 시간'. 고르면 켜져요. */
     fun setWakeCheckAnswer(seconds: Int) {
         if (seconds in WAKE_CHECK_ANSWER_SECONDS) {
-            edit { it.copy(wakeCheck = it.wakeCheck.copy(answerSeconds = seconds)) }
+            edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = true, answerSeconds = seconds)) }
         }
     }
 
-    /** S3 '간격'. 켬, 끔은 S0 줄의 토글이 해요. */
+    /** S3 '간격'. 꺼져 있었으면 처음 횟수(3번)로 켜져요. */
     fun setRingAgainInterval(minutes: Int) {
         if (minutes in RingAgain.ALLOWED_INTERVALS) {
-            edit { it.copy(ringAgain = it.ringAgain.copy(intervalMinutes = minutes)) }
+            edit {
+                val count = it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT
+                it.copy(ringAgain = RingAgain(minutes, count))
+            }
         }
     }
 
@@ -282,9 +285,9 @@ class EditViewModel @Inject constructor(
     fun setVibrationPattern(pattern: VibrationPattern) =
         edit { it.copy(vibrationPattern = pattern, vibrate = true) }
 
-    /** S7 길이. */
+    /** S7 길이. 고르면 켜져요. */
     fun setGentleSeconds(seconds: Int) {
-        if (seconds in Alarm.GENTLE_SECONDS) edit { it.copy(gentleSeconds = seconds) }
+        if (seconds in Alarm.GENTLE_SECONDS) edit { it.copy(gentleSeconds = seconds, gentleWake = true) }
     }
 
     /** S8에서 고른 배경. null은 시간대 하늘, "photo:"로 시작하면 내 사진이에요. 모르는 id는 무시해요. */
@@ -369,15 +372,15 @@ class EditViewModel @Inject constructor(
             EditDetail.WakeCheck,
             EditDetail.Sound,
             EditDetail.RingAgain,
-            EditDetail.Volume,
+            EditDetail.Vibration,
             EditDetail.Gentle,
             EditDetail.Background,
         )
 
         /**
-         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 5분 3번, 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),
+         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(5분, 켜면 3번), 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),
          * 알람음 기본, 진동 켬, 배경 시간대 하늘. 시각은 오전 7:00.
          */
-        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME)
+        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = 0))
     }
 }

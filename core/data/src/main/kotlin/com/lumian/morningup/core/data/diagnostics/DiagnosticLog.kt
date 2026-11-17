@@ -15,6 +15,7 @@ class DiagnosticLog @Inject constructor(private val dao: DiagnosticLogDao) {
     suspend fun entries(): List<DiagnosticLogEntity> = dao.all()
 
     companion object {
-        const val MAX_ENTRIES = 500
+        /** 시험 기록이 자세해져서(11-17) 500줄에서 2000줄로 늘렸어요. */
+        const val MAX_ENTRIES = 2000
     }
 }

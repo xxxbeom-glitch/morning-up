@@ -22,8 +22,13 @@
 
     <!-- 디버그 빌드 전용 시험 알람 -->
     <string name="sample_alarm">시험 알람</string>
-    <string name="sample_alarm_button">1분 뒤 울리기</string>
-    <string name="sample_alarm_mission_button">1분 뒤 미션 알람</string>
-    <string name="sample_alarm_scheduled">%1$s에 울려요</string>
+    <string name="test_case_a">A 기본 (1분 울리고 끝)</string>
+    <string name="test_case_b">B 다시 울림 3분 × 3번</string>
+    <string name="test_case_c">C 미션 + 전원 종료 방지</string>
+    <string name="test_case_d">D 미션 + 다시 잠들기 방지</string>
+    <string name="test_case_e">E 진동 끔 + 부드럽게 깨우기</string>
+    <string name="test_case_f">F 진동만 (알람음 끔)</string>
+    <string name="test_case_g">G 다시 울림 끌 때까지</string>
+    <string name="sample_alarm_scheduled">%1$s 시험이 %2$s에 울려요</string>
     <string name="tab_settings_alert">확인 필요</string>
 </resources>

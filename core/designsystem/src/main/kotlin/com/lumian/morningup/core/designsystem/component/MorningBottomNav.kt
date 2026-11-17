@@ -45,7 +45,8 @@ private val NavItemSize = 48.dp
 val MorningBottomNavHeight = 64.dp
 
 /**
- * 피그마 Bottom Nav(`285:7033`). 가운데 떠 있는 알약(176x64), 칠 `surface/card` + `shadow/float`,
+ * 피그마 Bottom Nav(`285:7033`). 가운데 떠 있는 알약(176x64), 칠 `background/raised` + `shadow/float`.
+ * 흰 카드 위에 겹쳐도 구분되게 카드보다 한 단계 진한 칠을 써요(11-17 사용자 요청, 피그마는 `surface/card`).
  * 48 원형 아이콘 버튼, 고른 탭 바탕 `primary/subtle`.
  */
 @Composable
@@ -62,7 +63,7 @@ fun MorningBottomNav(
     Row(
         modifier = modifier
             .morningShadow(MorningShadows.float, pill)
-            .background(colors.surfaceCard, pill)
+            .background(colors.backgroundRaised, pill)
             .padding(MorningDimens.space8)
             .selectableGroup(),
         horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8),
@@ -83,7 +84,7 @@ fun MorningBottomNav(
 private fun NavButton(item: MorningNavItem, selected: Boolean, onClick: () -> Unit, alert: String?) {
     val colors = MorningTheme.colors
     val fill by animateColorAsState(
-        targetValue = if (selected) colors.primarySubtle else colors.surfaceCard,
+        targetValue = if (selected) colors.primarySubtle else colors.backgroundRaised,
         animationSpec = MorningMotion.effects(MorningMotion.EffectsDefault),
         label = "navFill",
     )

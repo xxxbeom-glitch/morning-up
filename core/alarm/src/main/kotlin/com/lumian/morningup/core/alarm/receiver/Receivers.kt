@@ -96,6 +96,9 @@ class SystemEventReceiver : BroadcastReceiver() {
                 if (sessions.load() != null) {
                     val resume = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_RESUME)
                     startRingService(context, resume, diagnostics, notifications)
+                } else {
+                    // 울리던 알람이 없는데 앱을 새로 깔기 전 알림('울리고 있어요', '미션을 마쳤어요')이 남아 있으면 지워요.
+                    notifications.cancelRinging()
                 }
             } finally {
                 pending.finish()

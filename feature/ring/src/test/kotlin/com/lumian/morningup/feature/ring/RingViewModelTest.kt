@@ -99,7 +99,8 @@ class RingViewModelTest {
         fun shown(
             phase: RingPhase,
         ) = RingViewModel.shownScreen(RingScreen.None, testRingSession(phase, missionsDone = 1))
-        assertThat(shown(RingPhase.Resting)).isEqualTo(RingScreen.Ringing)
+        // 쉬는 중에는 화면을 닫아요(결정 70). 쉬는 중 알림을 누르면 컨트롤러가 Ringing을 정해 줘요.
+        assertThat(shown(RingPhase.Resting)).isEqualTo(RingScreen.None)
         assertThat(shown(RingPhase.InMission)).isEqualTo(RingScreen.Mission(1))
         assertThat(shown(RingPhase.WakeCheckAsking)).isEqualTo(RingScreen.WakeCheck)
         assertThat(shown(RingPhase.AwaitingWakeCheck)).isEqualTo(RingScreen.None)

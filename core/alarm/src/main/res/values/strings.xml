@@ -15,9 +15,20 @@
 
     <!-- 울리는 중 알림 -->
     <string name="ring_title">알람이 울리고 있어요</string>
+    <string name="resting_title">알람이 잠시 멈췄어요</string>
+    <string name="waiting_title">미션을 마쳤어요</string>
+    <string name="channel_status">알람 울리는 중</string>
+    <string name="channel_status_description">알람이 울리는 동안 알림창에 조용히 보여 줘요</string>
+    <string name="channel_waiting">알람 기다림</string>
+    <string name="channel_waiting_description">쉬는 중이거나 깨어 있는지 물어보기 전에 조용히 보여 줘요</string>
     <string name="ring_text_ringing">눌러서 알람을 꺼요</string>
     <string name="ring_text_mission">미션을 하고 있어요</string>
     <string name="ring_text_resting">잠시 뒤 다시 울려요</string>
+    <!-- 쉬는 중 알림(결정 70). %1$s는 다시 울리는 시각(예: 8:30)이에요. 누르면 울림 화면이 열려요. -->
+    <string name="ring_text_resting_at">%1$s에 다시 울려요. 눌러서 지금 끌 수 있어요</string>
+    <!-- 쉬기 시작할 때 토스트. %1$d는 분, %2$d는 다음 울림 번째 -->
+    <string name="rest_toast_numbered">%1$d분 뒤 %2$d번째 알람이 울려요</string>
+    <string name="rest_toast">%1$d분 뒤 알람이 다시 울려요</string>
     <string name="ring_text_waiting">잠시 뒤 깨어 있는지 물어볼게요</string>
     <!-- W2 깨어 있나요: 울림과 같은 전체 화면 알림으로 띄워요 -->
     <string name="wake_check_title">깨어 있나요?</string>

@@ -1,10 +1,17 @@
 package com.lumian.morningup.core.alarm.ring
 
+import android.app.KeyguardManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.PowerManager
 import androidx.core.app.ServiceCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
@@ -43,6 +50,38 @@ class RingService : LifecycleService() {
 
     private var inFlight = 0
 
+    private val handler = Handler(Looper.getMainLooper())
+
+    /**
+     * 울리는 중(D0)이나 W2에 화면을 끄면 다시 켜요(결정 74). 전에는 처음 끌 때만 다시 켜지고 두 번째부터는
+     * 꺼진 채였어요(11-17 시험 C, D). 울림 화면의 '열릴 때 화면 켜기'는 한 번 열 때 한 번만 동작해서예요.
+     */
+    private val relight = Runnable {
+        val phase = controller.session.value?.phase
+        val off = getSystemService(PowerManager::class.java)?.isInteractive == false
+        if (off && (phase == RingPhase.Ringing || phase == RingPhase.WakeCheckAsking)) {
+            diagnostics.record("screen_relit", controller.session.value?.plan?.alarmId, phase.name)
+            notifications.openScreenNow()
+        }
+    }
+
+    private val screenOffReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            handler.removeCallbacks(relight)
+            handler.postDelayed(relight, RELIGHT_DELAY_MILLIS)
+        }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        ContextCompat.registerReceiver(
+            this,
+            screenOffReceiver,
+            IntentFilter(Intent.ACTION_SCREEN_OFF),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         // 알람 시각이나 타이머로 깨어났으면 첫 알림부터 전체 화면 Intent를 달아요(새 알림일 때만 화면이 떠요).
@@ -69,6 +108,27 @@ class RingService : LifecycleService() {
     }
 
     private suspend fun handle(intent: Intent?) {
+        val before = controller.session.value
+        dispatch(intent)
+        // 시험 기록(11-17 사용자 지시): 무슨 신호로 어느 단계에서 어느 단계로 갔는지 남겨요.
+        val after = controller.session.value
+        val alarmId = (after ?: before)?.plan?.alarmId
+        diagnostics.record(
+            "ring_event",
+            alarmId,
+            "${signalOf(intent)}: ${before?.phase ?: "-"} -> ${after?.phase ?: "end"}",
+        )
+        openScreenIfNeeded(intent)
+    }
+
+    private fun signalOf(intent: Intent?): String = when (intent?.action) {
+        AlarmIntents.ACTION_FIRE -> "alarm_time"
+        AlarmIntents.ACTION_TIMER -> "timer ${AlarmIntents.timerKindOf(intent)}"
+        ACTION_EVENT -> intent.getStringExtra(EXTRA_EVENT) ?: "event"
+        else -> "resume"
+    }
+
+    private suspend fun dispatch(intent: Intent?) {
         when (intent?.action) {
             AlarmIntents.ACTION_FIRE -> {
                 val id = intent.getLongExtra(AlarmIntents.EXTRA_ALARM_ID, -1)
@@ -83,6 +143,20 @@ class RingService : LifecycleService() {
         }
     }
 
+    private suspend fun openScreenIfNeeded(intent: Intent?) {
+        val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        // 울림(D0)과 깨어 있나요 확인(W2) 모두 폰을 쓰는 중이어도 맨 앞에 바로 떠야 해요.
+        val phase = controller.session.value?.phase
+        if (wakeUp && (phase == RingPhase.Ringing || phase == RingPhase.WakeCheckAsking)) {
+            withContext(Dispatchers.Main) {
+                // 화면을 맨 앞에 띄웠으면 알림은 조용히 두고, 막혔거나 잠금 화면이면 배너와 전체 화면 알림으로 깨워요.
+                val opened = notifications.openScreenNow()
+                val locked = getSystemService(KeyguardManager::class.java)?.isKeyguardLocked == true
+                if (!opened || locked) notifications.alertRinging(phase)
+            }
+        }
+    }
+
     /** 처리가 다 끝난 뒤: 울리는 중이면 알림을 고치고, 아니면 멈춰요. */
     private fun settle(startId: Int) {
         val phase = controller.session.value?.phase
@@ -94,7 +168,7 @@ class RingService : LifecycleService() {
             }
             RingPhase.Resting, RingPhase.AwaitingWakeCheck -> {
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-                notifications.showRinging(phase)
+                notifications.showRinging(phase, controller.session.value?.phaseEndsAt)
                 stopSelf(startId)
             }
             else -> notifications.showRinging(phase)
@@ -126,12 +200,17 @@ class RingService : LifecycleService() {
         // 울리지 않는 단계면 소리를 확실히 멈춰요. 울리는 중에 시스템이 서비스를 죽이면 START_STICKY로 다시 이어가요.
         val phase = controller.session.value?.phase
         if (phase == null || phase == RingPhase.Resting || phase == RingPhase.AwaitingWakeCheck) sound.stop()
+        handler.removeCallbacks(relight)
+        unregisterReceiver(screenOffReceiver)
         super.onDestroy()
     }
 
     companion object {
         const val ACTION_EVENT = "com.lumian.morningup.alarm.EVENT"
         private const val EXTRA_EVENT = "event"
+
+        /** 화면이 꺼지고 잠시 뒤 다시 켜요. 끄자마자 열면 꺼지는 중과 겹쳐요. */
+        private const val RELIGHT_DELAY_MILLIS = 600L
 
         /** 울림 화면 버튼을 서비스로 보내요. 화면이 앞에 있으니 서비스를 앞으로 띄울 수 있어요. */
         fun send(context: Context, event: RingEvent) {
