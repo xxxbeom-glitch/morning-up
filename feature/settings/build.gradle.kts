@@ -12,6 +12,7 @@ android {
 dependencies {
     implementation(projects.core.ui)
     implementation(projects.core.alarm)
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.hilt.navigation.compose)

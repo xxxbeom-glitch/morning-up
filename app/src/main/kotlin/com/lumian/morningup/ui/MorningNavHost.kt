@@ -9,7 +9,11 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -25,8 +29,12 @@ import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
+import com.lumian.morningup.feature.settings.FirstSavePermissionAsk
+import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
 import com.lumian.morningup.feature.settings.SettingsRoute
+import com.lumian.morningup.feature.settings.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -40,6 +48,7 @@ data class PermissionsRoute(val screen: String)
 
 /** 편집 화면이 저장한 알람 id를 첫 화면에 넘기는 열쇠. */
 private const val SAVED_ALARM_KEY = "savedAlarmId"
+private const val FIRST_SAVE_ASK_DELAY_MILLIS = 700L
 
 /**
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
@@ -75,6 +84,17 @@ fun MorningNavHost(
         composable<MainRoute> { entry ->
             val savedId by entry.savedStateHandle.getStateFlow<Long?>(SAVED_ALARM_KEY, null)
                 .collectAsStateWithLifecycle()
+            val settings: SettingsViewModel = hiltViewModel()
+            val report by settings.report.collectAsStateWithLifecycle()
+            val firstSaveAsked by settings.firstSaveAsked.collectAsStateWithLifecycle()
+            var askingFirstSave by rememberSaveable { mutableStateOf(false) }
+            LaunchedEffect(savedId) {
+                // 첫 알람을 저장하고 홈에 돌아오면 저장된 카드를 잠깐 보여 준 뒤 권한을 한 번만 물어요(F21).
+                if (savedId != null && !firstSaveAsked) {
+                    delay(FIRST_SAVE_ASK_DELAY_MILLIS)
+                    askingFirstSave = true
+                }
+            }
             MorningUpApp(
                 alarmTab = { tabModifier ->
                     HomeRoute(
@@ -84,6 +104,11 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         savedAlarmId = savedId,
                         onSavedAlarmShown = { entry.savedStateHandle[SAVED_ALARM_KEY] = null },
+                        banner = if (report.needsAttention) {
+                            { PermissionBanner(report) }
+                        } else {
+                            null
+                        },
                     )
                 },
                 settingsTab = { tabModifier ->
@@ -96,7 +121,14 @@ fun MorningNavHost(
                         extra = debugTools,
                     )
                 },
+                settingsAlert = report.needsAttention,
             )
+            if (askingFirstSave) {
+                FirstSavePermissionAsk(report) {
+                    settings.markFirstSaveAsked()
+                    askingFirstSave = false
+                }
+            }
         }
         composable<PermissionsRoute> { entry ->
             PermissionRoute(

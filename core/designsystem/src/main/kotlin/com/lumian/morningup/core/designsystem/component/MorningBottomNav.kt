@@ -1,20 +1,27 @@
 package com.lumian.morningup.core.designsystem.component
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -47,6 +54,8 @@ fun MorningBottomNav(
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    alertIndex: Int? = null,
+    alertLabel: String = "",
 ) {
     val colors = MorningTheme.colors
     val pill = RoundedCornerShape(MorningDimens.radiusFull)
@@ -60,13 +69,18 @@ fun MorningBottomNav(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         items.forEachIndexed { index, item ->
-            NavButton(item = item, selected = index == selectedIndex, onClick = { onSelect(index) })
+            NavButton(
+                item = item,
+                selected = index == selectedIndex,
+                onClick = { onSelect(index) },
+                alert = alertLabel.takeIf { index == alertIndex },
+            )
         }
     }
 }
 
 @Composable
-private fun NavButton(item: MorningNavItem, selected: Boolean, onClick: () -> Unit) {
+private fun NavButton(item: MorningNavItem, selected: Boolean, onClick: () -> Unit, alert: String?) {
     val colors = MorningTheme.colors
     val fill by animateColorAsState(
         targetValue = if (selected) colors.primarySubtle else colors.surfaceCard,
@@ -95,5 +109,51 @@ private fun NavButton(item: MorningNavItem, selected: Boolean, onClick: () -> Un
             tint = tint,
             modifier = Modifier.size(MorningDimens.iconLg),
         )
+        if (alert != null) {
+            AlertBubble(
+                text = alert,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .offset(y = -BubbleLift)
+                    .wrapContentSize(unbounded = true),
+            )
+        }
+    }
+}
+
+private val BubbleHeight = 24.dp
+private val TailWidth = 10.dp
+private val TailHeight = 6.dp
+
+/** 말풍선 아래 끝이 메뉴 위 4에 오게 버튼 위에서 올리는 거리(메뉴 안 여백 8 + 4 + 꼬리 6 + 알약 24). */
+private val BubbleLift = 42.dp
+
+/**
+ * '확인 필요' 말풍선(design-system 하단 메뉴 Alert). `primary/default` 알약(모서리 12, 안쪽 위아래 4 좌우 10)과
+ * 꼬리 10x6, `primary/on` `Caption/Strong` 글자. 꼬리 끝이 아이콘 가운데를 가리켜요. 테두리와 그림자는 없어요.
+ */
+@Composable
+private fun AlertBubble(text: String, modifier: Modifier = Modifier) {
+    val colors = MorningTheme.colors
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = text,
+            style = MorningTheme.typography.captionStrong,
+            color = colors.primaryOn,
+            maxLines = 1,
+            modifier = Modifier
+                .height(BubbleHeight)
+                .background(colors.primaryDefault, RoundedCornerShape(BubbleHeight / 2))
+                .padding(horizontal = MorningDimens.space8 + 2.dp, vertical = MorningDimens.space4),
+        )
+        Canvas(Modifier.size(TailWidth, TailHeight)) {
+            val path = Path().apply {
+                moveTo(0f, 0f)
+                lineTo(size.width, 0f)
+                lineTo(size.width / 2, size.height)
+                close()
+            }
+            drawPath(path, colors.primaryDefault)
+        }
     }
 }

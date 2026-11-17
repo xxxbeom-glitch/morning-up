@@ -1,4 +1,4 @@
-package com.lumian.morningup.feature.settings
+package com.lumian.morningup.core.alarm
 
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -13,7 +13,7 @@ import timber.log.Timber
  * 권한 줄을 누르면 여는 기기 설정 화면. 기기마다 없는 화면이 있어서, 열리지 않으면 앱 정보 화면으로 대신 보내요.
  * 배터리는 직접 예외 요청 창을 쓰지 않고 기기 설정으로 보내요(Play 정책, dev-plan 6단계).
  */
-internal object PermissionSettings {
+object PermissionSettings {
     fun intentFor(context: Context, permission: AlarmPermission): Intent {
         val pkg = "package:${context.packageName}".toUri()
         return when (permission) {

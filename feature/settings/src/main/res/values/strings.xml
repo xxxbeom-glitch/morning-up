@@ -37,4 +37,34 @@
     <string name="permission_full_screen_desc">잠금 화면 위로 알람을 띄워요</string>
     <string name="permission_overlay">다른 앱 위에 표시</string>
     <string name="permission_overlay_desc">쓰던 앱 위로 알람을 띄워요</string>
+
+    <string name="banner_turn_on">켜기</string>
+    <string name="banner_exact">정확한 알람 권한이 꺼져 있어요</string>
+    <string name="banner_exact_desc">켜지 않으면 알람이 늦게 울릴 수 있어요</string>
+    <string name="banner_battery">배터리 사용이 제한돼 있어요</string>
+    <string name="banner_battery_desc">풀지 않으면 절전 중에 알람이 늦을 수 있어요</string>
+    <string name="banner_volume">알람 음량이 0이에요</string>
+    <string name="banner_volume_desc">올리지 않으면 알람 소리가 나지 않아요</string>
+    <string name="banner_notifications">알림 권한이 꺼져 있어요</string>
+    <string name="banner_notifications_desc">켜지 않으면 알람 화면이 안 떠요</string>
+    <string name="banner_full_screen">전체 화면 알림이 꺼져 있어요</string>
+    <string name="banner_full_screen_desc">켜지 않으면 잠금 화면 위로 알람이 안 떠요</string>
+    <!-- P1~P4 권한 요청 창(design-system 공용 Dialog). 다른 앱 위에 표시, 방해 금지, 알람 음량은 같은 모양으로 11-17 추천안 -->
+    <string name="ask_later">나중에</string>
+    <string name="ask_allow">허용하기</string>
+    <string name="ask_notifications">알림을 허용해 주세요</string>
+    <string name="ask_notifications_msg">알림을 허용하지 않으면\n알람이 울려도 화면이 뜨지 않을 수 있어요.</string>
+    <string name="ask_exact">정확한 알람을 허용해 주세요</string>
+    <string name="ask_exact_msg">허용하지 않으면\n알람이 몇 분 늦게 울릴 수 있어요.</string>
+    <string name="ask_battery">배터리 사용 제한을 풀어 주세요</string>
+    <string name="ask_battery_msg">절전 기능 때문에\n알람이 울리지 않을 수 있어요.</string>
+    <string name="ask_full_screen">전체 화면 알림을 허용해 주세요</string>
+    <string name="ask_full_screen_msg">잠금 화면에서도\n알람 화면이 바로 떠요.</string>
+    <string name="ask_overlay">다른 앱 위에 표시를 허용해 주세요</string>
+    <string name="ask_overlay_msg">다른 앱을 쓰는 중에도\n알람 화면이 바로 떠요.</string>
+    <string name="ask_dnd">방해 금지 모드 예외를 허용해 주세요</string>
+    <string name="ask_dnd_msg">허용하면 방해 금지 모드에서도\n알람이 확실하게 울려요.</string>
+    <string name="ask_volume">알람 음량을 올려 주세요</string>
+    <string name="ask_volume_msg">알람 음량이 0이면\n알람이 울려도 소리가 나지 않아요.</string>
+    <string name="ask_volume_confirm">음량 조절</string>
 </resources>

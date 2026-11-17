@@ -1,15 +1,10 @@
 package com.lumian.morningup
 
-import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
@@ -43,10 +38,6 @@ class MainActivity : ComponentActivity() {
 
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
     private val editRequests = MutableStateFlow<Long?>(null)
-
-    private val askNotifications = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (!granted) diagnostics.record("notification_permission_denied")
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
@@ -92,15 +83,10 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * 알림 권한(안드로이드 13 이상)이 없으면 잠금 화면 위로 울림 화면을 띄울 수 없어서 처음 열 때 물어요.
-     * 권한 안내 화면은 다음 단계에서 만들어요. 지금은 시스템 창으로만 묻고, 거부와 전체 화면 권한 꺼짐을 기록해요.
+     * 앱을 열 때는 권한 창을 띄우지 않아요(F21). 첫 알람을 저장할 때 한 번 묻고, 나머지는 H2 배너와 설정으로 안내해요.
+     * 여기서는 전체 화면 권한이 꺼진 것만 진단 기록에 남겨요.
      */
     private fun checkAlertPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val granted = ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-                PackageManager.PERMISSION_GRANTED
-            if (!granted) askNotifications.launch(Manifest.permission.POST_NOTIFICATIONS)
-        }
         if (!notifications.canShowFullScreen()) diagnostics.record("full_screen_intent_denied")
     }
 

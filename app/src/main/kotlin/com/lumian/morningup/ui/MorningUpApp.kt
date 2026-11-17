@@ -35,6 +35,7 @@ fun MorningUpApp(
     modifier: Modifier = Modifier,
     alarmTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_alarm)) },
     settingsTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_settings)) },
+    settingsAlert: Boolean = false,
 ) {
     var tab by rememberSaveable { mutableStateOf(TopTab.Alarm) }
     val labels = listOf(
@@ -60,6 +61,9 @@ fun MorningUpApp(
             ),
             selectedIndex = tab.ordinal,
             onSelect = { tab = TopTab.entries[it] },
+            // 꺼진 필수 권한이 있으면 설정 아이콘 위에 '확인 필요' 말풍선(design-system 하단 메뉴 Alert).
+            alertIndex = TopTab.Settings.ordinal.takeIf { settingsAlert },
+            alertLabel = stringResource(R.string.tab_settings_alert),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()

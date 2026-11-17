@@ -92,6 +92,7 @@ fun HomeRoute(
     modifier: Modifier = Modifier,
     savedAlarmId: Long? = null,
     onSavedAlarmShown: () -> Unit = {},
+    banner: (@Composable () -> Unit)? = null,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -112,6 +113,7 @@ fun HomeRoute(
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
+        banner = banner,
     )
 }
 
@@ -129,6 +131,7 @@ fun HomeScreen(
     onDismissMessage: (HomeMessage) -> Unit,
     modifier: Modifier = Modifier,
     onMore: () -> Unit = {},
+    banner: (@Composable () -> Unit)? = null,
 ) {
     val navReserve = MorningBottomNavHeight + MorningDimens.space16
     Box(
@@ -139,7 +142,7 @@ fun HomeScreen(
         SkyBackdrop()
         if (!state.loading) {
             if (state.alarms.isEmpty()) {
-                EmptyHome(state = state, onAdd = onAdd, bottomReserve = navReserve)
+                EmptyHome(state = state, onAdd = onAdd, bottomReserve = navReserve, banner = banner)
             } else {
                 AlarmList(
                     state = state,
@@ -149,6 +152,7 @@ fun HomeScreen(
                     onToggle = onToggle,
                     onLongPress = onLongPress,
                     bottomReserve = navReserve,
+                    banner = banner,
                 )
             }
         }
@@ -181,13 +185,34 @@ private fun SkyBackdrop() {
 }
 
 @Composable
-private fun Header(headline: String, subline: String, modifier: Modifier = Modifier) {
+private fun Header(
+    headline: String,
+    subline: String,
+    modifier: Modifier = Modifier,
+    banner: (@Composable () -> Unit)? = null,
+) {
     val colors = MorningTheme.colors
+    if (banner != null) {
+        // H2: 배너가 있으면 상태 표시줄 아래 배너, 그 아래 20 띄우고 다음 알람 문구(Next Alarm Header Banner 형).
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(
+                    start = MorningDimens.layoutScreenMargin,
+                    end = MorningDimens.layoutScreenMargin,
+                    top = MorningDimens.space16,
+                ),
+        ) { banner() }
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .statusBarsPadding()
-            .padding(top = MorningDimens.layoutHeaderTop, bottom = MorningDimens.space32),
+            .then(if (banner == null) Modifier.statusBarsPadding() else Modifier)
+            .padding(
+                top = if (banner == null) MorningDimens.layoutHeaderTop else MorningDimens.space20,
+                bottom = MorningDimens.space32,
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         RollingText(text = headline, style = MorningTheme.typography.headlineLarge, color = colors.textPrimary)
@@ -221,6 +246,7 @@ private fun AlarmList(
     onToggle: (Alarm, Boolean) -> Unit,
     onLongPress: (Alarm) -> Unit,
     bottomReserve: Dp,
+    banner: (@Composable () -> Unit)? = null,
 ) {
     val (headline, subline) = headerTexts(state)
     val reduceMotion = MorningTheme.reduceMotion
@@ -230,7 +256,7 @@ private fun AlarmList(
         contentPadding = PaddingValues(bottom = navBar + bottomReserve + MorningDimens.space16),
         verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
     ) {
-        item(key = "header") { Header(headline, subline) }
+        item(key = "header") { Column { Header(headline, subline, banner = banner) } }
         item(key = "actions") {
             Row(
                 modifier = Modifier
@@ -331,7 +357,12 @@ private fun DaysRow(days: Set<DayOfWeek>) {
 
 /** H1 빈 홈. 플러스와 더보기를 숨기고 가운데 안내와 '알람 만들기'만 둬요. */
 @Composable
-private fun EmptyHome(state: HomeUiState, onAdd: () -> Unit, bottomReserve: Dp) {
+private fun EmptyHome(
+    state: HomeUiState,
+    onAdd: () -> Unit,
+    bottomReserve: Dp,
+    banner: (@Composable () -> Unit)? = null,
+) {
     val colors = MorningTheme.colors
     val (headline, subline) = headerTexts(state)
     Column(
@@ -341,7 +372,7 @@ private fun EmptyHome(state: HomeUiState, onAdd: () -> Unit, bottomReserve: Dp) 
             .padding(bottom = bottomReserve),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Header(headline, subline)
+        Header(headline, subline, banner = banner)
         Column(
             modifier = Modifier
                 .weight(1f)

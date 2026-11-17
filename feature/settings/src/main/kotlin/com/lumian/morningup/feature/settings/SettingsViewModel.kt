@@ -1,5 +1,7 @@
 package com.lumian.morningup.feature.settings
 
+import android.content.Context
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.NowProvider
@@ -9,6 +11,7 @@ import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.PermissionReport
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -25,8 +28,21 @@ class SettingsViewModel @Inject constructor(
     private val repository: AlarmRepository,
     private val rescheduler: AlarmRescheduler,
     private val now: NowProvider,
+    @ApplicationContext context: Context,
 ) : ViewModel() {
     val report: StateFlow<PermissionReport> = permissions.report
+
+    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+    private val _firstSaveAsked = MutableStateFlow(prefs.getBoolean(KEY_FIRST_SAVE_ASKED, false))
+
+    /** 첫 알람 저장 때 권한 묻기(F21)를 이미 했는지. 한 번 돌면 다시 묻지 않아요. */
+    val firstSaveAsked: StateFlow<Boolean> = _firstSaveAsked.asStateFlow()
+
+    fun markFirstSaveAsked() {
+        prefs.edit { putBoolean(KEY_FIRST_SAVE_ASKED, true) }
+        _firstSaveAsked.value = true
+    }
 
     private val _tryAlarmAt = MutableStateFlow<LocalTime?>(null)
 
@@ -50,5 +66,7 @@ class SettingsViewModel @Inject constructor(
 
     private companion object {
         const val TOAST_MILLIS = 2_500L
+        const val PREFS = "settings"
+        const val KEY_FIRST_SAVE_ASKED = "first_save_asked"
     }
 }

@@ -17,6 +17,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +41,7 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.SquareDot
 import com.composables.icons.lucide.Volume2
+import com.lumian.morningup.core.alarm.PermissionSettings
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
@@ -106,7 +110,7 @@ private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
 
 /**
  * T2-A 알람 울림, T2-B 알람 화면 표시. 토글은 지금 기기 상태를 그대로 보여 주고, 줄이나 토글을 누르면
- * 그 권한의 기기 설정 화면으로 보내요. 돌아오면 앱이 다시 확인해서 토글이 바로 바뀌어요.
+ * 꺼진 권한은 P1~P4 요청 창을 거쳐 기기 설정 화면으로 보내요. 돌아오면 앱이 다시 확인해서 토글이 바로 바뀌어요.
  * 전원 종료 방지(선택 권한)는 접근성 동의 화면과 함께 다음 단위에서 더해요.
  */
 @Composable
@@ -118,15 +122,26 @@ fun PermissionRoute(
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var asking by rememberSaveable { mutableStateOf<AlarmPermission?>(null) }
     PermissionPage(
         screen = screen,
         report = report,
         showSamsungSleep = PermissionSettings.isSamsung,
         onBack = onBack,
-        onOpen = { PermissionSettings.open(context, PermissionSettings.intentFor(context, it)) },
+        // 꺼진 권한은 P1~P4 요청 창을 먼저 띄우고, 켜진 권한은 끄는 곳(기기 설정)으로 바로 보내요.
+        onOpen = {
+            if (report.isGranted(it)) {
+                PermissionSettings.open(context, PermissionSettings.intentFor(context, it))
+            } else {
+                asking = it
+            }
+        },
         onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
         modifier = modifier,
     )
+    asking?.let { permission ->
+        PermissionAskDialog(permission = permission, onDismiss = { asking = null }, onDone = { asking = null })
+    }
 }
 
 @Composable
