@@ -3,6 +3,7 @@ package com.lumian.morningup.core.alarm
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import com.lumian.morningup.core.model.engine.AlarmScheduler
 import com.lumian.morningup.core.model.engine.TimerKind
@@ -27,7 +28,7 @@ class ExactAlarms @Inject constructor(
     fun setAlarmClock(at: Long, operation: PendingIntent, alarmId: Long?) {
         if (canScheduleExact()) {
             try {
-                alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(at, showIntent()), operation)
+                alarmManager.setAlarmClock(AlarmManager.AlarmClockInfo(at, showIntent(alarmId)), operation)
                 return
             } catch (e: SecurityException) {
                 diagnostics.record("exact_denied", alarmId, e.message.orEmpty())
@@ -56,9 +57,20 @@ class ExactAlarms @Inject constructor(
         diagnostics.record("fallback_schedule", alarmId, "at=$at")
     }
 
-    private fun showIntent(): PendingIntent? =
-        context.packageManager.getLaunchIntentForPackage(context.packageName)?.let {
-            PendingIntent.getActivity(context, 0, it, PendingIntent.FLAG_IMMUTABLE)
+    /**
+     * 상태 표시줄 알람 아이콘을 누르면 여는 화면. 알람 ID가 있으면 앱이 그 알람의 편집 화면(S0)을 열어요
+     * (dev-readiness 3번 흐름 표 1). 이미 떠 있는 앱에도 전달되게 위를 비우고 같은 화면에 새 Intent로 보내요.
+     */
+    private fun showIntent(alarmId: Long?): PendingIntent? =
+        context.packageManager.getLaunchIntentForPackage(context.packageName)?.let { launch ->
+            launch.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            if (alarmId != null) launch.putExtra(AlarmIntents.EXTRA_EDIT_ALARM_ID, alarmId)
+            PendingIntent.getActivity(
+                context,
+                alarmId?.toInt() ?: AlarmIntents.TIMER_REQUEST_CODE,
+                launch,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
         }
 }
 

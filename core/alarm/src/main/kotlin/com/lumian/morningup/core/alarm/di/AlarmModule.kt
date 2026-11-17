@@ -5,9 +5,13 @@ import android.content.Context
 import com.lumian.morningup.core.alarm.AlarmScope
 import com.lumian.morningup.core.alarm.AndroidAlarmScheduler
 import com.lumian.morningup.core.alarm.AndroidCatchUpHandler
+import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.SchedulingAlarmBook
+import com.lumian.morningup.core.alarm.SystemMinuteTicker
 import com.lumian.morningup.core.alarm.ring.AndroidRingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingEffectRunner
+import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmScheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
@@ -70,4 +74,10 @@ interface AlarmBindings {
 
     @Binds
     fun runner(impl: AndroidRingEffectRunner): RingEffectRunner
+
+    @Binds
+    fun alarmBook(impl: SchedulingAlarmBook): AlarmBook
+
+    @Binds
+    fun ticker(impl: SystemMinuteTicker): MinuteTicker
 }
