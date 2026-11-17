@@ -22,8 +22,11 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
     }
 }
 
-/** 다시 잠들기 방지(W2). 해제하고 [askAfterMinutes]분 뒤 묻고, [answerSeconds]초 안에 '깼어요'를 눌러야 해요. */
-data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 5, val answerSeconds: Int = 60) {
+/**
+ * 다시 잠들기 방지(W2). 해제하고 [askAfterMinutes]분 뒤 묻고, [answerSeconds]초 안에 '깼어요'를 눌러야 해요.
+ * 처음 값은 기획서 F9(1분 후, 답할 시간 1분)예요.
+ */
+data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 1, val answerSeconds: Int = 60) {
     init {
         require(askAfterMinutes in 1..MAX_ASK_MINUTES)
         require(answerSeconds in MIN_ANSWER_SECONDS..MAX_ANSWER_SECONDS)
@@ -64,5 +67,11 @@ data class Alarm(
 
     companion object {
         const val DEFAULT_SOUND_ID = "default"
+
+        /** 편집 화면 '알람음' 토글을 끈 상태(진동만). 울림 쪽은 알람음 화면(7단계)과 같이 따라요. */
+        const val SILENT_SOUND_ID = "silent"
+
+        /** 편집 화면 '알람 화면 배경' 토글을 끈 상태. null은 기본 '시간대 하늘'이에요. */
+        const val BACKGROUND_PLAIN = "plain"
     }
 }
