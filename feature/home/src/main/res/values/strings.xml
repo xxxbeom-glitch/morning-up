@@ -35,6 +35,8 @@
     <string name="home_menu_select">선택</string>
     <string name="home_selected_count">%1$d개 선택됨</string>
     <string name="home_select_all">전체 선택</string>
+    <string name="home_once_today">오늘</string>
+    <string name="home_once_tomorrow">내일</string>
     <string name="home_select_cancel">취소</string>
     <string name="home_action_on">켜기</string>
     <string name="home_action_off">끄기</string>

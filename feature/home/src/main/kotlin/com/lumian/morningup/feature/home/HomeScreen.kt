@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -329,6 +330,7 @@ private fun AlarmList(
                     restOffer = selection == null && state.showsRestOffer(alarm),
                     restingDay = state.resting[alarm.id].takeIf { selection == null },
                     selected = selection?.contains(alarm.id),
+                    ringsToday = state.time?.let { alarm.time > it } ?: true,
                 ),
                 onClick = { if (selection != null) extra.onToggleSelected(alarm) else onOpen(alarm) },
                 onLongPress = { if (selection != null) extra.onToggleSelected(alarm) else onLongPress(alarm) },
@@ -353,10 +355,12 @@ private data class CardLook(
     val restingDay: DayOfWeek? = null,
     /** null이면 선택 모드가 아니에요. */
     val selected: Boolean? = null,
+    /** 반복 없는 알람이 오늘 울리는지(아니면 내일). 요일 줄 글자에 써요. */
+    val ringsToday: Boolean = true,
 )
 
 /**
- * 피그마 Alarm Card(State On, Off, Rest Offer, Resting × Mode Default, Select). 시각, 월~일 요일(고른 요일만 파랑),
+ * 피그마 Alarm Card(State On, Off, Rest Offer, Resting × Mode Default, Select). 시각, 정해진 요일만(파랑),
  * 오른쪽 토글. 선택 모드면 토글 대신 앞에 Select Mark. 길게 누르면 선택 모드(H3-1)로 들어가요.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -415,7 +419,7 @@ private fun AlarmCard(
                 ) {
                     Text(text = time, style = MorningTheme.typography.headlineNumber, color = colors.textPrimary)
                     Spacer(Modifier.height(MorningDimens.space4))
-                    DaysRow(alarm.repeatDays)
+                    DaysRow(alarm.repeatDays, ringsToday = look.ringsToday)
                 }
             }
             if (look.selected == null) {
@@ -539,7 +543,11 @@ private fun SelectHeader(count: Int) {
 
 private val SelectRowHeight = 48.dp
 
-/** '전체 선택'(Select Mark + 글자, 사이 8)과 오른쪽 '취소'. */
+/**
+ * 피그마 List Actions(Type=Select, `285:8162`). '전체 선택'(Select Mark + `Body/Medium` `text/body`, 사이 8)은
+ * 카드 안 글자와 같은 줄(화면 여백 + 24)에서 시작해요. 오른쪽 '취소'(`Body/Medium Strong` `text/primary`)는
+ * 높이 48, 좌우 16 누름 칸이고 글자 끝이 카드 오른쪽 안 16에 와요.
+ */
 @Composable
 private fun SelectActions(allSelected: Boolean, onSelectAll: () -> Unit, onCancel: () -> Unit) {
     val colors = MorningTheme.colors
@@ -547,7 +555,8 @@ private fun SelectActions(allSelected: Boolean, onSelectAll: () -> Unit, onCance
         modifier = Modifier
             .fillMaxWidth()
             .height(SelectRowHeight)
-            .padding(horizontal = MorningDimens.layoutScreenMargin),
+            .padding(start = MorningDimens.layoutScreenMargin + MorningDimens.layoutCardPadding)
+            .padding(end = MorningDimens.layoutScreenMargin),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
@@ -563,16 +572,23 @@ private fun SelectActions(allSelected: Boolean, onSelectAll: () -> Unit, onCance
             Text(
                 text = stringResource(R.string.home_select_all),
                 style = MorningTheme.typography.bodyMedium,
-                color = colors.textPrimary,
+                color = colors.textBody,
             )
         }
         Spacer(Modifier.weight(1f))
-        Text(
-            text = stringResource(R.string.home_select_cancel),
-            style = MorningTheme.typography.bodyMediumStrong,
-            color = colors.textPrimary,
-            modifier = Modifier.morningClickable(haptic = null, role = Role.Button, onClick = onCancel),
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .morningClickable(haptic = null, role = Role.Button, onClick = onCancel)
+                .padding(horizontal = MorningDimens.space16),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.home_select_cancel),
+                style = MorningTheme.typography.bodyMediumStrong,
+                color = colors.textPrimary,
+            )
+        }
     }
 }
 
@@ -625,18 +641,26 @@ private fun ActionItem(icon: ImageVector, label: String, enabled: Boolean, onCli
     }
 }
 
-/** 월~일. 고른 요일은 `Caption/Strong` `primary/text`, 나머지는 `Caption/Medium` `text/tertiary`. */
+/**
+ * 정해진 요일만 적어요(결정 75). 모두 `Caption/Strong` `primary/text`, 사이 8.
+ * 반복 없는 알람은 다음에 울릴 날을 '오늘' 또는 '내일'로 적어요(결정 75 추천안).
+ */
 @Composable
-private fun DaysRow(days: Set<DayOfWeek>) {
+private fun DaysRow(days: Set<DayOfWeek>, ringsToday: Boolean) {
     val res = alarmResources()
+    val style = MorningTheme.typography.captionStrong
+    val color = MorningTheme.colors.primaryText
     Row(horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
-        DayOfWeek.entries.forEach { day ->
-            val on = day in days
+        if (days.isEmpty()) {
             Text(
-                text = AlarmText.dayShort(res, day),
-                style = if (on) MorningTheme.typography.captionStrong else MorningTheme.typography.captionMedium,
-                color = if (on) MorningTheme.colors.primaryText else MorningTheme.colors.textTertiary,
+                text = stringResource(if (ringsToday) R.string.home_once_today else R.string.home_once_tomorrow),
+                style = style,
+                color = color,
             )
+        } else {
+            DayOfWeek.entries.filter { it in days }.forEach { day ->
+                Text(text = AlarmText.dayShort(res, day), style = style, color = color)
+            }
         }
     }
 }

@@ -25,7 +25,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+// 상단바가 64+8로 커져서 기본 화면(470dp)에서는 미션 목록 끝이 잘려요. 실제 폰 높이로 돌려요.
+@Config(qualifiers = "w411dp-h891dp")
 @RunWith(RobolectricTestRunner::class)
 class EditScreenTest {
     @get:Rule

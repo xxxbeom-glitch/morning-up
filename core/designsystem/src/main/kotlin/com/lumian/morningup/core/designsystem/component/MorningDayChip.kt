@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
@@ -23,8 +24,10 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 /**
  * 피그마 Day Chip. 36 정사각, 테두리 없이 칠로만 고름을 보여요.
  * 고름: `primary/subtle` 바탕 + `Body/Small Strong` `primary/text`.
- * 안 고름: `background/raised` 바탕 + `Body/Small` `text/tertiary`.
+ * 안 고름: `background/raised` 바탕 + `Body/Small` `text/tertiary`, 칸 전체 투명도 50%(결정 76).
  */
+private const val UNSELECTED_ALPHA = 0.5f
+
 @Composable
 fun MorningDayChip(
     label: String,
@@ -47,6 +50,7 @@ fun MorningDayChip(
     Box(
         modifier = modifier
             .size(MorningDimens.sizeChip)
+            .alpha(if (selected) 1f else UNSELECTED_ALPHA)
             .semantics {
                 this.selected = selected
                 this.contentDescription = contentDescription
