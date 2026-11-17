@@ -43,11 +43,14 @@ class EditScreenTest {
     }
 
     @Test
-    fun noMission_showsNone_hidesPreview_noPowerOffRow() {
+    fun noMission_showsFourEmptySlots_noPreview_noPowerOffRow() {
         var opened: EditDetail? = null
         show(EditUiState(loading = false), onDetail = { opened = it })
         // 꺼진 줄은 값이 모두 '사용 안 함'이에요. 전원 종료 방지 줄은 설정 탭으로 옮겨서 없어요(결정 101).
         compose.onAllNodesWithText("사용 안 함").onFirst().assertExists()
+        // 결정 87, 95: '미션 선택' 줄과 '미리 해보기' 대신 빈 칸 4개.
+        (0 until 4).forEach { compose.onNodeWithTag("${MISSION_SLOT_TAG}Empty$it").assertExists() }
+        compose.onNodeWithText("미션 선택").assertDoesNotExist()
         compose.onNodeWithText("미리 해보기").assertDoesNotExist()
         compose.onNodeWithText("전원 종료 방지").assertDoesNotExist()
         compose.onAllNodes(isToggleable() and isNotEnabled()).assertCountEquals(0)
@@ -55,11 +58,13 @@ class EditScreenTest {
     }
 
     @Test
-    fun withMission_showsPreview_andDetailRowsDoNothingHarmful() {
+    fun withMission_fillsSlot_andRingAgainOpensSheet() {
         var opened: EditDetail? = null
         val draft = EditViewModel.newAlarm().copy(missions = listOf(MissionSetting(MissionType.DropWords)))
         show(EditUiState(loading = false, draft = draft), onDetail = { opened = it })
-        compose.onNodeWithText("미리 해보기").assertExists()
+        compose.onNodeWithTag("${MISSION_SLOT_TAG}DropWords").assertExists()
+        (1 until 4).forEach { compose.onNodeWithTag("${MISSION_SLOT_TAG}Empty$it").assertExists() }
+        compose.onNodeWithText("미리 해보기").assertDoesNotExist()
         // 다시 울림은 페이지 대신 S3 시트가 열려요(결정 78).
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
         assertThat(opened).isNull()
@@ -146,23 +151,52 @@ class EditScreenTest {
         compose.onNodeWithText("답할 시간").assertExists()
         compose.onNodeWithText("시간 안에 '깼어요'를 누르지 않으면 알람이 다시 울려요").assertExists()
         compose.onNodeWithText("10분 후").performClick()
-        compose.onNodeWithText("2분").performScrollTo().performClick()
+        compose.onNodeWithText("3분").performScrollTo().performClick()
         assertThat(ask).isEqualTo(10)
-        assertThat(answer).isEqualTo(120)
+        assertThat(answer).isEqualTo(180)
     }
 
     @Test
-    fun previewButton_sendsPickedMissions() {
-        var previewed: List<MissionSetting>? = null
+    fun slots_openSheet_removeBadgeRemoves_andEmptyOpensPickSheet() {
+        val opened = mutableListOf<MissionType>()
+        val removed = mutableListOf<MissionType>()
         val missions = listOf(MissionSetting(MissionType.QuickMath), MissionSetting(MissionType.ShakeShake))
         val draft = EditViewModel.newAlarm().copy(missions = missions)
-        show(EditUiState(loading = false, draft = draft), EditActions(onPreview = { previewed = it }))
-        compose.onNodeWithText("미리 해보기").performSemanticsAction(SemanticsActions.OnClick)
-        assertThat(previewed).isEqualTo(missions)
+        show(
+            EditUiState(loading = false, draft = draft),
+            EditActions(onOpenMissionSheet = { opened += it }, onRemoveMission = { removed += it }),
+        )
+        compose.onNodeWithTag("${MISSION_SLOT_TAG}QuickMath").performClick()
+        compose.onNodeWithTag("${MISSION_REMOVE_TAG}ShakeShake").performClick()
+        assertThat(opened).containsExactly(MissionType.QuickMath)
+        assertThat(removed).containsExactly(MissionType.ShakeShake)
+        // 빈 칸 → S1-1 미션 추가 시트. 이미 넣은 미션 줄은 누를 수 없고, 다른 줄은 시트를 닫고 설정 시트를 열어요.
+        compose.onNodeWithTag("${MISSION_SLOT_TAG}Empty2").performClick()
+        compose.onNodeWithText("알람을 끌 때 풀 미션을 하나 골라요").assertExists()
+        compose.onNodeWithTag("${MISSION_PICK_ROW_TAG}QuickMath").assertIsNotEnabled()
+        compose.onNodeWithTag("${MISSION_PICK_ROW_TAG}PopQuiz").assertIsEnabled().performClick()
+        assertThat(opened).containsExactly(MissionType.QuickMath, MissionType.PopQuiz).inOrder()
     }
 
     @Test
-    fun missionPage_threePicked_disablesOthers_andShowsValues() {
+    fun missionSheet_showsOnEditScreen_withPreviewInside() {
+        var previewed: List<MissionSetting>? = null
+        val setting = MissionSetting(MissionType.QuickMath)
+        show(
+            EditUiState(
+                loading = false,
+                draft = EditViewModel.newAlarm().copy(missions = listOf(setting)),
+                missionSheet = MissionSheet(setting, selected = true),
+            ),
+            EditActions(onPreview = { previewed = it }),
+        )
+        // 미리보기는 미션 설정 시트 안에 남아요(결정 88).
+        compose.onNodeWithText("미리보기").performClick()
+        assertThat(previewed).containsExactly(setting)
+    }
+
+    @Test
+    fun missionPage_threePicked_showsValues_andFourthStillOpen() {
         val picked = listOf(
             MissionSetting(MissionType.QuickMath, level = 2, count = 4),
             MissionSetting(MissionType.DropWords, level = 1, count = 10, speed = 2),
@@ -181,7 +215,8 @@ class EditScreenTest {
         compose.onNodeWithText("1단계, 속도 2, 단어 10개").assertExists()
         compose.onNodeWithText("25번").assertExists()
         compose.onNodeWithTag("${MISSION_CARD_TAG}QuickMath").assertIsSelected().assertIsEnabled()
-        compose.onNodeWithTag("${MISSION_CARD_TAG}PopQuiz").assertIsNotEnabled()
+        // 칸이 4개라(결정 87) 셋을 골라도 남은 하나를 더 고를 수 있어요.
+        compose.onNodeWithTag("${MISSION_CARD_TAG}PopQuiz").assertIsEnabled()
         compose.onNodeWithTag("${MISSION_CARD_TAG}QuickMath").performClick()
         assertThat(opened).containsExactly(MissionType.QuickMath)
     }

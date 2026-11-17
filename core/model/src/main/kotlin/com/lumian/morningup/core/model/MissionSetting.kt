@@ -45,8 +45,8 @@ data class MissionSetting(
     )
 
     companion object {
-        /** 고를 수 있는 미션 수(F5). */
-        const val MAX_MISSIONS = 3
+        /** 고를 수 있는 미션 수. 편집 화면 미션 칸 4개(결정 87). */
+        const val MAX_MISSIONS = 4
         const val DEFAULT_SPEED = 1
         val SPEEDS = 1..4
         private val LEVELS = 1..7

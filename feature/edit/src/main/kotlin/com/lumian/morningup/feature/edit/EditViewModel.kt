@@ -71,7 +71,7 @@ data class EditUiState(
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
 
-    /** 이미 3개(F5)를 골랐으면 더 고를 수 없어요. */
+    /** 칸 4개를 다 채웠으면 더 고를 수 없어요. */
     val missionsFull: Boolean get() = draft.missions.size >= MissionSetting.MAX_MISSIONS
 
     /** 고른 미션 순서 그대로 위, 안 고른 미션은 원래 순서로 아래(S1-2). */
@@ -221,7 +221,7 @@ class EditViewModel @Inject constructor(
         e.copy(sheet = sheet.copy(setting = next), draft = draft, remembered = e.remembered + (next.type to next))
     }
 
-    /** '선택 완료'. 고른 순서대로 뒤에 붙여요(최대 3개). */
+    /** '선택 완료'. 고른 순서대로 뒤에 붙여요(최대 [MissionSetting.MAX_MISSIONS]개). */
     fun confirmMissionSheet() = editor.update { e ->
         val sheet = e.sheet ?: return@update e
         val canAdd = !sheet.selected &&
@@ -241,6 +241,9 @@ class EditViewModel @Inject constructor(
     }
 
     fun closeMissionSheet() = editor.update { it.copy(sheet = null) }
+
+    /** 미션 칸 오른쪽 위 X(결정 87). 확인 창 없이 바로 빼요(값은 기억해 둬요). */
+    fun removeMission(type: MissionType) = edit { it.copy(missions = it.missions.filterNot { m -> m.type == type }) }
 
     fun setRingAgain(on: Boolean) = edit {
         val count = if (on) it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT else 0

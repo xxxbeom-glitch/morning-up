@@ -27,7 +27,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
 
 /** 알람 편집 화면 위에 띄우는 바텀시트(결정 78, 98). 페이지 대신 시트로 고르는 설정이에요. */
-enum class EditSheet { Volume, RingAgain, WakeCheck }
+enum class EditSheet { Volume, RingAgain, WakeCheck, MissionPick }
 
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요. */
 private val FooterBleed = 8.dp

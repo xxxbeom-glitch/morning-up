@@ -227,15 +227,15 @@ class EditViewModelTest {
             vm.openDetail(EditDetail.WakeCheck)
             assertThat(awaitItem().detail).isEqualTo(EditDetail.WakeCheck)
             vm.setWakeCheckAsk(5)
-            vm.setWakeCheckAnswer(120)
+            vm.setWakeCheckAnswer(180)
             var state = awaitItem()
-            if (state.draft.wakeCheck.answerSeconds != 120) state = awaitItem()
+            if (state.draft.wakeCheck.answerSeconds != 180) state = awaitItem()
             assertThat(
                 state.draft.wakeCheck,
-            ).isEqualTo(WakeCheck(enabled = true, askAfterMinutes = 5, answerSeconds = 120))
+            ).isEqualTo(WakeCheck(enabled = true, askAfterMinutes = 5, answerSeconds = 180))
             // 고를 수 없는 값은 무시해요.
             vm.setWakeCheckAsk(7)
-            vm.setWakeCheckAnswer(45)
+            vm.setWakeCheckAnswer(120)
             expectNoEvents()
             vm.onBack()
             val closed = awaitItem()
@@ -265,14 +265,13 @@ class EditViewModelTest {
     }
 
     @Test
-    fun pickMissions_inOrder_upToThree_thenOthersCannotOpen() = runTest {
+    fun pickMissions_inOrder_fillsFourSlots_andRemoveTakesOneOut() = runTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
-            loaded()
-            vm.setMissionsEnabled(true)
-            assertThat(awaitItem().missionOrder).containsExactlyElementsIn(EditUiState.MISSION_LIST_ORDER).inOrder()
+            assertThat(loaded().missionOrder).containsExactlyElementsIn(EditUiState.MISSION_LIST_ORDER).inOrder()
             var full = EditUiState()
-            listOf(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz).forEach { type ->
+            val picks = listOf(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz, MissionType.DropWords)
+            picks.forEach { type ->
                 vm.openMissionSheet(type)
                 val sheet = awaitItem().missionSheet!!
                 assertThat(sheet.selected).isFalse()
@@ -281,15 +280,16 @@ class EditViewModelTest {
                 full = awaitItem()
                 assertThat(full.missionSheet).isNull()
             }
-            assertThat(full.draft.missionTypes)
-                .containsExactly(MissionType.QuickMath, MissionType.ShakeShake, MissionType.PopQuiz).inOrder()
+            // 칸 4개(결정 87)를 고른 순서대로 채워요.
+            assertThat(full.draft.missionTypes).containsExactlyElementsIn(picks).inOrder()
             assertThat(full.missionsFull).isTrue()
-            // 고른 것 먼저(고른 순서), 그다음 남은 것.
-            assertThat(full.missionOrder.take(3)).isEqualTo(full.draft.missionTypes)
-            assertThat(full.canOpen(MissionType.DropWords)).isFalse()
             assertThat(full.canOpen(MissionType.QuickMath)).isTrue()
-            vm.openMissionSheet(MissionType.DropWords)
-            expectNoEvents()
+            // 칸 오른쪽 위 X: 확인 없이 바로 빠지고 나머지 순서는 그대로예요.
+            vm.removeMission(MissionType.ShakeShake)
+            val after = awaitItem()
+            assertThat(after.draft.missionTypes)
+                .containsExactly(MissionType.QuickMath, MissionType.PopQuiz, MissionType.DropWords).inOrder()
+            assertThat(after.missionsFull).isFalse()
         }
     }
 

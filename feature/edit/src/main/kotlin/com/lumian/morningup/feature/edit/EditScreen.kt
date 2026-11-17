@@ -36,7 +36,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningDayChip
 import com.lumian.morningup.core.designsystem.component.MorningDialog
-import com.lumian.morningup.core.designsystem.component.MorningPreviewButton
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
@@ -135,6 +134,7 @@ fun AlarmEditRoute(
                 onMissionCount = viewModel::stepMissionCount,
                 onConfirmMission = viewModel::confirmMissionSheet,
                 onDeselectMission = viewModel::deselectMission,
+                onRemoveMission = viewModel::removeMission,
                 onPreview = { preview(it) },
             )
         },
@@ -178,6 +178,7 @@ data class EditActions(
     val onMissionCount: (Int) -> Unit = {},
     val onConfirmMission: () -> Unit = {},
     val onDeselectMission: () -> Unit = {},
+    val onRemoveMission: (MissionType) -> Unit = {},
     val onPreview: (List<MissionSetting>) -> Unit = {},
 )
 
@@ -232,7 +233,7 @@ fun EditScreen(
                     UntilLine(state)
                     TimeWheels(state.draft, actions.onTime)
                     RepeatCard(state.draft, actions)
-                    MissionCard(state, actions, onOpenDetail, onOpenSheet = { sheet = it })
+                    MissionCard(state, actions, onOpenSheet = { sheet = it })
                     SoundCard(state.draft, onOpenDetail, onOpenSheet = { sheet = it })
                     // 저장 버튼은 고정하지 않고 내용 맨 끝에 둬요. 끝까지 내려 봐야 보여서 아래 설정을 놓치지 않아요.
                     MorningButton(
@@ -308,13 +309,31 @@ fun EditScreen(
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.WakeCheck -> WakeCheckSheetContent(state.draft, actions, onDone = { sheet = null })
+                EditSheet.MissionPick -> MissionPickSheetContent(
+                    state = state,
+                    onPick = { type ->
+                        sheet = null
+                        actions.onOpenMissionSheet(type)
+                    },
+                )
                 null -> Unit
             }
+        }
+        // S1-3~S1-7 미션 설정 시트. '선택 완료'나 '선택 해제' 뒤에는 편집 화면으로 돌아와요(결정 99).
+        var lastMissionSheet by remember { mutableStateOf<MissionSheet?>(null) }
+        if (state.missionSheet != null) lastMissionSheet = state.missionSheet
+        MorningModalSheet(
+            visible = state.missionSheet != null,
+            onDismiss = actions.onCloseMissionSheet,
+            tag = MISSION_SHEET_TAG,
+        ) {
+            lastMissionSheet?.let { MissionSheetContent(sheet = it, actions = actions) }
         }
     }
 }
 
 const val EDIT_SHEET_TAG = "editSheet"
+const val MISSION_SHEET_TAG = "missionSheet"
 
 @Composable
 private fun UntilLine(state: EditUiState) {
@@ -424,26 +443,18 @@ private fun RepeatCard(alarm: Alarm, actions: EditActions) {
 private fun MissionCard(
     state: EditUiState,
     actions: EditActions,
-    onOpenDetail: (EditDetail) -> Unit,
     onOpenSheet: (EditSheet) -> Unit,
 ) {
     val alarm = state.draft
-    val resources = alarmResources()
     MorningSettingsCard(title = stringResource(R.string.edit_card_mission)) {
-        MorningSettingRow(
-            label = stringResource(R.string.edit_mission),
-            value = if (state.hasMissions) AlarmText.missions(resources, alarm.missionTypes) else offValue(),
-            state = onOff(state.hasMissions),
-            onCheckedChange = actions.onMissions,
-            onClick = { onOpenDetail(EditDetail.Mission) },
+        // 결정 87, 95: '미션 선택' 줄과 '미리 해보기' 대신 미션 칸 4개. 미리보기는 미션 설정 시트 안에 있어요(결정 88).
+        MissionSlots(
+            missions = alarm.missions,
+            onOpen = actions.onOpenMissionSheet,
+            onRemove = actions.onRemoveMission,
+            onAdd = { onOpenSheet(EditSheet.MissionPick) },
+            modifier = Modifier.padding(top = MorningDimens.space8, bottom = MorningDimens.space12),
         )
-        if (state.hasMissions) {
-            MorningPreviewButton(
-                text = stringResource(R.string.edit_preview),
-                onClick = { actions.onPreview(alarm.missions) },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
         val ringAgain = alarm.ringAgain
         val ringAgainCount = ringAgain.count
         MorningSettingRow(

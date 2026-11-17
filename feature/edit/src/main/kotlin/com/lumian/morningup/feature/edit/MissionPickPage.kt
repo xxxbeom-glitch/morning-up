@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonStyle
 import com.lumian.morningup.core.designsystem.component.MorningMissionCheck
-import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.MorningValueSwitchRow
@@ -122,13 +121,7 @@ fun MissionPickPage(state: EditUiState, actions: EditActions, modifier: Modifier
                 }
             }
         }
-        MorningModalSheet(visible = state.missionSheet != null, onDismiss = actions.onCloseMissionSheet) {
-            // 닫히는 동안에도 마지막 내용을 그대로 그려요.
-            val sheet = state.missionSheet
-            if (sheet != null) {
-                MissionSheetContent(sheet = sheet, actions = actions)
-            }
-        }
+        // 미션 설정 시트는 편집 화면(EditScreen)이 이 페이지 위에 띄워요.
     }
 }
 
@@ -196,7 +189,7 @@ internal fun missionValue(setting: MissionSetting): String = when (setting.type)
  * '선택 완료'(안 고른 미션) 또는 '선택 해제'(고른 미션, Secondary).
  */
 @Composable
-private fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
+internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
     val setting = sheet.setting
     val typography = MorningTheme.typography
     val levelLabel = stringResource(R.string.edit_mission_level)
@@ -286,14 +279,14 @@ private fun levelExamples(type: MissionType): List<String> = when (type) {
     MissionType.ShakeShake -> emptyList()
 }
 
-private fun thumbOf(type: MissionType): Int = when (type) {
+internal fun thumbOf(type: MissionType): Int = when (type) {
     MissionType.DropWords -> R.drawable.mission_thumb_drop_words
     MissionType.PopQuiz -> R.drawable.mission_thumb_pop_quiz
     MissionType.QuickMath -> R.drawable.mission_thumb_quick_math
     MissionType.ShakeShake -> R.drawable.mission_thumb_shake_shake
 }
 
-private fun descriptionOf(type: MissionType): Int = when (type) {
+internal fun descriptionOf(type: MissionType): Int = when (type) {
     MissionType.DropWords -> R.string.edit_mission_desc_drop_words
     MissionType.PopQuiz -> R.string.edit_mission_desc_pop_quiz
     MissionType.QuickMath -> R.string.edit_mission_desc_quick_math
