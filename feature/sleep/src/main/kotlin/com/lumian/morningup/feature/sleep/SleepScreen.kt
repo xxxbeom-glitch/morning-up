@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,19 +26,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,7 +47,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -59,8 +62,17 @@ import kotlinx.coroutines.launch
 private val LoungeGlows = listOf(Color(0xFF2B3F8C), Color(0xFF4A2F7A), Color(0xFF1F4C6E))
 private const val DRIFT_MILLIS = 14_000
 
+/** 묶음 제목 이름표(테스트용). `"$SLEEP_GROUP_TAG$index"`. */
+const val SLEEP_GROUP_TAG = "sleepGroup"
+
+/** 썸네일 이름표(테스트용). `"$SLEEP_TILE_TAG${track.id}"`. */
+const val SLEEP_TILE_TAG = "sleepTile"
+
+private const val GRID_COLUMNS = 2
+
 /**
- * Z1 수면 라운지(늘 다크 모드로 감싸서 불러요). 빛 덩어리가 천천히 떠다니고, 위 언더라인 탭을 누르면 그 묶음으로 옮겨가요.
+ * Z1 수면 라운지(늘 다크 모드로 감싸서 불러요). 빛 덩어리가 천천히 떠다니고, 위 언더라인 탭은 같은 이름 묶음으로 가는 앵커예요.
+ * 묶음은 상황별 이름이고 썸네일을 2열로 쌓아요(결정 104). 목록을 넘기면 지금 보이는 묶음의 탭이 칠해져요.
  * 타일을 누르면 [onOpenTrack]으로 Z2 재생 화면을 열어요.
  */
 @Composable
@@ -68,7 +80,14 @@ fun SleepScreen(onOpenTrack: (String) -> Unit, modifier: Modifier = Modifier) {
     val colors = MorningTheme.colors
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    var tab by remember { mutableIntStateOf(0) }
+    val groups = SleepTracks.groups
+    // 묶음마다 제목 1줄 + 썸네일 줄(2열). 탭을 누르면 그 묶음 제목 자리로 옮겨가요.
+    val headerIndexes = remember(groups) {
+        groups.runningFold(0) { index, group -> index + 1 + rowCount(group) }.dropLast(1)
+    }
+    val tab by remember(headerIndexes) {
+        derivedStateOf { headerIndexes.indexOfLast { it <= listState.firstVisibleItemIndex }.coerceAtLeast(0) }
+    }
     val t by driftState(MorningTheme.reduceMotion)
     Box(
         modifier
@@ -93,15 +112,13 @@ fun SleepScreen(onOpenTrack: (String) -> Unit, modifier: Modifier = Modifier) {
             }
             Spacer(Modifier.height(24.dp))
             GroupTabs(selected = tab) { i ->
-                tab = i
-                scope.launch { listState.animateScrollToItem(i) }
+                scope.launch { listState.animateScrollToItem(headerIndexes[i]) }
             }
             LazyColumn(
                 state = listState,
-                contentPadding = PaddingValues(start = 24.dp, top = 24.dp, bottom = 140.dp),
-                verticalArrangement = Arrangement.spacedBy(40.dp),
+                contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 140.dp),
             ) {
-                itemsIndexed(SleepTracks.groups) { _, group -> GroupRow(group, onOpenTrack) }
+                groups.forEachIndexed { index, group -> groupSection(index, group, onOpenTrack) }
             }
         }
         // 아래 하단 메뉴 뒤로 목록이 자연스럽게 사라져요.
@@ -170,35 +187,71 @@ private fun GroupTabs(selected: Int, onSelect: (Int) -> Unit) {
     }
 }
 
-@Composable
-private fun GroupRow(group: SleepGroup, onOpenTrack: (String) -> Unit) {
-    Column {
-        Text(group.name, style = MorningTheme.typography.bodySmallStrong, color = MorningTheme.colors.textSecondary)
-        Spacer(Modifier.height(8.dp))
-        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            group.tracks.forEach { track -> SleepTile(track) { onOpenTrack(track.id) } }
-            Spacer(Modifier.width(12.dp))
+private fun rowCount(group: SleepGroup): Int = (group.tracks.size + GRID_COLUMNS - 1) / GRID_COLUMNS
+
+/**
+ * 묶음 한 칸: 제목(13 회색, 결정 104) 아래 16 띄워 썸네일 2열(사이 가로세로 12). 묶음 사이는 40.
+ * 첫 묶음은 위 여백 없이 시작해요.
+ */
+private fun LazyListScope.groupSection(index: Int, group: SleepGroup, onOpenTrack: (String) -> Unit) {
+    item(key = "header_$index") {
+        Text(
+            group.name,
+            style = MorningTheme.typography.bodySmallStrong,
+            color = MorningTheme.colors.textSecondary,
+            modifier = Modifier
+                .padding(top = if (index == 0) 0.dp else 40.dp, bottom = 16.dp)
+                .testTag("$SLEEP_GROUP_TAG$index"),
+        )
+    }
+    items(group.tracks.chunked(GRID_COLUMNS), key = { row -> "row_${row.first().id}" }) { row ->
+        Row(Modifier.fillMaxWidth().padding(bottom = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            row.forEach { track ->
+                SleepTile(track, Modifier.weight(1f)) { onOpenTrack(track.id) }
+            }
+            repeat(GRID_COLUMNS - row.size) { Spacer(Modifier.weight(1f)) }
         }
     }
 }
 
+/** 썸네일 아래 어두운 그라데이션(글자가 읽히게). */
+private val TileShade = listOf(Color.Transparent, Color.Black.copy(alpha = 0.6f))
+
+/**
+ * 썸네일(피그마 360 폭에서 150 정사각형, 모서리 12). 트랙 제목(두 줄까지)과 재생 시간은 썸네일 안 아래에
+ * 어두운 그라데이션과 함께 둬요(결정 104).
+ */
 @Composable
-private fun SleepTile(track: SleepTrack, onClick: () -> Unit) {
-    Column(Modifier.width(112.dp).morningClickable(onClick = onClick)) {
-        Box(
+private fun SleepTile(track: SleepTrack, modifier: Modifier = Modifier, onClick: () -> Unit) {
+    Box(
+        modifier
+            .aspectRatio(1f)
+            .clip(RoundedCornerShape(12.dp))
+            .drawBehind { drawPaletteBlobs(track.palette.map { Color(it) }) }
+            .morningClickable(onClick = onClick)
+            .testTag("$SLEEP_TILE_TAG${track.id}"),
+    ) {
+        Column(
             Modifier
-                .size(112.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .drawBehind { drawPaletteBlobs(track.palette.map { Color(it) }) },
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(track.name, style = MorningTheme.typography.bodyMedium, color = MorningTheme.colors.textBody, maxLines = 2)
-        Spacer(Modifier.height(2.dp))
-        Text(
-            stringResource(R.string.sleep_minutes, track.minutes),
-            style = MorningTheme.typography.captionMedium,
-            color = MorningTheme.colors.textTertiary,
-        )
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .background(Brush.verticalGradient(TileShade))
+                .padding(start = 12.dp, end = 12.dp, top = 24.dp, bottom = 12.dp),
+        ) {
+            Text(
+                track.name,
+                style = MorningTheme.typography.bodyMediumStrong,
+                color = Color.White,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                stringResource(R.string.sleep_minutes, track.minutes),
+                style = MorningTheme.typography.captionMedium,
+                color = Color.White.copy(alpha = 0.7f),
+            )
+        }
     }
 }
 

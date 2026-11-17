@@ -9,12 +9,15 @@ data class SleepTrack(val id: String, val name: String, val minutes: Int, val pa
 /** Z1 묶음. 탭 줄 이름과 묶음 제목이 같아요. */
 data class SleepGroup(val name: String, val tracks: List<SleepTrack>)
 
-/** Z1, Z2 목업 목록(피그마 B+ 보드 기준). 목록을 바꾸려면 이 파일만 고쳐요. */
+/**
+ * Z1, Z2 목업 목록. 묶음 이름은 상황별(결정 104)이고, 묶음별 트랙 구성은 아직 정하지 않아 예전 장르 트랙을 그대로 둬요.
+ * 목록을 바꾸려면 이 파일만 고쳐요.
+ */
 @Suppress("MagicNumber") // 길이와 색 자체가 데이터예요.
 object SleepTracks {
     val groups: List<SleepGroup> = listOf(
         SleepGroup(
-            "자연의 소리",
+            "잠에 들기 어려울 때",
             listOf(
                 SleepTrack("night_rain", "창문을 두드리는 밤비", 60, listOf(0xFF3E6E9A, 0xFF2C7A86, 0xFF9DB4E0)),
                 SleepTrack("waves", "멀리서 밀려오는 파도", 45, listOf(0xFF4FB3B0, 0xFF2B5FA8, 0xFF7FD0C8)),
@@ -23,7 +26,7 @@ object SleepTracks {
             ),
         ),
         SleepGroup(
-            "앰비언트",
+            "마음이 답답할 때",
             listOf(
                 SleepTrack("deep_night", "깊은 밤, 고요한 숨", 52, listOf(0xFF5B3FD1, 0xFFC05AA0, 0xFF2A2F7A)),
                 SleepTrack("cloud_walk", "구름 위를 천천히 걷기", 38, listOf(0xFFE6A8D0, 0xFF8FB8E8, 0xFFC8B8F0)),
@@ -32,7 +35,7 @@ object SleepTracks {
             ),
         ),
         SleepGroup(
-            "피아노 연주곡",
+            "생각이 복잡할 때",
             listOf(
                 SleepTrack("quiet_room", "고요한 방", 30, listOf(0xFF7A6A9A, 0xFFD8C8B8, 0xFF4A4A6A)),
                 SleepTrack("moon_walk", "달빛 산책", 40, listOf(0xFF34507A, 0xFFE0E4F0, 0xFF6A7AB0)),
@@ -41,7 +44,7 @@ object SleepTracks {
             ),
         ),
         SleepGroup(
-            "로파이",
+            "아침 5분 명상",
             listOf(
                 SleepTrack("two_am", "새벽 2시", 60, listOf(0xFF5C3A6A, 0xFFE07A9A, 0xFF2A2A5A)),
                 SleepTrack("alley_cafe", "골목 카페", 45, listOf(0xFFB0784A, 0xFFE8C08A, 0xFF5A3A3A)),
