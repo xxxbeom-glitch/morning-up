@@ -46,6 +46,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
@@ -112,6 +113,7 @@ fun AlarmEditRoute(
                 onWakeCheck = viewModel::setWakeCheck,
                 onPowerOff = viewModel::setPowerOffGuard,
                 onSound = viewModel::setSound,
+                onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,
                 onGentle = viewModel::setGentleWake,
                 onBackground = viewModel::setBackground,
@@ -149,6 +151,7 @@ data class EditActions(
     val onWakeCheck: (Boolean) -> Unit = {},
     val onPowerOff: (Boolean) -> Unit = {},
     val onSound: (Boolean) -> Unit = {},
+    val onSoundId: (String) -> Unit = {},
     val onVibrate: (Boolean) -> Unit = {},
     val onGentle: (Boolean) -> Unit = {},
     val onBackground: (Boolean) -> Unit = {},
@@ -169,7 +172,7 @@ data class EditActions(
 )
 
 /** 편집 화면 안에서 페이지로 여는 하위 화면. */
-private val PAGE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck)
+private val PAGE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck, EditDetail.Sound)
 
 /** S0 알람 편집(미션 있음, 없음)과 S0-1 저장 안 하고 나가기. 상태와 콜백만 받아요. */
 @Composable
@@ -238,6 +241,11 @@ fun EditScreen(
                 onAnswer = actions.onWakeCheckAnswer,
             )
             EditDetail.Mission -> MissionPickPage(state = state, actions = actions)
+            EditDetail.Sound -> SoundPage(
+                selectedId = state.draft.soundId,
+                onBack = actions.onCloseDetail,
+                onSelect = actions.onSoundId,
+            )
             else -> Unit
         }
     }
@@ -397,7 +405,7 @@ private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDet
     MorningSettingsCard(title = stringResource(R.string.edit_card_sound)) {
         MorningSettingRow(
             label = stringResource(R.string.edit_sound),
-            value = stringResource(R.string.edit_sound_default),
+            value = Ringtones.find(alarm.soundId).name,
             state = onOff(alarm.soundId != Alarm.SILENT_SOUND_ID),
             onCheckedChange = actions.onSound,
             onClick = { onOpenDetail(EditDetail.Sound) },

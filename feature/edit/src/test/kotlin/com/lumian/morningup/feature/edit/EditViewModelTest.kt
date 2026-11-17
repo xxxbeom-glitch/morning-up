@@ -203,6 +203,11 @@ class EditViewModelTest {
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
             vm.setSound(false)
             assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
+            vm.setSoundId("love_serenade")
+            assertThat(awaitItem().draft.soundId).isEqualTo("love_serenade")
+            vm.setSoundId("not_in_list")
+            vm.setSoundId(Alarm.DEFAULT_SOUND_ID)
+            assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.DEFAULT_SOUND_ID)
             vm.setBackground(false)
             assertThat(awaitItem().draft.background).isEqualTo(Alarm.BACKGROUND_PLAIN)
             vm.setGentleWake(true)
@@ -242,8 +247,18 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.openDetail(EditDetail.Sound)
+            vm.openDetail(EditDetail.Volume)
             expectNoEvents()
+        }
+    }
+
+    @Test
+    fun soundDetail_opensS5() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openDetail(EditDetail.Sound)
+            assertThat(awaitItem().detail).isEqualTo(EditDetail.Sound)
         }
     }
 

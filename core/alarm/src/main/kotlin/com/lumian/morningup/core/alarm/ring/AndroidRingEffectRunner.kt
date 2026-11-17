@@ -67,7 +67,7 @@ class AndroidRingEffectRunner @Inject constructor(
         val alarm = session?.let { alarms.get(it.plan.alarmId) }
         val volume = (alarm?.volumePercent ?: FULL_PERCENT) / FULL_PERCENT.toFloat() * fraction
         val vibrate = (alarm?.vibrate ?: true) && fraction >= 1f
-        sound.play(volume, vibrate)
+        sound.play(volume, vibrate, alarm?.soundId)
     }
 
     private companion object {

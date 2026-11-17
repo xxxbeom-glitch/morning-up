@@ -11,6 +11,7 @@ import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.NextAlarm
 import com.lumian.morningup.core.model.engine.TimeUntil
@@ -248,7 +249,7 @@ class EditViewModel @Inject constructor(
         }
     }
 
-    /** 하위 페이지 열기. S1-2 미션 고르기와 S4만 있고, 나머지 줄은 아직 아무 일 없어요. */
+    /** 하위 페이지 열기. S1-2 미션 고르기, S4, S5만 있고, 나머지 줄은 아직 아무 일 없어요. */
     fun openDetail(detail: EditDetail) {
         if (detail in OPENABLE_DETAILS) editor.update { it.copy(detail = detail) }
     }
@@ -259,6 +260,11 @@ class EditViewModel @Inject constructor(
 
     fun setSound(on: Boolean) = edit {
         it.copy(soundId = if (on) Alarm.DEFAULT_SOUND_ID else Alarm.SILENT_SOUND_ID)
+    }
+
+    /** S5에서 고른 알람음. 목록에 없는 id는 무시해요. */
+    fun setSoundId(id: String) {
+        if (Ringtones.all.any { it.id == id }) edit { it.copy(soundId = id) }
     }
 
     fun setVibrate(on: Boolean) = edit { it.copy(vibrate = on) }
@@ -304,7 +310,7 @@ class EditViewModel @Inject constructor(
         val WAKE_CHECK_ASK_MINUTES = listOf(1, 3, 5, 10)
         val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 120)
 
-        private val OPENABLE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck)
+        private val OPENABLE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck, EditDetail.Sound)
 
         /**
          * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 5분 3번, 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),

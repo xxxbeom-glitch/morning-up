@@ -22,8 +22,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * 알람 소리와 진동. 알람음 목록은 아직 목업이라 어떤 항목을 골라도 앱 기본음(res/raw/alarm_default)으로 울려요.
- * 기본음을 못 열면 폰 기본 알람음으로 대신 울리고 기록을 남겨요.
+ * 알람 소리와 진동. 알람에 고른 알람음([RingtoneFiles])으로 울리고, 모르는 소리면 앱 기본음(res/raw/alarm_default)이에요.
+ * 고른 소리를 못 열면 앱 기본음, 그것도 못 열면 폰 기본 알람음으로 대신 울리고 기록을 남겨요.
  * 소리는 알람 소리 통로(USAGE_ALARM)로 내서 무음 모드와 미디어 볼륨에 상관없이 들려요.
  * 통화 중이면 [CallPolicy]대로 작은 소리와 진동으로 울리고, 통화가 끝나면 원래 크기로 돌아가요.
  */
@@ -46,9 +46,12 @@ class AlarmSoundPlayer @Inject constructor(
 
     val isPlaying: Boolean get() = player != null || tone != null
 
-    /** [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. */
+    private var soundId: String? = null
+
+    /** [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. [soundId]는 알람에 고른 알람음이에요. */
     @Synchronized
-    fun play(volume: Float, vibrate: Boolean) {
+    fun play(volume: Float, vibrate: Boolean, soundId: String? = null) {
+        if (player == null) this.soundId = soundId
         if (requested == null) {
             calls.start { inCall ->
                 diagnostics.record(if (inCall) "call_started" else "call_ended")
@@ -95,7 +98,16 @@ class AlarmSoundPlayer @Inject constructor(
     private fun start(): MediaPlayer? {
         val defaultUri =
             "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.alarm_default}".toUri()
-        val created = open(defaultUri) ?: run {
+        val chosenUri = RingtoneFiles.uriFor(context, soundId)
+        val chosen = if (chosenUri != defaultUri) {
+            open(chosenUri) ?: run {
+                diagnostics.record("sound_fallback", detail = "chosen sound failed")
+                null
+            }
+        } else {
+            null
+        }
+        val created = chosen ?: open(defaultUri) ?: run {
             diagnostics.record("sound_fallback", detail = "default tone failed")
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)?.let(::open)
         }

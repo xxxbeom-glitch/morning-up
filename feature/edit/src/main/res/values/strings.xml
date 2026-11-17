@@ -28,7 +28,6 @@
 
     <string name="edit_card_sound">울림 화면과 소리</string>
     <string name="edit_sound">알람음</string>
-    <string name="edit_sound_default">기본 알람음</string>
     <string name="edit_volume">볼륨 및 진동</string>
     <string name="edit_volume_vibrate">%1$d%%, 기본 진동</string>
     <string name="edit_volume_no_vibrate">%1$d%%, 진동 없음</string>
