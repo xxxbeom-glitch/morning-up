@@ -21,7 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningDayChip
 import com.lumian.morningup.core.designsystem.component.MorningDialog
 import com.lumian.morningup.core.designsystem.component.MorningPreviewButton
+import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
@@ -47,9 +51,7 @@ import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.model.VibrationPattern
-import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.AlarmText
-import com.lumian.morningup.core.ui.R as UiR
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
@@ -200,6 +202,10 @@ fun EditScreen(
 ) {
     BackHandler(onBack = actions.onBack)
     val colors = MorningTheme.colors
+    // 편집 화면 위에 띄우는 시트(볼륨 등). 화면 회전에도 열린 채로 남아요.
+    var sheet by rememberSaveable { mutableStateOf<EditSheet?>(null) }
+    var lastSheet by remember { mutableStateOf<EditSheet?>(null) }
+    if (sheet != null) lastSheet = sheet
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -227,7 +233,7 @@ fun EditScreen(
                     TimeWheels(state.draft, actions.onTime)
                     RepeatCard(state.draft, actions)
                     MissionCard(state, actions, onOpenDetail)
-                    SoundCard(state.draft, actions, onOpenDetail)
+                    SoundCard(state.draft, onOpenDetail, onOpenSheet = { sheet = it })
                     // 저장 버튼은 고정하지 않고 내용 맨 끝에 둬요. 끝까지 내려 봐야 보여서 아래 설정을 놓치지 않아요.
                     MorningButton(
                         text = stringResource(R.string.edit_save),
@@ -296,8 +302,17 @@ fun EditScreen(
             )
             else -> Unit
         }
+        MorningModalSheet(visible = sheet != null, onDismiss = { sheet = null }, tag = EDIT_SHEET_TAG) {
+            // 닫히는 동안에도 마지막 내용을 그대로 그려요.
+            when (lastSheet) {
+                EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
+                else -> Unit
+            }
+        }
     }
 }
+
+const val EDIT_SHEET_TAG = "editSheet"
 
 @Composable
 private fun UntilLine(state: EditUiState) {
@@ -449,9 +464,9 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
     }
 }
 
+/** 알람 사운드 카드(결정 97, 98): '알람음'과 '볼륨' 두 줄, 둘 다 > 줄. 볼륨 줄은 S6 볼륨 시트를 열어요. */
 @Composable
-private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDetail) -> Unit) {
-    val resources = alarmResources()
+private fun SoundCard(alarm: Alarm, onOpenDetail: (EditDetail) -> Unit, onOpenSheet: (EditSheet) -> Unit) {
     MorningSettingsCard(title = stringResource(R.string.edit_card_sound)) {
         val soundOn = alarm.soundId != Alarm.SILENT_SOUND_ID
         MorningSettingRow(
@@ -462,33 +477,12 @@ private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDet
             onCheckedChange = {},
             onClick = { onOpenDetail(EditDetail.Sound) },
         )
-        // 반복 카드의 요일처럼 볼륨 막대를 카드 안에 바로 두고, 그 아래 진동 줄을 둬요.
-        VolumeSlider(percent = alarm.volumePercent, onVolume = actions.onVolume)
         MorningSettingRow(
-            label = stringResource(R.string.edit_vibration_title),
-            value = if (alarm.vibrate) stringResource(alarm.vibrationPattern.label()) else offValue(),
-            state = onOff(alarm.vibrate),
-            onCheckedChange = pickOrOff(EditDetail.Vibration, onOpenDetail, actions.onVibrate),
-            onClick = { onOpenDetail(EditDetail.Vibration) },
-        )
-        MorningSettingRow(
-            label = stringResource(R.string.edit_gentle),
-            value = if (alarm.gentleWake) {
-                stringResource(R.string.edit_gentle_value, AlarmText.duration(resources, alarm.gentleSeconds))
-            } else {
-                offValue()
-            },
-            state = onOff(alarm.gentleWake),
-            onCheckedChange = pickOrOff(EditDetail.Gentle, onOpenDetail, actions.onGentle),
-            onClick = { onOpenDetail(EditDetail.Gentle) },
-        )
-        val backgroundOn = alarm.background != Alarm.BACKGROUND_PLAIN
-        MorningSettingRow(
-            label = stringResource(R.string.edit_background),
-            value = if (backgroundOn) backgroundName(alarm.background) else offValue(),
-            state = onOff(backgroundOn),
-            onCheckedChange = pickOrOff(EditDetail.Background, onOpenDetail, actions.onBackground),
-            onClick = { onOpenDetail(EditDetail.Background) },
+            label = stringResource(R.string.edit_volume_title),
+            value = volumeValue(alarm),
+            state = SettingRowState.Navigate,
+            onCheckedChange = {},
+            onClick = { onOpenSheet(EditSheet.Volume) },
         )
     }
 }
@@ -507,10 +501,3 @@ private fun pickOrOff(
 ): (Boolean) -> Unit = { on -> if (on) onOpenDetail(detail) else setOn(false) }
 
 private fun onOff(on: Boolean) = if (on) SettingRowState.On else SettingRowState.Off
-
-/** S0 '알람 화면 배경' 줄 값. 끈 상태(plain)와 고르지 않은 상태는 '시간대 하늘'이에요. */
-@Composable
-private fun backgroundName(id: String?): String = when {
-    AlarmBackgrounds.isPhoto(id) -> stringResource(UiR.string.ui_bg_my_photo)
-    else -> stringResource(AlarmBackgrounds.find(id)?.name ?: UiR.string.ui_bg_time_sky)
-}

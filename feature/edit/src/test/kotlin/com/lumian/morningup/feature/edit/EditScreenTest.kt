@@ -65,6 +65,26 @@ class EditScreenTest {
     }
 
     @Test
+    fun soundCard_twoRows_volumeOpensSheet_andChipsSetGentle() {
+        var gentle: Int? = null
+        var gentleOff = false
+        val draft = EditViewModel.newAlarm().copy(volumePercent = 80, vibrate = true, gentleWake = false)
+        show(
+            EditUiState(loading = false, draft = draft),
+            EditActions(onGentleSeconds = { gentle = it }, onGentle = { gentleOff = !it }),
+        )
+        // 결정 97, 98: 카드 이름 '알람 사운드', 줄은 알람음과 볼륨 두 개, 배경 줄 없음.
+        compose.onNodeWithText("알람 사운드").assertExists()
+        compose.onNodeWithText("알람 화면 배경").assertDoesNotExist()
+        compose.onNodeWithText("80%, 진동").performScrollTo().performClick()
+        compose.onNodeWithText("소리 크기와 울리는 방식을 정해요").assertExists()
+        compose.onNodeWithText("10초").performClick()
+        assertThat(gentle).isEqualTo(10)
+        compose.onNodeWithText("안 함").performClick()
+        assertThat(gentleOff).isTrue()
+    }
+
+    @Test
     fun confirmExit_showsDialog_andLeaveDiscards() {
         var discarded = false
         show(EditUiState(loading = false, confirmExit = true), EditActions(onDiscard = { discarded = true }))

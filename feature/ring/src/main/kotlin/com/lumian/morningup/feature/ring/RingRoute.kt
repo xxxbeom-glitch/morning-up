@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -116,7 +117,8 @@ private fun RingContent(
             time = state.time,
             dayPart = state.dayPart,
             hasMissions = state.hasMissions,
-            background = state.background,
+            // 울림 화면 배경은 고르지 않고 늘 시간대 하늘 Ring Plain이에요(결정 97). 예전에 고른 배경도 무시해요.
+            background = Alarm.BACKGROUND_PLAIN,
             onMainButton = onMainButton,
             onButtonCenter = { buttonCenter = it },
         )

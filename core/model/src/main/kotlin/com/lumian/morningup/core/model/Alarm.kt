@@ -82,7 +82,7 @@ data class Alarm(
 
         const val DEFAULT_GENTLE_SECONDS = 30
 
-        /** S7에서 고를 수 있는 길이(15초, 30초, 1분, 2분). */
-        val GENTLE_SECONDS = listOf(15, 30, 60, 120)
+        /** S6 볼륨 시트 '볼륨 천천히 올리기' 길이(10초, 15초, 20초, 결정 98). 예전에 고른 다른 값도 울림에는 그대로 써요. */
+        val GENTLE_SECONDS = listOf(10, 15, 20)
     }
 }

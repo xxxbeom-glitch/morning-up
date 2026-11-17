@@ -205,8 +205,8 @@ class EditViewModelTest {
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
             vm.setSound(false)
             assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
-            vm.setSoundId("love_serenade")
-            assertThat(awaitItem().draft.soundId).isEqualTo("love_serenade")
+            vm.setSoundId("aube_paisible")
+            assertThat(awaitItem().draft.soundId).isEqualTo("aube_paisible")
             vm.setSoundId("not_in_list")
             vm.setSoundId(Alarm.DEFAULT_SOUND_ID)
             assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.DEFAULT_SOUND_ID)
@@ -428,8 +428,8 @@ class EditViewModelTest {
             assertThat(patterned.vibrationPattern).isEqualTo(VibrationPattern.LongOnce)
             assertThat(patterned.vibrate).isTrue()
             vm.setGentleSeconds(45)
-            vm.setGentleSeconds(60)
-            assertThat(awaitItem().draft.gentleSeconds).isEqualTo(60)
+            vm.setGentleSeconds(15)
+            assertThat(awaitItem().draft.gentleSeconds).isEqualTo(15)
             vm.setBackgroundId("nope")
             vm.setBackgroundId("forest")
             assertThat(awaitItem().draft.background).isEqualTo("forest")
@@ -447,12 +447,12 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.setSoundId("love_serenade")
+            vm.setSoundId("aube_paisible")
             awaitItem()
             vm.setSound(false)
             assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
             vm.setSound(true)
-            assertThat(awaitItem().draft.soundId).isEqualTo("love_serenade")
+            assertThat(awaitItem().draft.soundId).isEqualTo("aube_paisible")
         }
     }
 }
