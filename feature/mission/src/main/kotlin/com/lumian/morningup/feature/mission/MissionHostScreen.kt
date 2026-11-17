@@ -60,6 +60,7 @@ data class MissionActions(
     val onQuizAnswer: (Int) -> Unit = {},
     val onDropKey: (String) -> Unit = {},
     val onDropDelete: () -> Unit = {},
+    val onDropSubmit: () -> Unit = {},
 )
 
 /** :app이 울림 화면의 미션 자리에 꽂는 연결 함수. */
@@ -102,6 +103,7 @@ private fun MissionHostRoute(viewModel: MissionHostViewModel, onClose: (() -> Un
             onQuizAnswer = viewModel::onQuizAnswer,
             onDropKey = viewModel::onDropKey,
             onDropDelete = viewModel::onDropDelete,
+            onDropSubmit = viewModel::onDropSubmit,
         ),
         onClose = onClose,
     )
@@ -182,6 +184,7 @@ private fun ColumnScope.PlayContent(play: MissionPlay, nowMillis: Long, remainin
             nowMillis = nowMillis,
             onKey = actions.onDropKey,
             onDelete = actions.onDropDelete,
+            onSubmit = actions.onDropSubmit,
         )
         is MissionPlay.Shake -> ShakeShakeContent(play = play, remainingMillis = remaining)
     }
@@ -219,9 +222,10 @@ private fun ColumnScope.CenterMessage(text: String, check: Boolean = false) {
 
 @Composable
 private fun statusOf(play: MissionPlay): String? = when (play) {
-    is MissionPlay.Math -> stringResource(R.string.mission_math_streak, play.game.streak, play.game.target)
-    is MissionPlay.Quiz -> stringResource(R.string.mission_math_streak, play.game.streak, play.game.target)
-    is MissionPlay.Drop -> stringResource(R.string.mission_drop_correct, play.game.correct, play.game.target)
+    // 결정 92: '연속'을 빼고 세 미션 모두 '정답 2 / 3'.
+    is MissionPlay.Math -> stringResource(R.string.mission_correct, play.game.correct, play.game.target)
+    is MissionPlay.Quiz -> stringResource(R.string.mission_correct, play.game.correct, play.game.target)
+    is MissionPlay.Drop -> stringResource(R.string.mission_correct, play.game.correct, play.game.target)
     is MissionPlay.Shake -> null
 }
 

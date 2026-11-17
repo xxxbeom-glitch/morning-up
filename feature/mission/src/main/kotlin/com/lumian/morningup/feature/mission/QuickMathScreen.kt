@@ -60,10 +60,6 @@ import kotlinx.coroutines.delay
 
 /** 피그마 M3 치수. */
 private val InputMaxWidth = 320.dp
-private val InputHeight = 64.dp
-private val InputRadius = 16.dp
-private val CursorWidth = 2.dp
-private val CursorHeight = 28.dp
 private val KeyHeight = 56.dp
 private val KeyRadius = 14.dp
 private val KeyGap = 10.dp
@@ -82,19 +78,21 @@ const val MATH_INPUT_TAG = "mathInput"
 /** M3 Quick Math 내용(미션 틀 안). */
 @Composable
 internal fun ColumnScope.QuickMathContent(play: MissionPlay.Math, onKey: (MathKey) -> Unit) {
-    val game = play.game
+    val game = play.shown
     Spacer(Modifier.weight(1f))
-    Problem(game = game, feedback = play.feedback)
+    Problem(game = game, feedback = play.feedback, wrong = play.holding, onEnter = { onKey(MathKey.Confirm) })
     Spacer(Modifier.weight(1f))
     Keypad(keypad = game.keypad, onKey = onKey)
     Spacer(Modifier.height(MorningDimens.space24))
 }
 
+/**
+ * 문제와 입력 칸(사이 24, 결정 90). 틀리면(결정 93) 큰 표시 없이 입력 칸 테두리와 글자만 빨개지고,
+ * 폰이 짧게 떨린 뒤 약 1초 뒤 새 문제로 바뀌어요. 흔들기는 하지 않아요.
+ */
 @Composable
-private fun Problem(game: QuickMathState, feedback: MissionFeedback?) {
+private fun Problem(game: QuickMathState, feedback: MissionFeedback?, wrong: Boolean, onEnter: () -> Unit) {
     val view = LocalView.current
-    val density = LocalDensity.current
-    val shake = remember { Animatable(0f) }
     var success by remember { mutableStateOf(false) }
     LaunchedEffect(feedback?.id) {
         when (feedback?.kind) {
@@ -104,10 +102,7 @@ private fun Problem(game: QuickMathState, feedback: MissionFeedback?) {
                 delay(SUCCESS_HOLD_MILLIS)
                 success = false
             }
-            FeedbackKind.Wrong -> {
-                view.perform(MorningHaptic.Reject)
-                shake.shakeSideways(with(density) { ShakeDistance.toPx() })
-            }
+            FeedbackKind.Wrong -> view.perform(MorningHaptic.Reject)
             null -> Unit
         }
     }
@@ -123,32 +118,14 @@ private fun Problem(game: QuickMathState, feedback: MissionFeedback?) {
             style = typography.displayMedium.copy(fontWeight = FontWeight.ExtraBold),
             color = MissionColors.Text,
         )
-        Spacer(Modifier.height(MorningDimens.space16))
-        val inputDescription = stringResource(R.string.mission_math_input_description, game.input)
-        Row(
-            modifier = Modifier
-                .widthIn(max = InputMaxWidth)
-                .fillMaxWidth()
-                .height(InputHeight)
-                .graphicsLayer { translationX = shake.value }
-                .background(fill, RoundedCornerShape(InputRadius))
-                .testTag(MATH_INPUT_TAG)
-                .semantics { contentDescription = inputDescription },
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = game.input,
-                style = typography.headlineNumber.copy(fontWeight = FontWeight.Bold),
-                color = MissionColors.Text,
-            )
-            Box(Modifier.width(CursorWidth).height(CursorHeight).background(MissionColors.Text))
-        }
-        Spacer(Modifier.height(MorningDimens.space12))
-        Text(
-            text = stringResource(R.string.mission_math_hint),
-            style = typography.bodySmall,
-            color = MissionColors.TextHint,
+        Spacer(Modifier.height(MorningDimens.space24))
+        MissionInputField(
+            value = game.input,
+            wrong = wrong,
+            onEnter = onEnter,
+            tag = MATH_INPUT_TAG,
+            fill = fill,
+            modifier = Modifier.widthIn(max = InputMaxWidth),
         )
     }
 }
@@ -189,13 +166,14 @@ private fun KeyCell(key: MathKey, onClick: () -> Unit, modifier: Modifier = Modi
         label = "keyScale",
     )
     val rest = when (key) {
-        is MathKey.Digit -> MissionColors.Fill
+        is MathKey.Digit, MathKey.Dot -> MissionColors.Fill
         MathKey.Delete -> MissionColors.FillWeak
         MathKey.Confirm -> MissionColors.TimerFill
     }
     val fill = if (pressed && key !is MathKey.Confirm) MissionColors.FillPressed else rest
     val description = when (key) {
         is MathKey.Digit -> key.value.toString()
+        MathKey.Dot -> stringResource(R.string.mission_math_dot)
         MathKey.Delete -> stringResource(R.string.mission_math_delete)
         MathKey.Confirm -> stringResource(R.string.mission_math_confirm)
     }
@@ -226,6 +204,11 @@ private fun KeyCell(key: MathKey, onClick: () -> Unit, modifier: Modifier = Modi
                     color = MissionColors.Text,
                 )
             }
+            MathKey.Dot -> Text(
+                text = ".",
+                style = MorningTheme.typography.headlineNumber,
+                color = MissionColors.Text,
+            )
             MathKey.Delete -> Icon(
                 imageVector = Lucide.Delete,
                 contentDescription = null,

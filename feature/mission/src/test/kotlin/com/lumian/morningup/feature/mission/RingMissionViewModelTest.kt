@@ -14,6 +14,7 @@ import com.lumian.morningup.feature.mission.play.FeedbackKind
 import com.lumian.morningup.feature.mission.play.MissionHostViewModel
 import com.lumian.morningup.feature.mission.play.MissionPlay
 import com.lumian.morningup.feature.mission.play.RingMissionViewModel
+import com.lumian.morningup.feature.mission.play.MissionRunner
 import kotlin.random.Random
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runTest
@@ -81,18 +82,25 @@ class RingMissionViewModelTest {
     }
 
     @Test
-    fun popQuiz_wrongResetsStreak_withNewQuestion_correctFinishes() = runTest {
-        val link = FakeRingLink(session(quiz))
+    fun popQuiz_wrongKeepsCount_holdsOneSecond_thenNewQuestion_correctFinishes() = runTest {
+        val link = FakeRingLink(session(quiz.copy(count = 3)))
         val vm = viewModel(link)
         vm.solveQuiz()
-        assertThat((vm.play() as MissionPlay.Quiz).game.streak).isEqualTo(1)
+        assertThat((vm.play() as MissionPlay.Quiz).game.correct).isEqualTo(1)
         val before = (vm.play() as MissionPlay.Quiz).game.round
         vm.onQuizAnswer((before.answerIndex + 1) % before.choices.size)
         val after = vm.play() as MissionPlay.Quiz
         assertThat(after.feedback!!.kind).isEqualTo(FeedbackKind.Wrong)
         assertThat(after.feedback!!.round).isEqualTo(before)
-        assertThat(after.game.streak).isEqualTo(0)
+        // 결정 92: 틀려도 맞힌 수는 그대로. 결정 93: 약 1초 동안 틀린 판을 그대로 보여 줘요.
+        assertThat(after.game.correct).isEqualTo(1)
         assertThat(after.game.round.question).isNotEqualTo(before.question)
+        assertThat(after.shown.round).isEqualTo(before)
+        vm.onQuizAnswer(after.game.round.answerIndex)
+        assertThat((vm.play() as MissionPlay.Quiz).game.correct).isEqualTo(1)
+        clock.millis += MissionRunner.WRONG_HOLD_MILLIS
+        vm.onFrame()
+        assertThat((vm.play() as MissionPlay.Quiz).holding).isFalse()
         assertThat(link.sent).doesNotContain(RingEvent.MissionCompleted)
         vm.solveQuiz()
         vm.solveQuiz()
@@ -107,8 +115,14 @@ class RingMissionViewModelTest {
         vm.onDropKey(word.first().toString())
         val wrong = (vm.play() as MissionPlay.Drop).game.keypad.first { !word.startsWith(word.first() + it) }
         vm.onDropKey(wrong)
-        assertThat((vm.play() as MissionPlay.Drop).game.input).isEmpty()
+        val held = vm.play() as MissionPlay.Drop
+        assertThat(held.game.input).isEmpty()
+        // 결정 93: 틀린 글자를 약 1초 빨갛게 보여 준 뒤 칸을 비워요.
+        assertThat(held.wrongInput).isEqualTo(word.first() + wrong)
         assertThat(vm.play().feedback!!.kind).isEqualTo(FeedbackKind.Wrong)
+        clock.millis += MissionRunner.WRONG_HOLD_MILLIS
+        vm.onFrame()
+        assertThat((vm.play() as MissionPlay.Drop).wrongInput).isNull()
         word.forEach { vm.onDropKey(it.toString()) }
         val after = vm.play() as MissionPlay.Drop
         assertThat(after.game.correct).isEqualTo(1)
@@ -190,7 +204,7 @@ class RingMissionViewModelTest {
         // 끝낸 Quick Math는 건너뛰고, 하던 Pop Quiz는 처음부터예요(넘어가기 없이 바로).
         assertThat(vm.uiState.value.transitionTo).isNull()
         assertThat(vm.play().type).isEqualTo(MissionType.PopQuiz)
-        assertThat((vm.play() as MissionPlay.Quiz).game.streak).isEqualTo(0)
+        assertThat((vm.play() as MissionPlay.Quiz).game.correct).isEqualTo(0)
         assertThat(vm.uiState.value.timerEndsAt).isEqualTo(2_000_000L)
     }
 

@@ -4,6 +4,22 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Lucide
+import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -31,8 +47,7 @@ import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
-/** 오답 흔들기 폭과 왕복 수(세 번, 약 0.3초). */
-internal val ShakeDistance = 8.dp
+/** 흔들기 왕복 수(세 번, 약 0.3초). */
 private const val SHAKE_STEPS = 4
 
 /** 미션 키 공통: 높이 56, 모서리 14, 누르면 0.94배. */
@@ -88,6 +103,107 @@ internal object MissionText {
     /** 입력칸 값: Bold 28. */
     val input: TextStyle
         @Composable get() = MorningTheme.typography.headlineNumber.copy(fontWeight = FontWeight.Bold)
+}
+
+/** 입력 칸 안 엔터 버튼(결정 90): 48x48, 모서리 12, 오른쪽 8, 흰 12% 칠에 흰 80% 체크. */
+private val EnterSize = 48.dp
+private val EnterRadius = 12.dp
+private val EnterInset = 8.dp
+private val WrongBorder = 2.dp
+private val InputCursorWidth = 2.dp
+private val InputCursorHeight = 28.dp
+private val InputCursorGap = 4.dp
+private const val ENTER_FILL_ALPHA = 0.12f
+private const val ENTER_ICON_ALPHA = 0.8f
+
+/** 엔터 버튼 이름표(테스트용). 입력 칸 이름표 뒤에 붙여요. */
+const val ENTER_SUFFIX = "Enter"
+
+/**
+ * 피그마 Mission Input(엔터 켬): 높이 64, 모서리 16, 흰 10% 칠. 가운데 값(Bold 28)과 흰 커서, 안 오른쪽 엔터 버튼.
+ * [wrong]이면(결정 93) 칠은 그대로 두고 안쪽 테두리 2와 값 글자만 `status/error`로 바꿔요.
+ * 값이 비면 [placeholder]를 흐리게 보여 줘요(없으면 커서만).
+ */
+@Composable
+internal fun MissionInputField(
+    value: String,
+    wrong: Boolean,
+    onEnter: () -> Unit,
+    tag: String,
+    modifier: Modifier = Modifier,
+    fill: Color = MissionColors.Fill,
+    placeholder: String? = null,
+) {
+    val error = MorningTheme.colors.statusError
+    val shape = RoundedCornerShape(MissionRowRadius)
+    val description = stringResource(R.string.mission_math_input_description, value)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(MissionRowHeight)
+            .background(fill, shape)
+            .then(if (wrong) Modifier.border(WrongBorder, error, shape) else Modifier),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = EnterSize + EnterInset)
+                .testTag(tag)
+                .semantics { contentDescription = description },
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (value.isEmpty() && placeholder != null) {
+                Text(text = placeholder, style = MorningTheme.typography.bodyMedium, color = MissionColors.TextHint)
+            } else {
+                Text(
+                    text = value,
+                    style = MissionText.input,
+                    color = if (wrong) error else MissionColors.Text,
+                    maxLines = 1,
+                )
+                if (!wrong) {
+                    if (value.isNotEmpty()) Spacer(Modifier.width(InputCursorGap))
+                    Box(Modifier.width(InputCursorWidth).height(InputCursorHeight).background(MissionColors.Text))
+                }
+            }
+        }
+        EnterButton(
+            onClick = onEnter,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = EnterInset)
+                .testTag(tag + ENTER_SUFFIX),
+        )
+    }
+}
+
+@Composable
+private fun EnterButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    val view = LocalView.current
+    val description = stringResource(R.string.mission_math_confirm)
+    Box(
+        modifier = modifier
+            .size(EnterSize)
+            .background(Color.White.copy(alpha = ENTER_FILL_ALPHA), RoundedCornerShape(EnterRadius))
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+            ) {
+                view.perform(MorningHaptic.KeyTap)
+                onClick()
+            }
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = Lucide.Check,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = ENTER_ICON_ALPHA),
+            modifier = Modifier.size(MorningDimens.iconMd),
+        )
+    }
 }
 
 /** 미션 키 한 칸(흰색 10% 칠, 눌림 18%, 0.94배, `KEYBOARD_TAP`). */

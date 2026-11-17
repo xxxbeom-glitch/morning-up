@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -30,6 +32,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
@@ -44,6 +47,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,8 +91,9 @@ private val GlowSpots = listOf(
 )
 
 /**
- * 미션 화면 공통 틀. 어두운 바탕(미션마다 색만 다름), 위 줄(왼쪽 상태 글, 오른쪽 59초 고리), 내용.
- * - [status]와 [remainingMillis]가 null이면 위 줄에 그것을 그리지 않아요(Shake Shake는 위 줄 없이 큰 고리만 써요).
+ * 미션 화면 공통 틀. 어두운 바탕(미션마다 색만 다름), 공통 헤더(결정 89: 위 타임라인 바, 그 아래 20 띄워 가운데 22 크기
+ * 상태 글 '정답 4 / 10'), 내용. 원형 타이머는 헤더에 쓰지 않아요.
+ * - [status]와 [remainingMillis]가 null이면 헤더에 그것을 그리지 않아요(Shake Shake는 헤더 없이 큰 고리만 써요).
  * - [onClose]가 있으면(미리보기) 왼쪽 위에 닫기를 두고 뒤로 가기도 닫기예요.
  *   없으면(진짜 울림) 뒤로 가기는 아무것도 하지 않아요(미션 중 빠져나가지 못해요).
  */
@@ -109,22 +114,9 @@ fun MissionFrame(
                 .systemBarsPadding()
                 .padding(horizontal = MorningDimens.space20),
         ) {
-            // 위 줄은 글이나 타이머가 있을 때만 만들어요. 닫기만 있으면(M4 미리보기) 겹쳐 둬서 고리가 화면 가운데에 남아요.
-            val topRow = status != null || remainingMillis != null
-            if (topRow) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    if (onClose != null) CloseButton(onClose)
-                    Text(
-                        text = status.orEmpty(),
-                        style = MorningTheme.typography.bodyMediumStrong.copy(fontWeight = FontWeight.Bold),
-                        color = MissionColors.TextStatus,
-                        modifier = Modifier.weight(1f),
-                    )
-                    if (remainingMillis != null) MissionTimer(remainingMillis = remainingMillis)
-                }
+            // 헤더는 글이나 타이머가 있을 때만 만들어요. 닫기만 있으면(M4 미리보기) 겹쳐 둬서 고리가 화면 가운데에 남아요.
+            if (status != null || remainingMillis != null) {
+                MissionHeader(status = status, remainingMillis = remainingMillis, onClose = onClose)
             }
             content()
         }
@@ -134,6 +126,85 @@ fun MissionFrame(
                     .systemBarsPadding()
                     .padding(start = MorningDimens.space20, top = MorningDimens.space12),
             ) { CloseButton(onClose) }
+        }
+    }
+}
+
+/** 피그마 Mission Top Bar(결정 89): 타임라인 바(높이 6, 모서리 3), 아래 20 띄워 상태 글 22 Bold 흰색 가운데. */
+private val TimelineHeight = 6.dp
+private val TimelineRadius = 3.dp
+private val HeaderGap = 20.dp
+private val HeaderStatusSize = 22.sp
+
+/** 타임라인 바 이름표(테스트용). */
+const val MISSION_TIMELINE_TAG = "missionTimeline"
+
+@Composable
+private fun MissionHeader(status: String?, remainingMillis: Long?, onClose: (() -> Unit)?) {
+    Column(modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (onClose != null) CloseButton(onClose)
+            if (remainingMillis != null) {
+                MissionTimeline(remainingMillis = remainingMillis, modifier = Modifier.weight(1f))
+            } else {
+                Spacer(Modifier.weight(1f))
+            }
+        }
+        if (status != null) {
+            Spacer(Modifier.height(HeaderGap))
+            Text(
+                text = status,
+                style = MorningTheme.typography.headlineLarge.copy(
+                    fontSize = HeaderStatusSize,
+                    fontWeight = FontWeight.Bold,
+                ),
+                color = MissionColors.Text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+/**
+ * 남은 시간 막대(초 숫자 없음). 흰 18% 바탕에 흰 막대가 남은 만큼 남아요.
+ * 조작해서 다시 차면 스프링으로 차오르고, 마지막 5초는 1초마다 약하게 진동해요(원형 타이머와 같은 규칙).
+ */
+@Composable
+fun MissionTimeline(remainingMillis: Long, modifier: Modifier = Modifier) {
+    val reduceMotion = MorningTheme.reduceMotion
+    val view = LocalView.current
+    val total = RingStateMachine.MISSION_MILLIS.toFloat()
+    val target = (remainingMillis / total).coerceIn(0f, 1f)
+    val fraction = remember { Animatable(target) }
+    val latestTarget by rememberUpdatedState(target)
+    val latestReduceMotion by rememberUpdatedState(reduceMotion)
+    LaunchedEffect(fraction) {
+        snapshotFlow { latestTarget }.collect { next ->
+            if (next > fraction.value + REFILL_JUMP) {
+                fraction.animateTo(next, MorningMotion.spatial(MorningMotion.SpatialDefault, latestReduceMotion))
+                fraction.snapTo(latestTarget)
+            } else {
+                fraction.snapTo(next)
+            }
+        }
+    }
+    val secondsLeft = ((remainingMillis + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).toInt()
+    LaunchedEffect(secondsLeft) {
+        if (secondsLeft in 1..TICK_FROM_SECONDS) view.perform(MorningHaptic.Tick)
+    }
+    val description = stringResource(R.string.mission_timer_description, secondsLeft)
+    Canvas(
+        modifier = modifier
+            .height(TimelineHeight)
+            .testTag(MISSION_TIMELINE_TAG)
+            .semantics { contentDescription = description },
+    ) {
+        val radius = CornerRadius(TimelineRadius.toPx())
+        drawRoundRect(color = MissionColors.TimerTrack, cornerRadius = radius)
+        val width = size.width * fraction.value
+        if (width > 0f) {
+            drawRoundRect(color = MissionColors.TimerFill, size = Size(width, size.height), cornerRadius = radius)
         }
     }
 }

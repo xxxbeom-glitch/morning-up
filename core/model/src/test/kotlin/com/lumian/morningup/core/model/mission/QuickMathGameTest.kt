@@ -14,7 +14,7 @@ class QuickMathGameTest {
     @Test
     fun start_hasEmptyInput_zeroStreak_andShuffledKeypadOfAllDigits() {
         val s = game.start()
-        assertThat(s.streak).isEqualTo(0)
+        assertThat(s.correct).isEqualTo(0)
         assertThat(s.target).isEqualTo(3)
         assertThat(s.input).isEmpty()
         assertThat(s.keypad.sorted()).isEqualTo((0..9).toList())
@@ -24,12 +24,26 @@ class QuickMathGameTest {
     @Test
     fun type_appendsDigits_upToLimit_andDeleteRemovesLast() {
         var s = game.start()
-        repeat(7) { s = game.type(s, 4) }
-        assertThat(s.input).isEqualTo("44444")
+        repeat(9) { s = game.type(s, 4) }
+        assertThat(s.input).isEqualTo("4444444")
         s = game.delete(s)
-        assertThat(s.input).isEqualTo("4444")
-        repeat(5) { s = game.delete(s) }
+        assertThat(s.input).isEqualTo("444444")
+        repeat(7) { s = game.delete(s) }
         assertThat(s.input).isEmpty()
+    }
+
+    @Test
+    fun dot_onlyOnce_leadingDotBecomesZeroDot_andDecimalAnswerMatches() {
+        var s = game.dot(game.start())
+        assertThat(s.input).isEqualTo("0.")
+        s = game.dot(s)
+        assertThat(s.input).isEqualTo("0.")
+        val start = game.start()
+        val typed = start.typeAnswer().let { game.dot(it) }.let { game.type(it, 0) }
+        assertThat(typed.input).isEqualTo("${start.problem.answer}.0")
+        assertThat(game.submit(typed).second).isEqualTo(SubmitResult.Correct)
+        // '.'만 있으면 빈 칸처럼 아무 일 없어요.
+        assertThat(game.submit(start.copy(input = ".")).second).isEqualTo(SubmitResult.Empty)
     }
 
     @Test
@@ -52,7 +66,7 @@ class QuickMathGameTest {
         val s = game.start()
         val (next, result) = game.submit(s.typeAnswer())
         assertThat(result).isEqualTo(SubmitResult.Correct)
-        assertThat(next.streak).isEqualTo(1)
+        assertThat(next.correct).isEqualTo(1)
         assertThat(next.input).isEmpty()
         assertThat(next.problem).isNotEqualTo(s.problem)
         assertThat(next.keypad).isNotEqualTo(s.keypad)
@@ -60,11 +74,12 @@ class QuickMathGameTest {
     }
 
     @Test
-    fun wrong_resetsStreak_newProblem_keypadStays() {
+    fun wrong_keepsCorrectCount_newProblem_keypadStays() {
         val first = game.submit(game.start().typeAnswer()).first
         val (next, result) = game.submit(first.typeAnswer(first.problem.answer + 1))
         assertThat(result).isEqualTo(SubmitResult.Wrong)
-        assertThat(next.streak).isEqualTo(0)
+        // 결정 92: 틀려도 처음부터 하지 않아요.
+        assertThat(next.correct).isEqualTo(1)
         assertThat(next.input).isEmpty()
         assertThat(next.problem).isNotEqualTo(first.problem)
         assertThat(next.keypad).isEqualTo(first.keypad)
@@ -81,7 +96,7 @@ class QuickMathGameTest {
         }
         assertThat(result).isEqualTo(SubmitResult.Finished)
         assertThat(s.finished).isTrue()
-        assertThat(s.streak).isEqualTo(3)
+        assertThat(s.correct).isEqualTo(3)
         // 끝난 뒤 입력은 무시해요.
         assertThat(game.type(s, 3)).isEqualTo(s)
         assertThat(game.submit(s).second).isEqualTo(SubmitResult.Empty)
@@ -94,12 +109,14 @@ class QuickMathGameTest {
     }
 
     @Test
-    fun keypadLayout_deleteBottomLeft_confirmBottomRight() {
+    fun keypadLayout_dotBottomLeft_deleteBottomRight() {
         val s = game.start()
         val keys = QuickMathKeypad.keys(s.keypad)
         assertThat(keys).hasSize(12)
-        assertThat(keys[9]).isEqualTo(MathKey.Delete)
-        assertThat(keys[11]).isEqualTo(MathKey.Confirm)
+        // 결정 90: 마지막 줄은 '.', 숫자, 지우기. 확인 키는 입력 칸 안 엔터로 옮겼어요.
+        assertThat(keys[9]).isEqualTo(MathKey.Dot)
+        assertThat(keys[11]).isEqualTo(MathKey.Delete)
+        assertThat(keys).doesNotContain(MathKey.Confirm)
         assertThat(keys.filterIsInstance<MathKey.Digit>().map { it.value }).isEqualTo(s.keypad)
     }
 }

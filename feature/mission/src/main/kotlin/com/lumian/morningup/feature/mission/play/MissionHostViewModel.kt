@@ -70,13 +70,15 @@ abstract class MissionHostViewModel(
         state.update { MissionUiState(preview = it.preview, closed = it.closed) }
     }
 
-    fun onMathKey(key: MathKey) = act { it.mathKey(key) }
+    fun onMathKey(key: MathKey) = act { it.mathKey(key, now.millis()) }
 
-    fun onQuizAnswer(index: Int) = act { it.quizAnswer(index) }
+    fun onQuizAnswer(index: Int) = act { it.quizAnswer(index, now.millis()) }
 
     fun onDropKey(syllable: String) = act { it.dropKey(syllable, now.millis()) }
 
     fun onDropDelete() = act { it.dropDelete() }
+
+    fun onDropSubmit() = act { it.dropSubmit(now.millis()) }
 
     fun onShake() = act { it.shake() }
 

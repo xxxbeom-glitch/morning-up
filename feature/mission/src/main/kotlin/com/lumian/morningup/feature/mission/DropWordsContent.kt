@@ -60,9 +60,6 @@ private const val KEY_COLUMNS = 5
 
 /** 단어는 칸 가운데에 놓아요. */
 private const val LANE_CENTER = 0.5f
-private val CursorWidth = 2.dp
-private val CursorHeight = 28.dp
-private val CursorGap = 4.dp
 
 /** 바닥 가까이(마지막 15%)에서 페이드로 사라져요. */
 private const val FLOOR_FADE_FROM = 0.85f
@@ -80,19 +77,16 @@ internal fun ColumnScope.DropWordsContent(
     nowMillis: Long,
     onKey: (String) -> Unit,
     onDelete: () -> Unit,
+    onSubmit: () -> Unit = {},
 ) {
     val game = play.game
     val view = LocalView.current
-    val density = LocalDensity.current
-    val shake = remember { Animatable(0f) }
     val feedback = play.feedback
     LaunchedEffect(feedback?.id) {
         when (feedback?.kind) {
             FeedbackKind.Correct, FeedbackKind.Finished -> view.perform(MorningHaptic.Confirm)
-            FeedbackKind.Wrong -> {
-                view.perform(MorningHaptic.Reject)
-                shake.shakeSideways(with(density) { ShakeDistance.toPx() })
-            }
+            // 결정 93: 큰 표시 없이 입력 칸 테두리와 글자만 빨개지고, 약 1초 뒤 칸이 비워져요.
+            FeedbackKind.Wrong -> view.perform(MorningHaptic.Reject)
             null -> Unit
         }
     }
@@ -130,7 +124,13 @@ internal fun ColumnScope.DropWordsContent(
         }
     }
     Spacer(Modifier.height(MorningDimens.space16))
-    InputBox(input = game.input, modifier = Modifier.graphicsLayer { translationX = shake.value })
+    MissionInputField(
+        value = play.wrongInput ?: game.input,
+        wrong = play.holding,
+        onEnter = onSubmit,
+        tag = DROP_INPUT_TAG,
+        placeholder = stringResource(R.string.mission_drop_placeholder),
+    )
     Spacer(Modifier.height(MorningDimens.space16))
     SyllableKeys(keypad = game.keypad, onKey = onKey, onDelete = onDelete)
     Spacer(Modifier.height(MorningDimens.space24))
@@ -182,34 +182,6 @@ private fun Modifier.placeWord(
     val maxY = travel.dp.toPx() - placeable.height
     layout(constraints.maxWidth, constraints.maxHeight) {
         placeable.place((centerX - placeable.width / 2f).roundToInt(), (maxY * progress).roundToInt().coerceAtLeast(0))
-    }
-}
-
-@Composable
-private fun InputBox(input: String, modifier: Modifier = Modifier) {
-    val description = stringResource(R.string.mission_math_input_description, input)
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(MissionRowHeight)
-            .background(MissionColors.Fill, RoundedCornerShape(MissionRowRadius))
-            .testTag(DROP_INPUT_TAG)
-            .semantics { contentDescription = description },
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (input.isEmpty()) {
-            // 비어 있으면 안내 글만(데모와 같음). 치기 시작하면 글자와 커서가 보여요.
-            Text(
-                text = stringResource(R.string.mission_drop_placeholder),
-                style = MorningTheme.typography.bodyMedium,
-                color = MissionColors.TextHint,
-            )
-        } else {
-            Text(text = input, style = MissionText.input, color = MissionColors.Text)
-            Spacer(Modifier.width(CursorGap))
-            Box(Modifier.width(CursorWidth).height(CursorHeight).background(MissionColors.Text))
-        }
     }
 }
 

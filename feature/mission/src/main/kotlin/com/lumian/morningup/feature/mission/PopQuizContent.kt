@@ -20,7 +20,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -71,8 +80,9 @@ internal fun ColumnScope.PopQuizContent(play: MissionPlay.Quiz, onAnswer: (Int) 
             null -> Unit
         }
     }
+    // 틀리면 약 1초 동안 틀린 판을 그대로 두고(결정 93) 그 뒤 새 문제가 올라와요.
     AnimatedContent(
-        targetState = play.game.round,
+        targetState = play.shown.round,
         modifier = Modifier.weight(1f).fillMaxWidth(),
         transitionSpec = {
             val spec = MorningMotion.spatial<IntOffset>(MorningMotion.SpatialDefault, reduceMotion)
@@ -94,26 +104,24 @@ private fun QuizRoundView(round: QuizRound, marked: MissionFeedback?, onAnswer: 
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            Text(
-                text = stringResource(categoryName(round.question.category)),
-                style = MissionText.guide,
-                color = MissionColors.TextGuide,
-            )
-            Spacer(Modifier.height(MorningDimens.space12))
-            Text(
-                text = round.question.question,
-                style = MissionText.question,
-                color = MissionColors.Text,
-                textAlign = TextAlign.Center,
-                maxLines = QUESTION_MAX_LINES,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(MorningDimens.space12))
-            Text(
-                text = stringResource(R.string.mission_math_hint),
-                style = MissionText.hint,
-                color = MissionColors.TextHint,
-            )
+            if (marked?.kind == FeedbackKind.Wrong) {
+                WrongMark()
+            } else {
+                Text(
+                    text = stringResource(categoryName(round.question.category)),
+                    style = MissionText.guide,
+                    color = MissionColors.TextGuide,
+                )
+                Spacer(Modifier.height(MorningDimens.space12))
+                Text(
+                    text = round.question.question,
+                    style = MissionText.question,
+                    color = MissionColors.Text,
+                    textAlign = TextAlign.Center,
+                    maxLines = QUESTION_MAX_LINES,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         Column(verticalArrangement = Arrangement.spacedBy(MissionGap)) {
             round.choices.forEachIndexed { index, choice ->
@@ -129,17 +137,56 @@ private fun QuizRoundView(round: QuizRound, marked: MissionFeedback?, onAnswer: 
     }
 }
 
+/** 피그마 M2-1 오답(결정 93): 112 빨간 원 안 흰 X 56, '틀렸어요' 28 Bold, '괜찮아요, 새 문제가 나와요' 15 흰 70%. */
+private val WrongCircle = 112.dp
+private val WrongIcon = 56.dp
+private val WrongTitleSize = 28.sp
+private val WrongSubSize = 15.sp
+private const val WRONG_SUB_ALPHA = 0.7f
+
+/** 큰 오답 표시 이름표(테스트용). */
+const val QUIZ_WRONG_TAG = "quizWrong"
+
+@Composable
+private fun WrongMark() {
+    Column(
+        modifier = Modifier.testTag(QUIZ_WRONG_TAG),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier.size(WrongCircle).background(MorningTheme.colors.statusError, CircleShape),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Lucide.X,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(WrongIcon),
+            )
+        }
+        Spacer(Modifier.height(MorningDimens.space20))
+        Text(
+            text = stringResource(R.string.mission_wrong_title),
+            style = MorningTheme.typography.headlineLarge.copy(fontSize = WrongTitleSize, fontWeight = FontWeight.Bold),
+            color = MissionColors.Text,
+        )
+        Spacer(Modifier.height(MorningDimens.space8))
+        Text(
+            text = stringResource(R.string.mission_wrong_sub),
+            style = MorningTheme.typography.bodyMedium.copy(fontSize = WrongSubSize),
+            color = Color.White.copy(alpha = WRONG_SUB_ALPHA),
+        )
+    }
+}
+
 @Composable
 private fun AnswerRow(text: String, kind: FeedbackKind?, onClick: (() -> Unit)?, modifier: Modifier = Modifier) {
-    val density = LocalDensity.current
-    val shake = remember { Animatable(0f) }
-    LaunchedEffect(kind) {
-        if (kind == FeedbackKind.Wrong) shake.shakeSideways(with(density) { ShakeDistance.toPx() })
-    }
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val fill by animateColorAsState(
         targetValue = when {
+            // 결정 93: 누른 보기가 빨개져요. 배경은 그대로예요.
+            kind == FeedbackKind.Wrong -> MorningTheme.colors.statusError
             kind == FeedbackKind.Correct || kind == FeedbackKind.Finished -> MissionColors.Success
             pressed -> MissionColors.FillPressed
             else -> MissionColors.Fill
@@ -151,7 +198,6 @@ private fun AnswerRow(text: String, kind: FeedbackKind?, onClick: (() -> Unit)?,
         modifier = modifier
             .fillMaxWidth()
             .height(MissionRowHeight)
-            .graphicsLayer { translationX = shake.value }
             .background(fill, RoundedCornerShape(MissionRowRadius))
             .clickable(
                 interactionSource = interaction,

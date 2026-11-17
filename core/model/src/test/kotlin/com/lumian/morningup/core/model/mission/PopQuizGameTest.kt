@@ -24,7 +24,7 @@ class PopQuizGameTest {
         assertThat(s.round.question.level).isEqualTo(1)
         assertThat(s.round.choices).hasSize(4)
         assertThat(s.round.choices).containsExactlyElementsIn(listOf(s.round.question.answer) + s.round.question.wrong)
-        assertThat(s.streak).isEqualTo(0)
+        assertThat(s.correct).isEqualTo(0)
         assertThat(s.target).isEqualTo(3)
     }
 
@@ -35,22 +35,22 @@ class PopQuizGameTest {
     }
 
     @Test
-    fun correct_raisesStreak_andNextQuestionDiffers() {
+    fun correct_raisesCount_andNextQuestionDiffers() {
         val s = game.start()
         val (next, result) = game.answer(s, s.round.answerIndex)
         assertThat(result).isEqualTo(QuizResult.Correct)
-        assertThat(next.streak).isEqualTo(1)
+        assertThat(next.correct).isEqualTo(1)
         assertThat(next.round.question).isNotEqualTo(s.round.question)
     }
 
     @Test
-    fun wrong_resetsStreak_andChangesQuestion() {
+    fun wrong_keepsCount_andChangesQuestion() {
         var s = game.start()
         s = game.answer(s, s.round.answerIndex).first
         val wrongIndex = (0..3).first { it != s.round.answerIndex }
         val (next, result) = game.answer(s, wrongIndex)
         assertThat(result).isEqualTo(QuizResult.Wrong)
-        assertThat(next.streak).isEqualTo(0)
+        assertThat(next.correct).isEqualTo(1)
         assertThat(next.round.question).isNotEqualTo(s.round.question)
     }
 

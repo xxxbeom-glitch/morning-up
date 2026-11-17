@@ -27,7 +27,8 @@ data class QuizRound(val question: QuizQuestion, val choices: List<String>) {
 data class PopQuizState(
     val level: Int,
     val target: Int,
-    val streak: Int,
+    /** 지금까지 맞힌 문제 수. 틀려도 줄지 않아요(결정 92). */
+    val correct: Int,
     val round: QuizRound,
     val finished: Boolean = false,
 )
@@ -36,8 +37,8 @@ enum class QuizResult { Correct, Wrong, Finished, Ignored }
 
 /**
  * Pop Quiz 규칙(mission-levels.md Pop Quiz, dev-plan 모션 표).
- * - 4지선다예요. 연속으로 [target]개 맞히면 끝나요(최소 2문제).
- * - 틀리면 연속 정답이 0이 되고 새 문제로 바뀌어요. 정답은 보여 주지 않아요(dev-plan 모션 표가 mission-levels보다 최신).
+ * - 4지선다예요. [target]개 맞히면 끝나요(최소 2문제).
+ * - 틀려도 맞힌 수는 그대로이고 새 문제로 바뀌어요(결정 92). 정답은 보여 주지 않아요.
  * - 그 단계 문제를 섞어 차례로 내요. 다 내기 전에는 같은 문제가 다시 나오지 않고, 연달아 같은 문제도 없어요.
  */
 class PopQuizGame(level: Int, target: Int, questions: List<QuizQuestion>, private val random: Random) {
@@ -47,16 +48,16 @@ class PopQuizGame(level: Int, target: Int, questions: List<QuizQuestion>, privat
     private val pool = questions.filter { it.level == this.level }.ifEmpty { questions }.ifEmpty { error("문제가 없어요") }
     private var deck = ArrayDeque<QuizQuestion>()
 
-    fun start(): PopQuizState = PopQuizState(level = level, target = target, streak = 0, round = nextRound(null))
+    fun start(): PopQuizState = PopQuizState(level = level, target = target, correct = 0, round = nextRound(null))
 
     fun answer(state: PopQuizState, index: Int): Pair<PopQuizState, QuizResult> {
         if (state.finished || index !in state.round.choices.indices) return state to QuizResult.Ignored
         if (index != state.round.answerIndex) {
-            return state.copy(streak = 0, round = nextRound(state.round.question)) to QuizResult.Wrong
+            return state.copy(round = nextRound(state.round.question)) to QuizResult.Wrong
         }
-        val streak = state.streak + 1
-        if (streak >= state.target) return state.copy(streak = streak, finished = true) to QuizResult.Finished
-        return state.copy(streak = streak, round = nextRound(state.round.question)) to QuizResult.Correct
+        val correct = state.correct + 1
+        if (correct >= state.target) return state.copy(correct = correct, finished = true) to QuizResult.Finished
+        return state.copy(correct = correct, round = nextRound(state.round.question)) to QuizResult.Correct
     }
 
     private fun nextRound(previous: QuizQuestion?): QuizRound {

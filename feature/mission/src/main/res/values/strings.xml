@@ -4,10 +4,12 @@
     <string name="mission_timer_description">남은 시간 %1$d초</string>
 
     <!-- M3 Quick Math -->
-    <string name="mission_math_streak">연속 정답 %1$d / %2$d</string>
-    <string name="mission_math_hint">틀리면 새 문제로 처음부터 해요</string>
+    <string name="mission_correct">정답 %1$d / %2$d</string>
     <string name="mission_math_delete">지우기</string>
+    <string name="mission_math_dot">소수점</string>
     <string name="mission_math_confirm">확인</string>
+    <string name="mission_wrong_title">틀렸어요</string>
+    <string name="mission_wrong_sub">괜찮아요, 새 문제가 나와요</string>
     <string name="mission_math_input_description">입력한 답 %1$s</string>
 
     <!-- 미리보기, 넘어가기 -->
@@ -16,7 +18,6 @@
     <string name="mission_next">다음 미션 %1$d / %2$d</string>
 
     <!-- M1 Drop Words -->
-    <string name="mission_drop_correct">정답 %1$d / %2$d</string>
 
     <!-- M2 Pop Quiz 분야 -->
     <string name="mission_quiz_category_economy">경제 용어</string>

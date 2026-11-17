@@ -6,6 +6,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertContentDescriptionEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -53,12 +56,19 @@ class MissionHostScreenTest {
         val pressed = mutableListOf<MathKey>()
         show(stateOf(r), MissionActions(onMathKey = { pressed += it }))
         compose.onNodeWithText(game.problem.text).assertExists()
-        compose.onNodeWithText("연속 정답 0 / 3").assertExists()
+        // 결정 89, 92: 가운데 '정답 0 / 3', 위 타임라인 바. '틀리면 새 문제로' 문구는 없어요.
+        compose.onNodeWithText("정답 0 / 3").assertExists()
+        compose.onNodeWithTag(MISSION_TIMELINE_TAG).assertExists()
+        compose.onNodeWithText("틀리면", substring = true).assertDoesNotExist()
         compose.onNodeWithTag("${MATH_KEY_TAG}0").assertContentDescriptionEquals(game.keypad[0].toString())
         compose.onNodeWithTag("${MATH_KEY_TAG}0").performClick()
+        // 결정 90: 마지막 줄 '.', 숫자, 지우기. 확인은 입력 칸 안 엔터.
         compose.onNodeWithTag("${MATH_KEY_TAG}9").performClick()
         compose.onNodeWithTag("${MATH_KEY_TAG}11").performClick()
-        assertThat(pressed).containsExactly(MathKey.Digit(game.keypad[0]), MathKey.Delete, MathKey.Confirm).inOrder()
+        compose.onNodeWithTag(MATH_INPUT_TAG + ENTER_SUFFIX).performClick()
+        assertThat(pressed)
+            .containsExactly(MathKey.Digit(game.keypad[0]), MathKey.Dot, MathKey.Delete, MathKey.Confirm)
+            .inOrder()
     }
 
     @Test
@@ -84,7 +94,7 @@ class MissionHostScreenTest {
                     state = state,
                     nowMillis = t0,
                     actions = MissionActions(onQuizAnswer = {
-                        r.quizAnswer(it)
+                        r.quizAnswer(it, t0)
                         state = state.copy(play = r.play)
                     }),
                     onClose = null,
@@ -95,8 +105,35 @@ class MissionHostScreenTest {
         compose.onNodeWithTag("${QUIZ_ANSWER_TAG}${first.answerIndex}").performClick()
         compose.waitForIdle()
         val next = (r.play as MissionPlay.Quiz).game.round
-        compose.onNodeWithText("연속 정답 1 / 3").assertExists()
+        compose.onNodeWithText("정답 1 / 3").assertExists()
         compose.onNodeWithText(next.question.question).assertExists()
+    }
+
+    @Test
+    fun popQuiz_wrongAnswer_showsBigX_andKeepsQuestionUntilHoldEnds() {
+        val r = runner(MissionSetting(MissionType.PopQuiz, level = 1, count = 3))
+        val first = (r.play as MissionPlay.Quiz).game.round
+        r.quizAnswer((first.answerIndex + 1) % first.choices.size, t0)
+        show(stateOf(r))
+        // 결정 93: 가운데 큰 X와 '틀렸어요', '괜찮아요, 새 문제가 나와요'. 맞힌 수는 그대로예요.
+        compose.onNodeWithTag(QUIZ_WRONG_TAG).assertExists()
+        compose.onNodeWithText("틀렸어요").assertExists()
+        compose.onNodeWithText("괜찮아요, 새 문제가 나와요").assertExists()
+        compose.onNodeWithText("정답 0 / 3").assertExists()
+        first.choices.forEach { compose.onNodeWithText(it).assertExists() }
+    }
+
+    @Test
+    fun dropWords_wrongInput_staysVisible_whileHolding_andEnterSubmits() {
+        val r = runner(MissionSetting(MissionType.DropWords, level = 1, count = 5))
+        var submitted = 0
+        val game = (r.play as MissionPlay.Drop).game
+        val wrong = game.keypad.first { syllable -> game.words.none { it.text.startsWith(syllable) } }
+        r.dropKey(wrong, t0)
+        show(stateOf(r), MissionActions(onDropSubmit = { submitted++ }))
+        compose.onNode(hasText(wrong) and hasAnyAncestor(hasTestTag(DROP_INPUT_TAG))).assertExists()
+        compose.onNodeWithTag(DROP_INPUT_TAG + ENTER_SUFFIX).performClick()
+        assertThat(submitted).isEqualTo(1)
     }
 
     @Test
@@ -121,7 +158,7 @@ class MissionHostScreenTest {
         show(stateOf(r))
         compose.onNodeWithContentDescription("18").assertExists()
         compose.onNodeWithText("폰을 세게 흔들어요").assertExists()
-        compose.onNodeWithText("연속 정답", substring = true).assertDoesNotExist()
+        compose.onNodeWithText("정답", substring = true).assertDoesNotExist()
     }
 
     @Test

@@ -130,6 +130,17 @@ class DropWordsGame(
     fun delete(state: DropWordsState): DropWordsState =
         if (state.finished) state else state.copy(input = state.input.dropLast(1))
 
+    /**
+     * 입력 칸 안 엔터(결정 90). 다 친 단어는 이미 바로 맞힌 것으로 쳤으니, 엔터는 덜 친 글자를 틀린 것으로 비워요.
+     * 빈 칸이면 아무 일 없어요.
+     */
+    fun submit(state: DropWordsState): Pair<DropWordsState, DropInput> =
+        if (state.finished || state.input.isEmpty()) {
+            state to DropInput.Ignored
+        } else {
+            state.copy(input = "") to DropInput.Wrong
+        }
+
     /** 키패드에 꼭 있어야 하는 음절. 먼저 떨어질(먼저 내려온) 단어부터. */
     private fun needed(state: DropWordsState): List<String> =
         state.words.sortedBy { it.spawnedAt }.flatMap { w -> w.text.map(Char::toString) }.distinct()
