@@ -27,7 +27,7 @@ class RepeatPatternTest {
         val alarm = Alarm(time = java.time.LocalTime.of(7, 0))
         assertThat(alarm.missions).isEmpty()
         assertThat(alarm.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 3))
-        assertThat(alarm.wakeCheck.askAfterMinutes).isEqualTo(1)
+        assertThat(alarm.wakeCheck.askAfterMinutes).isEqualTo(3)
         assertThat(alarm.wakeCheck.answerSeconds).isEqualTo(60)
     }
 }

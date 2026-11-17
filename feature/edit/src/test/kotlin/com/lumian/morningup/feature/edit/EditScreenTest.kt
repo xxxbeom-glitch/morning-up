@@ -60,8 +60,40 @@ class EditScreenTest {
         val draft = EditViewModel.newAlarm().copy(missions = listOf(MissionSetting(MissionType.DropWords)))
         show(EditUiState(loading = false, draft = draft), onDetail = { opened = it })
         compose.onNodeWithText("미리 해보기").assertExists()
+        // 다시 울림은 페이지 대신 S3 시트가 열려요(결정 78).
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
-        assertThat(opened).isEqualTo(EditDetail.RingAgain)
+        assertThat(opened).isNull()
+        compose.onNodeWithText("미션을 못 끝내면 다시 울려요").assertExists()
+    }
+
+    @Test
+    fun ringAgainAndWakeCheckSheets_offerNewChoices() {
+        var interval: Int? = null
+        var count: Int? = -1
+        var ask: Int? = null
+        var answer: Int? = null
+        val draft = EditViewModel.newAlarm()
+        show(
+            EditUiState(loading = false, draft = draft),
+            EditActions(
+                onRingAgainInterval = { interval = it },
+                onRingAgainCount = { count = it },
+                onWakeCheckAsk = { ask = it },
+                onWakeCheckAnswer = { answer = it },
+            ),
+        )
+        compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("1분").performClick()
+        compose.onNodeWithText("무제한").performClick()
+        assertThat(interval).isEqualTo(1)
+        assertThat(count).isNull()
+        compose.onNodeWithText("완료").performClick()
+        compose.mainClock.advanceTimeBy(1_000)
+        compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("10분 후").performClick()
+        compose.onNodeWithText("3분").performClick()
+        assertThat(ask).isEqualTo(10)
+        assertThat(answer).isEqualTo(180)
     }
 
     @Test

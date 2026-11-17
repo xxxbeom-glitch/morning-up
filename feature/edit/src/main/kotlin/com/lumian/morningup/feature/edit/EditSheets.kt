@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.stringResource
@@ -136,3 +138,107 @@ internal fun volumeValue(alarm: Alarm): String {
     }
     return parts.joinToString(", ")
 }
+
+/** 피그마 S3, S4 줄: 왼쪽 이름(`Body/Medium` `text/body`), 오른쪽 Choice Chip(너비 60, 사이 6). 위아래 8(결정 81). */
+@Composable
+internal fun <T> ChipRow(
+    label: String,
+    options: List<T>,
+    selected: T?,
+    optionLabel: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            style = MorningTheme.typography.bodyMedium,
+            color = MorningTheme.colors.textBody,
+            modifier = Modifier.weight(1f).padding(end = MorningDimens.space12),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(ChipGap)) {
+            options.forEach { option ->
+                MorningChoiceChip(
+                    label = optionLabel(option),
+                    selected = option == selected,
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.width(RowChipWidth),
+                )
+            }
+        }
+    }
+}
+
+private val RowChipWidth = 60.dp
+
+/** S3 다시 울림 시트(피그마 `461:7911`, 결정 82): 간격 1/3/5/10분, 횟수 무제한/1/3/5회. */
+@Composable
+internal fun RingAgainSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+    val ringAgain = alarm.ringAgain
+    val on = ringAgain.count != 0
+    EditSheetFrame(
+        title = stringResource(R.string.edit_ring_again),
+        description = stringResource(R.string.edit_ring_again_sheet_desc),
+        onDone = onDone,
+    ) {
+        ChipRow(
+            label = stringResource(R.string.edit_ring_again_interval_title),
+            options = EditViewModel.RING_AGAIN_INTERVALS,
+            selected = ringAgain.intervalMinutes.takeIf { on },
+            optionLabel = { stringResource(R.string.edit_ring_again_interval_option, it) },
+            onSelect = actions.onRingAgainInterval,
+        )
+        ChipRow(
+            label = stringResource(R.string.edit_ring_again_count_title),
+            options = EditViewModel.RING_AGAIN_COUNTS,
+            selected = if (on) ringAgain.count else NOT_SELECTED,
+            optionLabel = { c ->
+                if (c == null) {
+                    stringResource(R.string.edit_ring_again_unlimited)
+                } else {
+                    stringResource(R.string.edit_ring_again_count_sheet, c)
+                }
+            },
+            onSelect = actions.onRingAgainCount,
+        )
+    }
+}
+
+/** 꺼져 있을 때 횟수 칸을 아무것도 고르지 않은 모양으로 두는 값(선택지에 없는 수). */
+private const val NOT_SELECTED = -1
+
+/** S4 다시 잠들기 방지 시트(피그마 `461:8297`, 결정 83): 다시 물어보기 3/5/10분 후, 대답할 시간 30초/1분/3분. */
+@Composable
+internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+    val wakeCheck = alarm.wakeCheck
+    EditSheetFrame(
+        title = stringResource(R.string.edit_wake_check),
+        description = stringResource(R.string.edit_wake_check_sheet_desc),
+        onDone = onDone,
+    ) {
+        ChipRow(
+            label = stringResource(R.string.edit_wake_check_ask_sheet),
+            options = EditViewModel.WAKE_CHECK_ASK_MINUTES,
+            selected = wakeCheck.askAfterMinutes.takeIf { wakeCheck.enabled },
+            optionLabel = { stringResource(R.string.edit_wake_check_ask_option, it) },
+            onSelect = actions.onWakeCheckAsk,
+        )
+        ChipRow(
+            label = stringResource(R.string.edit_wake_check_answer_sheet),
+            options = EditViewModel.WAKE_CHECK_ANSWER_SECONDS,
+            selected = wakeCheck.answerSeconds.takeIf { wakeCheck.enabled },
+            optionLabel = { sec ->
+                if (sec < SECONDS_PER_MINUTE) {
+                    stringResource(R.string.edit_seconds, sec)
+                } else {
+                    stringResource(R.string.edit_ring_again_interval_option, sec / SECONDS_PER_MINUTE)
+                }
+            },
+            onSelect = actions.onWakeCheckAnswer,
+        )
+    }
+}
+
+private const val SECONDS_PER_MINUTE = 60

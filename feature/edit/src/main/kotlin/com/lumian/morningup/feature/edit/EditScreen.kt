@@ -232,7 +232,7 @@ fun EditScreen(
                     UntilLine(state)
                     TimeWheels(state.draft, actions.onTime)
                     RepeatCard(state.draft, actions)
-                    MissionCard(state, actions, onOpenDetail)
+                    MissionCard(state, actions, onOpenDetail, onOpenSheet = { sheet = it })
                     SoundCard(state.draft, onOpenDetail, onOpenSheet = { sheet = it })
                     // 저장 버튼은 고정하지 않고 내용 맨 끝에 둬요. 끝까지 내려 봐야 보여서 아래 설정을 놓치지 않아요.
                     MorningButton(
@@ -306,7 +306,9 @@ fun EditScreen(
             // 닫히는 동안에도 마지막 내용을 그대로 그려요.
             when (lastSheet) {
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
-                else -> Unit
+                EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
+                EditSheet.WakeCheck -> WakeCheckSheetContent(state.draft, actions, onDone = { sheet = null })
+                null -> Unit
             }
         }
     }
@@ -419,7 +421,12 @@ private fun RepeatCard(alarm: Alarm, actions: EditActions) {
 }
 
 @Composable
-private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: (EditDetail) -> Unit) {
+private fun MissionCard(
+    state: EditUiState,
+    actions: EditActions,
+    onOpenDetail: (EditDetail) -> Unit,
+    onOpenSheet: (EditSheet) -> Unit,
+) {
     val alarm = state.draft
     val resources = alarmResources()
     MorningSettingsCard(title = stringResource(R.string.edit_card_mission)) {
@@ -447,8 +454,9 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
                 else -> stringResource(R.string.edit_ring_again_value, ringAgain.intervalMinutes, ringAgainCount)
             },
             state = onOff(ringAgainCount != 0),
-            onCheckedChange = pickOrOff(EditDetail.RingAgain, onOpenDetail, actions.onRingAgain),
-            onClick = { onOpenDetail(EditDetail.RingAgain) },
+            // 토글은 켜고 끄기만, 글자 쪽을 누르면 S3 시트가 열려요(결정 78).
+            onCheckedChange = actions.onRingAgain,
+            onClick = { onOpenSheet(EditSheet.RingAgain) },
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_wake_check),
@@ -458,8 +466,8 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
                 offValue()
             },
             state = onOff(alarm.wakeCheck.enabled),
-            onCheckedChange = pickOrOff(EditDetail.WakeCheck, onOpenDetail, actions.onWakeCheck),
-            onClick = { onOpenDetail(EditDetail.WakeCheck) },
+            onCheckedChange = actions.onWakeCheck,
+            onClick = { onOpenSheet(EditSheet.WakeCheck) },
         )
     }
 }
@@ -490,14 +498,5 @@ private fun SoundCard(alarm: Alarm, onOpenDetail: (EditDetail) -> Unit, onOpenSh
 /** 꺼진 줄의 값 글자. 고른 것처럼 보이는 값을 남기지 않아요. */
 @Composable
 private fun offValue(): String = stringResource(R.string.edit_off_value)
-
-/**
- * 고를 값이 있는 줄의 토글. 켜면 바로 켜지 않고 선택 화면을 열어(값을 골라야 켜져요), 끄면 바로 꺼요.
- */
-private fun pickOrOff(
-    detail: EditDetail,
-    onOpenDetail: (EditDetail) -> Unit,
-    setOn: (Boolean) -> Unit,
-): (Boolean) -> Unit = { on -> if (on) onOpenDetail(detail) else setOn(false) }
 
 private fun onOff(on: Boolean) = if (on) SettingRowState.On else SettingRowState.Off

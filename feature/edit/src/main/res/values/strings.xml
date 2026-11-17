@@ -19,8 +19,8 @@
     <string name="edit_mission">미션 선택</string>
     <string name="edit_preview">미리 해보기</string>
     <string name="edit_ring_again">다시 울림</string>
-    <string name="edit_ring_again_value">%1$d분, %2$d번</string>
-    <string name="edit_ring_again_until_off">%1$d분, 끌 때까지</string>
+    <string name="edit_ring_again_value">%1$d분, %2$d회</string>
+    <string name="edit_ring_again_until_off">%1$d분, 무제한</string>
     <string name="edit_wake_check">다시 잠들기 방지</string>
     <string name="edit_wake_check_value">%1$d분 후</string>
     <string name="edit_power_off">전원 종료 방지</string>
@@ -112,6 +112,12 @@
     <string name="edit_gentle_none">안 함</string>
     <string name="edit_seconds">%1$d초</string>
     <string name="edit_done">완료</string>
+    <string name="edit_ring_again_sheet_desc">미션을 못 끝내면 다시 울려요</string>
+    <string name="edit_wake_check_sheet_desc">알람을 끈 뒤 깼는지 한 번 더 물어요</string>
+    <string name="edit_ring_again_count_sheet">%1$d회</string>
+    <string name="edit_ring_again_unlimited">무제한</string>
+    <string name="edit_wake_check_ask_sheet">다시 물어보기</string>
+    <string name="edit_wake_check_answer_sheet">대답할 시간</string>
     <string name="edit_volume_percent">%1$d%%</string>
     <string name="edit_vibration_title">진동</string>
     <string name="edit_vibration_sub">소리와 함께 울려요</string>

@@ -74,7 +74,7 @@ class EditViewModelTest {
             // 다시 울림은 꺼진 채 시작해요(켜면 5분 3번).
             assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 0))
             assertThat(state.draft.wakeCheck)
-                .isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 1, answerSeconds = 60))
+                .isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 3, answerSeconds = 60))
             // 23:10에 내일 07:00 → 7시간 50분 후.
             assertThat(state.until).isEqualTo(TimeUntil(0, 7, 50))
         }

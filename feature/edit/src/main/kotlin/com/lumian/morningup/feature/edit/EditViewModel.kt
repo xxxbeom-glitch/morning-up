@@ -265,7 +265,7 @@ class EditViewModel @Inject constructor(
 
     /** S3 '간격'. 꺼져 있었으면 처음 횟수(3번)로 켜져요. */
     fun setRingAgainInterval(minutes: Int) {
-        if (minutes in RingAgain.ALLOWED_INTERVALS) {
+        if (minutes in RING_AGAIN_INTERVALS) {
             edit {
                 val count = it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT
                 it.copy(ringAgain = RingAgain(minutes, count))
@@ -273,7 +273,7 @@ class EditViewModel @Inject constructor(
         }
     }
 
-    /** S3 '횟수'. 3번, 5번, null(끌 때까지). 꺼져 있었으면 고른 횟수로 켜져요(꺼짐은 횟수 0이라서요). */
+    /** S3 '횟수'. 1회, 3회, 5회, null(무제한). 꺼져 있었으면 고른 횟수로 켜져요(꺼짐은 횟수 0이라서요). */
     fun setRingAgainCount(count: Int?) {
         if (count in RING_AGAIN_COUNTS) edit { it.copy(ringAgain = it.ringAgain.copy(count = count)) }
     }
@@ -358,13 +358,13 @@ class EditViewModel @Inject constructor(
         private const val DEFAULT_RING_AGAIN_COUNT = 3
         private val DEFAULT_TIME: LocalTime = LocalTime.of(7, 0)
 
-        /** S4 고를 수 있는 값(피그마 S4). */
-        val WAKE_CHECK_ASK_MINUTES = listOf(1, 3, 5, 10)
-        val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 120)
+        /** S4 다시 잠들기 방지 시트 선택지(결정 83). */
+        val WAKE_CHECK_ASK_MINUTES = listOf(3, 5, 10)
+        val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 180)
 
-        /** S3 고를 수 있는 값. null은 '끌 때까지'예요. */
-        val RING_AGAIN_INTERVALS = listOf(3, 5, 10, 15)
-        val RING_AGAIN_COUNTS = listOf(3, 5, null)
+        /** S3 다시 울림 시트 선택지(결정 82). 횟수 null은 '무제한'이에요. */
+        val RING_AGAIN_INTERVALS = listOf(1, 3, 5, 10)
+        val RING_AGAIN_COUNTS = listOf(null, 1, 3, 5)
         const val MAX_VOLUME = 100
 
         private val OPENABLE_DETAILS = setOf(

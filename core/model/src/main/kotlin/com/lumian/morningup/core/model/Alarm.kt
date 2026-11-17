@@ -18,15 +18,16 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
     }
 
     companion object {
-        val ALLOWED_INTERVALS = setOf(3, 5, 10, 15)
+        // 1분은 결정 82로 새로 넣었고, 15분은 예전에 저장한 알람이 읽히도록 남겨요.
+        val ALLOWED_INTERVALS = setOf(1, 3, 5, 10, 15)
     }
 }
 
 /**
  * 다시 잠들기 방지(W2). 해제하고 [askAfterMinutes]분 뒤 묻고, [answerSeconds]초 안에 '깼어요'를 눌러야 해요.
- * 처음 값은 기획서 F9(1분 후, 답할 시간 1분)예요.
+ * 처음 값은 3분 후, 대답할 시간 1분이에요(결정 83).
  */
-data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 1, val answerSeconds: Int = 60) {
+data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 3, val answerSeconds: Int = 60) {
     init {
         require(askAfterMinutes in 1..MAX_ASK_MINUTES)
         require(answerSeconds in MIN_ANSWER_SECONDS..MAX_ANSWER_SECONDS)
@@ -35,7 +36,7 @@ data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 1,
     companion object {
         const val MAX_ASK_MINUTES = 10
         const val MIN_ANSWER_SECONDS = 30
-        const val MAX_ANSWER_SECONDS = 120
+        const val MAX_ANSWER_SECONDS = 180
     }
 }
 
