@@ -18,3 +18,7 @@ keystore.properties
 # OS
 .DS_Store
 Thumbs.db
+
+# JVM이 메모리 부족 등으로 죽을 때 남기는 기록
+hs_err_pid*.log
+replay_pid*.log
