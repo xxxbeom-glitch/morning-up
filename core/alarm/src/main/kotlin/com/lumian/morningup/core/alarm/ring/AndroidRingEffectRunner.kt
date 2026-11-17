@@ -2,6 +2,8 @@ package com.lumian.morningup.core.alarm.ring
 
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.RingTimers
+import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
@@ -62,12 +64,22 @@ class AndroidRingEffectRunner @Inject constructor(
         }
     }
 
-    /** 앱 볼륨은 알람마다 정한 볼륨이에요. 진동은 제 볼륨으로 울릴 때만 켜요(미션 중 20%에는 끄기). */
+    /**
+     * 앱 볼륨은 알람마다 정한 볼륨이에요. 진동은 제 볼륨으로 울릴 때만 켜요(미션 중 20%에는 끄기).
+     * 알람음을 끈 알람(진동만, S5)은 소리 0으로 진동만 울려요. 부드럽게 깨우기면 처음 켤 때 서서히 올려요(S7).
+     */
     private suspend fun playSound(session: RingSession?, fraction: Float) {
         val alarm = session?.let { alarms.get(it.plan.alarmId) }
-        val volume = (alarm?.volumePercent ?: FULL_PERCENT) / FULL_PERCENT.toFloat() * fraction
-        val vibrate = (alarm?.vibrate ?: true) && fraction >= 1f
-        sound.play(volume, vibrate, alarm?.soundId)
+        val silent = alarm?.soundId == Alarm.SILENT_SOUND_ID
+        val volume = if (silent) 0f else (alarm?.volumePercent ?: FULL_PERCENT) / FULL_PERCENT.toFloat() * fraction
+        val vibrate = ((alarm?.vibrate ?: true) || silent) && fraction >= 1f
+        sound.play(
+            volume = volume,
+            vibrate = vibrate,
+            soundId = alarm?.soundId.takeUnless { silent },
+            pattern = alarm?.vibrationPattern ?: VibrationPattern.Basic,
+            gentleSeconds = if (alarm?.gentleWake == true) alarm.gentleSeconds else 0,
+        )
     }
 
     private companion object {

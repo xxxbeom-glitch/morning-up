@@ -29,12 +29,11 @@
     <string name="edit_card_sound">울림 화면과 소리</string>
     <string name="edit_sound">알람음</string>
     <string name="edit_volume">볼륨 및 진동</string>
-    <string name="edit_volume_vibrate">%1$d%%, 기본 진동</string>
+    <string name="edit_volume_vibrate">%1$d%%, %2$s</string>
     <string name="edit_volume_no_vibrate">%1$d%%, 진동 없음</string>
     <string name="edit_gentle">부드럽게 깨우기</string>
-    <string name="edit_gentle_value">30초 동안</string>
+    <string name="edit_gentle_value">%1$s 동안</string>
     <string name="edit_background">알람 화면 배경</string>
-    <string name="edit_background_value">시간대 하늘</string>
 
     <string name="edit_save">저장</string>
 
@@ -98,6 +97,32 @@
     <string name="edit_wake_check_ask_option">%1$d분 후</string>
     <string name="edit_wake_check_answer_title">답할 시간</string>
     <string name="edit_wake_check_help">시간 안에 \'깼어요\'를 누르지 않으면 알람이 다시 울려요</string>
+
+    <!-- S3 다시 울림 -->
+    <string name="edit_ring_again_interval_title">간격</string>
+    <string name="edit_ring_again_interval_option">%1$d분</string>
+    <string name="edit_ring_again_count_title">횟수</string>
+    <string name="edit_ring_again_count_option">%1$d번</string>
+    <string name="edit_ring_again_count_until_off">끌 때까지</string>
+    <string name="edit_ring_again_help">다시 울릴 때도 미션을 풀어야 꺼져요</string>
+
+    <!-- S6 볼륨과 진동 -->
+    <string name="edit_volume_title">볼륨</string>
+    <string name="edit_volume_percent">%1$d%%</string>
+    <string name="edit_vibration_title">진동</string>
+    <string name="edit_vibration_sub">소리와 함께 울려요</string>
+    <string name="edit_vibration_basic">기본 진동</string>
+    <string name="edit_vibration_short">짧게 여러 번</string>
+    <string name="edit_vibration_long">길게 한 번</string>
+
+    <!-- S7 부드럽게 깨우기 -->
+    <string name="edit_gentle_title">올라가는 시간</string>
+    <string name="edit_gentle_help">설정한 볼륨까지 천천히 올라가요</string>
+
+    <!-- S8 알람 화면 배경 -->
+    <string name="edit_background_add_photo">내 사진 추가</string>
+    <string name="edit_background_photo_empty">오른쪽 위 사진 버튼으로 갤러리 사진을 더할 수 있어요</string>
+    <string name="edit_background_preview_time">오전 6:30</string>
 
     <!-- S0-1 저장 안 하고 나가기 -->
     <string name="edit_exit_title">저장하지 않고 나갈까요?</string>

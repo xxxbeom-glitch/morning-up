@@ -47,7 +47,10 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.Ringtones
+import com.lumian.morningup.core.model.VibrationPattern
+import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.AlarmText
+import com.lumian.morningup.core.ui.R as UiR
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
@@ -128,6 +131,12 @@ fun AlarmEditRoute(
                 onDiscard = viewModel::discard,
                 onWakeCheckAsk = viewModel::setWakeCheckAsk,
                 onWakeCheckAnswer = viewModel::setWakeCheckAnswer,
+                onRingAgainInterval = viewModel::setRingAgainInterval,
+                onRingAgainCount = viewModel::setRingAgainCount,
+                onVolume = viewModel::setVolume,
+                onVibrationPattern = viewModel::setVibrationPattern,
+                onGentleSeconds = viewModel::setGentleSeconds,
+                onBackgroundId = viewModel::setBackgroundId,
                 onCloseDetail = viewModel::closeDetail,
                 onOpenMissionSheet = viewModel::openMissionSheet,
                 onCloseMissionSheet = viewModel::closeMissionSheet,
@@ -166,6 +175,12 @@ data class EditActions(
     val onDiscard: () -> Unit = {},
     val onWakeCheckAsk: (Int) -> Unit = {},
     val onWakeCheckAnswer: (Int) -> Unit = {},
+    val onRingAgainInterval: (Int) -> Unit = {},
+    val onRingAgainCount: (Int?) -> Unit = {},
+    val onVolume: (Int) -> Unit = {},
+    val onVibrationPattern: (VibrationPattern) -> Unit = {},
+    val onGentleSeconds: (Int) -> Unit = {},
+    val onBackgroundId: (String?) -> Unit = {},
     val onCloseDetail: () -> Unit = {},
     val onOpenMissionSheet: (MissionType) -> Unit = {},
     val onCloseMissionSheet: () -> Unit = {},
@@ -178,7 +193,15 @@ data class EditActions(
 )
 
 /** 편집 화면 안에서 페이지로 여는 하위 화면. */
-private val PAGE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck, EditDetail.Sound)
+private val PAGE_DETAILS = setOf(
+    EditDetail.Mission,
+    EditDetail.WakeCheck,
+    EditDetail.Sound,
+    EditDetail.RingAgain,
+    EditDetail.Volume,
+    EditDetail.Gentle,
+    EditDetail.Background,
+)
 
 /** S0 알람 편집(미션 있음, 없음)과 S0-1 저장 안 하고 나가기. 상태와 콜백만 받아요. */
 @Composable
@@ -251,6 +274,29 @@ fun EditScreen(
                 selectedId = state.draft.soundId,
                 onBack = actions.onCloseDetail,
                 onSelect = actions.onSoundId,
+            )
+            EditDetail.RingAgain -> RingAgainPage(
+                ringAgain = state.draft.ringAgain,
+                onBack = actions.onCloseDetail,
+                onInterval = actions.onRingAgainInterval,
+                onCount = actions.onRingAgainCount,
+            )
+            EditDetail.Volume -> VolumePage(
+                alarm = state.draft,
+                onBack = actions.onCloseDetail,
+                onVolume = actions.onVolume,
+                onVibrate = actions.onVibrate,
+                onPattern = actions.onVibrationPattern,
+            )
+            EditDetail.Gentle -> GentlePage(
+                seconds = state.draft.gentleSeconds,
+                onBack = actions.onCloseDetail,
+                onSeconds = actions.onGentleSeconds,
+            )
+            EditDetail.Background -> BackgroundPage(
+                selectedId = state.draft.background,
+                onBack = actions.onCloseDetail,
+                onSelect = actions.onBackgroundId,
             )
             else -> Unit
         }
@@ -408,6 +454,7 @@ private fun MissionCard(state: EditUiState, actions: EditActions, onOpenDetail: 
 
 @Composable
 private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDetail) -> Unit) {
+    val resources = alarmResources()
     MorningSettingsCard(title = stringResource(R.string.edit_card_sound)) {
         MorningSettingRow(
             label = stringResource(R.string.edit_sound),
@@ -418,24 +465,29 @@ private fun SoundCard(alarm: Alarm, actions: EditActions, onOpenDetail: (EditDet
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_volume),
-            value = stringResource(
-                if (alarm.vibrate) R.string.edit_volume_vibrate else R.string.edit_volume_no_vibrate,
-                alarm.volumePercent,
-            ),
+            value = if (alarm.vibrate) {
+                stringResource(
+                    R.string.edit_volume_vibrate,
+                    alarm.volumePercent,
+                    stringResource(alarm.vibrationPattern.label()),
+                )
+            } else {
+                stringResource(R.string.edit_volume_no_vibrate, alarm.volumePercent)
+            },
             state = onOff(alarm.vibrate),
             onCheckedChange = actions.onVibrate,
             onClick = { onOpenDetail(EditDetail.Volume) },
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_gentle),
-            value = stringResource(R.string.edit_gentle_value),
+            value = stringResource(R.string.edit_gentle_value, AlarmText.duration(resources, alarm.gentleSeconds)),
             state = onOff(alarm.gentleWake),
             onCheckedChange = actions.onGentle,
             onClick = { onOpenDetail(EditDetail.Gentle) },
         )
         MorningSettingRow(
             label = stringResource(R.string.edit_background),
-            value = stringResource(R.string.edit_background_value),
+            value = backgroundName(alarm.background),
             state = onOff(alarm.background != Alarm.BACKGROUND_PLAIN),
             onCheckedChange = actions.onBackground,
             onClick = { onOpenDetail(EditDetail.Background) },
@@ -476,3 +528,10 @@ private fun SaveBar(enabled: Boolean, onSave: () -> Unit, modifier: Modifier = M
 }
 
 private fun onOff(on: Boolean) = if (on) SettingRowState.On else SettingRowState.Off
+
+/** S0 '알람 화면 배경' 줄 값. 끈 상태(plain)와 고르지 않은 상태는 '시간대 하늘'이에요. */
+@Composable
+private fun backgroundName(id: String?): String = when {
+    AlarmBackgrounds.isPhoto(id) -> stringResource(UiR.string.ui_bg_my_photo)
+    else -> stringResource(AlarmBackgrounds.find(id)?.name ?: UiR.string.ui_bg_time_sky)
+}

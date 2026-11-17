@@ -114,6 +114,7 @@ private fun RingContent(
             time = state.time,
             dayPart = state.dayPart,
             hasMissions = state.hasMissions,
+            background = state.background,
             onMainButton = onMainButton,
             onButtonCenter = { buttonCenter = it },
         )

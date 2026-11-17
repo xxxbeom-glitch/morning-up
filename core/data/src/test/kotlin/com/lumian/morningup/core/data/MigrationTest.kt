@@ -6,9 +6,11 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.data.db.Migration1To2
+import com.lumian.morningup.core.data.db.Migration2To3
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.VibrationPattern
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -52,6 +54,29 @@ class MigrationTest {
         assertThat(alarms.getValue(1).time.hour).isEqualTo(6)
         assertThat(alarms.getValue(1).wakeCheck.enabled).isTrue()
         assertThat(alarms.getValue(1).nextTriggerAt).isEqualTo(1_800_000_000_000)
+    }
+
+    @Test
+    fun v2ToV3_addsVibrationPatternAndGentleSeconds_withDefaults() = runTest {
+        helper.createDatabase(dbName, 1).apply {
+            execSQL(insertV1(id = 7, missions = "QuickMath"))
+            close()
+        }
+        helper.runMigrationsAndValidate(dbName, 2, true, Migration1To2).close()
+        helper.runMigrationsAndValidate(dbName, 3, true, Migration2To3).close()
+
+        val db = Room.databaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            MorningDatabase::class.java,
+            dbName,
+        ).apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+        val alarm = AlarmRepository(db.alarmDao()).all().single()
+        db.close()
+
+        assertThat(alarm.id).isEqualTo(7L)
+        assertThat(alarm.vibrationPattern).isEqualTo(VibrationPattern.Basic)
+        assertThat(alarm.gentleSeconds).isEqualTo(30)
+        assertThat(alarm.missionTypes).containsExactly(MissionType.QuickMath)
     }
 
     private fun insertV1(id: Long, missions: String) =

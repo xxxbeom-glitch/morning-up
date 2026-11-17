@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -25,6 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -46,7 +49,9 @@ import com.lumian.morningup.core.designsystem.theme.MorningShadows
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.morningShadow
 import com.lumian.morningup.core.model.DayPart
+import com.lumian.morningup.core.ui.AlarmBackgrounds
 import com.lumian.morningup.core.ui.AlarmText
+import com.lumian.morningup.core.ui.rememberBackgroundPhoto
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -85,12 +90,59 @@ fun RingingScreen(
     hasMissions: Boolean,
     onMainButton: () -> Unit,
     modifier: Modifier = Modifier,
+    background: String? = null,
     onButtonCenter: (Offset) -> Unit = {},
+) {
+    ChosenBackground(background, dayPart, modifier) {
+        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter)
+    }
+}
+
+/**
+ * S8에서 고른 배경. 이름 있는 배경은 위아래 그라데이션, 내 사진은 꽉 채우고 글자가 읽히게 살짝 어둡게 덮어요.
+ * 어두운 배경 위에서는 글자를 다크 모드 색으로 바꿔요. 고르지 않았거나 사진을 못 읽으면 기본 하늘이에요.
+ */
+@Composable
+private fun ChosenBackground(
+    background: String?,
+    dayPart: DayPart,
+    modifier: Modifier,
+    content: @Composable BoxScope.() -> Unit,
+) {
+    val named = AlarmBackgrounds.find(background)
+    val photo = if (AlarmBackgrounds.isPhoto(background)) rememberBackgroundPhoto(background) else null
+    when {
+        photo != null -> MorningTheme(darkTheme = true, reduceMotion = MorningTheme.reduceMotion) {
+            Box(modifier.fillMaxSize()) {
+                Image(photo, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = PHOTO_SCRIM)))
+                content()
+            }
+        }
+        named != null -> MorningTheme(darkTheme = !named.darkText, reduceMotion = MorningTheme.reduceMotion) {
+            Box(
+                modifier = modifier.fillMaxSize().background(Brush.verticalGradient(listOf(named.top, named.bottom))),
+                content = content,
+            )
+        }
+        else -> RingSky(dayPart, modifier, content)
+    }
+}
+
+private const val PHOTO_SCRIM = 0.35f
+
+@Composable
+private fun BoxScope.RingingContent(
+    date: LocalDate,
+    time: LocalTime,
+    hasMissions: Boolean,
+    onMainButton: () -> Unit,
+    onButtonCenter: (Offset) -> Unit,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val resources = LocalContext.current.resources
-    RingSky(dayPart, modifier) {
+    run {
         Column(
             modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,

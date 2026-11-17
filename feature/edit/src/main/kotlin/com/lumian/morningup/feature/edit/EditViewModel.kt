@@ -12,9 +12,11 @@ import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.Ringtones
+import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.NextAlarm
 import com.lumian.morningup.core.model.engine.TimeUntil
+import com.lumian.morningup.core.ui.AlarmBackgrounds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -123,6 +125,10 @@ class EditViewModel @Inject constructor(
         val sheet: MissionSheet? = null,
         /** 안 고른 미션도 시트에서 바꾼 값은 기억해 둬요(이 편집 화면 안에서만). */
         val remembered: Map<MissionType, MissionSetting> = emptyMap(),
+        /** 알람음 토글을 다시 켤 때 되살릴 소리. */
+        val lastSound: String = Alarm.DEFAULT_SOUND_ID,
+        /** 배경 토글을 다시 켤 때 되살릴 배경(null은 시간대 하늘). */
+        val lastBackground: String? = null,
     )
 
     private val shakeAvailable = shakeSupport.available()
@@ -150,7 +156,15 @@ class EditViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val loaded = alarmId.takeIf { it != EditRoute.NEW_ALARM }?.let { book.get(it) } ?: newAlarm()
-            editor.update { it.copy(loading = false, original = loaded, draft = loaded) }
+            editor.update {
+                it.copy(
+                    loading = false,
+                    original = loaded,
+                    draft = loaded,
+                    lastSound = loaded.soundId.takeUnless { s -> s == Alarm.SILENT_SOUND_ID } ?: Alarm.DEFAULT_SOUND_ID,
+                    lastBackground = loaded.background.takeUnless { b -> b == Alarm.BACKGROUND_PLAIN },
+                )
+            }
         }
     }
 
@@ -249,7 +263,37 @@ class EditViewModel @Inject constructor(
         }
     }
 
-    /** 하위 페이지 열기. S1-2 미션 고르기, S4, S5만 있고, 나머지 줄은 아직 아무 일 없어요. */
+    /** S3 '간격'. 켬, 끔은 S0 줄의 토글이 해요. */
+    fun setRingAgainInterval(minutes: Int) {
+        if (minutes in RingAgain.ALLOWED_INTERVALS) {
+            edit { it.copy(ringAgain = it.ringAgain.copy(intervalMinutes = minutes)) }
+        }
+    }
+
+    /** S3 '횟수'. 3번, 5번, null(끌 때까지). 꺼져 있었으면 고른 횟수로 켜져요(꺼짐은 횟수 0이라서요). */
+    fun setRingAgainCount(count: Int?) {
+        if (count in RING_AGAIN_COUNTS) edit { it.copy(ringAgain = it.ringAgain.copy(count = count)) }
+    }
+
+    /** S6 볼륨(0~100). */
+    fun setVolume(percent: Int) = edit { it.copy(volumePercent = percent.coerceIn(0, MAX_VOLUME)) }
+
+    /** S6 진동 모양. 고르면 진동도 켜요. */
+    fun setVibrationPattern(pattern: VibrationPattern) =
+        edit { it.copy(vibrationPattern = pattern, vibrate = true) }
+
+    /** S7 길이. */
+    fun setGentleSeconds(seconds: Int) {
+        if (seconds in Alarm.GENTLE_SECONDS) edit { it.copy(gentleSeconds = seconds) }
+    }
+
+    /** S8에서 고른 배경. null은 시간대 하늘, "photo:"로 시작하면 내 사진이에요. 모르는 id는 무시해요. */
+    fun setBackgroundId(id: String?) {
+        val known = id == null || AlarmBackgrounds.isPhoto(id) || AlarmBackgrounds.find(id) != null
+        if (known) editor.update { it.copy(draft = it.draft.copy(background = id), lastBackground = id) }
+    }
+
+    /** 하위 페이지 열기. '미리 해보기'와 '전원 종료 방지'는 앱이 따로 열어요. */
     fun openDetail(detail: EditDetail) {
         if (detail in OPENABLE_DETAILS) editor.update { it.copy(detail = detail) }
     }
@@ -258,20 +302,25 @@ class EditViewModel @Inject constructor(
 
     fun setPowerOffGuard(on: Boolean) = edit { it.copy(powerOffGuard = on) }
 
-    fun setSound(on: Boolean) = edit {
-        it.copy(soundId = if (on) Alarm.DEFAULT_SOUND_ID else Alarm.SILENT_SOUND_ID)
+    /** 끄면 진동만(S5). 다시 켜면 마지막으로 고른 소리로 돌아가요. */
+    fun setSound(on: Boolean) = editor.update {
+        it.copy(draft = it.draft.copy(soundId = if (on) it.lastSound else Alarm.SILENT_SOUND_ID))
     }
 
     /** S5에서 고른 알람음. 목록에 없는 id는 무시해요. */
     fun setSoundId(id: String) {
-        if (Ringtones.all.any { it.id == id }) edit { it.copy(soundId = id) }
+        if (Ringtones.all.any { it.id == id }) {
+            editor.update { it.copy(draft = it.draft.copy(soundId = id), lastSound = id) }
+        }
     }
 
     fun setVibrate(on: Boolean) = edit { it.copy(vibrate = on) }
 
     fun setGentleWake(on: Boolean) = edit { it.copy(gentleWake = on) }
 
-    fun setBackground(on: Boolean) = edit { it.copy(background = if (on) null else Alarm.BACKGROUND_PLAIN) }
+    fun setBackground(on: Boolean) = editor.update {
+        it.copy(draft = it.draft.copy(background = if (on) it.lastBackground else Alarm.BACKGROUND_PLAIN))
+    }
 
     /** 뒤로가기. 하위 페이지가 열려 있으면 그것만 닫고, 바뀐 게 있으면 S0-1로 묻고, 없으면 바로 닫아요. */
     fun onBack() = editor.update {
@@ -310,7 +359,20 @@ class EditViewModel @Inject constructor(
         val WAKE_CHECK_ASK_MINUTES = listOf(1, 3, 5, 10)
         val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 120)
 
-        private val OPENABLE_DETAILS = setOf(EditDetail.Mission, EditDetail.WakeCheck, EditDetail.Sound)
+        /** S3 고를 수 있는 값. null은 '끌 때까지'예요. */
+        val RING_AGAIN_INTERVALS = listOf(3, 5, 10, 15)
+        val RING_AGAIN_COUNTS = listOf(3, 5, null)
+        const val MAX_VOLUME = 100
+
+        private val OPENABLE_DETAILS = setOf(
+            EditDetail.Mission,
+            EditDetail.WakeCheck,
+            EditDetail.Sound,
+            EditDetail.RingAgain,
+            EditDetail.Volume,
+            EditDetail.Gentle,
+            EditDetail.Background,
+        )
 
         /**
          * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 5분 3번, 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),

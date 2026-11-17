@@ -10,6 +10,7 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.TimeUntil
@@ -247,7 +248,7 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.openDetail(EditDetail.Volume)
+            vm.openDetail(EditDetail.Preview)
             expectNoEvents()
         }
     }
@@ -400,6 +401,57 @@ class EditViewModelTest {
             assertThat(sheetClosed.detail).isEqualTo(EditDetail.Mission)
             vm.onBack()
             assertThat(awaitItem().detail).isNull()
+        }
+    }
+
+    @Test
+    fun detailPages_ringAgainVolumeGentleBackground() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.openDetail(EditDetail.RingAgain)
+            assertThat(awaitItem().detail).isEqualTo(EditDetail.RingAgain)
+            vm.setRingAgainInterval(10)
+            assertThat(awaitItem().draft.ringAgain.intervalMinutes).isEqualTo(10)
+            vm.setRingAgainInterval(7)
+            vm.setRingAgainCount(null)
+            assertThat(awaitItem().draft.ringAgain).isEqualTo(RingAgain(10, null))
+            vm.setVolume(35)
+            assertThat(awaitItem().draft.volumePercent).isEqualTo(35)
+            vm.setVolume(140)
+            assertThat(awaitItem().draft.volumePercent).isEqualTo(100)
+            vm.setVibrate(false)
+            awaitItem()
+            vm.setVibrationPattern(VibrationPattern.LongOnce)
+            val patterned = awaitItem().draft
+            assertThat(patterned.vibrationPattern).isEqualTo(VibrationPattern.LongOnce)
+            assertThat(patterned.vibrate).isTrue()
+            vm.setGentleSeconds(45)
+            vm.setGentleSeconds(60)
+            assertThat(awaitItem().draft.gentleSeconds).isEqualTo(60)
+            vm.setBackgroundId("nope")
+            vm.setBackgroundId("forest")
+            assertThat(awaitItem().draft.background).isEqualTo("forest")
+            vm.setBackground(false)
+            assertThat(awaitItem().draft.background).isEqualTo(Alarm.BACKGROUND_PLAIN)
+            vm.setBackground(true)
+            assertThat(awaitItem().draft.background).isEqualTo("forest")
+            vm.setBackgroundId("photo:bg_1.jpg")
+            assertThat(awaitItem().draft.background).isEqualTo("photo:bg_1.jpg")
+        }
+    }
+
+    @Test
+    fun soundToggle_restoresLastChosenSound() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setSoundId("love_serenade")
+            awaitItem()
+            vm.setSound(false)
+            assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
+            vm.setSound(true)
+            assertThat(awaitItem().draft.soundId).isEqualTo("love_serenade")
         }
     }
 }

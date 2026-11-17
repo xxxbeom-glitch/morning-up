@@ -57,7 +57,10 @@ data class Alarm(
     val soundId: String = DEFAULT_SOUND_ID,
     val volumePercent: Int = 100,
     val vibrate: Boolean = true,
+    val vibrationPattern: VibrationPattern = VibrationPattern.Basic,
     val gentleWake: Boolean = false,
+    /** S7 부드럽게 깨우기: 이 초 동안 작은 소리에서 정한 볼륨까지 올려요. */
+    val gentleSeconds: Int = DEFAULT_GENTLE_SECONDS,
     val background: String? = null,
     /** '이번만 쉬기'로 건너뛸 날짜. 그날 한 번만 쉬어요. */
     val skipOnceDate: LocalDate? = null,
@@ -76,5 +79,10 @@ data class Alarm(
 
         /** 편집 화면 '알람 화면 배경' 토글을 끈 상태. null은 기본 '시간대 하늘'이에요. */
         const val BACKGROUND_PLAIN = "plain"
+
+        const val DEFAULT_GENTLE_SECONDS = 30
+
+        /** S7에서 고를 수 있는 길이(15초, 30초, 1분, 2분). */
+        val GENTLE_SECONDS = listOf(15, 30, 60, 120)
     }
 }

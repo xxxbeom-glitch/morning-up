@@ -45,4 +45,22 @@
     <string name="ui_mission_none">없음</string>
     <!-- Drop Words 외 1개 -->
     <string name="ui_mission_more">%1$s 외 %2$d개</string>
+    <!-- S8 알람 화면 배경 -->
+    <string name="ui_bg_group_sky">하늘</string>
+    <string name="ui_bg_group_nature">자연</string>
+    <string name="ui_bg_group_solid">단색</string>
+    <string name="ui_bg_group_photo">내 사진</string>
+    <string name="ui_bg_time_sky">시간대 하늘</string>
+    <string name="ui_bg_sunrise">아침 노을</string>
+    <string name="ui_bg_dawn">새벽 남색</string>
+    <string name="ui_bg_clear">맑은 하늘</string>
+    <string name="ui_bg_night">밤하늘</string>
+    <string name="ui_bg_mint">민트</string>
+    <string name="ui_bg_forest">숲</string>
+    <string name="ui_bg_lime">라임</string>
+    <string name="ui_bg_peach">복숭아</string>
+    <string name="ui_bg_gray">연한 회색</string>
+    <string name="ui_bg_sand">모래</string>
+    <string name="ui_bg_ink">먹색</string>
+    <string name="ui_bg_my_photo">내 사진</string>
 </resources>

@@ -23,6 +23,8 @@ data class RingPlan(
     val missionSettings: List<MissionSetting> = emptyList(),
     /** 미션 중 전원 메뉴 닫기(전원 종료 방지). 미션 없는 알람에서는 쓰지 않아요. */
     val powerOffGuard: Boolean = false,
+    /** S8 알람 화면 배경 id. null이면 기본 '시간대 하늘'이에요. */
+    val background: String? = null,
 ) {
     /** [index]번째 미션 설정. 저장된 값이 없거나 종류가 다르면 그 미션의 처음 값이에요. */
     fun missionSetting(index: Int): MissionSetting? {
@@ -42,6 +44,7 @@ data class RingPlan(
             wakeCheckAskAfterMinutes = alarm.wakeCheck.askAfterMinutes,
             wakeCheckAnswerSeconds = alarm.wakeCheck.answerSeconds,
             powerOffGuard = alarm.powerOffGuard && alarm.missions.isNotEmpty(),
+            background = alarm.background,
         )
     }
 }

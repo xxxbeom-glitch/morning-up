@@ -1,9 +1,11 @@
 package com.lumian.morningup.core.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.WakeCheck
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -32,6 +34,10 @@ data class AlarmEntity(
     val background: String?,
     val skipOnceDate: String?,
     val nextTriggerAt: Long?,
+    /** v3: S6 진동 패턴([VibrationPattern.key]). */
+    @ColumnInfo(defaultValue = "basic") val vibrationPattern: String = VibrationPattern.Basic.key,
+    /** v3: S7 부드럽게 깨우기 길이(초). */
+    @ColumnInfo(defaultValue = "30") val gentleSeconds: Int = Alarm.DEFAULT_GENTLE_SECONDS,
 )
 
 internal fun Set<DayOfWeek>.toMask(): Int = fold(0) { mask, day -> mask or (1 shl (day.value - 1)) }
@@ -56,6 +62,8 @@ fun AlarmEntity.toModel(): Alarm = Alarm(
     background = background,
     skipOnceDate = skipOnceDate?.let(LocalDate::parse),
     nextTriggerAt = nextTriggerAt,
+    vibrationPattern = VibrationPattern.of(vibrationPattern),
+    gentleSeconds = gentleSeconds,
 )
 
 fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
@@ -79,4 +87,6 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     background = background,
     skipOnceDate = skipOnceDate?.toString(),
     nextTriggerAt = nextTriggerAt,
+    vibrationPattern = vibrationPattern.key,
+    gentleSeconds = gentleSeconds,
 )

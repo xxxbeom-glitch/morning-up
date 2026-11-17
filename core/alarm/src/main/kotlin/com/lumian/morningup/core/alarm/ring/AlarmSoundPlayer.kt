@@ -9,12 +9,16 @@ import android.media.RingtoneManager
 import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.engine.CallPolicy
 import com.lumian.morningup.core.model.engine.SoundOutput
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -47,11 +51,38 @@ class AlarmSoundPlayer @Inject constructor(
     val isPlaying: Boolean get() = player != null || tone != null
 
     private var soundId: String? = null
+    private var pattern: VibrationPattern = VibrationPattern.Basic
 
-    /** [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. [soundId]는 알람에 고른 알람음이에요. */
+    /** S7 부드럽게 깨우기: 소리를 처음 켠 때와 끝까지 올리는 데 걸리는 시간. 0이면 바로 제 볼륨이에요. */
+    private var rampStartedAt = 0L
+    private var rampMillis = 0L
+    private val handler = Handler(Looper.getMainLooper())
+    private val rampStep = object : Runnable {
+        override fun run() {
+            reapply()
+            if (rampFactor() < 1f) handler.postDelayed(this, RAMP_STEP_MILLIS)
+        }
+    }
+
+    /**
+     * [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. [soundId]는 알람에 고른 알람음, [pattern]은 진동 모양이에요.
+     * [gentleSeconds]가 0보다 크면 처음 켤 때 그 시간 동안 작은 소리에서 [volume]까지 올려요(S7).
+     */
     @Synchronized
-    fun play(volume: Float, vibrate: Boolean, soundId: String? = null) {
-        if (player == null) this.soundId = soundId
+    fun play(
+        volume: Float,
+        vibrate: Boolean,
+        soundId: String? = null,
+        pattern: VibrationPattern = VibrationPattern.Basic,
+        gentleSeconds: Int = 0,
+    ) {
+        if (player == null && tone == null) {
+            this.soundId = soundId
+            this.pattern = pattern
+            rampStartedAt = SystemClock.elapsedRealtime()
+            rampMillis = gentleSeconds * MILLIS_PER_SECOND
+            if (rampMillis > 0) handler.postDelayed(rampStep, RAMP_STEP_MILLIS)
+        }
         if (requested == null) {
             calls.start { inCall ->
                 diagnostics.record(if (inCall) "call_started" else "call_ended")
@@ -67,13 +98,22 @@ class AlarmSoundPlayer @Inject constructor(
         val wanted = requested ?: return
         val out = CallPolicy.output(wanted, calls.inCall())
         val current = player ?: start()
-        val volume = RingMute.volume(out.volume)
+        val volume = RingMute.volume(out.volume * rampFactor())
         current?.setVolume(volume, volume)
         if (out.vibrate) startVibration() else stopVibration()
     }
 
+    /** 부드럽게 깨우기에서 지금 올라간 정도(처음 5%에서 1까지). */
+    private fun rampFactor(): Float {
+        if (rampMillis <= 0) return 1f
+        val done = (SystemClock.elapsedRealtime() - rampStartedAt).toFloat() / rampMillis
+        return (RAMP_FLOOR + (1f - RAMP_FLOOR) * done).coerceIn(RAMP_FLOOR, 1f)
+    }
+
     @Synchronized
     fun stop() {
+        handler.removeCallbacks(rampStep)
+        rampMillis = 0
         requested = null
         calls.stop()
         player?.run {
@@ -140,7 +180,7 @@ class AlarmSoundPlayer @Inject constructor(
     private fun startVibration() {
         if (vibrating) return
         vibrating = true
-        vibrator().vibrate(VibrationEffect.createWaveform(PATTERN, 0), attributes)
+        vibrator().vibrate(VibrationEffect.createWaveform(pattern.waveform, 0), attributes)
     }
 
     private fun stopVibration() {
@@ -159,7 +199,8 @@ class AlarmSoundPlayer @Inject constructor(
     }
 
     private companion object {
-        /** 0.8초 떨고 0.6초 쉬기를 되풀이해요. */
-        val PATTERN = longArrayOf(0, 800, 600)
+        const val RAMP_STEP_MILLIS = 500L
+        const val MILLIS_PER_SECOND = 1_000L
+        const val RAMP_FLOOR = 0.05f
     }
 }

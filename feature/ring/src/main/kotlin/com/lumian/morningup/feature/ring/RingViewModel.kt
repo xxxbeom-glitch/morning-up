@@ -35,6 +35,8 @@ data class RingUiState(
     /** W2 답할 시간이 끝나는 시각(epoch 밀리초). */
     val wakeCheckEndsAt: Long? = null,
     val wakeCheckAnswerSeconds: Int = 60,
+    /** S8 알람 화면 배경. D0에만 써요. */
+    val background: String? = null,
 )
 
 /**
@@ -90,6 +92,7 @@ class RingViewModel @Inject constructor(
             hasMissions = session?.plan?.missions?.isNotEmpty() == true,
             wakeCheckEndsAt = session?.takeIf { it.phase == RingPhase.WakeCheckAsking }?.phaseEndsAt,
             wakeCheckAnswerSeconds = session?.plan?.wakeCheckAnswerSeconds ?: RingUiState().wakeCheckAnswerSeconds,
+            background = session?.plan?.background,
         )
     }
 }

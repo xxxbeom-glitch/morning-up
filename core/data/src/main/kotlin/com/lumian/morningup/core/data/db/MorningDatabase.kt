@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -23,7 +23,7 @@ abstract class MorningDatabase : RoomDatabase() {
         const val NAME = "morningup.db"
 
         /** 앱이 여는 모든 구조 옮기기. 빌더에 이것만 넘겨요. */
-        val MIGRATIONS: List<Migration> = listOf(Migration1To2)
+        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3)
     }
 }
 
@@ -42,5 +42,14 @@ object Migration1To2 : Migration(1, 2) {
             val updated = MissionCodec.encode(MissionCodec.decodeLegacy(old))
             db.execSQL("UPDATE alarms SET missions = ? WHERE id = ?", arrayOf<Any>(updated, id))
         }
+    }
+}
+
+/** v2 → v3: S6 진동 패턴과 S7 부드럽게 깨우기 길이 칸을 더해요(7단계). 지금 알람은 기본, 30초로 채워요. */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration2To3 : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE alarms ADD COLUMN vibrationPattern TEXT NOT NULL DEFAULT 'basic'")
+        db.execSQL("ALTER TABLE alarms ADD COLUMN gentleSeconds INTEGER NOT NULL DEFAULT 30")
     }
 }
