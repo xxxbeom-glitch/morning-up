@@ -15,6 +15,8 @@ import android.os.VibratorManager
 import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.model.engine.CallPolicy
+import com.lumian.morningup.core.model.engine.SoundOutput
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,12 +25,16 @@ import javax.inject.Singleton
  * 알람 소리와 진동. 알람음 목록은 아직 목업이라 어떤 항목을 골라도 앱 기본음(res/raw/alarm_default)으로 울려요.
  * 기본음을 못 열면 폰 기본 알람음으로 대신 울리고 기록을 남겨요.
  * 소리는 알람 소리 통로(USAGE_ALARM)로 내서 무음 모드와 미디어 볼륨에 상관없이 들려요.
+ * 통화 중이면 [CallPolicy]대로 작은 소리와 진동으로 울리고, 통화가 끝나면 원래 크기로 돌아가요.
  */
 @Singleton
 class AlarmSoundPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val diagnostics: AlarmDiagnostics,
+    private val calls: CallMonitor,
 ) {
+    private var requested: SoundOutput? = null
+
     private var player: MediaPlayer? = null
     private var vibrating = false
     private var tone: ToneGenerator? = null
@@ -41,14 +47,31 @@ class AlarmSoundPlayer @Inject constructor(
     val isPlaying: Boolean get() = player != null || tone != null
 
     /** [volume]은 0~1. 이미 울리고 있으면 볼륨만 바꿔요. */
+    @Synchronized
     fun play(volume: Float, vibrate: Boolean) {
-        val v = volume.coerceIn(0f, 1f)
-        val current = player ?: start()
-        current?.setVolume(v, v)
-        if (vibrate) startVibration() else stopVibration()
+        if (requested == null) {
+            calls.start { inCall ->
+                diagnostics.record(if (inCall) "call_started" else "call_ended")
+                reapply()
+            }
+        }
+        requested = SoundOutput(volume.coerceIn(0f, 1f), vibrate)
+        reapply()
     }
 
+    @Synchronized
+    private fun reapply() {
+        val wanted = requested ?: return
+        val out = CallPolicy.output(wanted, calls.inCall())
+        val current = player ?: start()
+        current?.setVolume(out.volume, out.volume)
+        if (out.vibrate) startVibration() else stopVibration()
+    }
+
+    @Synchronized
     fun stop() {
+        requested = null
+        calls.stop()
         player?.run {
             runCatching { stop() }
             release()

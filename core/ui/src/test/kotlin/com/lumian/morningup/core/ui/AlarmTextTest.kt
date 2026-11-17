@@ -49,4 +49,17 @@ class AlarmTextTest {
         assertThat(AlarmText.missions(res, listOf(MissionType.DropWords, MissionType.PopQuiz)))
             .isEqualTo("Drop Words 외 1개")
     }
+
+    @Test
+    fun dateLong_durationAndCountdown() {
+        assertThat(AlarmText.dateLong(res, LocalDate.of(2026, 11, 16))).isEqualTo("11월 16일 월요일")
+        assertThat(AlarmText.duration(res, 30)).isEqualTo("30초")
+        assertThat(AlarmText.duration(res, 60)).isEqualTo("1분")
+        assertThat(AlarmText.duration(res, 90)).isEqualTo("1분 30초")
+        assertThat(AlarmText.duration(res, 120)).isEqualTo("2분")
+        assertThat(AlarmText.countdown(res, 42_000)).isEqualTo("0:42")
+        assertThat(AlarmText.countdown(res, 41_001)).isEqualTo("0:42")
+        assertThat(AlarmText.countdown(res, 65_000)).isEqualTo("1:05")
+        assertThat(AlarmText.countdown(res, -5)).isEqualTo("0:00")
+    }
 }

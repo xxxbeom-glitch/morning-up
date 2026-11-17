@@ -30,6 +30,9 @@ enum class MorningHaptic {
 
     /** 일반 버튼 누름. */
     Press,
+
+    /** 미션 키패드 키 하나(Quick Math, Drop Words). */
+    KeyTap,
 }
 
 /** 기기 버전에 맞는 진동 상수. 지원 안 하는 버전은 비슷한 옛 상수로 바꿔요. */
@@ -51,6 +54,14 @@ fun MorningHaptic.toFeedbackConstant(sdkInt: Int): Int = when (this) {
             HapticFeedbackConstants.CLOCK_TICK
         }
     MorningHaptic.Press -> HapticFeedbackConstants.VIRTUAL_KEY
+    MorningHaptic.KeyTap ->
+        if (sdkInt >=
+            Build.VERSION_CODES.O_MR1
+        ) {
+            HapticFeedbackConstants.KEYBOARD_TAP
+        } else {
+            HapticFeedbackConstants.VIRTUAL_KEY
+        }
 }
 
 private const val UPSIDE_DOWN_CAKE = 34

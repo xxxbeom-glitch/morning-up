@@ -75,7 +75,17 @@ class RingNotifications @Inject constructor(
         val urgent = !isWaiting(phase)
         return NotificationCompat.Builder(context, CHANNEL_RINGING)
             .setSmallIcon(R.drawable.ic_alarm_clock)
-            .setContentTitle(text(R.string.ring_title))
+            .setContentTitle(
+                text(
+                    if (phase ==
+                        RingPhase.WakeCheckAsking
+                    ) {
+                        R.string.wake_check_title
+                    } else {
+                        R.string.ring_title
+                    },
+                ),
+            )
             .setContentText(text(phaseText(phase)))
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setPriority(NotificationCompat.PRIORITY_MAX)

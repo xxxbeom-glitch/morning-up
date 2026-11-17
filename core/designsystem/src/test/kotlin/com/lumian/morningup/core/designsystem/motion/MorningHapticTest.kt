@@ -30,4 +30,9 @@ class MorningHapticTest {
             .isEqualTo(HapticFeedbackConstants.SEGMENT_FREQUENT_TICK)
         assertThat(MorningHaptic.SegmentTick.toFeedbackConstant(33)).isEqualTo(HapticFeedbackConstants.CLOCK_TICK)
     }
+
+    @Test
+    fun keyTap_usesKeyboardTap() {
+        assertThat(MorningHaptic.KeyTap.toFeedbackConstant(30)).isEqualTo(HapticFeedbackConstants.KEYBOARD_TAP)
+    }
 }

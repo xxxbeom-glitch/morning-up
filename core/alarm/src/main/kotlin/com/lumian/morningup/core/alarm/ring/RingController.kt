@@ -122,8 +122,11 @@ class RingController @Inject constructor(
         }
     }
 
-    /** W1 화면을 닫았어요. */
+    /**
+     * W1 화면을 닫았어요. W2를 기다리는 중(세션이 남아 있음)이어도 W1은 닫아요.
+     * W2 때가 되면 상태표가 ShowWakeCheck로 다시 화면을 정해요.
+     */
     fun clearScreen() {
-        if (_session.value == null) _screen.value = RingScreen.None
+        if (_screen.value == RingScreen.WakeUp) _screen.value = RingScreen.None
     }
 }

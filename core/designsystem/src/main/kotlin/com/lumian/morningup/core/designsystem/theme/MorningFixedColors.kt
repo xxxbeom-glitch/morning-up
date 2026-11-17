@@ -6,4 +6,10 @@ import androidx.compose.ui.graphics.Color
 object MorningFixedColors {
     /** 시트, 다이얼로그 뒤 막: #14202E 40%. */
     val Scrim = Color(0x6614202E)
+
+    /** W1 해제 완료 뒤 딤: 아침 검정 45%. */
+    val WakeDimMorning = Color(0x73000000)
+
+    /** W1 해제 완료 뒤 딤: 밤 검정 60%. */
+    val WakeDimNight = Color(0x99000000)
 }

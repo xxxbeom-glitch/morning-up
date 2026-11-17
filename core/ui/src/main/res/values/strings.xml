@@ -19,6 +19,15 @@
     <!-- 11월 16일 (월) -->
     <string name="ui_date_short">%1$d월 %2$d일 (%3$s)</string>
 
+    <!-- 11월 16일 월요일 (알람 울림 화면) -->
+    <string name="ui_date_long">%1$d월 %2$d일 %3$s요일</string>
+
+    <!-- 길이: 30초, 1분, 1분 30초 -->
+    <string name="ui_duration_minutes">%1$d분</string>
+    <string name="ui_duration_seconds">%1$d초</string>
+    <!-- 남은 시간 0:42 -->
+    <string name="ui_countdown">%1$d:%2$02d</string>
+
     <!-- 몇 일 몇 시간 몇 분 -->
     <string name="ui_until_days">%1$d일</string>
     <string name="ui_until_hours">%1$d시간</string>

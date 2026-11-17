@@ -18,6 +18,8 @@ import java.time.LocalTime
  */
 object AlarmText {
     private const val HOURS_HALF_DAY = 12
+    private const val SECONDS_PER_MINUTE = 60
+    private const val MILLIS_PER_SECOND = 1_000L
 
     /** '오전 6:30'. */
     fun time(resources: Resources, time: LocalTime): String {
@@ -43,6 +45,32 @@ object AlarmText {
             date.dayOfMonth,
             dayShort(resources, date.dayOfWeek),
         )
+
+    /** '11월 16일 월요일'(알람 울림 화면). */
+    fun dateLong(resources: Resources, date: LocalDate): String =
+        resources.getString(
+            R.string.ui_date_long,
+            date.monthValue,
+            date.dayOfMonth,
+            dayShort(resources, date.dayOfWeek),
+        )
+
+    /** '30초', '1분', '1분 30초'. */
+    fun duration(resources: Resources, seconds: Int): String {
+        val minutes = seconds / SECONDS_PER_MINUTE
+        val rest = seconds % SECONDS_PER_MINUTE
+        val parts = buildList {
+            if (minutes > 0) add(resources.getString(R.string.ui_duration_minutes, minutes))
+            if (rest > 0 || isEmpty()) add(resources.getString(R.string.ui_duration_seconds, rest))
+        }
+        return parts.joinToString(" ")
+    }
+
+    /** 남은 시간 '0:42', '1:05'. 남은 밀리초는 올림해서 0이 되는 순간에만 '0:00'이에요. */
+    fun countdown(resources: Resources, millis: Long): String {
+        val total = ((millis.coerceAtLeast(0) + MILLIS_PER_SECOND - 1) / MILLIS_PER_SECOND).toInt()
+        return resources.getString(R.string.ui_countdown, total / SECONDS_PER_MINUTE, total % SECONDS_PER_MINUTE)
+    }
 
     /** '7시간 20분', '1일 7시간 50분', '20분'. 0인 단위는 빼요. 모두 0이면 '0분'. */
     fun until(resources: Resources, until: TimeUntil): String {

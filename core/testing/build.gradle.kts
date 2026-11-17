@@ -8,6 +8,7 @@ android {
 
 dependencies {
     api(projects.core.data)
+    api(projects.core.alarm)
     api(libs.junit)
     api(libs.truth)
     api(libs.turbine)

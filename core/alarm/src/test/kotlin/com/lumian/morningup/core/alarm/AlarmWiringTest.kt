@@ -15,8 +15,10 @@ import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.data.diagnostics.DiagnosticLog
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingEvent
@@ -178,7 +180,32 @@ class AlarmWiringTest {
     private fun TestScope.sessionStore(file: File) =
         RingSessionStore(PreferenceDataStoreFactory.create(scope = backgroundScope, produceFile = { file }))
 
-    private val mathAlarm = Alarm(id = 3, time = LocalTime.of(6, 0), missions = listOf(MissionType.QuickMath))
+    private val mathAlarm =
+        Alarm(id = 3, time = LocalTime.of(6, 0), missions = listOf(MissionSetting(MissionType.QuickMath, 5, 4)))
+
+    @Test
+    fun wakeCheck_closingW1_thenAskTimer_showsW2_withPlanSettings() = runTest {
+        val sessions = sessionStore(tmp.newFile("w.preferences_pb").also { it.delete() })
+        val alarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true, askAfterMinutes = 1, answerSeconds = 60))
+        val controller = RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now)
+        controller.fire(3)
+        assertThat(
+            controller.session.value!!.plan.missionSetting(0),
+        ).isEqualTo(MissionSetting(MissionType.QuickMath, 5, 4))
+        controller.send(RingEvent.MissionStarted)
+        controller.send(RingEvent.MissionCompleted)
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeUp)
+        assertThat(controller.session.value!!.phase).isEqualTo(RingPhase.AwaitingWakeCheck)
+
+        controller.clearScreen()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+
+        clock += 60_000L
+        controller.send(RingEvent.TimerFired(TimerKind.WakeCheckAsk))
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
+        controller.clearScreen()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
+    }
 
     @Test
     fun fire_mission_complete_endsWithWakeUpScreen() = runTest {
