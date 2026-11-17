@@ -15,19 +15,28 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import com.lumian.morningup.BuildConfig
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
+import com.lumian.morningup.core.model.PermissionScreen
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
+import com.lumian.morningup.feature.settings.PermissionRoute
+import com.lumian.morningup.feature.settings.SettingsRoute
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
 /** 탭 세 개를 담은 첫 화면. */
 @Serializable
 data object MainRoute
+
+/** T2-A 알람 울림, T2-B 알람 화면 표시. [screen]은 [PermissionScreen] 이름이에요. */
+@Serializable
+data class PermissionsRoute(val screen: String)
 
 /** 편집 화면이 저장한 알람 id를 첫 화면에 넘기는 열쇠. */
 private const val SAVED_ALARM_KEY = "savedAlarmId"
@@ -77,7 +86,22 @@ fun MorningNavHost(
                         onSavedAlarmShown = { entry.savedStateHandle[SAVED_ALARM_KEY] = null },
                     )
                 },
-                debugTools = debugTools,
+                settingsTab = { tabModifier ->
+                    SettingsRoute(
+                        versionName = BuildConfig.VERSION_NAME,
+                        onOpenPermissions = { screen ->
+                            navController.navigate(PermissionsRoute(screen.name)) { launchSingleTop = true }
+                        },
+                        modifier = tabModifier,
+                        extra = debugTools,
+                    )
+                },
+            )
+        }
+        composable<PermissionsRoute> { entry ->
+            PermissionRoute(
+                screen = PermissionScreen.valueOf(entry.toRoute<PermissionsRoute>().screen),
+                onBack = { navController.popBackStack() },
             )
         }
         composable<EditRoute> {

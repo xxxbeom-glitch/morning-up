@@ -35,8 +35,6 @@ import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
-import com.lumian.morningup.core.model.AlarmPermission
-import com.lumian.morningup.core.model.PermissionReport
 
 private val SwatchSize = 40.dp
 private val BottomNavSpace = 120.dp
@@ -124,28 +122,6 @@ fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
                 stringResource(R.string.sample_alarm_scheduled, it.toString()),
                 style = MorningTheme.typography.bodyMedium,
                 color = MorningTheme.colors.textSecondary,
-            )
-        }
-    }
-    PermissionStatus(viewModel.permissionReport.collectAsStateWithLifecycle().value)
-}
-
-/** 권한 점검기 결과를 한 줄씩 보여 줘요. 기기 설정에서 끄고 돌아오면 바로 바뀌어야 해요. */
-@Composable
-private fun PermissionStatus(report: PermissionReport) {
-    Section(stringResource(R.string.sample_permissions)) {
-        AlarmPermission.entries.forEach { permission ->
-            val on = report.isGranted(permission)
-            val kind = when (permission.required) {
-                true -> R.string.sample_permission_required
-                false -> R.string.sample_permission_optional
-            }
-            val line = if (on) R.string.sample_permission_on else R.string.sample_permission_off
-            val warn = !on && permission.required
-            Text(
-                text = stringResource(line, permission.name, stringResource(kind)),
-                style = MorningTheme.typography.bodyMedium,
-                color = if (warn) MorningTheme.colors.statusError else MorningTheme.colors.textSecondary,
             )
         }
     }

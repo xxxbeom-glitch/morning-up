@@ -28,10 +28,14 @@ class MorningUpAppTest {
     }
 
     @Test
-    fun settingsTab_showsSample_inDebugBuild() {
-        compose.setContent { MorningTheme(darkTheme = true, reduceMotion = false) { MorningUpApp() } }
+    fun settingsTab_showsGivenContent() {
+        compose.setContent {
+            MorningTheme(darkTheme = true, reduceMotion = false) {
+                MorningUpApp(settingsTab = { Text("설정 자리") })
+            }
+        }
         compose.onNodeWithContentDescription("설정").performClick().assertIsSelected()
-        compose.onNodeWithText("견본").assertExists()
+        compose.onNodeWithText("설정 자리").assertExists()
     }
 
     @Test

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_title">설정</string>
+    <string name="settings_back">뒤로</string>
+    <string name="settings_alarm_card">알람</string>
+    <string name="settings_alarm_ring">알람 울림</string>
+    <string name="settings_alarm_screen">알람 화면 표시</string>
+    <string name="settings_alarm_try">알람 미리 울려 보기</string>
+    <string name="settings_alarm_try_value">1분 뒤</string>
+    <string name="settings_alarm_try_done">%1$s에 울려요</string>
+    <string name="settings_help_card">도움말</string>
+    <string name="settings_feedback">의견 보내기</string>
+    <string name="settings_info_card">앱 정보</string>
+    <string name="settings_version">버전</string>
+    <string name="settings_needs_attention">확인이 필요해요</string>
+    <string name="settings_feedback_subject">모닝업 의견</string>
+    <string name="settings_feedback_body">\n\n\n기기: %1$s\n안드로이드: %2$s\n앱 버전: %3$s\n꺼진 권한: %4$s</string>
+    <string name="settings_feedback_none">없음</string>
+
+    <string name="permission_required">필수 권한</string>
+    <string name="permission_optional">선택 권한</string>
+    <string name="permission_granted">허용됨</string>
+    <string name="permission_not_granted">허용 필요</string>
+    <string name="permission_exact">정확한 알람</string>
+    <string name="permission_exact_desc">정한 시각에 딱 맞춰 울려요</string>
+    <string name="permission_battery">배터리 사용 제한 없음</string>
+    <string name="permission_battery_desc">절전 중에도 제시간에 울려요</string>
+    <string name="permission_samsung_sleep">절전 예외 앱에 추가</string>
+    <string name="permission_samsung_sleep_desc">며칠 안 열어도 잠들지 않아요</string>
+    <string name="permission_dnd">방해 금지 모드 예외</string>
+    <string name="permission_dnd_desc">방해 금지 중에도 울려요</string>
+    <string name="permission_volume">알람 음량</string>
+    <string name="permission_volume_desc">무음 모드여도 소리가 나요</string>
+    <string name="permission_notifications">알림</string>
+    <string name="permission_notifications_desc">끄면 알람 화면이 안 떠요</string>
+    <string name="permission_full_screen">전체 화면 알림</string>
+    <string name="permission_full_screen_desc">잠금 화면 위로 알람을 띄워요</string>
+    <string name="permission_overlay">다른 앱 위에 표시</string>
+    <string name="permission_overlay_desc">쓰던 앱 위로 알람을 띄워요</string>
+</resources>

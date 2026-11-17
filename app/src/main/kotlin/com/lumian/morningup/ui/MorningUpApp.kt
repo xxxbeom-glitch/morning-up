@@ -18,7 +18,6 @@ import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.Settings
-import com.lumian.morningup.BuildConfig
 import com.lumian.morningup.R
 import com.lumian.morningup.core.designsystem.component.MorningBottomNav
 import com.lumian.morningup.core.designsystem.component.MorningNavItem
@@ -29,14 +28,13 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 enum class TopTab { Alarm, Sleep, Settings }
 
 /**
- * 앱 껍데기: 탭 내용 + 아래 가운데 떠 있는 하단 메뉴. [alarmTab]은 알람 탭(홈)이고,
- * [debugTools]는 디버그 견본 아래에 붙어요.
+ * 앱 껍데기: 탭 내용 + 아래 가운데 떠 있는 하단 메뉴. [alarmTab]은 알람 탭(홈), [settingsTab]은 설정 탭(T1)이에요.
  */
 @Composable
 fun MorningUpApp(
     modifier: Modifier = Modifier,
     alarmTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_alarm)) },
-    debugTools: @Composable () -> Unit = {},
+    settingsTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_settings)) },
 ) {
     var tab by rememberSaveable { mutableStateOf(TopTab.Alarm) }
     val labels = listOf(
@@ -51,7 +49,7 @@ fun MorningUpApp(
     ) {
         when {
             tab == TopTab.Alarm -> alarmTab(Modifier.fillMaxSize())
-            tab == TopTab.Settings && BuildConfig.DEBUG -> SampleScreen(tools = debugTools)
+            tab == TopTab.Settings -> settingsTab(Modifier.fillMaxSize())
             else -> Placeholder(labels[tab.ordinal])
         }
         MorningBottomNav(

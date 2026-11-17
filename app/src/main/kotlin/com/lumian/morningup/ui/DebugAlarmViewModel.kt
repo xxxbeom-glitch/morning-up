@@ -7,8 +7,6 @@ import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
-import com.lumian.morningup.core.model.PermissionChecker
-import com.lumian.morningup.core.model.PermissionReport
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -27,11 +25,7 @@ class DebugAlarmViewModel @Inject constructor(
     private val repository: AlarmRepository,
     private val rescheduler: AlarmRescheduler,
     private val now: NowProvider,
-    permissions: PermissionChecker,
 ) : ViewModel() {
-    /** 권한 상태. 6단계 화면이 생기기 전까지 폰에서 점검기 동작을 확인하는 용도예요. */
-    val permissionReport: StateFlow<PermissionReport> = permissions.report
-
     private val _scheduledAt = MutableStateFlow<LocalTime?>(null)
     val scheduledAt: StateFlow<LocalTime?> = _scheduledAt.asStateFlow()
 
