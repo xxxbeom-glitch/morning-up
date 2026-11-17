@@ -39,6 +39,7 @@ import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Layers
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Moon
+import com.composables.icons.lucide.Shield
 import com.composables.icons.lucide.SquareDot
 import com.composables.icons.lucide.Volume2
 import com.lumian.morningup.core.alarm.PermissionSettings
@@ -71,6 +72,7 @@ private object PermissionTint {
     val Notifications = Color(0xFFF2675A)
     val FullScreen = Color(0xFF6D7CF2)
     val Overlay = Color(0xFF4C8DF0)
+    val PowerGuard = Color(0xFF2BB3C0)
 }
 
 /** 권한 줄 하나의 모양. */
@@ -106,6 +108,8 @@ private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
         )
     AlarmPermission.Overlay ->
         RowSpec(R.string.permission_overlay, R.string.permission_overlay_desc, Lucide.Layers, PermissionTint.Overlay)
+    AlarmPermission.PowerGuard ->
+        RowSpec(R.string.permission_power, R.string.permission_power_desc, Lucide.Shield, PermissionTint.PowerGuard)
 }
 
 /**
@@ -117,11 +121,13 @@ private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
 fun PermissionRoute(
     screen: PermissionScreen,
     onBack: () -> Unit,
+    onOpenPowerGuide: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val powerAgreed by viewModel.powerGuardAgreed.collectAsStateWithLifecycle()
     var asking by rememberSaveable { mutableStateOf<AlarmPermission?>(null) }
     PermissionPage(
         screen = screen,
@@ -130,17 +136,27 @@ fun PermissionRoute(
         onBack = onBack,
         // 꺼진 권한은 P1~P4 요청 창을 먼저 띄우고, 켜진 권한은 끄는 곳(기기 설정)으로 바로 보내요.
         onOpen = {
-            if (report.isGranted(it)) {
-                PermissionSettings.open(context, PermissionSettings.intentFor(context, it))
-            } else {
-                asking = it
+            when {
+                report.isGranted(it) -> PermissionSettings.open(context, PermissionSettings.intentFor(context, it))
+                // 전원 종료 방지는 P6 동의를 한 번 받고, 그 뒤로는 P7 안내 화면으로 바로 가요.
+                it == AlarmPermission.PowerGuard && powerAgreed -> onOpenPowerGuide()
+                else -> asking = it
             }
         },
         onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
         modifier = modifier,
     )
-    asking?.let { permission ->
-        PermissionAskDialog(permission = permission, onDismiss = { asking = null }, onDone = { asking = null })
+    when (val permission = asking) {
+        null -> Unit
+        AlarmPermission.PowerGuard -> PowerGuardConsentDialog(
+            onDismiss = { asking = null },
+            onAgree = {
+                viewModel.agreePowerGuard()
+                asking = null
+                onOpenPowerGuide()
+            },
+        )
+        else -> PermissionAskDialog(permission = permission, onDismiss = { asking = null }, onDone = { asking = null })
     }
 }
 
@@ -196,10 +212,15 @@ fun PermissionPage(
                     }
                 }
             }
-            if (screen == PermissionScreen.Screen) {
-                MorningSettingsCard(title = stringResource(R.string.permission_optional)) {
-                    PermissionRow(AlarmPermission.Overlay, report, onOpen)
+            MorningSettingsCard(title = stringResource(R.string.permission_optional)) {
+                val optional = if (screen ==
+                    PermissionScreen.Ring
+                ) {
+                    AlarmPermission.PowerGuard
+                } else {
+                    AlarmPermission.Overlay
                 }
+                PermissionRow(optional, report, onOpen)
             }
         }
     }

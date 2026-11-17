@@ -31,6 +31,9 @@ enum class AlarmPermission(val screen: PermissionScreen, val required: Boolean) 
 
     /** 다른 앱 위에 표시. 선택 권한이에요. */
     Overlay(PermissionScreen.Screen, required = false),
+
+    /** 전원 종료 방지(접근성 서비스). 미션 중 전원 메뉴를 닫아요. 선택 권한이고 T2-A '선택 권한' 카드에 있어요(F1). */
+    PowerGuard(PermissionScreen.Ring, required = false),
 }
 
 /** 권한 줄이 있는 상세 화면. [Ring]은 T2-A 알람 울림, [Screen]은 T2-B 알람 화면 표시. */

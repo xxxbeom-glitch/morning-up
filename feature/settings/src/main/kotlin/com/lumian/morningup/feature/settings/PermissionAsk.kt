@@ -31,6 +31,8 @@ private fun askTexts(permission: AlarmPermission): AskTexts = when (permission) 
     AlarmPermission.Overlay -> AskTexts(R.string.ask_overlay, R.string.ask_overlay_msg)
     AlarmPermission.DoNotDisturb -> AskTexts(R.string.ask_dnd, R.string.ask_dnd_msg)
     AlarmPermission.AlarmVolume -> AskTexts(R.string.ask_volume, R.string.ask_volume_msg, R.string.ask_volume_confirm)
+    AlarmPermission.PowerGuard ->
+        AskTexts(R.string.power_consent_title, R.string.power_consent_msg, R.string.power_consent_agree)
 }
 
 /** 안드로이드 13 이상에서 알림 권한 자체(채널이 아니라)가 아직 없는지. 이때는 시스템 요청 창으로 먼저 물어요. */

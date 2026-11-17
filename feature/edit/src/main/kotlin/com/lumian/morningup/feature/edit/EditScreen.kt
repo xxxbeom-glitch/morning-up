@@ -87,12 +87,14 @@ fun AlarmEditRoute(
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
     onPreview: (List<MissionSetting>) -> Unit = {},
+    onPowerGuardOn: () -> Unit = {},
     viewModel: EditViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val saved by rememberUpdatedState(onSaved)
     val close by rememberUpdatedState(onClose)
     val preview by rememberUpdatedState(onPreview)
+    val powerGuardOn by rememberUpdatedState(onPowerGuardOn)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
             is EditExit.Saved -> saved(exit.alarmId)
@@ -111,7 +113,11 @@ fun AlarmEditRoute(
                 onMissions = viewModel::setMissionsEnabled,
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
-                onPowerOff = viewModel::setPowerOffGuard,
+                // 켤 때 접근성 서비스가 꺼져 있으면 P6 동의와 P7 안내로 이어 줘요(앱이 판단해요).
+                onPowerOff = { on ->
+                    viewModel.setPowerOffGuard(on)
+                    if (on) powerGuardOn()
+                },
                 onSound = viewModel::setSound,
                 onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,

@@ -1,11 +1,13 @@
 package com.lumian.morningup.core.alarm
 
 import android.app.NotificationManager
+import android.content.ComponentName
 import android.content.Context
 import android.media.AudioManager
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
+import com.lumian.morningup.core.alarm.guard.PowerGuardService
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionChecker
@@ -54,6 +56,17 @@ class AndroidPermissionChecker @Inject constructor(
         AlarmPermission.Notifications -> notificationsOn()
         AlarmPermission.FullScreen -> notifications.canShowFullScreen()
         AlarmPermission.Overlay -> Settings.canDrawOverlays(context)
+        AlarmPermission.PowerGuard -> powerGuardOn()
+    }
+
+    /** 접근성 설정에서 전원 종료 방지 서비스가 켜져 있는지. */
+    private fun powerGuardOn(): Boolean {
+        val enabled = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+        ).orEmpty()
+        val me = ComponentName(context, PowerGuardService::class.java)
+        return enabled.split(':').any { ComponentName.unflattenFromString(it) == me }
     }
 
     /** 앱 알림 전체와 울림 알림 채널이 모두 켜져 있어야 울림 화면을 띄울 수 있어요. */

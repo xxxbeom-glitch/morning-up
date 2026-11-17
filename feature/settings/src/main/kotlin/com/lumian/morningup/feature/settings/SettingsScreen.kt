@@ -63,6 +63,8 @@ fun SettingsRoute(
     versionName: String,
     onOpenPermissions: (PermissionScreen) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenFaq: () -> Unit = {},
+    onOpenLicenses: () -> Unit = {},
     extra: @Composable () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -76,6 +78,8 @@ fun SettingsRoute(
         onOpenPermissions = onOpenPermissions,
         onTryAlarm = viewModel::tryAlarm,
         onFeedback = { sendFeedback(context, versionName, report) },
+        onFaq = onOpenFaq,
+        onLicenses = onOpenLicenses,
         modifier = modifier,
         extra = extra,
     )
@@ -90,6 +94,8 @@ fun SettingsScreen(
     onTryAlarm: () -> Unit,
     onFeedback: () -> Unit,
     modifier: Modifier = Modifier,
+    onFaq: () -> Unit = {},
+    onLicenses: () -> Unit = {},
     extra: @Composable () -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
@@ -126,10 +132,12 @@ fun SettingsScreen(
                     )
                 }
                 MorningSettingsCard(title = stringResource(R.string.settings_help_card)) {
+                    NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
                     NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
                 }
                 MorningSettingsCard(title = stringResource(R.string.settings_info_card)) {
                     NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
+                    NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                 }
                 extra()
             }

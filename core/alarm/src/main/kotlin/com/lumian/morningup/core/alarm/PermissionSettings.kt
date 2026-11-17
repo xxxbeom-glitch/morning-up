@@ -36,6 +36,7 @@ object PermissionSettings {
                     appDetails(context)
                 }
             AlarmPermission.Overlay -> Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, pkg)
+            AlarmPermission.PowerGuard -> Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
         }
     }
 

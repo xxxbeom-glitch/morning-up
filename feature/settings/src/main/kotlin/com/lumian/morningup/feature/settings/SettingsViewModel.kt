@@ -5,6 +5,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.guard.PowerGuardConsent
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.PermissionChecker
@@ -28,8 +29,14 @@ class SettingsViewModel @Inject constructor(
     private val repository: AlarmRepository,
     private val rescheduler: AlarmRescheduler,
     private val now: NowProvider,
+    private val powerConsent: PowerGuardConsent,
     @ApplicationContext context: Context,
 ) : ViewModel() {
+    /** P6 접근성 권한 동의를 받았는지. */
+    val powerGuardAgreed: StateFlow<Boolean> = powerConsent.agreed
+
+    fun agreePowerGuard() = powerConsent.agree()
+
     val report: StateFlow<PermissionReport> = permissions.report
 
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
