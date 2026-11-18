@@ -18,6 +18,8 @@ import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.ring.RingActivity
 import com.lumian.morningup.ui.DebugAlarmTools
 import com.lumian.morningup.ui.MorningNavHost
+import com.lumian.morningup.ui.SystemBarIcons
+import com.lumian.morningup.ui.rememberNightByClock
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -58,7 +60,10 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) readEditRequest(intent)
         setContent {
             FitDesignWidth {
-                MorningTheme {
+                // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
+                val night = rememberNightByClock(now::now)
+                MorningTheme(darkTheme = night) {
+                    SystemBarIcons(dark = night)
                     MorningNavHost(
                         editRequests = editRequests,
                         onEditRequestHandled = { editRequests.value = null },

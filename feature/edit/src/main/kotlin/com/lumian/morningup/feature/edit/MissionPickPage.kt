@@ -199,6 +199,16 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
         color = MorningTheme.colors.textPrimary,
         modifier = Modifier.padding(top = MorningDimens.space4, bottom = MorningDimens.space8),
     )
+    // 결정 87: 머리 아래 예제 영역(312x260). 예제 애니메이션은 아직 넣지 않고 자리만 둬요(11-18 사용자 지시).
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(ExampleAreaHeight)
+            .clip(RoundedCornerShape(MorningDimens.radiusTile))
+            .background(MorningTheme.colors.backgroundRaised)
+            .testTag(SHEET_EXAMPLE_TAG),
+    )
+    Spacer(Modifier.height(MorningDimens.space8))
     if (setting.type != MissionType.ShakeShake) {
         MorningValueSwitchRow(
             label = levelLabel,
@@ -304,3 +314,8 @@ private fun countValueOf(type: MissionType): Int = when (type) {
     MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions_value
     MissionType.ShakeShake -> R.string.edit_mission_shakes_value
 }
+
+/** 미션 설정 시트 예제 영역 높이(피그마 S1-3A 등, 312x260). */
+private val ExampleAreaHeight = 260.dp
+
+const val SHEET_EXAMPLE_TAG = "missionSheetExample"

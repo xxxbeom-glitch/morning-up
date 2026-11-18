@@ -465,8 +465,11 @@ private fun MissionCard(
                 else -> stringResource(R.string.edit_ring_again_value, ringAgain.intervalMinutes, ringAgainCount)
             },
             state = onOff(ringAgainCount != 0),
-            // 토글은 켜고 끄기만, 글자 쪽을 누르면 S3 시트가 열려요(결정 78).
-            onCheckedChange = actions.onRingAgain,
+            // 글자 쪽을 누르면 S3 시트가 열려요(결정 78). 토글을 켜면 켜고 나서 시트도 바로 띄워요(11-18 사용자 지시).
+            onCheckedChange = { on ->
+                actions.onRingAgain(on)
+                if (on) onOpenSheet(EditSheet.RingAgain)
+            },
             onClick = { onOpenSheet(EditSheet.RingAgain) },
         )
         MorningSettingRow(
@@ -477,7 +480,10 @@ private fun MissionCard(
                 offValue()
             },
             state = onOff(alarm.wakeCheck.enabled),
-            onCheckedChange = actions.onWakeCheck,
+            onCheckedChange = { on ->
+                actions.onWakeCheck(on)
+                if (on) onOpenSheet(EditSheet.WakeCheck)
+            },
             onClick = { onOpenSheet(EditSheet.WakeCheck) },
         )
     }

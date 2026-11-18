@@ -11,12 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.lumian.morningup.core.alarm.ring.VolumePreviewer
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
@@ -100,6 +104,10 @@ private val GentleOptions = listOf(0) + Alarm.GENTLE_SECONDS
  */
 @Composable
 internal fun VolumeSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+    // 막대를 움직이거나 '볼륨 천천히 올리기'를 누를 때마다 미리 들려줘요(11-18 사용자 지시). 시트를 닫으면 멈춰요.
+    val context = LocalContext.current
+    val previewer = remember(context) { VolumePreviewer(context.applicationContext) }
+    DisposableEffect(previewer) { onDispose { previewer.stop() } }
     EditSheetFrame(
         title = stringResource(R.string.edit_volume_title),
         description = stringResource(R.string.edit_volume_sheet_desc),
@@ -107,7 +115,10 @@ internal fun VolumeSheetContent(alarm: Alarm, actions: EditActions, onDone: () -
     ) {
         VolumeSlider(
             percent = alarm.volumePercent,
-            onVolume = actions.onVolume,
+            onVolume = { percent ->
+                actions.onVolume(percent)
+                previewer.volume(alarm.soundId, percent)
+            },
             modifier = Modifier.padding(vertical = MorningDimens.space8),
         )
         MorningSettingRow(
@@ -124,7 +135,10 @@ internal fun VolumeSheetContent(alarm: Alarm, actions: EditActions, onDone: () -
             optionLabel = { s ->
                 if (s == 0) stringResource(R.string.edit_gentle_none) else stringResource(R.string.edit_seconds, s)
             },
-            onSelect = { s -> if (s == 0) actions.onGentle(false) else actions.onGentleSeconds(s) },
+            onSelect = { s ->
+                if (s == 0) actions.onGentle(false) else actions.onGentleSeconds(s)
+                previewer.gentle(alarm.soundId, alarm.volumePercent, s)
+            },
         )
     }
 }

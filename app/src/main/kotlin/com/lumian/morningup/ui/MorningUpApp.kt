@@ -50,6 +50,7 @@ fun MorningUpApp(
         darkTheme = tab == TopTab.Sleep || MorningTheme.colors.isDark,
         reduceMotion = MorningTheme.reduceMotion,
     ) {
+        SystemBarIcons(dark = MorningTheme.colors.isDark)
         AppFrame(modifier, tab, labels, settingsAlert, hideNav, onSelect = { tab = it }) {
             when (tab) {
                 TopTab.Alarm -> alarmTab(Modifier.fillMaxSize())
