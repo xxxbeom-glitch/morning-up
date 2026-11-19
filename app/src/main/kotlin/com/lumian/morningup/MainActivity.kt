@@ -48,6 +48,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var onboarding: OnboardingStore
 
+    private var onboardingShown = false
+
     @Inject lateinit var batteryReminder: BatteryReminder
 
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
@@ -79,7 +81,11 @@ class MainActivity : ComponentActivity() {
         checkAlertPermissions()
         if (savedInstanceState == null) readEditRequest(intent)
         // 첫 실행이면 온보딩부터(결정 131). 한 번 정하면 화면을 다시 그려도 바꾸지 않아요.
-        val showOnboarding = !onboarding.isDone
+        // 디버그 빌드는 '앱 켤 때마다 온보딩' 스위치가 켜져 있으면 새로 켤 때마다 처음부터 보여요(확인용 임시).
+        // 화면을 다시 만들 때(회전, 프로세스 복원)는 처음 정한 값을 그대로 써요.
+        val showOnboarding = savedInstanceState?.getBoolean(KEY_SHOW_ONBOARDING)
+            ?: (!onboarding.isDone || (BuildConfig.DEBUG && onboarding.replayEveryLaunch))
+        onboardingShown = showOnboarding
         setContent {
             FitDesignWidth {
                 // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
@@ -139,7 +145,13 @@ class MainActivity : ComponentActivity() {
         if (!notifications.canShowFullScreen()) diagnostics.record("full_screen_intent_denied")
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_SHOW_ONBOARDING, onboardingShown)
+    }
+
     private companion object {
         const val NO_ALARM = -1L
+        const val KEY_SHOW_ONBOARDING = "showOnboarding"
     }
 }

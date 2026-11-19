@@ -13,6 +13,7 @@ import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
+import com.lumian.morningup.feature.settings.OnboardingStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
@@ -56,7 +57,16 @@ class DebugAlarmViewModel @Inject constructor(
     private val rescheduler: AlarmRescheduler,
     private val now: NowProvider,
     private val batteryReminder: BatteryReminder,
+    private val onboarding: OnboardingStore,
 ) : ViewModel() {
+    private val _replayOnboarding = MutableStateFlow(onboarding.replayEveryLaunch)
+    val replayOnboarding: StateFlow<Boolean> = _replayOnboarding.asStateFlow()
+
+    fun setReplayOnboarding(on: Boolean) {
+        onboarding.replayEveryLaunch = on
+        _replayOnboarding.value = on
+    }
+
     private val _scheduled = MutableStateFlow<Pair<AlarmTestCase, LocalTime>?>(null)
     val scheduled: StateFlow<Pair<AlarmTestCase, LocalTime>?> = _scheduled.asStateFlow()
 
