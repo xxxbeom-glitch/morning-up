@@ -27,6 +27,7 @@ import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.motion.pressScale
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
+import com.lumian.morningup.core.designsystem.theme.MorningFixedColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
 /** 피그마 Button 크기. Large 56, Medium 48, Circle 112(원형). */
@@ -60,7 +61,7 @@ fun MorningButton(
     val (rest, down, onFill) = when (style) {
         MorningButtonStyle.Primary -> Triple(colors.primaryDefault, colors.primaryPressed, colors.primaryOn)
         MorningButtonStyle.Secondary -> Triple(colors.backgroundRaised, colors.controlTrackOff, colors.textBody)
-        MorningButtonStyle.Danger -> Triple(colors.statusError, colors.statusError, colors.textInverse)
+        MorningButtonStyle.Danger -> Triple(colors.statusError, colors.statusError, MorningFixedColors.DangerOn)
         MorningButtonStyle.Soft -> Triple(colors.primarySubtle, colors.primarySubtle, colors.primaryText)
         MorningButtonStyle.Muted -> Triple(colors.backgroundRaised, colors.backgroundRaised, colors.textDisabled)
     }

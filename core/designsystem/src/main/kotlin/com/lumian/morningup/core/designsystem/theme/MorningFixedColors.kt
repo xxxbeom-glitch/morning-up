@@ -21,4 +21,10 @@ object MorningFixedColors {
 
     /** 미션 칸 삭제 배지 둘레(`remove-badge/ring`): 흰색 90%, 1.5. 진한 그림 위에서도 원 모양이 보이게 해요. */
     val RemoveBadgeRing = Color(0xE6FFFFFF)
+
+    /**
+     * 빨간 버튼(Danger) 글자(`danger/on`): 라이트, 다크 모두 흰색. 전에는 `text/inverse`라 다크에서 진한 #0B0F16 글자였어요
+     * (11-19 사용자 지적 4). 라이트는 원래 흰색이라 그대로예요.
+     */
+    val DangerOn = Color(0xFFFFFFFF)
 }
