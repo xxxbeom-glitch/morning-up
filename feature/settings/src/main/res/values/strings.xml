@@ -69,16 +69,10 @@
     <string name="ask_allow">허용하기</string>
     <string name="permission_power">전원 종료 방지</string>
     <string name="permission_power_desc">미션 중 전원 메뉴를 막아요</string>
-    <!-- P6 권한 동의, P7 접근성 켜기 안내(design-system 11-16) -->
-    <string name="power_consent_title">전원 종료 방지에 접근성 권한을 써요</string>
-    <string name="power_consent_msg">미션 중 전원 메뉴가 열리면 바로 닫아요.\n화면 내용은 읽거나 저장하지 않아요.</string>
-    <string name="power_consent_agree">동의하기</string>
-    <string name="power_guide_title">전원 종료 방지</string>
-    <string name="power_guide_card">접근성에서 켜 주세요</string>
-    <string name="power_guide_step1">아래 버튼으로 접근성 설정을 열어요</string>
-    <string name="power_guide_step2">\'설치된 앱\'에서 \'morning-up 전원 종료 방지\'를 눌러요</string>
-    <string name="power_guide_step3">스위치를 켜고 \'허용\'을 눌러요</string>
-    <string name="power_guide_open">접근성 설정 열기</string>
+    <!-- P6 전원 종료 방지 바텀시트(결정 134) -->
+    <string name="power_sheet_title">미션 중 전원 메뉴를 막으려면\n접근성 권한이 필요해요</string>
+    <string name="power_sheet_msg">화면 내용은 읽거나 저장하지 않아요.\n\'설치된 앱\'에서 morning-up을 켜 주세요.</string>
+    <string name="power_sheet_agree">동의하고 설정 열기</string>
     <!-- T5 오픈소스 라이선스, 자주 묻는 질문(손님이 보는 글: 가운뎃점과 긴 줄표를 쓰지 않아요) -->
     <string name="settings_faq">자주 묻는 질문</string>
     <string name="settings_licenses">오픈소스 라이선스</string>

@@ -45,7 +45,7 @@ internal fun textStyle(name: String): TextStyle {
 
 private const val PERCENT = 100f
 
-/** 피그마 글자 스타일 13개. 이름은 피그마 이름의 낙타 표기예요(`Body/Medium Strong` → `bodyMediumStrong`). */
+/** 피그마 글자 스타일 15개. 이름은 피그마 이름의 낙타 표기예요(`Body/Medium Strong` → `bodyMediumStrong`). */
 @Immutable
 data class MorningTypography(
     val displayLarge: TextStyle = textStyle("Display/Large"),
@@ -54,7 +54,9 @@ data class MorningTypography(
     val displayMediumMuted: TextStyle = textStyle("Display/Medium Muted"),
     val headlineNumber: TextStyle = textStyle("Headline/Number"),
     val headlineLarge: TextStyle = textStyle("Headline/Large"),
+    val titleLarge: TextStyle = textStyle("Title/Large"),
     val titleMedium: TextStyle = textStyle("Title/Medium"),
+    val bodyLarge: TextStyle = textStyle("Body/Large"),
     val bodyMedium: TextStyle = textStyle("Body/Medium"),
     val bodyMediumStrong: TextStyle = textStyle("Body/Medium Strong"),
     val bodySmall: TextStyle = textStyle("Body/Small"),

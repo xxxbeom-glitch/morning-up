@@ -3,6 +3,7 @@ package com.lumian.morningup.feature.settings
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,7 +73,6 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
-    onOpenPowerGuide: () -> Unit = {},
     extra: @Composable () -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -80,7 +80,6 @@ fun SettingsRoute(
     val report by viewModel.report.collectAsStateWithLifecycle()
     val tryAt by viewModel.tryAlarmAt.collectAsStateWithLifecycle()
     val powerOn by viewModel.powerGuardEnabled.collectAsStateWithLifecycle()
-    val powerAgreed by viewModel.powerGuardAgreed.collectAsStateWithLifecycle()
     var askPowerConsent by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     SettingsScreen(
@@ -95,26 +94,26 @@ fun SettingsRoute(
         modifier = modifier,
         extra = extra,
         weatherCard = weatherCard,
-        // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 처음엔 P6 동의, 동의한 뒤로는 P7 안내로 가요.
-        // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보여요.
+        // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
+        // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보이고, 안 켜고 돌아오면 꺼진 채예요.
         powerGuard = powerOn && report.isGranted(AlarmPermission.PowerGuard),
         onPowerGuard = { on ->
             viewModel.setPowerGuardEnabled(on)
             if (on && !report.isGranted(AlarmPermission.PowerGuard)) {
-                if (powerAgreed) onOpenPowerGuide() else askPowerConsent = true
+                askPowerConsent = true
             }
         },
     )
     if (askPowerConsent) {
-        PowerGuardConsentDialog(
-            onDismiss = {
-                askPowerConsent = false
-                viewModel.setPowerGuardEnabled(false)
-            },
+        PowerGuardSheet(
             onAgree = {
                 viewModel.agreePowerGuard()
                 askPowerConsent = false
-                onOpenPowerGuide()
+                PermissionSettings.open(context, Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            },
+            onLater = {
+                askPowerConsent = false
+                viewModel.setPowerGuardEnabled(false)
             },
         )
     }

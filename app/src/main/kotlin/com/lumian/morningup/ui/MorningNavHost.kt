@@ -34,8 +34,6 @@ import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
-import com.lumian.morningup.feature.settings.PowerGuardConsentDialog
-import com.lumian.morningup.feature.settings.PowerGuardGuidePage
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
@@ -59,10 +57,6 @@ data object FaqRoute
 /** T5 오픈소스 라이선스. */
 @Serializable
 data object LicensesRoute
-
-/** P7 접근성 켜기 안내(전원 종료 방지). */
-@Serializable
-data object PowerGuideRoute
 
 /** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
@@ -138,7 +132,6 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
-                        onOpenPowerGuide = { navController.navigate(PowerGuideRoute) { launchSingleTop = true } },
                         extra = debugTools,
                     )
                 },
@@ -177,9 +170,6 @@ fun MorningNavHost(
         }
         composable<FaqRoute> { FaqPage(onBack = { navController.popBackStack() }) }
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
-        composable<PowerGuideRoute> {
-            PowerGuardGuidePage(onBack = { navController.popBackStack() })
-        }
         composable<EditRoute> {
             AlarmEditRoute(
                 onSaved = { id ->
