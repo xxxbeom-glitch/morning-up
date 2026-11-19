@@ -77,7 +77,7 @@
     <string name="settings_faq">자주 묻는 질문</string>
     <string name="settings_licenses">오픈소스 라이선스</string>
     <string name="licenses_card">사용한 오픈소스</string>
-    <string name="licenses_full">라이선스 전문</string>
+    <string name="licenses_desc">morning-up은 아래 오픈소스의 도움을 받았어요</string>
     <string name="faq_card">질문을 눌러 답을 보세요</string>
     <string name="faq_q1">알람이 울리지 않았어요</string>
     <string name="faq_a1">설정의 \'권한\'에서 필수 권한이 모두 켜져 있는지 확인해 주세요. 삼성 폰은 \'절전 예외 앱에 추가\'도 해 두면 좋아요. \'알람 미리 울려 보기\'로 1분 뒤에 울려 볼 수 있어요.</string>
