@@ -18,11 +18,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -35,6 +38,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
@@ -47,19 +51,25 @@ import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Shield
 import com.lumian.morningup.core.alarm.PermissionSettings
-import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
+import com.lumian.morningup.core.designsystem.theme.MorningShadows
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.designsystem.theme.morningShadow
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionReport
 
 private val IconCircle = 40.dp
 private val IconSize = 20.dp
-private val IconTextGap = 14.dp
+private val IconTextGap = 12.dp
+
+/** 피그마 T2-A(388:7368) 줄 높이 64(줄 사이 0), 카드 제목 칸 32(제목 24 + 아래 8), 마지막 카드 아래 40. */
+private val RowHeight = 64.dp
+private val CardTitleBottom = 8.dp
+private val PageBottom = 40.dp
 private val ChevronSize = 16.dp
 
 /**
@@ -258,7 +268,9 @@ fun PermissionPage(
             .fillMaxSize()
             .background(MorningTheme.colors.backgroundBase)
             .statusBarsPadding()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            // 끝까지 내렸을 때 마지막 카드 아래 40이 시스템 내비게이션 바 위로 보이게 해요.
+            .navigationBarsPadding(),
     ) {
         MorningTopBar(
             title = stringResource(R.string.permission_title),
@@ -270,7 +282,7 @@ fun PermissionPage(
                 start = MorningDimens.layoutScreenMargin,
                 end = MorningDimens.layoutScreenMargin,
                 top = MorningDimens.space16,
-                bottom = MorningDimens.space32,
+                bottom = PageBottom,
             ),
             verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
         ) {
@@ -303,10 +315,31 @@ fun PermissionPage(
     }
 }
 
+/** 피그마 card/필수 권한 등: 흰 카드, 위 24, 아래 16, 양옆 24, 제목 칸 32, 줄(64) 사이 0. */
 @Composable
 private fun PermissionCard(title: Int, content: @Composable () -> Unit) {
-    MorningSettingsCard(title = stringResource(title)) {
-        Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space24)) { content() }
+    val shape = RoundedCornerShape(MorningDimens.radiusCard)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .morningShadow(MorningShadows.card, shape)
+            .background(MorningTheme.colors.surfaceCard, shape)
+            .padding(
+                start = MorningDimens.layoutCardPadding,
+                end = MorningDimens.layoutCardPadding,
+                top = MorningDimens.layoutCardPadding,
+                bottom = MorningDimens.space16,
+            ),
+    ) {
+        Text(
+            text = stringResource(title),
+            style = MorningTheme.typography.titleMedium,
+            color = MorningTheme.colors.textPrimary,
+            modifier = Modifier
+                .padding(bottom = CardTitleBottom)
+                .semantics { heading() },
+        )
+        content()
     }
 }
 
@@ -346,6 +379,7 @@ private fun RowFrame(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .heightIn(min = RowHeight)
             .morningClickable(haptic = null, onClick = onClick),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(IconTextGap),
