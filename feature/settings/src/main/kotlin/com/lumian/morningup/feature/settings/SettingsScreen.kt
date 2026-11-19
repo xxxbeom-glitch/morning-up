@@ -140,10 +140,11 @@ fun SettingsScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .statusBarsPadding()
-                .verticalScroll(rememberScrollState()),
+                .statusBarsPadding(),
         ) {
+            // 제목 줄은 위에 고정하고, 카드만 그 아래에서 스크롤돼요.
             MorningTopBar(title = stringResource(R.string.settings_title))
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
             Column(
                 modifier = Modifier.padding(
                     start = MorningDimens.layoutScreenMargin,
@@ -187,7 +188,9 @@ fun SettingsScreen(
                 }
                 extra()
             }
+            // 끝까지 내리면 마지막 카드가 하단 메뉴 위에 보여요.
             Spacer(Modifier.navigationBarsPadding().height(BottomNavSpace))
+            }
         }
         MorningMessageHost(
             message = tryAlarmAt,

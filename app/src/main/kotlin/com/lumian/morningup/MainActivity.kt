@@ -1,9 +1,12 @@
 package com.lumian.morningup
 
 import android.content.Intent
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
@@ -46,8 +49,12 @@ class MainActivity : ComponentActivity() {
     private val editRequests = MutableStateFlow<Long?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // 버튼식 내비게이션 바 뒤에도 흰 막을 깔지 않고 화면 바탕색이 이어지게 해요.
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
         lifecycleScope.launch {
             // 울리는 중인 알람이 있으면 끌 수 있는 울림 화면으로 보내요(알림을 못 띄운 경우의 길).
             if (sessions.load() != null) {

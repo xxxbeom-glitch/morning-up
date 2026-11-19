@@ -267,18 +267,21 @@ fun PermissionPage(
         modifier = modifier
             .fillMaxSize()
             .background(MorningTheme.colors.backgroundBase)
-            .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
-            // 끝까지 내렸을 때 마지막 카드 아래 40이 시스템 내비게이션 바 위로 보이게 해요.
-            .navigationBarsPadding(),
+            .statusBarsPadding(),
     ) {
+        // 제목 줄은 위에 고정하고, 카드만 그 아래에서 스크롤돼요.
         MorningTopBar(
             title = stringResource(R.string.permission_title),
             onBack = onBack,
             backContentDescription = stringResource(R.string.settings_back),
         )
         Column(
-            modifier = Modifier.padding(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                // 끝까지 내렸을 때 마지막 카드 아래 40이 시스템 내비게이션 바 위로 보이게 해요.
+                .navigationBarsPadding()
+                .padding(
                 start = MorningDimens.layoutScreenMargin,
                 end = MorningDimens.layoutScreenMargin,
                 top = MorningDimens.space16,
