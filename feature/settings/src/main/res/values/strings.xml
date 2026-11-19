@@ -99,4 +99,23 @@
     <string name="faq_a6">홈에서 반복 알람을 끄면 카드에 \'내일 다시 켜기\'가 나와요. 누르면 다음 한 번만 쉬고 그다음부터는 다시 울려요.</string>
     <string name="faq_q7">미션 중에 전원을 꺼 버리면요?</string>
     <string name="faq_a7">알람 편집에서 \'전원 종료 방지\'를 켜면 미션을 하는 동안 전원 메뉴가 열려도 바로 닫혀요. 처음 켤 때 접근성 권한을 켜는 방법을 안내해 드려요.</string>
+    <!-- 온보딩(결정 129, 131). O2-2, O2-4 문구는 결정 129 보충 3, 나머지는 피그마 온보딩 (O) 구역 -->
+    <string name="onboarding_wordmark" translatable="false">morning up</string>
+    <string name="onboarding_later">나중에 하기</string>
+    <string name="onboarding_skip">건너뛰기</string>
+    <string name="onboarding_notifications_title">알림을\n허용해 주세요</string>
+    <string name="onboarding_notifications_sub">허용하지 않으면 화면 없이 소리만 날 수 있어요.</string>
+    <string name="onboarding_notifications_button">알림 허용하기</string>
+    <string name="onboarding_full_screen_title">잠겨 있어도 알람이\n화면 위로 떠요</string>
+    <string name="onboarding_full_screen_sub">허용하지 않으면 잠금 화면에 알람이 바로 안 떠요.</string>
+    <string name="onboarding_full_screen_button">전체 화면 알림 허용하기</string>
+    <string name="onboarding_battery_title">배터리 사용 제한을\n해제해 주세요</string>
+    <string name="onboarding_battery_sub">해제하지 않으면 절전 기능 때문에\n알람이 늦게 울릴 수 있어요.</string>
+    <string name="onboarding_battery_button">배터리 사용 제한 해제하기</string>
+    <string name="onboarding_overlay_title">다른 앱 위에 표시를\n허용해 주세요</string>
+    <string name="onboarding_overlay_sub">허용하지 않으면 홈 버튼에 알람 화면이 사라져요.</string>
+    <string name="onboarding_overlay_button">다른 앱 위에 표시 허용하기</string>
+    <string name="onboarding_location_title">날씨에 맞춰\n하늘을 바꿔 드려요</string>
+    <string name="onboarding_location_sub">선택 사항이에요. 대략적인 위치로 오늘 날씨만 알아봐요.\n위치는 저장하지 않아요.</string>
+    <string name="onboarding_location_button">위치 허용하기</string>
 </resources>

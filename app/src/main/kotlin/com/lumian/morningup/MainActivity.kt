@@ -15,6 +15,7 @@ import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
+import com.lumian.morningup.feature.settings.OnboardingStore
 import com.lumian.morningup.ring.RingActivity
 import com.lumian.morningup.ui.DebugAlarmTools
 import com.lumian.morningup.ui.MorningNavHost
@@ -39,6 +40,8 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var permissions: PermissionChecker
 
+    @Inject lateinit var onboarding: OnboardingStore
+
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
     private val editRequests = MutableStateFlow<Long?>(null)
 
@@ -58,6 +61,8 @@ class MainActivity : ComponentActivity() {
         }
         checkAlertPermissions()
         if (savedInstanceState == null) readEditRequest(intent)
+        // 첫 실행이면 온보딩부터(결정 131). 한 번 정하면 화면을 다시 그려도 바꾸지 않아요.
+        val showOnboarding = !onboarding.isDone
         setContent {
             FitDesignWidth {
                 // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
@@ -67,6 +72,8 @@ class MainActivity : ComponentActivity() {
                     MorningNavHost(
                         editRequests = editRequests,
                         onEditRequestHandled = { editRequests.value = null },
+                        showOnboarding = showOnboarding,
+                        onOnboardingFinished = onboarding::markDone,
                         debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
                     )
                 }

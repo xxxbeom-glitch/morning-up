@@ -200,7 +200,7 @@ fun PermissionRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel
 }
 
 /** 그 권한의 폰 설정을 열어요. 앱 목록으로 열리는 화면이면 떠날 때 '목록에서 morning-up을 찾아 켜 주세요'를 띄워요. */
-private fun openSettings(context: Context, permission: AlarmPermission) {
+internal fun openSettings(context: Context, permission: AlarmPermission) {
     if (PermissionSettings.opensList(permission)) {
         // 폰 설정 화면 위에서도 보이도록 시스템 토스트로 띄워요(앱 안 스낵바는 앱을 떠나면 안 보여요).
         Toast.makeText(context, R.string.permission_find_in_list, Toast.LENGTH_LONG).show()
@@ -209,7 +209,7 @@ private fun openSettings(context: Context, permission: AlarmPermission) {
 }
 
 /** 시스템 요청 창으로 물어요. 이미 물었고 시스템이 더 묻지 않는 상태(두 번 거절)면 창 대신 폰 설정으로 보내요. */
-private fun askOrOpen(
+internal fun askOrOpen(
     context: Context,
     viewModel: SettingsViewModel,
     manifestPermission: String,
@@ -229,7 +229,7 @@ private fun askOrOpen(
 }
 
 /** 안드로이드 13 이상에서 알림 권한 자체(채널이 아니라)가 아직 없는지. 이때는 시스템 요청 창으로 먼저 물어요. */
-private fun needsRuntimeNotificationAsk(context: Context): Boolean =
+internal fun needsRuntimeNotificationAsk(context: Context): Boolean =
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
         ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) !=
         PackageManager.PERMISSION_GRANTED
