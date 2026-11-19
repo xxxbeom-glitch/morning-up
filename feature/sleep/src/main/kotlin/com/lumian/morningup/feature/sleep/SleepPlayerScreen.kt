@@ -67,8 +67,19 @@ private const val EXHALE_MILLIS = 6_000
 private val PlayButton = 112.dp
 private val PlayIcon = 36.dp
 
-/** 숨쉬는 빛 3겹: 날숨 지름, 들숨 지름, 투명도. */
-private val BreathRings = listOf(Triple(150f, 172f, 0.22f), Triple(216f, 250f, 0.16f), Triple(300f, 340f, 0.10f))
+/** 숨쉬는 빛 3겹: 날숨 지름, 들숨 지름, 투명도, 번짐(피그마 Z2 `220:3364`의 레이어 흐림 14, 28, 48). */
+private val BreathRings = listOf(
+    BreathRing(150f, 172f, 0.22f, 14f),
+    BreathRing(216f, 250f, 0.16f, 28f),
+    BreathRing(300f, 340f, 0.10f, 48f),
+)
+
+private data class BreathRing(val small: Float, val large: Float, val alpha: Float, val blur: Float)
+
+/** 피그마 Z2: 상태 표시줄 아래 168에서 숨 고리 칸(320)이 시작하고, 그 아래 12에 제목이 와요. */
+private val BreathTop = 168.dp
+private val BreathBox = 320.dp
+private val TitleGap = 12.dp
 
 /** 들숨 때 버튼 뒤로 퍼지는 물결 2겹의 끝 지름. */
 private val Ripples = listOf(380f, 460f)
@@ -130,11 +141,11 @@ internal fun SleepPlayerScreen(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.weight(1f))
-            Box(Modifier.size(340.dp).drawBehind { drawBreath(glow, breath) }, contentAlignment = Alignment.Center) {
+            Spacer(Modifier.height(BreathTop))
+            Box(Modifier.size(BreathBox).drawBehind { drawBreath(glow, breath) }, contentAlignment = Alignment.Center) {
                 PlayPauseButton(playing = playing, onClick = onToggle)
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(TitleGap))
             Column(
                 Modifier.padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -152,7 +163,7 @@ internal fun SleepPlayerScreen(
                     color = MorningTheme.colors.textSecondary,
                 )
             }
-            Spacer(Modifier.weight(1.2f))
+            Spacer(Modifier.weight(1f))
             TimerChip(playback, onClick = { sheet = true })
             Spacer(Modifier.height(48.dp))
         }
@@ -203,9 +214,22 @@ private fun DrawScope.drawBreath(glow: Color, breath: Float) {
             drawCircle(glow.copy(alpha = 0.18f * (1f - breath)), d / 2, style = Stroke(1.dp.toPx()))
         }
     }
-    BreathRings.asReversed().forEach { (small, large, a) ->
-        val d = (small + (large - small) * breath).dp.toPx()
-        drawCircle(glow.copy(alpha = a * (1f + 0.4f * breath)), d / 2)
+    // 피그마처럼 테두리 없이 번진 빛으로 그려요(흐림 반경만큼 안팎으로 서서히 사라짐).
+    BreathRings.asReversed().forEach { ring ->
+        val r = (ring.small + (ring.large - ring.small) * breath).dp.toPx() / 2
+        val b = ring.blur.dp.toPx()
+        val c = glow.copy(alpha = ring.alpha * (1f + 0.4f * breath))
+        val outer = r + b
+        drawCircle(
+            Brush.radialGradient(
+                0f to c,
+                ((r - b).coerceAtLeast(0f) / outer) to c,
+                1f to c.copy(alpha = 0f),
+                center = center,
+                radius = outer,
+            ),
+            radius = outer,
+        )
     }
 }
 

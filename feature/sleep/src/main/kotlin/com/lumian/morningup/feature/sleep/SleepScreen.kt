@@ -114,6 +114,8 @@ fun SleepScreen(onOpenTrack: (String) -> Unit, modifier: Modifier = Modifier) {
             GroupTabs(selected = tab) { i ->
                 scope.launch { listState.animateScrollToItem(headerIndexes[i]) }
             }
+            // 탭 줄 아래 화면 너비 구분선 1(피그마 Z1 탭 줄 `538:11922`의 아래 선, border/default).
+            Box(Modifier.fillMaxWidth().height(1.dp).background(colors.borderDefault))
             LazyColumn(
                 state = listState,
                 contentPadding = PaddingValues(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 140.dp),
