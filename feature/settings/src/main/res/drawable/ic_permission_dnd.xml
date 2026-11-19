@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 피그마 T2-A '권한'(388:7368) 줄 아이콘을 그대로 옮긴 채움 모양(Lucide 바탕). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="18.3333dp"
+    android:height="18.3333dp"
+    android:viewportWidth="18.3333"
+    android:viewportHeight="18.3333">
+    <path
+        android:pathData="M8.012 15.1667C8.12903 15.3693 8.29734 15.5376 8.50003 15.6547C8.70271 15.7717 8.93263 15.8333 9.16667 15.8333C9.4007 15.8333 9.63062 15.7717 9.8333 15.6547C10.036 15.5376 10.2043 15.3693 10.3213 15.1667"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M3.34133 11.384C3.25424 11.4795 3.19677 11.5982 3.1759 11.7257C3.15504 11.8532 3.17168 11.984 3.2238 12.1023C3.27593 12.2205 3.36129 12.321 3.4695 12.3917C3.57772 12.4623 3.70412 12.4999 3.83333 12.5H14.5C14.6292 12.5 14.7556 12.4626 14.8639 12.3921C14.9722 12.3216 15.0577 12.2212 15.1099 12.103C15.1622 11.9849 15.179 11.8541 15.1583 11.7265C15.1376 11.599 15.0803 11.4802 14.9933 11.3847C14.1067 10.4707 13.1667 9.49933 13.1667 6.5C13.1667 5.43913 12.7452 4.42172 11.9951 3.67157C11.2449 2.92143 10.2275 2.5 9.16667 2.5C8.1058 2.5 7.08839 2.92143 6.33824 3.67157C5.58809 4.42172 5.16667 5.43913 5.16667 6.5C5.16667 9.49933 4.226 10.4707 3.34133 11.384Z"
+        android:fillColor="#FFFFFFFF"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M2.5 2.5L15.8333 15.8333"
+        android:strokeColor="#FF9B7BEA"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M2.5 2.5L15.8333 15.8333"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

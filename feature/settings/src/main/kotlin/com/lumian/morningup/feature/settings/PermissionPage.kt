@@ -9,6 +9,8 @@ import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -40,17 +43,9 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.AlarmClock
-import com.composables.icons.lucide.BatteryFull
-import com.composables.icons.lucide.Bell
-import com.composables.icons.lucide.BellOff
 import com.composables.icons.lucide.ChevronRight
-import com.composables.icons.lucide.Layers
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.MapPin
-import com.composables.icons.lucide.Moon
 import com.composables.icons.lucide.Shield
-import com.composables.icons.lucide.SquareDot
-import com.composables.icons.lucide.Volume2
 import com.lumian.morningup.core.alarm.PermissionSettings
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
@@ -73,7 +68,7 @@ private val ChevronSize = 16.dp
  */
 private object PermissionTint {
     val Battery = Color(0xFF34C17A)
-    val Location = Color(0xFF2BB3C0)
+    val Location = Color(0xFFF2884B)
     val SamsungSleep = Color(0xFFF5A524)
     val DoNotDisturb = Color(0xFF9B7BEA)
     val Volume = Color(0xFFEE6FA6)
@@ -85,47 +80,82 @@ private object PermissionTint {
 }
 
 /** 권한 줄 하나의 모양. */
-private data class RowSpec(val title: Int, val description: Int, val icon: ImageVector, val tint: Color)
+private data class RowSpec(val title: Int, val description: Int, val icon: RowIcon, val tint: Color)
+
+/**
+ * 줄 아이콘. 화면에 보이는 줄은 피그마 T2-A(388:7368)의 채움 모양을 옮긴 그림([Drawn], 16, 방해 금지만 18.3)이고,
+ * '권한' 화면에 줄이 없는 정확한 알람, 전원 종료 방지만 Lucide 선 아이콘([Line], 20)이에요.
+ */
+private sealed interface RowIcon {
+    data class Drawn(@DrawableRes val res: Int) : RowIcon
+
+    data class Line(val vector: ImageVector) : RowIcon
+}
 
 private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
     AlarmPermission.Notifications ->
         RowSpec(
             R.string.permission_notifications,
             R.string.permission_notifications_desc,
-            Lucide.Bell,
+            RowIcon.Drawn(R.drawable.ic_permission_notifications),
             PermissionTint.Notifications,
         )
     AlarmPermission.FullScreen ->
         RowSpec(
             R.string.permission_full_screen,
             R.string.permission_full_screen_desc,
-            Lucide.SquareDot,
+            RowIcon.Drawn(R.drawable.ic_permission_full_screen),
             PermissionTint.FullScreen,
         )
     AlarmPermission.Overlay ->
-        RowSpec(R.string.permission_overlay, R.string.permission_overlay_desc, Lucide.Layers, PermissionTint.Overlay)
+        RowSpec(
+            R.string.permission_overlay,
+            R.string.permission_overlay_desc,
+            RowIcon.Drawn(R.drawable.ic_permission_overlay),
+            PermissionTint.Overlay,
+        )
     AlarmPermission.Battery ->
         RowSpec(
             R.string.permission_battery,
             R.string.permission_battery_desc,
-            Lucide.BatteryFull,
+            RowIcon.Drawn(R.drawable.ic_permission_battery),
             PermissionTint.Battery,
         )
     AlarmPermission.Location ->
         RowSpec(
             R.string.permission_location,
             R.string.permission_location_desc,
-            Lucide.MapPin,
+            RowIcon.Drawn(R.drawable.ic_permission_location),
             PermissionTint.Location,
         )
     AlarmPermission.DoNotDisturb ->
-        RowSpec(R.string.permission_dnd, R.string.permission_dnd_desc, Lucide.BellOff, PermissionTint.DoNotDisturb)
+        RowSpec(
+            R.string.permission_dnd,
+            R.string.permission_dnd_desc,
+            RowIcon.Drawn(R.drawable.ic_permission_dnd),
+            PermissionTint.DoNotDisturb,
+        )
     AlarmPermission.AlarmVolume ->
-        RowSpec(R.string.permission_volume, R.string.permission_volume_desc, Lucide.Volume2, PermissionTint.Volume)
+        RowSpec(
+            R.string.permission_volume,
+            R.string.permission_volume_desc,
+            RowIcon.Drawn(R.drawable.ic_permission_volume),
+            PermissionTint.Volume,
+        )
     AlarmPermission.ExactAlarm ->
-        RowSpec(R.string.permission_exact, R.string.permission_exact_desc, Lucide.AlarmClock, PermissionTint.Exact)
+        RowSpec(
+            R.string.permission_exact,
+            R.string.permission_exact_desc,
+            RowIcon.Line(Lucide.AlarmClock),
+            PermissionTint.Exact,
+        )
     AlarmPermission.PowerGuard ->
-        RowSpec(R.string.permission_power, R.string.permission_power_desc, Lucide.Shield, PermissionTint.PowerGuard)
+        RowSpec(
+            R.string.permission_power,
+            R.string.permission_power_desc,
+            RowIcon.Line(Lucide.Shield),
+            PermissionTint.PowerGuard,
+        )
 }
 
 /**
@@ -262,7 +292,7 @@ fun PermissionPage(
                         RowSpec(
                             R.string.permission_samsung_sleep,
                             R.string.permission_samsung_sleep_desc,
-                            Lucide.Moon,
+                            RowIcon.Drawn(R.drawable.ic_permission_samsung_sleep),
                             PermissionTint.SamsungSleep,
                         ),
                         onOpenSamsungSleep,
@@ -326,7 +356,10 @@ private fun RowFrame(
                 .background(spec.tint, CircleShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(spec.icon, null, Modifier.size(IconSize), tint = Color.White)
+            when (val icon = spec.icon) {
+                is RowIcon.Drawn -> Image(painterResource(icon.res), contentDescription = null)
+                is RowIcon.Line -> Icon(icon.vector, null, Modifier.size(IconSize), tint = Color.White)
+            }
         }
         Column(Modifier.weight(1f)) {
             Text(
