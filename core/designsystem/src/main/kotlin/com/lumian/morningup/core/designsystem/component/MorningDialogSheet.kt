@@ -1,8 +1,6 @@
 package com.lumian.morningup.core.designsystem.component
 
-import android.graphics.Color.TRANSPARENT
-import android.os.Build
-import android.view.WindowManager
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.fadeIn
@@ -22,21 +20,23 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -56,7 +56,7 @@ private val DarkScrim = Color.Black.copy(alpha = 0.6f)
 private const val DARK_LUMINANCE = 0.5f
 
 /**
- * 결정을 받는 모달 바텀시트(피그마 Dialog Sheet, Handle=Off). 화면 전체(하단 메뉴 포함) 위에 막을 깔고 아래에서 올라와요.
+ * 결정을 받는 모달 바텀시트(피그마 Dialog Sheet, Handle=Off). 앱 맨 위 [MorningOverlayRoot] 자리에 그려서 화면 전체(하단 메뉴 포함) 위에 막을 깔고 아래에서 올라와요.
  * 손잡이가 없고, 막을 누르거나 끌어 내려도 닫히지 않아요. 뒤로 가기와 [laterLabel] 글은 [onLater]를 불러요.
  * 그림 칸([picture])은 120x120 `background/base` 칸이에요. 비워 두면 빈 칸으로 보여요.
  */
@@ -71,32 +71,49 @@ fun MorningDialogSheet(
     tag: String = "dialogSheet",
     picture: @Composable BoxScope.() -> Unit = {},
 ) {
-    Dialog(
-        onDismissRequest = onLater,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false,
-            dismissOnClickOutside = false,
-        ),
-    ) {
-        EdgeToEdgeWindow()
+    val sheet: @Composable () -> Unit = {
+        BackHandler(onBack = onLater)
         DialogSheetContent(title, message, confirmLabel, onConfirm, laterLabel, onLater, tag, picture)
+    }
+    val host = LocalMorningOverlay.current
+    if (host == null) {
+        sheet()
+    } else {
+        // 앱 맨 위 [MorningOverlayRoot]에 그려서 하단 메뉴와 시스템 바 뒤까지 막이 덮여요.
+        val latest by rememberUpdatedState(sheet)
+        DisposableEffect(host) {
+            val entry: @Composable () -> Unit = { latest() }
+            host.show(entry)
+            onDispose { host.hide(entry) }
+        }
     }
 }
 
-/** 대화 창이 상태 바, 내비게이션 바 뒤까지 덮고, 시스템의 기본 어둡게 하기 대신 우리 막을 쓰게 해요. */
+/** 화면 맨 위에 덮어 그릴 것(결정 시트)을 받아 두는 자리. [MorningOverlayRoot]가 만들어요. */
+class MorningOverlayHost internal constructor() {
+    internal var content by mutableStateOf<(@Composable () -> Unit)?>(null)
+        private set
+
+    internal fun show(entry: @Composable () -> Unit) {
+        content = entry
+    }
+
+    internal fun hide(entry: @Composable () -> Unit) {
+        if (content === entry) content = null
+    }
+}
+
+val LocalMorningOverlay = staticCompositionLocalOf<MorningOverlayHost?> { null }
+
+/** 앱 전체를 감싸고, [MorningDialogSheet] 같은 덮개를 모든 화면(하단 메뉴 포함) 위에 그려요. */
 @Composable
-private fun EdgeToEdgeWindow() {
-    val window = (LocalView.current.parent as? DialogWindowProvider)?.window
-    SideEffect {
-        window ?: return@SideEffect
-        window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
-        @Suppress("DEPRECATION")
-        window.statusBarColor = TRANSPARENT
-        @Suppress("DEPRECATION")
-        window.navigationBarColor = TRANSPARENT
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
+fun MorningOverlayRoot(content: @Composable () -> Unit) {
+    val host = remember { MorningOverlayHost() }
+    CompositionLocalProvider(LocalMorningOverlay provides host) {
+        Box(Modifier.fillMaxSize()) {
+            content()
+            host.content?.invoke()
+        }
     }
 }
 

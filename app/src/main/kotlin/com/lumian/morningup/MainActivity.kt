@@ -14,6 +14,7 @@ import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
+import com.lumian.morningup.core.designsystem.component.MorningOverlayRoot
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.PermissionChecker
@@ -76,13 +77,16 @@ class MainActivity : ComponentActivity() {
                 val night = rememberNightByClock(now::now)
                 MorningTheme(darkTheme = night) {
                     SystemBarIcons(dark = night)
-                    MorningNavHost(
-                        editRequests = editRequests,
-                        onEditRequestHandled = { editRequests.value = null },
-                        showOnboarding = showOnboarding,
-                        onOnboardingFinished = onboarding::markDone,
-                        debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
-                    )
+                    // 결정 시트(전원 종료 방지 등)를 하단 메뉴와 시스템 바 뒤까지 덮어 그리는 자리.
+                    MorningOverlayRoot {
+                        MorningNavHost(
+                            editRequests = editRequests,
+                            onEditRequestHandled = { editRequests.value = null },
+                            showOnboarding = showOnboarding,
+                            onOnboardingFinished = onboarding::markDone,
+                            debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
+                        )
+                    }
                 }
             }
         }
