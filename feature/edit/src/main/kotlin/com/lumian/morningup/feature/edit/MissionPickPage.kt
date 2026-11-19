@@ -30,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
@@ -49,7 +48,6 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
-import com.lumian.morningup.core.model.mission.DropWordsSpeed
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 
@@ -66,7 +64,6 @@ private val ThumbSize = 56.dp
 private val ThumbRadius = 12.dp
 private val PreviewButtonWidth = 106.dp
 private const val DISABLED_ALPHA = 0.45f
-private const val MILLIS_PER_SECOND = 1_000L
 
 /**
  * S1-2 미션 고르기(전체 화면 페이지). 고른 미션이 고른 순서대로 위로 올라가고, 해제하면 원래 자리로 돌아가요.
@@ -199,7 +196,7 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
         color = MorningTheme.colors.textPrimary,
         modifier = Modifier.padding(top = MorningDimens.space4, bottom = MorningDimens.space8),
     )
-    // 결정 87: 머리 아래 예제 영역(312x260). 예제 애니메이션은 아직 넣지 않고 자리만 둬요(11-18 사용자 지시).
+    // 결정 87: 머리 아래 예제 영역(312x260). 미션 화면을 덩어리로 그린 스켈레톤 예제가 움직여요(11-18 사용자 지시).
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -207,12 +204,19 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
             .clip(RoundedCornerShape(MorningDimens.radiusTile))
             .background(MorningTheme.colors.backgroundRaised)
             .testTag(SHEET_EXAMPLE_TAG),
-    )
+    ) {
+        MissionExample(
+            type = setting.type,
+            level = setting.level,
+            speed = setting.speed,
+            count = setting.count,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
     Spacer(Modifier.height(MorningDimens.space8))
     if (setting.type != MissionType.ShakeShake) {
         MorningValueSwitchRow(
             label = levelLabel,
-            sub = levelExamples(setting.type).getOrNull(setting.level - 1),
             value = stringResource(R.string.edit_mission_level_value, setting.level),
             type = ValueSwitchType.Level,
             canDecrease = sheet.canLevelDown,
@@ -228,10 +232,6 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
         val speedLabel = stringResource(R.string.edit_mission_speed)
         MorningValueSwitchRow(
             label = speedLabel,
-            sub = stringResource(
-                R.string.edit_mission_speed_sub,
-                (DropWordsSpeed.fallMillis(setting.speed) / MILLIS_PER_SECOND).toInt(),
-            ),
             value = setting.speed.toString(),
             type = ValueSwitchType.Level,
             canDecrease = sheet.canSpeedDown,
@@ -279,14 +279,6 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
             )
         }
     }
-}
-
-@Composable
-private fun levelExamples(type: MissionType): List<String> = when (type) {
-    MissionType.DropWords -> stringArrayResource(R.array.edit_mission_examples_drop_words).toList()
-    MissionType.PopQuiz -> stringArrayResource(R.array.edit_mission_examples_pop_quiz).toList()
-    MissionType.QuickMath -> stringArrayResource(R.array.edit_mission_examples_quick_math).toList()
-    MissionType.ShakeShake -> emptyList()
 }
 
 internal fun thumbOf(type: MissionType): Int = when (type) {

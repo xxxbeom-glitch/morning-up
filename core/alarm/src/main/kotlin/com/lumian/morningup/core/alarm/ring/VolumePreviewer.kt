@@ -96,7 +96,7 @@ class VolumePreviewer(private val context: Context) {
 
     private companion object {
         const val FULL_PERCENT = 100
-        const val VOLUME_PREVIEW_MILLIS = 3_000L
+        const val VOLUME_PREVIEW_MILLIS = 6_000L
         const val HOLD_AFTER_RAMP_MILLIS = 1_000L
         const val MILLIS_PER_SECOND = 1_000L
         const val RAMP_STEP_MILLIS = 100L

@@ -181,6 +181,9 @@ class HomeViewModel @Inject constructor(
     /** 더보기 '모든 알람 끄기'. 켜져 있던 반복 알람마다 '내일 다시 켜기'를 달아요(H8-4). */
     fun turnAllOff() = turnOff(uiState.value.alarms)
 
+    /** 더보기 '모든 알람 켜기'(모두 꺼져 있을 때만 보여요). 쉬는 중인 알람은 쉬기를 풀어요. */
+    fun turnAllOn() = turnOn(uiState.value.alarms)
+
     private fun turnOff(alarms: List<Alarm>) {
         val state = uiState.value
         val targets = alarms.filter { state.shownOn(it) }

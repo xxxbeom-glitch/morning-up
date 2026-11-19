@@ -141,6 +141,7 @@ fun HomeRoute(
         extra = HomeExtraActions(
             onRestOnce = viewModel::restOnce,
             onAllOff = viewModel::turnAllOff,
+            onAllOn = viewModel::turnAllOn,
             onStartSelection = { viewModel.startSelection() },
             onToggleSelected = viewModel::toggleSelected,
             onSelectAll = viewModel::toggleSelectAll,
@@ -157,6 +158,7 @@ fun HomeRoute(
 data class HomeExtraActions(
     val onRestOnce: (Alarm) -> Unit = {},
     val onAllOff: () -> Unit = {},
+    val onAllOn: () -> Unit = {},
     val onStartSelection: () -> Unit = {},
     val onToggleSelected: (Alarm) -> Unit = {},
     val onSelectAll: () -> Unit = {},
@@ -314,7 +316,9 @@ private fun AlarmList(
         val selection = state.selection
         if (selection == null) {
             item(key = "header") { Column { Header(headline, subline, banner = banner) } }
-            item(key = "actions") { ListActions(onAdd = onAdd, extra = extra) }
+            item(key = "actions") {
+                ListActions(onAdd = onAdd, extra = extra, allOff = state.alarms.none { state.shownOn(it) })
+            }
         } else {
             item(key = "selectHeader") { SelectHeader(count = selection.size) }
             item(key = "selectActions") {
@@ -464,9 +468,12 @@ private fun RestOfferButton(onClick: () -> Unit) {
     }
 }
 
-/** 목록 위 오른쪽 플러스와 더보기(H3 메뉴: '모든 알람 끄기', '선택'). */
+/**
+ * 목록 위 오른쪽 플러스와 더보기(H3 메뉴: '모든 알람 끄기', '선택').
+ * 알람이 모두 꺼져 있으면([allOff]) 첫 줄이 '모든 알람 켜기'로 바뀌어요(11-18 사용자 결정, 삼성 시계 방식).
+ */
 @Composable
-private fun ListActions(onAdd: () -> Unit, extra: HomeExtraActions) {
+private fun ListActions(onAdd: () -> Unit, extra: HomeExtraActions, allOff: Boolean) {
     var menuOpen by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier
@@ -489,9 +496,9 @@ private fun ListActions(onAdd: () -> Unit, extra: HomeExtraActions) {
                 containerColor = MorningTheme.colors.surfaceCard,
             ) {
                 CompositionLocalProvider(LocalDensity provides density) {
-                    MenuRow(stringResource(R.string.home_menu_all_off)) {
+                    MenuRow(stringResource(if (allOff) R.string.home_menu_all_on else R.string.home_menu_all_off)) {
                         menuOpen = false
-                        extra.onAllOff()
+                        if (allOff) extra.onAllOn() else extra.onAllOff()
                     }
                     MenuRow(stringResource(R.string.home_menu_select)) {
                         menuOpen = false

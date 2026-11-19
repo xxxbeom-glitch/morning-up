@@ -20,6 +20,7 @@ class RingtonesTest {
     fun find_unknownId_fallsBackToDefault() {
         assertThat(Ringtones.find("deleted_sound").id).isEqualTo(Alarm.DEFAULT_SOUND_ID)
         assertThat(Ringtones.find(Alarm.SILENT_SOUND_ID).id).isEqualTo(Alarm.DEFAULT_SOUND_ID)
-        assertThat(Ringtones.find("morning").name).isEqualTo("Morning")
+        assertThat(Ringtones.find("petits_rebonds").name).isEqualTo("말랑 통통")
+        assertThat(Ringtones.find("morning").id).isEqualTo("petits_rebonds")
     }
 }

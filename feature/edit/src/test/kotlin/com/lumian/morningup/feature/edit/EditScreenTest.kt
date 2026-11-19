@@ -239,8 +239,9 @@ class EditScreenTest {
             EditUiState(loading = false, detail = EditDetail.Mission, missionSheet = sheet),
             EditActions(onConfirmMission = { confirmed++ }, onMissionLevel = { level += it }),
         )
-        compose.onNodeWithText("예: 사과, 나무").assertExists()
-        compose.onNodeWithText("바닥까지 10초").assertExists()
+        // 11-18: 줄 아래 설명 글은 빼고, 머리 아래 예제 영역(스켈레톤 그림)으로 보여 줘요.
+        compose.onNodeWithTag(SHEET_EXAMPLE_TAG, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("예: 사과, 나무").assertDoesNotExist()
         compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(SHEET_SPEED_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsEnabled()

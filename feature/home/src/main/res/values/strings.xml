@@ -32,6 +32,7 @@
 
     <!-- H3 더보기, 선택 모드 -->
     <string name="home_menu_all_off">모든 알람 끄기</string>
+    <string name="home_menu_all_on">모든 알람 켜기</string>
     <string name="home_menu_select">선택</string>
     <string name="home_selected_count">%1$d개 선택됨</string>
     <string name="home_select_all">전체 선택</string>

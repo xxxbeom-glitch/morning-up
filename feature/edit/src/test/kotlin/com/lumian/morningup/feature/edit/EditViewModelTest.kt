@@ -343,7 +343,7 @@ class EditViewModelTest {
     }
 
     @Test
-    fun closingSheet_withoutConfirm_keepsNoMission_butRemembersValues() = runTest {
+    fun closingSheet_withoutConfirm_keepsNoMission_andDropsChangedValues() = runTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
@@ -354,7 +354,8 @@ class EditViewModelTest {
             assertThat(closed.missionSheet).isNull()
             assertThat(closed.hasMissions).isFalse()
             vm.openMissionSheet(MissionType.PopQuiz)
-            assertThat(awaitItem().missionSheet!!.setting.count).isEqualTo(4)
+            // 11-18: 고르지 않고 닫으면 바꾼 값은 버리고 처음 값으로 다시 열려요.
+            assertThat(awaitItem().missionSheet!!.setting).isEqualTo(MissionSetting.default(MissionType.PopQuiz))
         }
     }
 

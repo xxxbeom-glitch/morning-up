@@ -85,6 +85,26 @@
         <item>예: 경기 침체 속 물가 상승은?</item>
         <item>예: 30년 전쟁을 끝낸 조약은?</item>
     </string-array>
+    <!-- 미션 시트 예제 그림의 Pop Quiz 보기(단계별, 맨 앞이 정답). 문제는 edit_mission_examples_pop_quiz와 같은 순서예요. -->
+    <string-array name="edit_mission_example_quiz_options">
+        <item>세종대왕|태조|정조|영조</item>
+        <item>100°C|90°C|80°C|120°C</item>
+        <item>이산화탄소|산소|질소|수소</item>
+        <item>인플레이션|디플레이션|리세션|디폴트</item>
+        <item>1592년|1636년|1392년|1910년</item>
+        <item>스태그플레이션|인플레이션|디플레이션|리세션</item>
+        <item>베스트팔렌|베르사유|파리|빈</item>
+    </string-array>
+    <!-- 미션 시트 예제 그림의 Drop Words 단어(단계별 3개, 실제 단어 목록 mission_content.json 앞 3개). 같은 단어가 겹쳐 떨어지지 않게 해요. -->
+    <string-array name="edit_mission_example_drop_words">
+        <item>사과|나무|바다</item>
+        <item>운동화|자동차|냉장고</item>
+        <item>닭볶음|깻잎전|볶음밥</item>
+        <item>일석이조|우공이산|동문서답</item>
+        <item>고혈압|소멸시효|당뇨병</item>
+        <item>읊조리다|넓적다리|굵은소금</item>
+        <item>탄산수소나트륨|수산화나트륨|과산화수소</item>
+    </string-array>
     <string-array name="edit_mission_examples_quick_math">
         <item>예: 7 + 5</item>
         <item>예: 47 + 38</item>

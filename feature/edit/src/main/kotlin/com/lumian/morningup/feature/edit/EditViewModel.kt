@@ -123,7 +123,7 @@ class EditViewModel @Inject constructor(
         val exit: EditExit? = null,
         val detail: EditDetail? = null,
         val sheet: MissionSheet? = null,
-        /** 안 고른 미션도 시트에서 바꾼 값은 기억해 둬요(이 편집 화면 안에서만). */
+        /** 고른 미션의 값을 기억해 둬요. 빼거나 해제한 뒤 다시 열면 그 값으로 열려요(이 편집 화면 안에서만). */
         val remembered: Map<MissionType, MissionSetting> = emptyMap(),
         /** 알람음 토글을 다시 켤 때 되살릴 소리. */
         val lastSound: String = Alarm.DEFAULT_SOUND_ID,
@@ -218,7 +218,9 @@ class EditViewModel @Inject constructor(
         } else {
             e.draft
         }
-        e.copy(sheet = sheet.copy(setting = next), draft = draft, remembered = e.remembered + (next.type to next))
+        // 안 고른 미션은 '선택 완료'를 눌러야 반영돼요. 그냥 닫으면 바꾼 값은 버려요(11-18 사용자 지시).
+        val remembered = if (sheet.selected) e.remembered + (next.type to next) else e.remembered
+        e.copy(sheet = sheet.copy(setting = next), draft = draft, remembered = remembered)
     }
 
     /** '선택 완료'. 고른 순서대로 뒤에 붙여요(최대 [MissionSetting.MAX_MISSIONS]개). */

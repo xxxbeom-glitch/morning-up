@@ -217,6 +217,25 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun turnAllOn_afterTurnAllOff_turnsEverythingBackOn() = runTest {
+        val book = FakeAlarmBook(listOf(a630, a710, a800))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.turnAllOff()
+            var state = awaitItem()
+            while (state.alarms.any { it.enabled }) state = awaitItem()
+            // 모두 꺼진 뒤 '모든 알람 켜기'는 원래 꺼져 있던 8:00까지 모두 켜고 '내일 다시 켜기'를 거둬요.
+            vm.turnAllOn()
+            while (state.alarms.any { !it.enabled } || state.restOffers.isNotEmpty()) state = awaitItem()
+            assertThat(state.alarms.all { state.shownOn(it) }).isTrue()
+            assertThat(book.calls).containsExactly(
+                "enable:1:false", "enable:2:false", "enable:1:true", "enable:2:true", "enable:3:true",
+            )
+        }
+    }
+
+    @Test
     fun copySelected_makesNewAlarms_andToasts() = runTest {
         val book = FakeAlarmBook(listOf(a630))
         val vm = viewModel(book)

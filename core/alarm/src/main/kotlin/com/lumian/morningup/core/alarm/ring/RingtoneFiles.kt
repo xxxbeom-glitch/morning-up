@@ -18,15 +18,34 @@ import com.lumian.morningup.core.model.Ringtones
  */
 object RingtoneFiles {
     private val files: Map<String, Int> = mapOf(
-        "morning" to R.raw.ringtone_morning,
-        "morning_loop" to R.raw.ringtone_morning_loop,
-        "love_serenade" to R.raw.ringtone_love_serenade,
-        "spring_season" to R.raw.ringtone_spring_season,
-        "good_morning" to R.raw.ringtone_good_morning,
+        "aube_paisible" to R.raw.ringtone_aube_paisible,
+        "douceur" to R.raw.ringtone_douceur,
+        "primavera" to R.raw.ringtone_primavera,
+        "petit_bois" to R.raw.ringtone_petit_bois,
+        "gouttes_de_bois" to R.raw.ringtone_gouttes_de_bois,
+        "bonjour_soleil" to R.raw.ringtone_bonjour_soleil,
+        "buongiorno" to R.raw.ringtone_buongiorno,
+        "joie_de_vivre" to R.raw.ringtone_joie_de_vivre,
+        "allegro_vivace" to R.raw.ringtone_allegro_vivace,
+        "presto" to R.raw.ringtone_presto,
+        "petits_rebonds" to R.raw.ringtone_petits_rebonds,
+        "route_de_campagne" to R.raw.ringtone_route_de_campagne,
+        "soleil_mineur" to R.raw.ringtone_soleil_mineur,
+        "fortissimo" to R.raw.ringtone_fortissimo,
+        "nuit_blanche" to R.raw.ringtone_nuit_blanche,
+        "tambour_battant" to R.raw.ringtone_tambour_battant,
+        "neon_rouge" to R.raw.ringtone_neon_rouge,
+        "maestoso" to R.raw.ringtone_maestoso,
+        "marche_triomphale" to R.raw.ringtone_marche_triomphale,
+        "grandeur" to R.raw.ringtone_grandeur,
+        "reverie" to R.raw.ringtone_reverie,
+        "danse_des_ombres" to R.raw.ringtone_danse_des_ombres,
+        "joyeux_noel" to R.raw.ringtone_joyeux_noel,
+        "nuit_de_noel" to R.raw.ringtone_nuit_de_noel,
     )
 
     @RawRes
-    fun rawFor(id: String?): Int = id?.let(files::get) ?: R.raw.alarm_default
+    fun rawFor(id: String?): Int = id?.let { files[Ringtones.currentId(it)] } ?: R.raw.alarm_default
 
     fun uriFor(context: Context, id: String?): Uri =
         "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${rawFor(id)}".toUri()
@@ -74,6 +93,6 @@ class RingtonePreviewer(private val context: Context) {
     }
 
     private companion object {
-        const val PREVIEW_MILLIS = 3_000L
+        const val PREVIEW_MILLIS = 6_000L
     }
 }
