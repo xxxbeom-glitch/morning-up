@@ -150,8 +150,9 @@ private fun DialogCard(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text = title, style = typography.titleMedium, color = colors.textPrimary, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(MorningDimens.space12))
-        Text(text = message, style = typography.bodySmall, color = colors.textSecondary, textAlign = TextAlign.Center)
+        // 피그마 Dialog(`137:709`): 제목과 본문 사이 8, 본문 Body/Medium 14.
+        Spacer(Modifier.height(MorningDimens.space8))
+        Text(text = message, style = typography.bodyMedium, color = colors.textSecondary, textAlign = TextAlign.Center)
         Spacer(Modifier.height(MorningDimens.space24))
         Row(horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
             MorningButton(

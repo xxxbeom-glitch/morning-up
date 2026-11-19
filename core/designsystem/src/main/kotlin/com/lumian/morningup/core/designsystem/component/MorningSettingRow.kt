@@ -20,7 +20,7 @@ import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
-private val ChevronSize = 16.dp
+private val ChevronSize = 20.dp
 
 /**
  * 피그마 Setting Row State. Disabled(`405:753`)는 라벨과 값 모두 흐리고 토글을 누를 수 없어요.

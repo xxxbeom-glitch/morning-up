@@ -42,6 +42,7 @@ import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.MorningWheelPicker
 import com.lumian.morningup.core.designsystem.component.SettingRowState
+import com.lumian.morningup.core.designsystem.component.WHEEL_VISIBLE_ROWS
 import com.lumian.morningup.core.designsystem.component.WheelItemHeight
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -392,14 +393,29 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
                 looping = true,
                 contentDescription = stringResource(R.string.edit_hour),
             )
-            Text(
-                text = stringResource(R.string.edit_colon),
-                style = MorningTheme.typography.displayMedium,
-                color = MorningTheme.colors.textPrimary,
-                textAlign = TextAlign.Center,
-                // 쌍점은 숫자 가운데보다 살짝 아래로 보여서 4 올려요(데모와 같음).
-                modifier = Modifier.width(ColonWidth).padding(bottom = MorningDimens.space4),
-            )
+            // 피그마 S0처럼 위아래 연한 줄에도 쌍점이 있어요(가운데만 진하게).
+            Column(modifier = Modifier.width(ColonWidth)) {
+                repeat(WHEEL_VISIBLE_ROWS) { row ->
+                    val centered = row == WHEEL_VISIBLE_ROWS / 2
+                    Box(
+                        modifier = Modifier.fillMaxWidth().height(WheelItemHeight),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.edit_colon),
+                            style = if (centered) {
+                                MorningTheme.typography.displayMedium
+                            } else {
+                                MorningTheme.typography.displayMediumMuted
+                            },
+                            color = if (centered) MorningTheme.colors.textPrimary else MorningTheme.colors.textDisabled,
+                            textAlign = TextAlign.Center,
+                            // 쌍점은 숫자 가운데보다 살짝 아래로 보여서 4 올려요(데모와 같음).
+                            modifier = Modifier.fillMaxWidth().padding(bottom = MorningDimens.space4),
+                        )
+                    }
+                }
+            }
             MorningWheelPicker(
                 items = minutes,
                 selectedIndex = minute,
