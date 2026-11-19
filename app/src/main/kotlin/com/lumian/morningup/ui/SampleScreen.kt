@@ -31,11 +31,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.R
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
-import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
-import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
@@ -127,15 +125,6 @@ fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
                 color = MorningTheme.colors.textSecondary,
             )
         }
-    }
-    val replayOnboarding by viewModel.replayOnboarding.collectAsStateWithLifecycle()
-    MorningSettingsCard(title = null) {
-        MorningSettingRow(
-            label = stringResource(R.string.test_onboarding_replay),
-            value = stringResource(R.string.test_onboarding_replay_desc),
-            state = if (replayOnboarding) SettingRowState.On else SettingRowState.Off,
-            onCheckedChange = viewModel::setReplayOnboarding,
-        )
     }
     val batterySent by viewModel.batterySent.collectAsStateWithLifecycle()
     MorningSettingsCard(title = stringResource(R.string.test_battery_title)) {

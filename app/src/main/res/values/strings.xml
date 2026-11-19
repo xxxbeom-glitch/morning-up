@@ -29,8 +29,6 @@
     <string name="test_case_e">E 진동 끔 + 부드럽게 깨우기</string>
     <string name="test_case_f">F 진동만 (알람음 끔)</string>
     <string name="test_case_g">G 다시 울림 끌 때까지</string>
-    <string name="test_onboarding_replay">앱 켤 때마다 온보딩</string>
-    <string name="test_onboarding_replay_desc">새로 켤 때마다 온보딩을 처음부터 보여요</string>
     <string name="test_battery_title">배터리 알림</string>
     <string name="test_battery_send">배터리 알림 바로 보내기</string>
     <string name="test_battery_sent">알림을 보냈어요. 눌러서 권한 시트가 열리는지 보세요</string>
