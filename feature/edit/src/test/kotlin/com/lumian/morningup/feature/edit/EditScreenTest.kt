@@ -212,7 +212,7 @@ class EditScreenTest {
             EditActions(onOpenMissionSheet = { opened += it }),
         )
         compose.onNodeWithText("2단계, 4문제").assertExists()
-        compose.onNodeWithText("1단계, 속도 2, 단어 10개").assertExists()
+        compose.onNodeWithText("1단계, 속도 2, 10문제").assertExists()
         compose.onNodeWithText("25번").assertExists()
         compose.onNodeWithTag("${MISSION_CARD_TAG}QuickMath").assertIsSelected().assertIsEnabled()
         // 칸이 4개라(결정 87) 셋을 골라도 남은 하나를 더 고를 수 있어요.

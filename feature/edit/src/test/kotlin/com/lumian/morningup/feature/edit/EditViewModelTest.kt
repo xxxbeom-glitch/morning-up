@@ -311,21 +311,20 @@ class EditViewModelTest {
             loaded()
             vm.openMissionSheet(MissionType.DropWords)
             var sheet = awaitItem().missionSheet!!
-            // 처음 값은 1단계, 속도 1이라 < 가 막혀 있어요. 단어 수는 10개라 5개까지 줄일 수 있어요.
+            // 처음 값은 1단계, 속도 1이라 < 가 막혀 있어요. 문제 수는 10개이고 1씩 5개까지 줄일 수 있어요(11-19 사용자 결정).
             assertThat(sheet.canLevelDown).isFalse()
             assertThat(sheet.canSpeedDown).isFalse()
             assertThat(sheet.canCountDown).isTrue()
             assertThat(sheet.canLevelUp).isTrue()
             vm.stepMissionLevel(-1)
-            vm.stepMissionCount(-1)
-            vm.stepMissionCount(-1)
+            repeat(5) { vm.stepMissionCount(-1) }
             sheet = expectMostRecentItem().missionSheet!!
             assertThat(sheet.setting.level).isEqualTo(1)
             assertThat(sheet.setting.count).isEqualTo(5)
             assertThat(sheet.canCountDown).isFalse()
             repeat(10) { vm.stepMissionLevel(1) }
             repeat(10) { vm.stepMissionSpeed(1) }
-            repeat(10) { vm.stepMissionCount(1) }
+            repeat(30) { vm.stepMissionCount(1) }
             val top = expectMostRecentItem()
             sheet = top.missionSheet!!
             assertThat(sheet.setting.level).isEqualTo(7)

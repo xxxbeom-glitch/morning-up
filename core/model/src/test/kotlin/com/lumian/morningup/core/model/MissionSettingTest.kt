@@ -23,7 +23,7 @@ class MissionSettingTest {
         assertThat(math.counts).isEqualTo(1..10)
         assertThat(MissionSetting.rangeOf(MissionType.PopQuiz).counts).isEqualTo(2..10)
         assertThat(MissionSetting.rangeOf(MissionType.DropWords).counts).isEqualTo(5..30)
-        assertThat(MissionSetting.rangeOf(MissionType.DropWords).countStep).isEqualTo(5)
+        assertThat(MissionSetting.rangeOf(MissionType.DropWords).countStep).isEqualTo(1)
         assertThat(MissionSetting.rangeOf(MissionType.ShakeShake).counts).isEqualTo(10..200)
         assertThat(MissionSetting.rangeOf(MissionType.ShakeShake).levels).isEqualTo(1..1)
     }

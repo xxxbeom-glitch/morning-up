@@ -45,8 +45,8 @@
     <string name="edit_mission_desc_pop_quiz">상식 퀴즈를 맞혀요</string>
     <string name="edit_mission_desc_quick_math">간단한 계산 문제를 풀어요</string>
     <string name="edit_mission_desc_shake_shake">폰을 세게 흔들어요</string>
-    <!-- 고른 카드 설명: 1단계, 속도 1, 단어 10개 -->
-    <string name="edit_mission_value_drop_words">%1$d단계, 속도 %2$d, 단어 %3$d개</string>
+    <!-- 고른 카드 설명: 1단계, 속도 1, 10문제 (11-19 사용자 결정: Drop Words도 '문제 수') -->
+    <string name="edit_mission_value_drop_words">%1$d단계, 속도 %2$d, %3$d문제</string>
     <string name="edit_mission_value_questions">%1$d단계, %2$d문제</string>
     <string name="edit_mission_value_shakes">%1$d번</string>
 
@@ -55,8 +55,6 @@
     <string name="edit_mission_level_value">%1$d단계</string>
     <string name="edit_mission_speed">속도</string>
     <string name="edit_mission_speed_sub">바닥까지 %1$d초</string>
-    <string name="edit_mission_words">단어 수</string>
-    <string name="edit_mission_words_value">%1$d개</string>
     <string name="edit_mission_questions">문제 수</string>
     <string name="edit_mission_questions_value">%1$d문제</string>
     <string name="edit_mission_shakes">흔드는 횟수</string>

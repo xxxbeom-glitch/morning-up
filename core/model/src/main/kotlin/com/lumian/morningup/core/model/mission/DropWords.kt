@@ -80,6 +80,9 @@ class DropWordsGame(
     private val bank = words.filter(Hangul::isHangulWord).distinct().ifEmpty { error("단어가 없어요") }
     private var deck = ArrayDeque<String>()
 
+    /** 바로 전에 내린 단어. 다시 섞을 때 맨 앞에 오면 뒤로 보내 연달아 같은 단어가 나오지 않게 해요(11-19 사용자 지시 7). */
+    private var lastDrawn: String? = null
+
     fun start(now: Long): DropWordsState {
         val empty = DropWordsState(
             level = level,
@@ -160,10 +163,16 @@ class DropWordsGame(
     /** 섞어 둔 단어를 차례로 꺼내요. 다 쓰면 다시 섞고, 화면에 떠 있는 단어는 건너뛰어요. */
     private fun drawWord(onScreen: Set<String>): String {
         repeat(bank.size * 2) {
-            if (deck.isEmpty()) deck = ArrayDeque(bank.shuffled(random))
+            if (deck.isEmpty()) deck = reshuffled()
             val next = deck.removeFirst()
-            if (next !in onScreen) return next
+            if (next !in onScreen) return next.also { lastDrawn = it }
         }
-        return bank.random(random)
+        return bank.random(random).also { lastDrawn = it }
+    }
+
+    private fun reshuffled(): ArrayDeque<String> {
+        val shuffled = bank.shuffled(random)
+        val repeatsLast = bank.size > 1 && shuffled.first() == lastDrawn
+        return ArrayDeque(if (repeatsLast) shuffled.drop(1) + shuffled.first() else shuffled)
     }
 }

@@ -119,4 +119,20 @@ class QuickMathGameTest {
         assertThat(keys).doesNotContain(MathKey.Confirm)
         assertThat(keys.filterIsInstance<MathKey.Digit>().map { it.value }).isEqualTo(s.keypad)
     }
+
+    @Test
+    fun level1_tenProblems_doNotRepeatWithinOneGame() {
+        // 1단계 덧셈은 56문제뿐이라 전에는 10문제 한 판에서 자주 겹쳤어요(11-19 지시 7).
+        repeat(200) { seed ->
+            val g = QuickMathGame(level = 1, target = 10, random = Random(seed))
+            var s = g.start()
+            val asked = mutableListOf(s.problem.text)
+            while (!s.finished) {
+                s = s.problem.answer.toString().fold(s) { acc, ch -> g.type(acc, ch.digitToInt()) }
+                s = g.submit(s).first
+                if (!s.finished) asked += s.problem.text
+            }
+            assertThat(asked.toSet()).hasSize(asked.size)
+        }
+    }
 }

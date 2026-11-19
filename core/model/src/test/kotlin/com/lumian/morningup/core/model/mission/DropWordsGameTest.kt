@@ -178,4 +178,20 @@ class DropWordsGameTest {
         assertThat(game(target = 3).start(t0).target).isEqualTo(3)
         assertThat(game(target = 0).start(t0).target).isEqualTo(1)
     }
+
+    @Test
+    fun reshuffle_neverDropsSameWordTwiceInARow() {
+        // 단어 10개로 30개를 맞히면 두 번 다시 섞어요. 섞인 첫 단어가 바로 전 단어와 같아도 연달아 나오지 않아야 해요(11-19 지시 7).
+        repeat(200) { seed ->
+            val g = DropWordsGame(level = 1, speed = 1, target = 30, words = bank, random = Random(seed))
+            var s = g.start(t0)
+            val answered = mutableListOf<String>()
+            while (!s.finished) {
+                val word = s.words.minBy { it.spawnedAt }.text
+                s = g.typeWord(s, word, t0).first
+                answered += word
+            }
+            assertThat(answered.zipWithNext().none { (a, b) -> a == b }).isTrue()
+        }
+    }
 }

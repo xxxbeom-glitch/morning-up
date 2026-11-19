@@ -201,7 +201,7 @@ class EditViewModel @Inject constructor(
     /** 시트 속도 < >(Drop Words). */
     fun stepMissionSpeed(delta: Int) = changeSheet { it.copy(speed = it.speed + delta) }
 
-    /** 시트 개수 − +. 한 번에 [MissionSetting.Range.countStep]씩(Drop Words 5개, 나머지 1). */
+    /** 시트 개수 − +. 한 번에 [MissionSetting.Range.countStep]씩(11-19 사용자 결정으로 모든 미션 1씩). */
     fun stepMissionCount(delta: Int) = changeSheet {
         it.copy(count = it.count + delta * MissionSetting.rangeOf(it.type).countStep)
     }

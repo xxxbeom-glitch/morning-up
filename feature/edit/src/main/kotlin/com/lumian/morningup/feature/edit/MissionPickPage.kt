@@ -167,7 +167,7 @@ private fun MissionCard(
     }
 }
 
-/** 고른 카드 설명 줄: '1단계, 속도 1, 단어 10개', '1단계, 3문제', '10번'. */
+/** 고른 카드 설명 줄: '1단계, 속도 1, 10문제', '1단계, 3문제', '10번'. */
 @Composable
 internal fun missionValue(setting: MissionSetting): String = when (setting.type) {
     MissionType.DropWords -> stringResource(
@@ -296,14 +296,12 @@ internal fun descriptionOf(type: MissionType): Int = when (type) {
 }
 
 private fun countLabelOf(type: MissionType): Int = when (type) {
-    MissionType.DropWords -> R.string.edit_mission_words
-    MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions
+    MissionType.DropWords, MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions
     MissionType.ShakeShake -> R.string.edit_mission_shakes
 }
 
 private fun countValueOf(type: MissionType): Int = when (type) {
-    MissionType.DropWords -> R.string.edit_mission_words_value
-    MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions_value
+    MissionType.DropWords, MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions_value
     MissionType.ShakeShake -> R.string.edit_mission_shakes_value
 }
 

@@ -8,6 +8,7 @@ import kotlinx.serialization.Serializable
  * 고른 미션 하나의 설정(mission-levels.md 2번 표).
  * - [level]: 난이도 1~7단계. Shake Shake는 단계가 없어 늘 1이에요.
  * - [count]: Pop Quiz, Quick Math는 연속으로 맞혀야 하는 문제 수, Drop Words는 맞힐 단어 수, Shake Shake는 흔드는 횟수.
+ *   Drop Words도 화면 이름은 '문제 수'이고 1씩 바뀌어요(11-19 사용자 결정).
  * - [speed]: Drop Words만 쓰는 속도 1~4. 나머지는 늘 1이에요.
  * 범위를 벗어난 값은 만들 때 가장 가까운 끝 값으로 맞춰요(저장된 옛 값이 범위 밖이어도 앱이 죽지 않게).
  */
@@ -60,7 +61,7 @@ data class MissionSetting(
 
         fun rangeOf(type: MissionType): Range = when (type) {
             MissionType.DropWords ->
-                Range(LEVELS, DROP_WORDS_COUNTS, countStep = 5, defaultLevel = 1, defaultCount = 10)
+                Range(LEVELS, DROP_WORDS_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 10)
             MissionType.PopQuiz -> Range(LEVELS, POP_QUIZ_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 3)
             MissionType.QuickMath -> Range(LEVELS, QUICK_MATH_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 3)
             MissionType.ShakeShake ->

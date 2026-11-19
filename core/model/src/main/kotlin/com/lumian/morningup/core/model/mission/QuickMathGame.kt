@@ -103,11 +103,23 @@ class QuickMathGame(level: Int, target: Int, private val random: Random) {
         return next to SubmitResult.Correct
     }
 
+    /**
+     * 새 문제. 바로 전 문제와는 늘 달라요. 이 판에서 이미 낸 문제도 되도록 피해요
+     * (1단계처럼 만들 수 있는 문제가 적으면 한 판 안에서 겹칠 수 있어서, 11-19 사용자 지시 7).
+     */
     private fun nextProblem(previous: MathProblem): MathProblem {
+        asked += previous.text
         var next = QuickMath.problem(level, random)
-        while (next == previous || next.text == previous.text) next = QuickMath.problem(level, random)
+        var tries = 0
+        while (next.text == previous.text || (next.text in asked && tries < FRESH_TRIES)) {
+            next = QuickMath.problem(level, random)
+            tries++
+        }
         return next
     }
+
+    /** 이 판에서 낸 문제(글자). */
+    private val asked = mutableSetOf<String>()
 
     /** 숫자 열 개를 섞어요. [previous]와 같은 배열은 다시 섞어요(정답 뒤에 늘 바뀐 게 보이게). */
     private fun shuffled(previous: List<Int>?): List<Int> {
@@ -120,5 +132,6 @@ class QuickMathGame(level: Int, target: Int, private val random: Random) {
         val DIGITS = 0..9
         const val MAX_INPUT = 7
         const val DOT = '.'
+        const val FRESH_TRIES = 200
     }
 }
