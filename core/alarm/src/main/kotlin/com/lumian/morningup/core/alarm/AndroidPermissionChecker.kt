@@ -1,12 +1,15 @@
 package com.lumian.morningup.core.alarm
 
+import android.Manifest
 import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.lumian.morningup.core.alarm.guard.PowerGuardService
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.model.AlarmPermission
@@ -57,6 +60,9 @@ class AndroidPermissionChecker @Inject constructor(
         AlarmPermission.FullScreen -> notifications.canShowFullScreen()
         AlarmPermission.Overlay -> Settings.canDrawOverlays(context)
         AlarmPermission.PowerGuard -> powerGuardOn()
+        AlarmPermission.Location ->
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
     }
 
     /** 접근성 설정에서 전원 종료 방지 서비스가 켜져 있는지. */

@@ -41,9 +41,10 @@ class WeatherSettingsViewModel @Inject constructor(private val weather: WeatherR
 }
 
 /**
- * T1 날씨 애니메이션 카드(design-system T1 ②). '위치 권한' 줄(값 '허용됨' 회색, '허용 안 됨' 빨강, 결정 102)과 '배경 애니메이션' 토글.
- * 권한 없이 토글을 켜거나 '위치 권한' 줄을 누르면 P5 창을 먼저 띄우고, '허용하기'에서 시스템 요청 창으로 물어요.
- * 거절되면(두 번 거절해 시스템이 더 묻지 않는 경우 포함) 앱 정보 화면으로 보내요. 허용돼 있으면 줄은 앱 정보 화면을 열어요.
+ * T1 날씨 애니메이션 카드(design-system T1 ②). '배경 애니메이션' 토글 하나예요. '위치 권한' 줄은 빼고
+ * 위치는 '권한' 화면 '선택 권한' 카드에만 둬요(결정 130 보충 2).
+ * 권한 없이 토글을 켜면 P5 창을 먼저 띄우고, '허용하기'에서 시스템 요청 창으로 물어요.
+ * 거절되면(두 번 거절해 시스템이 더 묻지 않는 경우 포함) 앱 정보 화면으로 보내요.
  */
 @Composable
 internal fun WeatherCard(viewModel: WeatherSettingsViewModel = hiltViewModel()) {
@@ -85,16 +86,6 @@ internal fun WeatherCard(viewModel: WeatherSettingsViewModel = hiltViewModel()) 
                 }
             },
         )
-        NavRows {
-            NavRow(
-                label = stringResource(R.string.settings_weather_location),
-                value = stringResource(
-                    if (granted) R.string.permission_granted else R.string.permission_status_none,
-                ),
-                valueError = !granted,
-                onClick = { if (granted) openAppDetails() else asking = true },
-            )
-        }
     }
     if (asking) {
         MorningDialog(

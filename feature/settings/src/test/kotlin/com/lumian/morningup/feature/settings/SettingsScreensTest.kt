@@ -3,11 +3,11 @@ package com.lumian.morningup.feature.settings
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionReport
-import com.lumian.morningup.core.model.PermissionScreen
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,70 +21,78 @@ class SettingsScreensTest {
     private fun report(vararg off: AlarmPermission) =
         PermissionReport(AlarmPermission.entries.associateWith { it !in off })
 
-    @Test
-    fun t1_warnsOnlyWhenRequiredOff_andOpensPermissionPage() {
-        var opened: PermissionScreen? = null
+    private fun setT1(report: PermissionReport, onOpen: () -> Unit = {}) {
         compose.setContent {
             MorningTheme(darkTheme = false, reduceMotion = true) {
                 SettingsScreen(
-                    report = report(AlarmPermission.Battery),
+                    report = report,
                     versionName = "1.0.0",
                     tryAlarmAt = null,
-                    onOpenPermissions = { opened = it },
+                    onOpenPermissions = onOpen,
                     onTryAlarm = {},
                     onFeedback = {},
                 )
             }
         }
-        // 알람 울림은 필수 3개 중 2개만 켜져서 '일부 허용됨', 알람 화면 표시는 '허용됨'(결정 102).
+    }
+
+    @Test
+    fun t1_oneRow_partialWhenOneRequiredOff_andOpensPermissionPage() {
+        var opened = false
+        setT1(report(AlarmPermission.Overlay)) { opened = true }
         compose.onNodeWithText("일부 허용됨").assertExists()
-        compose.onNodeWithText("허용됨").assertExists()
+        compose.onNodeWithText("알람 울림").assertDoesNotExist()
+        compose.onNodeWithText("알람 화면 표시").assertDoesNotExist()
         compose.onNodeWithText("1.0.0").assertExists()
-        compose.onNodeWithText("알람 울림").performClick()
-        assertThat(opened).isEqualTo(PermissionScreen.Ring)
+        compose.onNodeWithText("권한").performClick()
+        assertThat(opened).isTrue()
     }
 
     @Test
-    fun t1_allOn_noWarning() {
-        compose.setContent {
-            MorningTheme(darkTheme = false, reduceMotion = true) {
-                SettingsScreen(report(), "1.0.0", null, {}, {}, {})
-            }
-        }
-        compose.onNodeWithText("일부 허용됨").assertDoesNotExist()
-        compose.onNodeWithText("허용 안 됨").assertDoesNotExist()
+    fun t1_optionalOff_stillGranted() {
+        setT1(report(AlarmPermission.Battery, AlarmPermission.Location, AlarmPermission.AlarmVolume))
+        compose.onNodeWithText("허용됨").assertExists()
     }
 
     @Test
-    fun t2a_hidesExactWhenOn_andRowOpensDeviceSetting() {
-        val opened = mutableListOf<AlarmPermission>()
+    fun t1_allRequiredOff_none() {
+        setT1(report(AlarmPermission.Notifications, AlarmPermission.FullScreen, AlarmPermission.Overlay))
+        compose.onNodeWithText("허용 안 됨").assertExists()
+    }
+
+    private fun setPage(report: PermissionReport, samsung: Boolean, onOpen: (AlarmPermission) -> Unit = {}) {
         compose.setContent {
             MorningTheme(darkTheme = false, reduceMotion = true) {
                 PermissionPage(
-                    screen = PermissionScreen.Ring,
-                    report = report(),
-                    showSamsungSleep = false,
+                    report = report,
+                    showSamsungSleep = samsung,
                     onBack = {},
-                    onOpen = { opened += it },
+                    onOpen = onOpen,
                     onOpenSamsungSleep = {},
                 )
             }
         }
-        compose.onNodeWithText("정확한 알람").assertDoesNotExist()
-        compose.onNodeWithText("절전 예외 앱에 추가").assertDoesNotExist()
-        compose.onNodeWithText("배터리 사용 제한 없음").performClick()
-        assertThat(opened).containsExactly(AlarmPermission.Battery)
     }
 
     @Test
-    fun t2b_showsOptionalOverlay() {
-        compose.setContent {
-            MorningTheme(darkTheme = false, reduceMotion = true) {
-                PermissionPage(PermissionScreen.Screen, report(AlarmPermission.Overlay), false, {}, {}, {})
-            }
-        }
+    fun page_threeCards_noExactAlarm() {
+        setPage(report(AlarmPermission.ExactAlarm), samsung = true)
+        compose.onNodeWithText("필수 권한").assertExists()
         compose.onNodeWithText("선택 권한").assertExists()
+        compose.onNodeWithText("기타").performScrollTo().assertExists()
         compose.onNodeWithText("다른 앱 위에 표시").assertExists()
-        compose.onNodeWithText("전체 화면 알림").assertExists()
+        compose.onNodeWithText("위치").assertExists()
+        compose.onNodeWithText("절전 예외 앱에 추가").performScrollTo().assertExists()
+        compose.onNodeWithText("정확한 알람").assertDoesNotExist()
+    }
+
+    @Test
+    fun page_rowsOpenTheirSetting() {
+        val opened = mutableListOf<AlarmPermission>()
+        setPage(report(), samsung = false) { opened += it }
+        compose.onNodeWithText("절전 예외 앱에 추가").assertDoesNotExist()
+        compose.onNodeWithText("배터리 사용 제한 없음").performScrollTo().performClick()
+        compose.onNodeWithText("알람 음량").performScrollTo().performClick()
+        assertThat(opened).containsExactly(AlarmPermission.Battery, AlarmPermission.AlarmVolume).inOrder()
     }
 }

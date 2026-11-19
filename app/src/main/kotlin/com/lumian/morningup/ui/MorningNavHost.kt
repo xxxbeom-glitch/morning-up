@@ -11,7 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -25,14 +24,12 @@ import com.lumian.morningup.BuildConfig
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
 import com.lumian.morningup.core.model.AlarmPermission
-import com.lumian.morningup.core.model.PermissionScreen
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
 import com.lumian.morningup.feature.settings.FaqPage
-import com.lumian.morningup.feature.settings.FirstSavePermissionAsk
 import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
@@ -43,7 +40,6 @@ import com.lumian.morningup.feature.settings.SettingsViewModel
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
 import com.lumian.morningup.feature.sleep.SleepPlayerRoute
 import com.lumian.morningup.feature.sleep.SleepScreen
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -63,13 +59,12 @@ data object LicensesRoute
 @Serializable
 data object PowerGuideRoute
 
-/** T2-A 알람 울림, T2-B 알람 화면 표시. [screen]은 [PermissionScreen] 이름이에요. */
+/** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
-data class PermissionsRoute(val screen: String)
+data object PermissionsRoute
 
 /** 편집 화면이 저장한 알람 id를 첫 화면에 넘기는 열쇠. */
 private const val SAVED_ALARM_KEY = "savedAlarmId"
-private const val FIRST_SAVE_ASK_DELAY_MILLIS = 700L
 
 /**
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
@@ -107,16 +102,8 @@ fun MorningNavHost(
                 .collectAsStateWithLifecycle()
             val settings: SettingsViewModel = hiltViewModel()
             val report by settings.report.collectAsStateWithLifecycle()
-            val firstSaveAsked by settings.firstSaveAsked.collectAsStateWithLifecycle()
-            var askingFirstSave by rememberSaveable { mutableStateOf(false) }
             var homeSelecting by remember { mutableStateOf(false) }
-            LaunchedEffect(savedId) {
-                // 첫 알람을 저장하고 홈에 돌아오면 저장된 카드를 잠깐 보여 준 뒤 권한을 한 번만 물어요(F21).
-                if (savedId != null && !firstSaveAsked) {
-                    delay(FIRST_SAVE_ASK_DELAY_MILLIS)
-                    askingFirstSave = true
-                }
-            }
+            // 첫 알람을 저장해도 권한 창은 띄우지 않아요(결정 128). 꺼진 필수 권한은 H2 배너로 알려요.
             MorningUpApp(
                 alarmTab = { tabModifier ->
                     HomeRoute(
@@ -137,8 +124,8 @@ fun MorningNavHost(
                 settingsTab = { tabModifier ->
                     SettingsRoute(
                         versionName = BuildConfig.VERSION_NAME,
-                        onOpenPermissions = { screen ->
-                            navController.navigate(PermissionsRoute(screen.name)) { launchSingleTop = true }
+                        onOpenPermissions = {
+                            navController.navigate(PermissionsRoute) { launchSingleTop = true }
                         },
                         modifier = tabModifier,
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
@@ -156,19 +143,9 @@ fun MorningNavHost(
                 settingsAlert = report.needsAttention,
                 hideNav = homeSelecting,
             )
-            if (askingFirstSave) {
-                FirstSavePermissionAsk(report) {
-                    settings.markFirstSaveAsked()
-                    askingFirstSave = false
-                }
-            }
         }
-        composable<PermissionsRoute> { entry ->
-            PermissionRoute(
-                screen = PermissionScreen.valueOf(entry.toRoute<PermissionsRoute>().screen),
-                onBack = { navController.popBackStack() },
-                onOpenPowerGuide = { navController.navigate(PowerGuideRoute) { launchSingleTop = true } },
-            )
+        composable<PermissionsRoute> {
+            PermissionRoute(onBack = { navController.popBackStack() })
         }
         composable<SleepPlayerRoute> { entry ->
             SleepPlayerPage(

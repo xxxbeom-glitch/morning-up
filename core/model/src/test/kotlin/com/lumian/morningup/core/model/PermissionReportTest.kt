@@ -12,6 +12,7 @@ class PermissionReportTest {
         val all = report()
         assertThat(all.needsAttention).isFalse()
         assertThat(all.missingRequired).isEmpty()
+        assertThat(all.grantedRequiredCount).isEqualTo(PermissionReport.RequiredCount)
     }
 
     @Test
@@ -20,19 +21,33 @@ class PermissionReportTest {
     }
 
     @Test
-    fun optionalOff_doesNotWarn() {
-        val r = report(AlarmPermission.Overlay, AlarmPermission.DoNotDisturb)
-        assertThat(r.needsAttention).isFalse()
-        assertThat(r.isGranted(AlarmPermission.Overlay)).isFalse()
+    fun requiredAreOnlyNotificationsFullScreenOverlay() {
+        assertThat(AlarmPermission.entries.filter { it.required }).containsExactly(
+            AlarmPermission.Notifications,
+            AlarmPermission.FullScreen,
+            AlarmPermission.Overlay,
+        )
     }
 
     @Test
-    fun requiredOff_warnsOnItsScreenOnly() {
-        val r = report(AlarmPermission.FullScreen)
+    fun optionalAndOtherOff_doNotWarn() {
+        val r = report(
+            AlarmPermission.Battery,
+            AlarmPermission.Location,
+            AlarmPermission.DoNotDisturb,
+            AlarmPermission.AlarmVolume,
+            AlarmPermission.ExactAlarm,
+        )
+        assertThat(r.needsAttention).isFalse()
+        assertThat(r.isGranted(AlarmPermission.Battery)).isFalse()
+    }
+
+    @Test
+    fun requiredOff_warns() {
+        val r = report(AlarmPermission.Overlay)
         assertThat(r.needsAttention).isTrue()
-        assertThat(r.missingRequired).containsExactly(AlarmPermission.FullScreen)
-        assertThat(r.needsAttention(PermissionScreen.Screen)).isTrue()
-        assertThat(r.needsAttention(PermissionScreen.Ring)).isFalse()
+        assertThat(r.missingRequired).containsExactly(AlarmPermission.Overlay)
+        assertThat(r.grantedRequiredCount).isEqualTo(2)
     }
 
     @Test

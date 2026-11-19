@@ -47,7 +47,6 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionReport
-import com.lumian.morningup.core.model.PermissionScreen
 import java.time.LocalTime
 
 /** 하단 메뉴가 덮는 높이. 마지막 카드와 메뉴 사이 24를 더해요(design-system T1). */
@@ -69,7 +68,7 @@ private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 @Composable
 fun SettingsRoute(
     versionName: String,
-    onOpenPermissions: (PermissionScreen) -> Unit,
+    onOpenPermissions: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
@@ -126,7 +125,7 @@ fun SettingsScreen(
     report: PermissionReport,
     versionName: String,
     tryAlarmAt: LocalTime?,
-    onOpenPermissions: (PermissionScreen) -> Unit,
+    onOpenPermissions: () -> Unit,
     onTryAlarm: () -> Unit,
     onFeedback: () -> Unit,
     modifier: Modifier = Modifier,
@@ -156,13 +155,7 @@ fun SettingsScreen(
                 // 카드 제목은 숨겨요(결정 101). 순서: 알람, 기상 미션, 날씨 애니메이션, 도움말, 앱 정보.
                 MorningSettingsCard(title = null) {
                     NavRows {
-                        PermissionNavRow(R.string.settings_alarm_ring, report, PermissionScreen.Ring, onOpenPermissions)
-                        PermissionNavRow(
-                            R.string.settings_alarm_screen,
-                            report,
-                            PermissionScreen.Screen,
-                            onOpenPermissions,
-                        )
+                        PermissionNavRow(report, onOpenPermissions)
                         NavRow(
                             label = stringResource(R.string.settings_alarm_try),
                             value = stringResource(R.string.settings_alarm_try_value),
@@ -217,28 +210,22 @@ internal fun NavRows(content: @Composable () -> Unit) {
 }
 
 /**
- * 권한 줄(결정 102). 그 화면 필수 권한이 모두 켜지면 '허용됨'(회색), 일부만 켜지면 '일부 허용됨', 하나도 안 켜지면
- * '허용 안 됨'(둘 다 빨강). 필수 권한이 하나뿐인 화면은 '허용됨'과 '허용 안 됨'만 써요. 선택 권한은 세지 않아요.
+ * '권한' 한 줄(결정 102, 130 보충). 필수 셋(알림, 전체 화면 알림, 다른 앱 위에 표시)이 모두 켜지면 '허용됨'(회색),
+ * 일부만 켜지면 '일부 허용됨', 하나도 안 켜지면 '허용 안 됨'(둘 다 빨강). 선택, 기타 권한은 세지 않아요.
  */
 @Composable
-private fun PermissionNavRow(
-    label: Int,
-    report: PermissionReport,
-    screen: PermissionScreen,
-    onOpen: (PermissionScreen) -> Unit,
-) {
-    val required = AlarmPermission.entries.filter { it.required && it.screen == screen }
-    val granted = required.count { report.isGranted(it) }
+private fun PermissionNavRow(report: PermissionReport, onOpen: () -> Unit) {
+    val granted = report.grantedRequiredCount
     val status = when (granted) {
-        required.size -> R.string.permission_granted
+        PermissionReport.RequiredCount -> R.string.permission_granted
         0 -> R.string.permission_status_none
         else -> R.string.permission_status_partial
     }
     NavRow(
-        label = stringResource(label),
+        label = stringResource(R.string.settings_permissions),
         value = stringResource(status),
-        valueError = granted < required.size,
-        onClick = { onOpen(screen) },
+        valueError = granted < PermissionReport.RequiredCount,
+        onClick = onOpen,
     )
 }
 

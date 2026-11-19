@@ -66,7 +66,8 @@ class AndroidPermissionCheckerTest {
         power.setIgnoringBatteryOptimizations(context.packageName, false)
         checker.refresh()
         assertThat(checker.report.value.isGranted(AlarmPermission.Battery)).isFalse()
-        assertThat(checker.report.value.missingRequired).contains(AlarmPermission.Battery)
+        // 배터리는 선택 권한이라 필수 경고에는 안 잡혀요(결정 130).
+        assertThat(checker.report.value.missingRequired).doesNotContain(AlarmPermission.Battery)
 
         power.setIgnoringBatteryOptimizations(context.packageName, true)
         checker.refresh()
@@ -74,16 +75,18 @@ class AndroidPermissionCheckerTest {
     }
 
     @Test
-    fun exactAlarmOff_isMissing() {
+    fun exactAlarmOff_isReadButNotRequired() {
         ShadowAlarmManager.setCanScheduleExactAlarms(false)
         checker.refresh()
-        assertThat(checker.report.value.missingRequired).contains(AlarmPermission.ExactAlarm)
+        assertThat(checker.report.value.isGranted(AlarmPermission.ExactAlarm)).isFalse()
+        assertThat(checker.report.value.missingRequired).doesNotContain(AlarmPermission.ExactAlarm)
     }
 
     @Test
-    fun alarmVolumeZero_isMissing() {
+    fun alarmVolumeZero_isReadButNoWarning() {
         audio.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0)
         checker.refresh()
-        assertThat(checker.report.value.missingRequired).contains(AlarmPermission.AlarmVolume)
+        assertThat(checker.report.value.isGranted(AlarmPermission.AlarmVolume)).isFalse()
+        assertThat(checker.report.value.missingRequired).doesNotContain(AlarmPermission.AlarmVolume)
     }
 }

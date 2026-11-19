@@ -8,6 +8,7 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.guard.PowerGuardConsent
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.PermissionReport
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -22,7 +23,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** T1 설정과 T2-A, T2-B 권한 화면이 같이 써요. 권한 상태는 앱이 앞으로 나올 때마다 새로 읽혀요. */
+/** T1 설정과 '권한' 화면이 같이 써요. 권한 상태는 앱이 앞으로 나올 때마다 새로 읽혀요. */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val permissions: PermissionChecker,
@@ -46,19 +47,19 @@ class SettingsViewModel @Inject constructor(
 
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
-    private val _firstSaveAsked = MutableStateFlow(prefs.getBoolean(KEY_FIRST_SAVE_ASKED, false))
+    /**
+     * 그 권한을 시스템 요청 창으로 물어본 적이 있는지(알림, 위치). 물어본 적이 있는데 시스템이 더 묻지 않으면
+     * (두 번 거절) 창 대신 폰 설정으로 보내요(결정 126 줄별 이동 표).
+     */
+    fun wasAsked(permission: AlarmPermission): Boolean = prefs.getBoolean(askedKey(permission), false)
 
-    /** 첫 알람 저장 때 권한 묻기(F21)를 이미 했는지. 한 번 돌면 다시 묻지 않아요. */
-    val firstSaveAsked: StateFlow<Boolean> = _firstSaveAsked.asStateFlow()
+    fun markAsked(permission: AlarmPermission) = prefs.edit { putBoolean(askedKey(permission), true) }
 
-    fun markFirstSaveAsked() {
-        prefs.edit { putBoolean(KEY_FIRST_SAVE_ASKED, true) }
-        _firstSaveAsked.value = true
-    }
+    private fun askedKey(permission: AlarmPermission) = "$KEY_ASKED_PREFIX${permission.name}"
 
     private val _tryAlarmAt = MutableStateFlow<LocalTime?>(null)
 
-    /** '알람 미리 울려 보기'로 예약한 시각. 잠깐 토스트로 보여 주고 비워요. */
+    /** '알람 미리 울려 보기'로 예약한 시각. 토스트로 3초 보여 주고 비워요(결정 128). */
     val tryAlarmAt: StateFlow<LocalTime?> = _tryAlarmAt.asStateFlow()
 
     fun refresh() = permissions.refresh()
@@ -77,8 +78,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     private companion object {
-        const val TOAST_MILLIS = 2_500L
+        const val TOAST_MILLIS = 3_000L
         const val PREFS = "settings"
-        const val KEY_FIRST_SAVE_ASKED = "first_save_asked"
+        const val KEY_ASKED_PREFIX = "asked_"
     }
 }

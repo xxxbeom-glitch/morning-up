@@ -39,6 +39,7 @@ private fun bannerTexts(permission: AlarmPermission): Pair<Int, Int> = when (per
     AlarmPermission.DoNotDisturb -> R.string.permission_dnd to R.string.permission_dnd_desc
     AlarmPermission.Overlay -> R.string.permission_overlay to R.string.permission_overlay_desc
     AlarmPermission.PowerGuard -> R.string.permission_power to R.string.permission_power_desc
+    AlarmPermission.Location -> R.string.permission_location to R.string.permission_location_desc
 }
 
 /**
