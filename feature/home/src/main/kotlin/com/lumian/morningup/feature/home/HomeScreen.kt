@@ -61,6 +61,7 @@ import com.composables.icons.lucide.EllipsisVertical
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Trash2
+import com.lumian.morningup.core.designsystem.component.MorningBottomNavAlertRise
 import com.lumian.morningup.core.designsystem.component.MorningBottomNavHeight
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
@@ -214,7 +215,9 @@ fun HomeScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
+                // 배너가 있으면(필수 권한 꺼짐) 설정 아이콘 위 '확인 필요' 말풍선이 떠 있어서 그만큼 더 올려요.
                 .padding(bottom = navReserve + MorningDimens.space12)
+                .padding(bottom = if (banner != null) MorningBottomNavAlertRise else 0.dp)
                 .padding(horizontal = MorningDimens.layoutScreenMargin),
         )
         if (state.selecting) {
@@ -480,7 +483,8 @@ private fun ListActions(onAdd: () -> Unit, extra: HomeExtraActions) {
             DropdownMenu(
                 expanded = menuOpen,
                 onDismissRequest = { menuOpen = false },
-                offset = DpOffset(0.dp, -MoreButtonSize),
+                // 메뉴 오른쪽 끝을 화면 여백 16에 맞춰요(더보기 버튼 끝은 화면 끝에서 4라 12 당겨요).
+                offset = DpOffset(-MenuEndInset, -MoreButtonSize),
                 shape = RoundedCornerShape(MorningDimens.radiusTile),
                 containerColor = MorningTheme.colors.surfaceCard,
             ) {
@@ -504,6 +508,7 @@ private val MenuRowHeight = 48.dp
 
 /** 더보기 아이콘 버튼 크기(Icon Button Large). 메뉴를 이만큼 올려 버튼을 덮어요. */
 private val MoreButtonSize = 48.dp
+private val MenuEndInset = 12.dp
 
 /** 피그마 H3 Menu Item: 아이콘 없이 `Body/Medium` `text/body` 글자, 높이 48, 좌우 16. */
 @Composable
@@ -520,8 +525,8 @@ private fun MenuRow(label: String, onClick: () -> Unit) {
     }
 }
 
-/** 선택 모드 헤더 높이(상태 표시줄 아래, 홈 Next Alarm Header와 같은 자리, Type=Select). */
-private val SelectHeaderHeight = 170.dp
+/** 선택 모드 헤더 높이(상태 표시줄 아래, 홈 Next Alarm Header와 같은 194, Type=Select). '전체 선택' 줄이 홈의 플러스, 더보기 줄과 같은 자리에 와요. */
+private val SelectHeaderHeight = 194.dp
 
 /** H3-1 하늘 위 '○개 선택됨'. 홈 헤더와 같은 높이 안 세로 가운데. */
 @Composable

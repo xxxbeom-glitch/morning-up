@@ -132,6 +132,9 @@ private val BubbleHeight = 24.dp
 private val TailWidth = 10.dp
 private val TailHeight = 6.dp
 
+/** '확인 필요' 말풍선이 메뉴 위로 솟는 높이(메뉴 위 4 + 꼬리 6 + 알약 24). 토스트처럼 메뉴 위에 뜨는 것을 이만큼 더 올려요. */
+val MorningBottomNavAlertRise = 34.dp
+
 /** 말풍선 아래 끝이 메뉴 위 4에 오게 버튼 위에서 올리는 거리(메뉴 안 여백 8 + 4 + 꼬리 6 + 알약 24). */
 private val BubbleLift = 42.dp
 
