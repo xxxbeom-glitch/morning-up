@@ -37,7 +37,7 @@ class ExactAlarms @Inject constructor(
         fallback(at, operation, alarmId)
     }
 
-    /** 울리는 중 타이머(1분 울림, 59초 미션 등)용. 화면에 알람 아이콘을 띄우지 않아요. */
+    /** 울리는 중 타이머(2분 울림, 59초 미션 등)용. 화면에 알람 아이콘을 띄우지 않아요. */
     fun setExact(at: Long, operation: PendingIntent) {
         if (canScheduleExact()) {
             try {
@@ -94,7 +94,7 @@ class AndroidAlarmScheduler @Inject constructor(
 
 /**
  * 울리는 중 타이머 한 칸. 쉬는 시간 끝과 W2 묻기는 서비스가 멈춘 채 몇 분 기다렸다가 화면을 다시 띄워야 해서
- * 가장 강한 알람 시계 예약을 써요. 나머지(1분 울림, 59초 미션, W2 답할 시간)는 서비스가 떠 있는 동안이에요.
+ * 가장 강한 알람 시계 예약을 써요. 나머지(2분 울림, 59초 미션, W2 답할 시간)는 서비스가 떠 있는 동안이에요.
  */
 @Singleton
 class RingTimers @Inject constructor(

@@ -22,7 +22,7 @@
 
     <!-- 디버그 빌드 전용 시험 알람 -->
     <string name="sample_alarm">시험 알람</string>
-    <string name="test_case_a">A 기본 (1분 울리고 끝)</string>
+    <string name="test_case_a">A 기본 (2분 울리고 끝)</string>
     <string name="test_case_b">B 다시 울림 3분 × 3번</string>
     <string name="test_case_c">C 미션 + 전원 종료 방지</string>
     <string name="test_case_d">D 미션 + 다시 잠들기 방지</string>

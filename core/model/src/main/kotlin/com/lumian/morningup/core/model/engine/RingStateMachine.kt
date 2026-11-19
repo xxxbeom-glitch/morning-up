@@ -19,7 +19,8 @@ import com.lumian.morningup.core.model.engine.RingEffect.StopSound
  * 시각은 epoch 밀리초예요.
  */
 object RingStateMachine {
-    const val RING_MILLIS = 60_000L
+    /** 아무도 안 끌 때 한 번에 울리는 길이. 11-16 F4는 1분, 11-19 사용자 결정으로 2분이에요. */
+    const val RING_MILLIS = 120_000L
     const val MISSION_MILLIS = 59_000L
     private const val FULL_VOLUME = 1f
     private const val MINUTE = 60_000L

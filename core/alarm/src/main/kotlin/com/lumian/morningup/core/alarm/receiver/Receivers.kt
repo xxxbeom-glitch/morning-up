@@ -50,7 +50,7 @@ class AlarmFireReceiver : BroadcastReceiver() {
     }
 }
 
-/** 울리는 중 타이머(1분 울림, 쉬는 시간 끝, 59초 미션, W2)가 됐어요. */
+/** 울리는 중 타이머(2분 울림, 쉬는 시간 끝, 59초 미션, W2)가 됐어요. */
 @AndroidEntryPoint
 class RingTimerReceiver : BroadcastReceiver() {
     @Inject lateinit var diagnostics: AlarmDiagnostics

@@ -24,6 +24,7 @@ import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
+import com.lumian.morningup.core.model.engine.RingStateMachine
 import com.lumian.morningup.core.model.engine.TimerKind
 import java.io.File
 import java.time.Instant
@@ -288,7 +289,7 @@ class AlarmWiringTest {
         val once = mathAlarm.copy(ringAgain = RingAgain(5, 0))
         val controller = RingController(sessions, FakeAlarms(once), RecordingRunner(), now)
         controller.fire(3)
-        clock += 60_000
+        clock += RingStateMachine.RING_MILLIS
         controller.send(RingEvent.TimerFired(TimerKind.RingTimeout))
         assertThat(controller.session.value).isNull()
         assertThat(controller.screen.value).isEqualTo(RingScreen.None)

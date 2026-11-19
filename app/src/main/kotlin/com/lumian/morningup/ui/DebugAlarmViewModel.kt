@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
  * 모두 다음 분 정각에 울리는 한 번 알람이고, 소리는 'Spring Season'(디버그 빌드는 10% 크기)이에요.
  */
 enum class AlarmTestCase(@StringRes val label: Int) {
-    /** 전부 기본값: 미션 없음, 다시 울림 꺼짐. 1분 울리고 놓친 알람으로 끝나요. */
+    /** 전부 기본값: 미션 없음, 다시 울림 꺼짐. 2분 울리고 놓친 알람으로 끝나요. */
     A(R.string.test_case_a),
 
     /** 다시 울림 3분 간격 3번. 방치하면 13분 동안 4번 울리고 끝나요. */

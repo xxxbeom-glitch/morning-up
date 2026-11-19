@@ -21,6 +21,9 @@ class RingStateMachineTest {
     private val sec = 1_000L
     private val min = 60 * sec
 
+    /** 한 번 울리는 길이(11-19 사용자 결정 2분, F4는 1분이었어요). */
+    private val ring = 2 * min
+
     private fun plan(
         id: Long = 1,
         missions: List<MissionType> = listOf(MissionType.QuickMath, MissionType.PopQuiz),
@@ -44,14 +47,14 @@ class RingStateMachineTest {
     // 알람 시각 ------------------------------------------------------------
 
     @Test
-    fun alarmFired_startsRinging_fullVolume_andOneMinuteTimer() {
+    fun alarmFired_startsRinging_fullVolume_andTwoMinuteTimer() {
         val t = fire()
         assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
         assertThat(t.session!!.ringsLeft).isEqualTo(2)
         assertThat(t.effects).containsAtLeast(
             PlaySound(1f),
             ShowRingScreen,
-            ScheduleTimer(t0 + 60 * sec, TimerKind.RingTimeout),
+            ScheduleTimer(t0 + ring, TimerKind.RingTimeout),
             RescheduleAlarm(1),
         )
     }
@@ -60,34 +63,43 @@ class RingStateMachineTest {
 
     @Test
     fun ringTimeout_withRingsLeft_restsForInterval_andUsesOneRing() {
-        val t = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + 60 * sec)
+        val t = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.Resting)
         assertThat(t.session!!.ringsLeft).isEqualTo(1)
-        assertThat(t.effects).containsAtLeast(StopSound, ScheduleTimer(t0 + 60 * sec + 5 * min, TimerKind.RestEnded))
+        assertThat(t.effects).containsAtLeast(StopSound, ScheduleTimer(t0 + ring + 5 * min, TimerKind.RestEnded))
+    }
+
+    @Test
+    fun ringTimeout_afterOnlyOneMinute_isIgnored_keepsRinging() {
+        // 11-19부터 한 번에 2분 울려요. 1분에 온 타이머는 무시해요.
+        val s = fire().session
+        val t = reduce(s, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
+        assertThat(t.session).isEqualTo(s)
+        assertThat(t.effects).isEmpty()
     }
 
     @Test
     fun ringTimeout_rest_closesScreen_andTellsNextRing() {
         // 다시 2번이면 1번째 울림 뒤 쉬기 → 다음은 2번째, 2번째 뒤 쉬기 → 다음은 3번째(결정 70)
-        val first = reduce(fire(plan(count = 2)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
-        assertThat(first.effects).contains(RingEffect.RestStarted(t0 + min + 5 * min, 5, 2))
-        val ringing = reduce(first.session, RingEvent.TimerFired(TimerKind.RestEnded), t0 + 6 * min).session
-        val second = reduce(ringing, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + 7 * min)
-        assertThat(second.effects).contains(RingEffect.RestStarted(t0 + 12 * min, 5, 3))
+        val first = reduce(fire(plan(count = 2)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
+        assertThat(first.effects).contains(RingEffect.RestStarted(t0 + ring + 5 * min, 5, 2))
+        val ringing = reduce(first.session, RingEvent.TimerFired(TimerKind.RestEnded), t0 + 7 * min).session
+        val second = reduce(ringing, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + 9 * min)
+        assertThat(second.effects).contains(RingEffect.RestStarted(t0 + 14 * min, 5, 3))
         // 끌 때까지는 셀 수 없어 번째가 없어요.
-        val endless = reduce(fire(plan(count = null)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
-        assertThat(endless.effects).contains(RingEffect.RestStarted(t0 + 6 * min, 5, null))
+        val endless = reduce(fire(plan(count = null)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
+        assertThat(endless.effects).contains(RingEffect.RestStarted(t0 + 7 * min, 5, null))
     }
 
     @Test
     fun restEnded_ringsAgain() {
-        var s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session
-        val now = t0 + min + 5 * min
+        var s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session
+        val now = t0 + ring + 5 * min
         val t = reduce(s, RingEvent.TimerFired(TimerKind.RestEnded), now)
         s = t.session
         assertThat(s!!.phase).isEqualTo(RingPhase.Ringing)
         assertThat(t.effects)
-            .containsAtLeast(PlaySound(1f), ShowRingScreen, ScheduleTimer(now + min, TimerKind.RingTimeout))
+            .containsAtLeast(PlaySound(1f), ShowRingScreen, ScheduleTimer(now + ring, TimerKind.RingTimeout))
     }
 
     @Test
@@ -99,7 +111,7 @@ class RingStateMachineTest {
         var last: Transition? = null
         repeat(10) {
             if (s == null) return@repeat
-            now += min
+            now += ring
             last = reduce(s, RingEvent.TimerFired(TimerKind.RingTimeout), now)
             s = last!!.session
             if (s?.phase == RingPhase.Resting) {
@@ -115,8 +127,8 @@ class RingStateMachineTest {
     }
 
     @Test
-    fun ringAgainZero_missedAfterFirstMinute() {
-        val t = reduce(fire(plan(count = 0)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min)
+    fun ringAgainZero_missedAfterFirstRing() {
+        val t = reduce(fire(plan(count = 0)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
         assertThat(t.session).isNull()
         assertThat(t.effects).contains(PostMissedNotification(1))
     }
@@ -126,7 +138,7 @@ class RingStateMachineTest {
         var s = fire(plan(count = null)).session
         var now = t0
         repeat(50) {
-            now += min
+            now += ring
             s = reduce(s, RingEvent.TimerFired(TimerKind.RingTimeout), now).session
             assertThat(s!!.phase).isEqualTo(RingPhase.Resting)
             now += 5 * min
@@ -150,8 +162,8 @@ class RingStateMachineTest {
 
     @Test
     fun missionStarted_fromResting_isAllowed() {
-        val resting = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session
-        val t = reduce(resting, RingEvent.MissionStarted, t0 + 2 * min)
+        val resting = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session
+        val t = reduce(resting, RingEvent.MissionStarted, t0 + ring + min)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.InMission)
     }
 
@@ -304,8 +316,8 @@ class RingStateMachineTest {
 
     @Test
     fun otherAlarmWhileResting_isMarkedPassed() {
-        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session
-        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), t0 + 2 * min)
+        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session
+        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), t0 + ring + min)
         assertThat(t.session).isEqualTo(s)
         assertThat(t.effects).containsExactly(MarkPassed(3), RescheduleAlarm(3))
     }
@@ -349,7 +361,7 @@ class RingStateMachineTest {
 
     @Test
     fun resume_resting_onlyRearmsTimer() {
-        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + min).session!!
+        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session!!
         assertThat(RingStateMachine.resume(s)).containsExactly(ScheduleTimer(s.phaseEndsAt, TimerKind.RestEnded))
     }
 
