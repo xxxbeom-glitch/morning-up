@@ -63,6 +63,8 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
+        // 안드로이드 12+ 시스템 시작 화면은 나가는 애니메이션 없이 바로 걷어요(11-19 사용자 지시).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) splashScreen.setOnExitAnimationListener { it.remove() }
         lifecycleScope.launch {
             // 울리는 중인 알람이 있으면 끌 수 있는 울림 화면으로 보내요(알림을 못 띄운 경우의 길).
             if (sessions.load() != null) {

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        안드로이드 12+는 앱을 켤 때 시스템 시작 화면(아이콘이 가운데에서 커지는 화면)을 꼭 띄워요.
+        끌 수는 없어서, 아이콘을 비우고 바탕을 앱 창 바탕과 같게 해 눈에 안 보이게 해요(11-19 사용자 지시).
+        나가는 애니메이션은 MainActivity에서 바로 끝내요.
+    -->
+    <style name="Theme.MorningUp" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/window_background</item>
+        <item name="android:windowSplashScreenBackground">@color/window_background</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_icon_empty</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+    </style>
+</resources>
