@@ -4,7 +4,6 @@ package com.lumian.morningup.feature.sleep
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -30,13 +29,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -44,8 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -65,11 +60,9 @@ import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.SleepTrack
 import com.lumian.morningup.core.model.SleepTracks
-import kotlinx.coroutines.delay
 
 private const val INHALE_MILLIS = 4_000
 private const val EXHALE_MILLIS = 6_000
-private const val IDLE_HIDE_MILLIS = 5_000L
 private val PlayButton = 112.dp
 private val PlayIcon = 36.dp
 
@@ -114,17 +107,7 @@ internal fun SleepPlayerScreen(
     val palette = remember(track.id) { track.palette.map { Color(it) } }
     val glow = remember(palette) { lerp(palette[0], Color.White, 0.5f) }
     var sheet by remember { mutableStateOf(false) }
-    // 5초 동안 손대지 않으면(재생 중일 때만) 닫기, 버튼, 글자, 칩이 사라지고 숨쉬는 빛만 남아요.
-    var touches by remember { mutableIntStateOf(0) }
-    var chromeShown by remember { mutableStateOf(true) }
-    LaunchedEffect(touches, playing, sheet) {
-        chromeShown = true
-        if (playing && !sheet) {
-            delay(IDLE_HIDE_MILLIS)
-            chromeShown = false
-        }
-    }
-    val chrome by animateFloatAsState(if (chromeShown) 1f else 0f, label = "chrome")
+    // 재생 중에도 닫기, 버튼, 글자, 칩은 늘 보여요(11-19 사용자 결정으로 숨기지 않음, 결정 32를 바꿈).
     val breath by breathState(still = MorningTheme.reduceMotion || !playing)
     Box(
         Modifier
@@ -134,21 +117,13 @@ internal fun SleepPlayerScreen(
                     listOf(lerp(palette[0], Color.Black, 0.3f), lerp(palette[1], Color.Black, 0.75f), NightBase),
                 ),
             )
-            .drawBehind { drawPlayerGlows(palette, breath) }
-            .pointerInput(Unit) {
-                awaitPointerEventScope {
-                    while (true) {
-                        awaitPointerEvent(PointerEventPass.Initial)
-                        touches++
-                    }
-                }
-            },
+            .drawBehind { drawPlayerGlows(palette, breath) },
     ) {
         MorningIconButton(
             icon = Lucide.X,
             contentDescription = stringResource(R.string.sleep_close),
             onClick = onBack,
-            modifier = Modifier.statusBarsPadding().padding(start = 8.dp, top = 8.dp).alpha(chrome),
+            modifier = Modifier.statusBarsPadding().padding(start = 8.dp, top = 8.dp),
         )
         Column(
             Modifier.fillMaxSize().statusBarsPadding().navigationBarsPadding(),
@@ -156,16 +131,11 @@ internal fun SleepPlayerScreen(
         ) {
             Spacer(Modifier.weight(1f))
             Box(Modifier.size(340.dp).drawBehind { drawBreath(glow, breath) }, contentAlignment = Alignment.Center) {
-                PlayPauseButton(
-                    playing = playing,
-                    enabled = chromeShown,
-                    onClick = onToggle,
-                    modifier = Modifier.alpha(chrome),
-                )
+                PlayPauseButton(playing = playing, onClick = onToggle)
             }
             Spacer(Modifier.height(24.dp))
             Column(
-                Modifier.alpha(chrome).padding(horizontal = 24.dp),
+                Modifier.padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
@@ -182,7 +152,7 @@ internal fun SleepPlayerScreen(
                 )
             }
             Spacer(Modifier.weight(1.2f))
-            TimerChip(playback, enabled = chromeShown, onClick = { sheet = true }, modifier = Modifier.alpha(chrome))
+            TimerChip(playback, onClick = { sheet = true })
             Spacer(Modifier.height(48.dp))
         }
         TimerSheet(visible = sheet, current = playback?.timerMinutes, onDismiss = { sheet = false }) {
@@ -239,14 +209,14 @@ private fun DrawScope.drawBreath(glow: Color, breath: Float) {
 }
 
 @Composable
-private fun PlayPauseButton(playing: Boolean, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun PlayPauseButton(playing: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val play = remember { Lucide.Play.filled() }
     val pause = remember { Lucide.Pause.filled() }
     Box(
         modifier
             .size(PlayButton)
             .background(MorningTheme.colors.textPrimary, CircleShape)
-            .morningClickable(enabled = enabled, onClick = onClick),
+            .morningClickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         Icon(
@@ -260,7 +230,7 @@ private fun PlayPauseButton(playing: Boolean, enabled: Boolean, onClick: () -> U
 
 /** 종료 타이머 칩: 꺼져 있으면 '종료 타이머', 돌고 있으면 남은 분('28분 남음', 올림). */
 @Composable
-private fun TimerChip(playback: SleepPlayback?, enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun TimerChip(playback: SleepPlayback?, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val left = playback?.remainingMillis?.takeIf { playback.timerMinutes != null }
     val label = if (left == null) {
         stringResource(R.string.sleep_timer_chip_off)
@@ -271,7 +241,7 @@ private fun TimerChip(playback: SleepPlayback?, enabled: Boolean, onClick: () ->
     Row(
         modifier
             .background(Color.White.copy(alpha = 0.10f), RoundedCornerShape(percent = 50))
-            .morningClickable(enabled = enabled && playback != null, onClick = onClick)
+            .morningClickable(enabled = playback != null, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
