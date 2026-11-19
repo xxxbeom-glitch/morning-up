@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.R
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
+import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -102,11 +103,14 @@ fun SampleScreen(modifier: Modifier = Modifier, tools: @Composable () -> Unit = 
     }
 }
 
-/** 시험 알람 A~G. 버튼마다 정해진 설정으로 1분 뒤 울려요(docs/test-alarm-cases.md). */
+/**
+ * 시험 알람 A~G. 버튼마다 정해진 설정으로 1분 뒤 울려요(docs/test-alarm-cases.md).
+ * 설정 '테스트' 페이지(디버그 빌드만)에 카드 하나로 들어가요.
+ */
 @Composable
 fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
     val scheduled by viewModel.scheduled.collectAsStateWithLifecycle()
-    Section(stringResource(R.string.sample_alarm)) {
+    MorningSettingsCard(title = stringResource(R.string.sample_alarm)) {
         AlarmTestCase.entries.forEach { case ->
             MorningButton(
                 stringResource(case.label),

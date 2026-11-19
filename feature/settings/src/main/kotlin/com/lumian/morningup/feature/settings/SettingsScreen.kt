@@ -64,7 +64,7 @@ private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 /**
  * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보. 제목은 숨겨요.
  * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
- * [extra]는 디버그 빌드에서만 맨 아래에 붙는 개발용 도구예요.
+ * [onOpenTests]가 있으면(디버그 빌드만) 맨 아래에 '테스트' 줄 하나를 붙여요. 시험 도구는 그 페이지에 모아요.
  */
 @Composable
 fun SettingsRoute(
@@ -73,7 +73,7 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
-    extra: @Composable () -> Unit = {},
+    onOpenTests: (() -> Unit)? = null,
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -92,7 +92,7 @@ fun SettingsRoute(
         onFaq = onOpenFaq,
         onLicenses = onOpenLicenses,
         modifier = modifier,
-        extra = extra,
+        onTests = onOpenTests,
         weatherCard = weatherCard,
         // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
         // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보이고, 안 켜고 돌아오면 꺼진 채예요.
@@ -130,7 +130,7 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onFaq: () -> Unit = {},
     onLicenses: () -> Unit = {},
-    extra: @Composable () -> Unit = {},
+    onTests: (() -> Unit)? = null,
     weatherCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
@@ -185,7 +185,11 @@ fun SettingsScreen(
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                     }
                 }
-                extra()
+                if (onTests != null) {
+                    MorningSettingsCard(title = null) {
+                        NavRows { NavRow(label = stringResource(R.string.settings_tests), onClick = onTests) }
+                    }
+                }
             }
             // 끝까지 내리면 마지막 카드가 하단 메뉴 위에 보여요.
             Spacer(Modifier.navigationBarsPadding().height(BottomNavSpace))

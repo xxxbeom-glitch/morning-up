@@ -36,6 +36,7 @@ import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
+import com.lumian.morningup.feature.settings.TestToolsPage
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
 import com.lumian.morningup.feature.sleep.SleepPlayerRoute
 import com.lumian.morningup.feature.sleep.SleepScreen
@@ -57,6 +58,10 @@ data object FaqRoute
 /** T5 오픈소스 라이선스. */
 @Serializable
 data object LicensesRoute
+
+/** 디버그 빌드 전용 '테스트' 페이지(시험 알람 등). */
+@Serializable
+data object TestsRoute
 
 /** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
@@ -132,7 +137,11 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
-                        extra = debugTools,
+                        onOpenTests = if (BuildConfig.DEBUG) {
+                            { navController.navigate(TestsRoute) { launchSingleTop = true } }
+                        } else {
+                            null
+                        },
                     )
                 },
                 sleepTab = { tabModifier ->
@@ -170,6 +179,9 @@ fun MorningNavHost(
         }
         composable<FaqRoute> { FaqPage(onBack = { navController.popBackStack() }) }
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
+        if (BuildConfig.DEBUG) {
+            composable<TestsRoute> { TestToolsPage(onBack = { navController.popBackStack() }) { debugTools() } }
+        }
         composable<EditRoute> {
             AlarmEditRoute(
                 onSaved = { id ->

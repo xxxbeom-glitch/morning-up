@@ -118,6 +118,12 @@ fun LicensesPage(onBack: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+/** 디버그 빌드 전용 '테스트' 페이지. 시험 알람 같은 개발용 도구를 [content]로 받아 T5, FAQ와 같은 틀에 담아요. */
+@Composable
+fun TestToolsPage(onBack: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    InfoFrame(stringResource(R.string.settings_tests), onBack, modifier, content)
+}
+
 /** 자주 묻는 질문. 앱 안에서 접었다 펴는 목록이에요(design-system T1). */
 @Composable
 fun FaqPage(onBack: () -> Unit, modifier: Modifier = Modifier) {
