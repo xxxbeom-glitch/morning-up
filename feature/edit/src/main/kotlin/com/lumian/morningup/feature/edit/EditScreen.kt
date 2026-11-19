@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -206,10 +209,13 @@ fun EditScreen(
     var sheet by rememberSaveable { mutableStateOf<EditSheet?>(null) }
     var lastSheet by remember { mutableStateOf<EditSheet?>(null) }
     if (sheet != null) lastSheet = sheet
+    // 시, 분 숫자 입력(11-19 사용자 지시 5). 입력 칸 밖을 누르면 그때까지 넣은 값으로 마쳐요.
+    val timeInput = remember { TimeInputState() }
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(colors.backgroundBase),
+            .background(colors.backgroundBase)
+            .finishTimeInputOnOutsideTap(timeInput),
     ) {
         Column(
             modifier = Modifier
@@ -230,7 +236,7 @@ fun EditScreen(
                     verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
                 ) {
                     UntilLine(state)
-                    TimeWheels(state.draft, actions.onTime)
+                    TimeWheels(state.draft, actions.onTime, timeInput)
                     RepeatCard(state.draft, actions)
                     MissionCard(state, actions, onOpenSheet = { sheet = it })
                     SoundCard(state.draft, onOpenDetail, onOpenSheet = { sheet = it })
@@ -349,9 +355,14 @@ private fun UntilLine(state: EditUiState) {
     )
 }
 
-/** 오전오후, 시, 분 드럼롤. 가운데 줄 뒤에 흰 띠가 있어요. */
+/**
+ * 오전오후, 시, 분 드럼롤. 가운데 줄 뒤에 흰 띠가 있어요.
+ * 가운데 시나 분 숫자를 누르면 그 칸이 숫자 입력 칸으로 바뀌고 숫자 키패드가 올라와요(11-19 사용자 지시 5).
+ * 시를 다 넣으면 분으로 넘어가고, 분을 다 넣거나 '완료', 칸 밖 누름, 키패드 내리기로 마쳐요. 오전, 오후는 그대로예요.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
+private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit, input: TimeInputState) {
     val resources = alarmResources()
     val periods = remember(resources) {
         listOf(AlarmText.period(resources, pm = false), AlarmText.period(resources, pm = true))
@@ -363,6 +374,22 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
     val pm = hour24 >= HOURS_HALF_DAY
     val hour12 = AlarmText.hour12(hour24)
     fun to24(h12: Int, isPm: Boolean) = h12 % HOURS_HALF_DAY + if (isPm) HOURS_HALF_DAY else 0
+    val editing = input.field
+    // 키패드를 뒤로 가기로 내리면 넣은 값으로 마쳐요.
+    val imeVisible = WindowInsets.isImeVisible
+    var imeSeen by remember { mutableStateOf(false) }
+    LaunchedEffect(imeVisible, editing) {
+        if (editing == null) imeSeen = false
+        else if (imeVisible) imeSeen = true
+        else if (imeSeen) input.finish()
+    }
+    fun commit(field: TimeField, text: String) {
+        when (field) {
+            TimeField.Hour -> onTime(to24(TimeEntry.hour12(text, hour12), pm), minute)
+            TimeField.Minute -> onTime(hour24, TimeEntry.minute(text, minute))
+        }
+    }
+    input.onCommit = ::commit
 
     Box(
         contentAlignment = Alignment.Center,
@@ -383,14 +410,26 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
                 contentDescription = stringResource(R.string.edit_period),
             )
             Spacer(Modifier.width(MorningDimens.space8))
-            MorningWheelPicker(
-                items = hours,
-                selectedIndex = hour12 - 1,
-                onSelect = { onTime(to24(it + 1, pm), minute) },
-                width = NumberWidth,
-                looping = true,
-                contentDescription = stringResource(R.string.edit_hour),
-            )
+            Box(modifier = Modifier.width(NumberWidth), contentAlignment = Alignment.Center) {
+                MorningWheelPicker(
+                    items = hours,
+                    selectedIndex = hour12 - 1,
+                    onSelect = { onTime(to24(it + 1, pm), minute) },
+                    width = NumberWidth,
+                    looping = true,
+                    contentDescription = stringResource(R.string.edit_hour),
+                    onCenterTap = { input.start(TimeField.Hour) },
+                )
+                if (editing == TimeField.Hour) {
+                    TimeInputField(
+                        field = TimeField.Hour,
+                        current = hour12.toString(),
+                        state = input,
+                        label = stringResource(R.string.edit_hour),
+                        modifier = Modifier.trackTimeInput(input),
+                    )
+                }
+            }
             // 피그마 S0처럼 위아래 연한 줄에도 쌍점이 있어요(가운데만 진하게).
             Column(modifier = Modifier.width(ColonWidth)) {
                 repeat(WHEEL_VISIBLE_ROWS) { row ->
@@ -414,14 +453,26 @@ private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit) {
                     }
                 }
             }
-            MorningWheelPicker(
-                items = minutes,
-                selectedIndex = minute,
-                onSelect = { onTime(hour24, it) },
-                width = NumberWidth,
-                looping = true,
-                contentDescription = stringResource(R.string.edit_minute),
-            )
+            Box(modifier = Modifier.width(NumberWidth), contentAlignment = Alignment.Center) {
+                MorningWheelPicker(
+                    items = minutes,
+                    selectedIndex = minute,
+                    onSelect = { onTime(hour24, it) },
+                    width = NumberWidth,
+                    looping = true,
+                    contentDescription = stringResource(R.string.edit_minute),
+                    onCenterTap = { input.start(TimeField.Minute) },
+                )
+                if (editing == TimeField.Minute) {
+                    TimeInputField(
+                        field = TimeField.Minute,
+                        current = minute.toString().padStart(2, '0'),
+                        state = input,
+                        label = stringResource(R.string.edit_minute),
+                        modifier = Modifier.trackTimeInput(input),
+                    )
+                }
+            }
         }
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -22,10 +23,12 @@ import com.lumian.morningup.core.designsystem.motion.morningClickable
 
 private val ChoiceChipHeight = 36.dp
 private val ChoiceChipRadius = 12.dp
+private const val UNSELECTED_ALPHA = 0.5f
 
 /**
  * 피그마 Choice Chip(S6 볼륨 시트, 다시 울림 시트). 높이 36, 모서리 12, 테두리 없이 칠로만 고름을 보여요.
- * 고름: `primary/subtle` + `Body/Small Strong` `primary/text`. 안 고름: `background/raised` + `Body/Small` `text/tertiary`.
+ * 고름: `primary/subtle` + `Body/Small Strong` `primary/text`. 안 고름: `background/raised` + `Body/Small` `text/tertiary`,
+ * 칸 전체 투명도 50%. 반복 요일 칸(Day Chip, 결정 76)과 같게 맞췄어요(11-19 사용자 지적 3).
  * 너비는 쓰는 쪽이 정해요(줄 너비에 꽉 차게 나누면 `Modifier.weight(1f)`).
  */
 @Composable
@@ -44,6 +47,7 @@ fun MorningChoiceChip(
     Box(
         modifier = modifier
             .height(ChoiceChipHeight)
+            .alpha(if (selected) 1f else UNSELECTED_ALPHA)
             .semantics { this.selected = selected }
             .morningClickable(haptic = MorningHaptic.Tick, role = Role.RadioButton, onClick = onClick)
             .background(fill, RoundedCornerShape(ChoiceChipRadius)),

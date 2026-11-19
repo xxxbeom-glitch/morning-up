@@ -2,6 +2,7 @@ package com.lumian.morningup.feature.edit
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +40,7 @@ import com.composables.icons.lucide.X
 import com.lumian.morningup.core.designsystem.component.MorningSheetHeader
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
+import com.lumian.morningup.core.designsystem.theme.MorningFixedColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
@@ -50,10 +52,14 @@ const val MISSION_SLOT_TAG = "missionSlot"
 const val MISSION_REMOVE_TAG = "missionRemove"
 const val MISSION_PICK_ROW_TAG = "missionPickRow"
 
-/** Remove Badge: 칸 안쪽 오른쪽 위(위 4, 오른쪽 4), 20 원, X 12. 누르는 자리는 28로 조금 넓혀요. */
+/**
+ * Remove Badge: 칸 안쪽 오른쪽 위(위 4, 오른쪽 4), 20 원, X 12. 누르는 자리는 28로 조금 넓혀요.
+ * 어떤 그림 위에서도 보이게 진한 원(`RemoveBadgeFill`) + 흰 둘레 1.5 + 흰 Lucide x예요(11-19 사용자 지적 6).
+ */
 private val BadgeSize = 20.dp
 private val BadgeTouch = 28.dp
 private val BadgeIcon = 12.dp
+private val BadgeRing = 1.5.dp
 private val AddIcon = 24.dp
 private val PickThumb = 48.dp
 private val PickThumbRadius = 12.dp
@@ -123,7 +129,8 @@ private fun FilledSlot(type: MissionType, onClick: () -> Unit, onRemove: () -> U
             Box(
                 modifier = Modifier
                     .size(BadgeSize)
-                    .background(MorningTheme.colors.textBody, CircleShape),
+                    .background(MorningFixedColors.RemoveBadgeFill, CircleShape)
+                    .border(BadgeRing, MorningFixedColors.RemoveBadgeRing, CircleShape),
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(

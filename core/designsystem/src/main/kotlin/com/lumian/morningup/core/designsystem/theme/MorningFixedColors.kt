@@ -12,4 +12,13 @@ object MorningFixedColors {
 
     /** W1 해제 완료 뒤 딤: 밤 검정 60%. */
     val WakeDimNight = Color(0x99000000)
+
+    /**
+     * 미션 칸 삭제 배지(`remove-badge/fill`): #0B0F16 85%. 라이트, 다크 모두 같은 진한 원에 흰 X예요.
+     * 전에는 `text/body`라 다크에서 연한 회색 원에 흰 X가 되어 안 보였어요(11-19 사용자 지적 6).
+     */
+    val RemoveBadgeFill = Color(0xD90B0F16)
+
+    /** 미션 칸 삭제 배지 둘레(`remove-badge/ring`): 흰색 90%, 1.5. 진한 그림 위에서도 원 모양이 보이게 해요. */
+    val RemoveBadgeRing = Color(0xE6FFFFFF)
 }

@@ -1,5 +1,6 @@
 package com.lumian.morningup.core.designsystem.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -49,6 +51,7 @@ private const val LOOP_REPEAT = 1000
  * 세 줄 모두 같은 크기(`Display/Medium` 40)이고 위아래 줄은 `Display/Medium Muted`과 `text/disabled`로 색만 연해요.
  * 손으로 튕기면 관성으로 돌다 가장 가까운 칸에 붙고, 한 칸 지날 때마다 틱 진동을 울려요.
  * 멈췄을 때만 [onSelect]로 알려요. [looping]이면 끝없이 돌아요(시, 분).
+ * [onCenterTap]을 주면 가운데 줄 숫자를 눌렀을 때 불러요(숫자로 직접 고치기, 11-19 사용자 지시 5). 스크롤은 그대로예요.
  */
 @Composable
 fun MorningWheelPicker(
@@ -60,6 +63,7 @@ fun MorningWheelPicker(
     looping: Boolean = false,
     textAlign: TextAlign = TextAlign.Center,
     contentDescription: String? = null,
+    onCenterTap: (() -> Unit)? = null,
 ) {
     val size = items.size
     val count = if (looping) size * LOOP_REPEAT else size + 2
@@ -109,10 +113,23 @@ fun MorningWheelPicker(
             items(count) { index ->
                 val value = itemValue(index, size, looping)
                 val centered = index == top + 1
+                val tap = onCenterTap?.takeIf { centered && value != null }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(WheelItemHeight),
+                        .height(WheelItemHeight)
+                        .then(
+                            if (tap != null) {
+                                Modifier.clickable(
+                                    interactionSource = null,
+                                    indication = null,
+                                    role = Role.Button,
+                                    onClick = tap,
+                                )
+                            } else {
+                                Modifier
+                            },
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
                     if (value != null) {
