@@ -153,7 +153,8 @@ private fun BoxScope.RingingContent(
             Spacer(Modifier.height(MorningDimens.space4))
             FixedFontScale {
                 Text(
-                    text = stringResource(R.string.ring_clock, AlarmText.hour12(time.hour), time.minute),
+                    // 12시간제는 '오후 12:16'처럼 오전/오후를 시각과 같은 글자로 붙여요(design-system 12시간제 규칙, `254:8591`).
+                    text = AlarmText.time(resources, time),
                     style = typography.displayLarge12h,
                     color = colors.textPrimary,
                 )

@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- D0 알람 울림 -->
-    <string name="ring_clock">%1$d:%2$02d</string>
     <string name="ring_start_mission">미션 시작</string>
     <string name="ring_dismiss">알람 끄기</string>
 

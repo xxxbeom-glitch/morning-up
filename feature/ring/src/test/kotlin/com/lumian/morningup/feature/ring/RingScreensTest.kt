@@ -38,7 +38,7 @@ class RingScreensTest {
         var pressed = false
         ringing(hasMissions = true) { pressed = true }
         compose.onNodeWithText("11월 16일 월요일").assertExists()
-        compose.onNodeWithText("6:30").assertExists()
+        compose.onNodeWithText("오전 6:30").assertExists()
         compose.onNodeWithText("알람 끄기").assertDoesNotExist()
         compose.onNodeWithText("미션 시작").performClick()
         assertThat(pressed).isTrue()

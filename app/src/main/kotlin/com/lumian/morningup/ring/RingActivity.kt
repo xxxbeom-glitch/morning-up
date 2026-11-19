@@ -2,14 +2,19 @@ package com.lumian.morningup.ring
 
 import android.app.KeyguardManager
 import android.content.Intent
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.MainActivity
@@ -72,8 +77,12 @@ class RingActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         showOverLockScreen()
-        enableEdgeToEdge()
+        // 홈(MainActivity)과 같이 내비게이션 바 뒤에 흰 막을 깔지 않고 하늘, 미션 바탕이 끝까지 이어지게 해요.
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT),
+        )
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
         openedFromRest = intent?.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false) == true
         if (openedFromRest) controller.openDuringRest()
         resumeIfNeeded()
@@ -97,9 +106,28 @@ class RingActivity : ComponentActivity() {
                         canClose = ready,
                         onClose = ::finish,
                         onWakeUpConfirmed = ::afterWakeUp,
-                        missionContent = { _ -> RingMissionRoute() },
+                        missionContent = { _ ->
+                            LightSystemBarIcons()
+                            RingMissionRoute()
+                        },
                     )
                 }
+            }
+        }
+    }
+
+    /** 미션 화면은 바탕이 어두워서, 떠 있는 동안만 상태 표시줄과 내비게이션 줄 아이콘을 흰색으로 바꿔요. */
+    @Composable
+    private fun LightSystemBarIcons() {
+        DisposableEffect(Unit) {
+            val bars = WindowCompat.getInsetsController(window, window.decorView)
+            val status = bars.isAppearanceLightStatusBars
+            val navigation = bars.isAppearanceLightNavigationBars
+            bars.isAppearanceLightStatusBars = false
+            bars.isAppearanceLightNavigationBars = false
+            onDispose {
+                bars.isAppearanceLightStatusBars = status
+                bars.isAppearanceLightNavigationBars = navigation
             }
         }
     }
