@@ -126,6 +126,21 @@ fun DebugAlarmTools(viewModel: DebugAlarmViewModel = hiltViewModel()) {
             )
         }
     }
+    val batterySent by viewModel.batterySent.collectAsStateWithLifecycle()
+    MorningSettingsCard(title = stringResource(R.string.test_battery_title)) {
+        MorningButton(
+            stringResource(R.string.test_battery_send),
+            onClick = viewModel::sendBatteryReminder,
+            size = MorningButtonSize.Medium,
+        )
+        batterySent?.let { sent ->
+            Text(
+                stringResource(if (sent) R.string.test_battery_sent else R.string.test_battery_blocked),
+                style = MorningTheme.typography.bodyMedium,
+                color = MorningTheme.colors.textSecondary,
+            )
+        }
+    }
 }
 
 @Composable

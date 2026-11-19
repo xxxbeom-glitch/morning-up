@@ -125,10 +125,12 @@ fun MorningNavHost(
             // H2 배너를 누르면 나중용 권한 시트 PL2가 홈 위에 떠요(결정 132).
             var permissionSheet by rememberSaveable { mutableStateOf<PermissionStep?>(null) }
             // 배터리 전날 밤 알림을 누르면 PL2 2단계로 열어요(필수가 꺼져 있으면 시트가 1단계부터 보여요).
+            var showAlarmTab by remember { mutableStateOf(false) }
             val permissionRequest by permissionRequests.collectAsStateWithLifecycle()
             LaunchedEffect(permissionRequest) {
                 val step = permissionRequest ?: return@LaunchedEffect
                 permissionSheet = step
+                showAlarmTab = true
                 onPermissionRequestHandled()
             }
             // 첫 알람을 저장해도 권한 창은 띄우지 않아요(결정 128). 꺼진 필수 권한은 H2 배너로 알려요.
@@ -171,6 +173,8 @@ fun MorningNavHost(
                 },
                 settingsAlert = report.needsAttention,
                 hideNav = homeSelecting,
+                alarmTabRequested = showAlarmTab,
+                onAlarmTabShown = { showAlarmTab = false },
             )
             permissionSheet?.let { step ->
                 PermissionStepSheet(requested = step, onClose = { permissionSheet = null }, viewModel = settings)

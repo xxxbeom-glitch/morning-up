@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -38,8 +39,17 @@ fun MorningUpApp(
     sleepTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_sleep)) },
     settingsAlert: Boolean = false,
     hideNav: Boolean = false,
+    alarmTabRequested: Boolean = false,
+    onAlarmTabShown: () -> Unit = {},
 ) {
     var tab by rememberSaveable { mutableStateOf(TopTab.Alarm) }
+    // 배터리 전날 밤 알림을 누르면 권한 시트는 홈 위에 떠요(결정 129). 다른 탭에 있었으면 알람 탭으로 돌려요.
+    LaunchedEffect(alarmTabRequested) {
+        if (alarmTabRequested) {
+            tab = TopTab.Alarm
+            onAlarmTabShown()
+        }
+    }
     val labels = listOf(
         stringResource(R.string.tab_alarm),
         stringResource(R.string.tab_sleep),

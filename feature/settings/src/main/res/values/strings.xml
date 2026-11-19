@@ -68,14 +68,14 @@
     <!-- 나중용 권한 시트 PL2(결정 127 시트 문구, 129 보충 5, 132) -->
     <string name="pl_required_title">원활한 앱 사용을 위해\n아래 권한을 허용해 주세요</string>
     <string name="pl_optional_title">함께 켜 두면 좋은 권한이에요</string>
-    <string name="pl_notifications_desc">허용하지 않으면 화면 없이 소리만 날 수 있어요</string>
-    <string name="pl_full_screen_desc">허용하지 않으면 잠금 화면에 알람이 바로 안 떠요</string>
-    <string name="pl_overlay_desc">허용하지 않으면 홈 버튼에 알람 화면이 사라져요</string>
-    <string name="pl_location_desc">허용하지 않으면 하늘이 날씨에 맞춰 바뀌지 않아요</string>
+    <string name="pl_notifications_desc">허용하지 않으면 화면 없이\n소리만 날 수 있어요</string>
+    <string name="pl_full_screen_desc">허용하지 않으면 잠금 화면에\n알람이 바로 안 떠요</string>
+    <string name="pl_overlay_desc">허용하지 않으면 홈 버튼에\n알람 화면이 사라져요</string>
+    <string name="pl_location_desc">허용하지 않으면 하늘이\n날씨에 맞춰 바뀌지 않아요</string>
     <string name="pl_battery">배터리 사용 제한 해제</string>
-    <string name="pl_battery_desc">절전 모드에서도 알람이 제때 울리게 해요</string>
+    <string name="pl_battery_desc">절전 모드에서도\n알람이 제때 울리게 해요</string>
     <string name="pl_battery_note_mark">※</string>
-    <string name="pl_battery_note">허용하지 않아도 알람은 쓸 수 있지만, 절전 기능 때문에 알람이 늦게 울릴 수 있어요.</string>
+    <string name="pl_battery_note">허용하지 않아도 알람은 쓸 수 있지만,\n절전 기능 때문에 알람이 늦게 울릴 수 있어요.</string>
     <string name="pl_next">다음</string>
     <string name="pl_done">완료</string>
     <string name="pl_later">다음에 하기</string>

@@ -59,6 +59,13 @@ class BatteryReminder @Inject constructor(
         }
     }
 
+    /** 디버그 '테스트' 페이지용: 밤 9시와 조건을 건너뛰고 지금 바로 보내요. 알림 권한이 없으면 false. */
+    fun postNowForTest(): Boolean {
+        if (!manager.areNotificationsEnabled()) return false
+        post()
+        return true
+    }
+
     @SuppressLint("MissingPermission")
     private fun post() {
         val channel = NotificationChannel(

@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.R
+import com.lumian.morningup.core.alarm.BatteryReminder
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
@@ -54,9 +55,20 @@ class DebugAlarmViewModel @Inject constructor(
     private val repository: AlarmRepository,
     private val rescheduler: AlarmRescheduler,
     private val now: NowProvider,
+    private val batteryReminder: BatteryReminder,
 ) : ViewModel() {
     private val _scheduled = MutableStateFlow<Pair<AlarmTestCase, LocalTime>?>(null)
     val scheduled: StateFlow<Pair<AlarmTestCase, LocalTime>?> = _scheduled.asStateFlow()
+
+    private val _batterySent = MutableStateFlow<Boolean?>(null)
+
+    /** 배터리 알림 바로 보내기 결과. true 보냄, false 알림 권한이 없어 못 보냄, null 아직 안 누름. */
+    val batterySent: StateFlow<Boolean?> = _batterySent.asStateFlow()
+
+    /** 배터리 전날 밤 알림을 밤 9시와 조건 없이 지금 보내요(PL2 열기 확인용). */
+    fun sendBatteryReminder() {
+        _batterySent.value = batteryReminder.postNowForTest()
+    }
 
     fun schedule(case: AlarmTestCase) {
         viewModelScope.launch {

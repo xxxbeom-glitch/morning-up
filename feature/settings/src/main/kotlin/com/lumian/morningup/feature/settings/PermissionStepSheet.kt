@@ -64,6 +64,7 @@ import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.allGranted
 import com.lumian.morningup.core.model.openingStep
 import com.lumian.morningup.core.model.stepAfterRequired
+import java.io.Serializable
 import kotlinx.coroutines.delay
 
 /** 피그마 Permission List Row(729:7078): 칸 모서리 16, 아이콘 원 40, 이름과 설명 사이 2. */
@@ -78,6 +79,9 @@ private val NoteMarkGap = 4.dp
 /** 토스트는 시트 '다음'/'완료' 버튼 위에 떠요(보관 PL-T1 `737:12181`: 화면 아래 시스템 바 48 위로 72). */
 private val ToastAboveButton = 72.dp
 
+/** 2단계는 버튼 아래 '다음에 하기' 줄(44)과 사이(4)가 더 있어 버튼 위 8을 지키려면 120이에요(피그마 PL2-3 Bottom CTA 128). */
+private val ToastAboveDoneButton = 120.dp
+
 /** 토스트는 3초 보여요(결정 128). */
 private const val TOAST_MILLIS = 3_000L
 
@@ -91,7 +95,11 @@ private sealed interface StepToast {
 }
 
 /** 줄을 눌러 폰 설정에 다녀오는 중인 권한과, 누를 때 켜져 있었는지. */
-private data class Pending(val permission: AlarmPermission, val wasGranted: Boolean)
+private data class Pending(val permission: AlarmPermission, val wasGranted: Boolean) : Serializable {
+    private companion object {
+        private const val serialVersionUID = 1L
+    }
+}
 
 /**
  * 나중용 권한 시트 PL2(결정 129 보충 5, 132. 피그마 PL2-1~PL2-4 `765:13473` 등, 다크 `817:11863` 줄).
@@ -110,7 +118,8 @@ fun PermissionStepSheet(requested: PermissionStep, onClose: () -> Unit, viewMode
         return
     }
     val open = rememberPermissionOpener(viewModel)
-    var pending by remember { mutableStateOf<Pending?>(null) }
+    // 위치, 알림처럼 실행 중 권한을 폰 설정에서 끄면 안드로이드가 앱을 다시 띄워요. 그래도 '꺼졌어요'를 알리도록 저장해요.
+    var pending by rememberSaveable { mutableStateOf<Pending?>(null) }
     var toast by remember { mutableStateOf<StepToast?>(null) }
     LaunchedEffect(toast) {
         if (toast != null) {
@@ -141,7 +150,7 @@ fun PermissionStepSheet(requested: PermissionStep, onClose: () -> Unit, viewMode
     MorningBlockingSheet(
         onBack = onClose,
         tag = PERMISSION_STEP_SHEET_TAG,
-        front = { StepToastHost(toast) },
+        front = { StepToastHost(toast, current) },
     ) {
         PermissionStepContent(
             step = current,
@@ -164,13 +173,13 @@ fun PermissionStepSheet(requested: PermissionStep, onClose: () -> Unit, viewMode
 }
 
 @Composable
-private fun BoxScope.StepToastHost(toast: StepToast?) {
+private fun BoxScope.StepToastHost(toast: StepToast?, step: PermissionStep) {
     MorningMessageHost(
         message = toast,
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .navigationBarsPadding()
-            .padding(bottom = ToastAboveButton)
+            .padding(bottom = if (step == PermissionStep.Optional) ToastAboveDoneButton else ToastAboveButton)
             .padding(horizontal = MorningDimens.layoutScreenMargin),
     ) { shown ->
         val text = when (shown) {
