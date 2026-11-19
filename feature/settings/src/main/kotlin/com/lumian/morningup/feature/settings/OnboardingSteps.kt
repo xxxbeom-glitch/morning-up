@@ -39,5 +39,30 @@ enum class OnboardingStep(val permission: AlarmPermission) {
          */
         fun settle(step: OnboardingStep, report: PermissionReport): OnboardingStep? =
             if (report.isGranted(step.permission)) after(step, report) else step
+
+        /**
+         * 온보딩 전용 확인 앱(11-19 사용자 지시)에서 [step] 다음 장. 켜진 권한도 건너뛰지 않고 순서대로 다 보여요.
+         * 남은 장이 없으면 null(온보딩 끝).
+         */
+        fun next(step: OnboardingStep?): OnboardingStep? = entries.getOrNull(step?.let { it.ordinal + 1 } ?: 0)
+
+        /** [showAll]이면 [next], 아니면 [after]. */
+        fun after(step: OnboardingStep?, report: PermissionReport, showAll: Boolean): OnboardingStep? =
+            if (showAll) next(step) else after(step, report)
+
+        /**
+         * [showAll]이면 이 장에 있는 동안 권한이 새로 켜졌을 때만([grantedOnEnter]가 false) 다음 장으로 넘겨요.
+         * 아니면 [settle]과 같아요.
+         */
+        fun settle(
+            step: OnboardingStep,
+            report: PermissionReport,
+            showAll: Boolean,
+            grantedOnEnter: Boolean,
+        ): OnboardingStep? = when {
+            !showAll -> settle(step, report)
+            report.isGranted(step.permission) && !grantedOnEnter -> next(step)
+            else -> step
+        }
     }
 }

@@ -97,4 +97,10 @@ class OnboardingStepsTest {
         assertThat(OnboardingStep.after(OnboardingStep.Notifications, onlyNotificationsAndLocationOff))
             .isEqualTo(OnboardingStep.Location)
     }
+
+    @Test
+    fun next_showsEveryStepInOrder_forOnboardingOnlyApp() {
+        val seen = generateSequence(OnboardingStep.next(null)) { OnboardingStep.next(it) }.toList()
+        assertThat(seen).containsExactlyElementsIn(OnboardingStep.entries).inOrder()
+    }
 }

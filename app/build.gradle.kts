@@ -17,8 +17,18 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            buildConfigField("boolean", "ONBOARDING_ONLY", "false")
+        }
+        // 온보딩만 보는 확인용 앱(11-19 사용자 지시). 디버그 앱 옆에 따로 깔리고, 켤 때마다 온보딩을 처음부터 다 보여요.
+        create("onboarding") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".onboarding"
+            versionNameSuffix = "-onboarding"
+            matchingFallbacks += "debug"
+            buildConfigField("boolean", "ONBOARDING_ONLY", "true")
         }
         release {
+            buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")

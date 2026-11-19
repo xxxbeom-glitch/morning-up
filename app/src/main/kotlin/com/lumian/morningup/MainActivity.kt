@@ -75,11 +75,13 @@ class MainActivity : ComponentActivity() {
             rescheduler.rescheduleAll(now.now())
         }
         // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
-        batteryReminder.schedule()
+        // 온보딩 전용 확인 앱은 배터리 알림을 보내지 않아요(원래 앱과 겹치지 않게).
+        if (!BuildConfig.ONBOARDING_ONLY) batteryReminder.schedule()
         checkAlertPermissions()
         if (savedInstanceState == null) readEditRequest(intent)
         // 첫 실행이면 온보딩부터(결정 131). 한 번 정하면 화면을 다시 그려도 바꾸지 않아요.
-        val showOnboarding = !onboarding.isDone
+        // 온보딩 전용 확인 앱(11-19 사용자 지시)은 켤 때마다 온보딩만 보여요.
+        val showOnboarding = BuildConfig.ONBOARDING_ONLY || !onboarding.isDone
         setContent {
             FitDesignWidth {
                 // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
@@ -95,6 +97,7 @@ class MainActivity : ComponentActivity() {
                             onPermissionRequestHandled = { permissionRequests.value = null },
                             showOnboarding = showOnboarding,
                             onOnboardingFinished = onboarding::markDone,
+                            onboardingOnly = BuildConfig.ONBOARDING_ONLY,
                             debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
                         )
                     }

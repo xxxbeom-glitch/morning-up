@@ -111,6 +111,7 @@ private fun copyOf(step: OnboardingStep): StepCopy = when (step) {
 fun OnboardingRoute(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
+    showAll: Boolean = false,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
@@ -118,6 +119,10 @@ fun OnboardingRoute(
     var splashDone by rememberSaveable { mutableStateOf(false) }
     var stepName by rememberSaveable { mutableStateOf<String?>(null) }
     val step = stepName?.let(OnboardingStep::valueOf)
+    // [showAll](온보딩 전용 확인 앱)일 때, 이 장에 들어올 때 권한이 이미 켜져 있었는지. 켜져 있던 장도 보여 줘요.
+    val grantedOnEnter by rememberSaveable(stepName) {
+        mutableStateOf(step?.let { viewModel.report.value.isGranted(it.permission) } ?: false)
+    }
 
     fun goTo(next: OnboardingStep?) {
         if (next == null) onFinished() else stepName = next.name
@@ -127,14 +132,15 @@ fun OnboardingRoute(
         if (!splashDone) {
             delay(SPLASH_MILLIS)
             viewModel.refresh()
-            goTo(OnboardingStep.first(viewModel.report.value))
+            goTo(OnboardingStep.after(null, viewModel.report.value, showAll))
             splashDone = true
         }
     }
     // 폰 설정이나 시스템 창에서 돌아와 권한 상태가 바뀌면, 켜진 장은 넘겨요.
+    // [showAll]이면 이 장에 있는 동안 새로 켜졌을 때만 다음 장으로 넘겨요.
     LaunchedEffect(report, step) {
         val current = step ?: return@LaunchedEffect
-        val next = OnboardingStep.settle(current, report)
+        val next = OnboardingStep.settle(current, report, showAll, grantedOnEnter)
         if (next != current) goTo(next)
     }
 
@@ -169,7 +175,7 @@ fun OnboardingRoute(
         OnboardingStepPage(
             step = step,
             onAllow = { allow(step) },
-            onLater = { goTo(OnboardingStep.after(step, report)) },
+            onLater = { goTo(OnboardingStep.after(step, report, showAll)) },
             modifier = modifier,
         )
     }

@@ -79,6 +79,7 @@ private const val SAVED_ALARM_KEY = "savedAlarmId"
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
  * [editRequests]에 알람 id가 오면(상태 표시줄 알람 아이콘) 그 알람의 편집 화면을 열고 [onEditRequestHandled]를 불러요.
  * [showOnboarding]이면 온보딩부터 시작하고, 끝나면 [onOnboardingFinished]를 부른 뒤 홈으로 가요(뒤로 가도 안 돌아와요).
+ * [onboardingOnly](온보딩 전용 확인 앱)면 켜진 권한 장도 다 보여 주고, 끝나면 홈 대신 스플래시부터 다시 보여요.
  */
 @Composable
 fun MorningNavHost(
@@ -89,6 +90,7 @@ fun MorningNavHost(
     onPermissionRequestHandled: () -> Unit = {},
     showOnboarding: Boolean = false,
     onOnboardingFinished: () -> Unit = {},
+    onboardingOnly: Boolean = false,
     navController: NavHostController = rememberNavController(),
     debugTools: @Composable () -> Unit = {},
 ) {
@@ -187,11 +189,13 @@ fun MorningNavHost(
             OnboardingRoute(
                 onFinished = {
                     onOnboardingFinished()
-                    navController.navigate(MainRoute) {
+                    // 온보딩 전용 확인 앱은 홈으로 가지 않고 스플래시부터 다시 시작해요.
+                    navController.navigate(if (onboardingOnly) OnboardingDestination else MainRoute) {
                         popUpTo(OnboardingDestination) { inclusive = true }
-                        launchSingleTop = true
+                        launchSingleTop = !onboardingOnly
                     }
                 },
+                showAll = onboardingOnly,
             )
         }
         composable<PermissionsRoute> {
