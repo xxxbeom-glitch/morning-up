@@ -203,8 +203,6 @@ class EditViewModelTest {
             assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
             vm.setWakeCheck(true)
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
-            vm.setSound(false)
-            assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
             vm.setSoundId("aube_paisible")
             assertThat(awaitItem().draft.soundId).isEqualTo("aube_paisible")
             vm.setSoundId("not_in_list")
@@ -445,16 +443,17 @@ class EditViewModelTest {
     }
 
     @Test
-    fun soundToggle_restoresLastChosenSound() = runTest {
+    fun newAlarm_soundStartsRandom_andRandomCanBePicked() = runTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
-            loaded()
+            assertThat(loaded().draft.soundId).isEqualTo(Alarm.RANDOM_SOUND_ID)
             vm.setSoundId("aube_paisible")
             awaitItem()
-            vm.setSound(false)
-            assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.SILENT_SOUND_ID)
-            vm.setSound(true)
-            assertThat(awaitItem().draft.soundId).isEqualTo("aube_paisible")
+            vm.setSoundId(Alarm.RANDOM_SOUND_ID)
+            assertThat(awaitItem().draft.soundId).isEqualTo(Alarm.RANDOM_SOUND_ID)
+            // '사용 안 함'은 목록에 없어서 고를 수 없어요.
+            vm.setSoundId(Alarm.SILENT_SOUND_ID)
+            expectNoEvents()
         }
     }
 }

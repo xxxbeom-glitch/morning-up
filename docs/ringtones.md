@@ -30,9 +30,11 @@
 | Nuit de Noel.mp3 | ringtone_nuit_de_noel.ogg | `nuit_de_noel` | 크리스마스 | 눈 내리는 밤 (Nuit de Noël) |
 | Petits Rebonds.mp3 | ringtone_petits_rebonds.ogg | `petits_rebonds` | 경쾌한 | 말랑 통통 (Petits Rebonds) |
 | (원래 있던 기본음) | alarm_default.wav | `default` | 기본 | 기본 알람음 |
+| (파일 없음) | 위 24곡 중 하나 | `random` | 기본(맨 위) | 랜덤 |
 
 11-17에 넣었던 5곡(Morning, Morning Loop, Love Serenade, Spring Season, Good Morning)은 위 곡과 같은 곡이라 새 이름으로 합쳤어요. 옛 id로 저장된 알람은 `Ringtones.currentId`가 새 id로 바꿔 같은 곡으로 울려요.
 사극 벨소리(공주마마, 폐하)는 아직 앱에 넣지 않았어요.
+(11-19 사용자 결정: S5 맨 위에 '랜덤'을 두고 새 알람의 처음 값으로 해요. '랜덤'은 울리기 시작할 때마다 기본 알람음을 뺀 24곡 중 하나를 골라요. '사용 안 함'(진동만)은 S5에서 뺐고, 그렇게 저장돼 있던 알람은 DB v4에서 랜덤으로 바꿔요. 줄을 누르면 10초 동안 그 알람의 볼륨 크기로 미리 들려줘요.)
 11-18 사용자 지시로 화면 이름을 한글로 바꿨어요. 원래 제목 뜻과 곡 묶음 느낌을 살려 아침 장면이 떠오르는 짧은 이름으로 지었어요. 파일 이름과 id는 그대로예요.
 
 ## 소리를 더하거나 바꾸는 법

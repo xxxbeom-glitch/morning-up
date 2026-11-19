@@ -2,7 +2,8 @@ package com.lumian.morningup.core.model
 
 /**
  * S5 알람음 목록 정의. 목록을 바꾸려면 이 파일과 `:core:alarm`의 `res/raw` 소리 파일만 고치면 돼요.
- * [Ringtone.id]는 알람에 저장되는 값이에요. 기본음은 [Alarm.DEFAULT_SOUND_ID]예요.
+ * [Ringtone.id]는 알람에 저장되는 값이에요. 맨 위는 '랜덤'([Alarm.RANDOM_SOUND_ID], 새 알람의 처음 값)이고,
+ * 그다음이 앱 기본음 [Alarm.DEFAULT_SOUND_ID]예요.
  * 소리 파일 이름은 `:core:alarm`의 `RingtoneFiles`가 id로 찾아요.
  * [name]은 화면에 보이는 한글 이름이에요(11-18 사용자 지시). 원래 프랑스어, 이탈리아어 제목은 파일 이름과 id에 남아요.
  */
@@ -16,6 +17,7 @@ object Ringtones {
         RingtoneGroup(
             name = "기본",
             ringtones = listOf(
+                Ringtone(Alarm.RANDOM_SOUND_ID, "랜덤"),
                 Ringtone(Alarm.DEFAULT_SOUND_ID, "기본 알람음"),
             ),
         ),
@@ -90,5 +92,10 @@ object Ringtones {
     fun currentId(id: String): String = renamed[id] ?: id
 
     /** 저장된 id에 맞는 소리. 목록에 없는 id(지운 소리 등)는 기본음으로 봐요. */
-    fun find(id: String): Ringtone = currentId(id).let { cur -> all.firstOrNull { it.id == cur } } ?: all.first()
+    fun find(id: String): Ringtone = currentId(id).let { cur -> all.firstOrNull { it.id == cur } }
+        ?: all.first { it.id == Alarm.DEFAULT_SOUND_ID }
+
+    /** '랜덤'이 고를 수 있는 진짜 벨소리 id(랜덤과 기본음 제외). */
+    val randomPool: List<String>
+        get() = all.map { it.id }.filter { it != Alarm.RANDOM_SOUND_ID && it != Alarm.DEFAULT_SOUND_ID }
 }

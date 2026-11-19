@@ -6,8 +6,22 @@ import org.junit.Test
 /** S5 알람음 목록 정의. */
 class RingtonesTest {
     @Test
-    fun defaultSound_isFirst() {
-        assertThat(Ringtones.all.first().id).isEqualTo(Alarm.DEFAULT_SOUND_ID)
+    fun randomFirst_thenDefault() {
+        assertThat(Ringtones.all.take(2).map { it.id })
+            .containsExactly(Alarm.RANDOM_SOUND_ID, Alarm.DEFAULT_SOUND_ID).inOrder()
+        assertThat(Ringtones.find(Alarm.RANDOM_SOUND_ID).name).isEqualTo("랜덤")
+    }
+
+    @Test
+    fun newAlarm_startsRandom() {
+        assertThat(Alarm(time = java.time.LocalTime.of(7, 0)).soundId).isEqualTo(Alarm.RANDOM_SOUND_ID)
+    }
+
+    @Test
+    fun randomPool_hasOnlyRealTones() {
+        assertThat(Ringtones.randomPool).doesNotContain(Alarm.RANDOM_SOUND_ID)
+        assertThat(Ringtones.randomPool).doesNotContain(Alarm.DEFAULT_SOUND_ID)
+        assertThat(Ringtones.randomPool).hasSize(Ringtones.all.size - 2)
     }
 
     @Test

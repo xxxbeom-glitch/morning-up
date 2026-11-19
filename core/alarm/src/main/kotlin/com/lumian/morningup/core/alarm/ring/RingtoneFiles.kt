@@ -10,11 +10,14 @@ import android.os.Looper
 import androidx.annotation.RawRes
 import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.Ringtones
+import kotlin.random.Random
 
 /**
  * 알람음 id와 `res/raw` 소리 파일을 잇는 곳. 목록([Ringtones])에 소리를 더하면 여기에도 한 줄 더해요.
  * 모르는 id(지운 소리, '진동만' 등)는 앱 기본음으로 울려요.
+ * '랜덤'([Alarm.RANDOM_SOUND_ID])은 부를 때마다 벨소리 하나를 새로 골라요. 알람은 울리기 시작할 때 한 번 불러요.
  */
 object RingtoneFiles {
     private val files: Map<String, Int> = mapOf(
@@ -45,7 +48,10 @@ object RingtoneFiles {
     )
 
     @RawRes
-    fun rawFor(id: String?): Int = id?.let { files[Ringtones.currentId(it)] } ?: R.raw.alarm_default
+    fun rawFor(id: String?, random: Random = Random.Default): Int = when (id) {
+        Alarm.RANDOM_SOUND_ID -> files.getValue(Ringtones.randomPool.random(random))
+        else -> id?.let { files[Ringtones.currentId(it)] } ?: R.raw.alarm_default
+    }
 
     fun uriFor(context: Context, id: String?): Uri =
         "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${rawFor(id)}".toUri()
@@ -54,13 +60,16 @@ object RingtoneFiles {
     internal val ids: Set<String> get() = files.keys
 }
 
-/** S5에서 줄을 누르면 그 소리를 [PREVIEW_MILLIS] 동안 알람 소리 통로로 들려줘요. */
+/**
+ * S5에서 줄을 누르면 그 소리를 [PREVIEW_MILLIS](10초) 동안 알람 소리 통로로 들려줘요.
+ * 크기는 그 알람의 볼륨(0~100)이에요(11-19 사용자 결정). '랜덤'은 누를 때마다 한 곡을 골라 들려줘요.
+ */
 class RingtonePreviewer(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     private var player: MediaPlayer? = null
     private val stopper = Runnable { stop() }
 
-    fun preview(id: String) {
+    fun preview(id: String, volumePercent: Int = FULL_PERCENT) {
         stop()
         val mp = MediaPlayer()
         val started = runCatching {
@@ -72,7 +81,8 @@ class RingtonePreviewer(private val context: Context) {
             )
             mp.setDataSource(context, RingtoneFiles.uriFor(context, id))
             mp.prepare()
-            RingMute.volume(1f).let { mp.setVolume(it, it) }
+            val fraction = volumePercent.coerceIn(0, FULL_PERCENT) / FULL_PERCENT.toFloat()
+            RingMute.volume(fraction).let { mp.setVolume(it, it) }
             mp.start()
         }.isSuccess
         if (started) {
@@ -93,6 +103,7 @@ class RingtonePreviewer(private val context: Context) {
     }
 
     private companion object {
-        const val PREVIEW_MILLIS = 6_000L
+        const val PREVIEW_MILLIS = 10_000L
+        const val FULL_PERCENT = 100
     }
 }

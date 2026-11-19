@@ -111,7 +111,6 @@ fun AlarmEditRoute(
                 onMissions = viewModel::setMissionsEnabled,
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
-                onSound = viewModel::setSound,
                 onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,
                 onGentle = viewModel::setGentleWake,
@@ -155,7 +154,6 @@ data class EditActions(
     val onMissions: (Boolean) -> Unit = {},
     val onRingAgain: (Boolean) -> Unit = {},
     val onWakeCheck: (Boolean) -> Unit = {},
-    val onSound: (Boolean) -> Unit = {},
     val onSoundId: (String) -> Unit = {},
     val onVibrate: (Boolean) -> Unit = {},
     val onGentle: (Boolean) -> Unit = {},
@@ -273,8 +271,8 @@ fun EditScreen(
             EditDetail.Sound -> SoundPage(
                 selectedId = state.draft.soundId,
                 onBack = actions.onCloseDetail,
+                volumePercent = state.draft.volumePercent,
                 onSelect = actions.onSoundId,
-                onOff = { actions.onSound(false) },
             )
             EditDetail.RingAgain -> RingAgainPage(
                 ringAgain = state.draft.ringAgain,
@@ -513,7 +511,7 @@ private fun SoundCard(alarm: Alarm, onOpenDetail: (EditDetail) -> Unit, onOpenSh
         MorningSettingRow(
             label = stringResource(R.string.edit_sound),
             value = if (soundOn) Ringtones.find(alarm.soundId).name else offValue(),
-            // 알람음은 토글 없이 '>'로 들어가서 골라요. '사용 안 함'은 들어간 화면 맨 위에 있어요.
+            // 알람음은 토글 없이 '>'로 들어가서 골라요. S5에 '사용 안 함'은 없어요(11-19). 시험 알람 F(진동만)만 '사용 안 함'으로 보여요.
             state = SettingRowState.Navigate,
             onCheckedChange = {},
             onClick = { onOpenDetail(EditDetail.Sound) },

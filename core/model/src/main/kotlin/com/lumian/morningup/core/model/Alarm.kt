@@ -55,7 +55,8 @@ data class Alarm(
     val ringAgain: RingAgain = RingAgain(),
     val wakeCheck: WakeCheck = WakeCheck(),
     val powerOffGuard: Boolean = false,
-    val soundId: String = DEFAULT_SOUND_ID,
+    /** 새 알람은 랜덤으로 시작해요(11-19 사용자 결정). */
+    val soundId: String = RANDOM_SOUND_ID,
     val volumePercent: Int = 100,
     val vibrate: Boolean = true,
     val vibrationPattern: VibrationPattern = VibrationPattern.Basic,
@@ -73,9 +74,16 @@ data class Alarm(
     val missionTypes: List<MissionType> get() = missions.map { it.type }
 
     companion object {
+        /** 앱 기본음 '기본 알람음'. 모르는 id도 이 소리로 울려요. */
         const val DEFAULT_SOUND_ID = "default"
 
-        /** 편집 화면 '알람음' 토글을 끈 상태(진동만). 울림 쪽은 알람음 화면(7단계)과 같이 따라요. */
+        /** '랜덤': 울릴 때마다 벨소리 중 하나를 골라요(11-19 사용자 결정). 새 알람의 처음 값이에요. */
+        const val RANDOM_SOUND_ID = "random"
+
+        /**
+         * 진동만(알람음 없음). 11-19부터 S5에서 '사용 안 함'을 빼서 사용자가 고를 수 없어요.
+         * 저장돼 있던 알람은 DB v4에서 랜덤으로 바꿨고, 설정 '테스트'의 시험 알람 F만 써요.
+         */
         const val SILENT_SOUND_ID = "silent"
 
         /** 편집 화면 '알람 화면 배경' 토글을 끈 상태. null은 기본 '시간대 하늘'이에요. */

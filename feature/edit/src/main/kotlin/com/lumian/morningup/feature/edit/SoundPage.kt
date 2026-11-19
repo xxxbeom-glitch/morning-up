@@ -56,15 +56,16 @@ import kotlinx.coroutines.launch
 
 /**
  * S5 알람음(일반형, 피그마 `S5-2` `162:1494`). 위 언더라인 탭은 그 묶음 위치로 가는 바로가기이고,
- * 아래는 모든 소리를 묶음별로 이어 보여 줘요. 줄을 누르면 바로 고르고 6초 미리 들려줘요.
- * 완료 버튼 없이 뒤로 나가면 고른 값이 그대로 남아요.
+ * 아래는 모든 소리를 묶음별로 이어 보여 줘요. 줄을 누르면 바로 고르고 10초 미리 들려줘요(11-19 사용자 결정).
+ * 미리 듣기 크기는 이 알람의 볼륨([volumePercent])이에요. 완료 버튼 없이 뒤로 나가면 고른 값이 그대로 남아요.
+ * 맨 위는 '랜덤'이고 '사용 안 함'은 없어요(11-19 사용자 결정).
  */
 @Composable
 fun SoundPage(
     selectedId: String,
+    volumePercent: Int,
     onBack: () -> Unit,
     onSelect: (String) -> Unit,
-    onOff: () -> Unit,
     modifier: Modifier = Modifier,
     groups: List<RingtoneGroup> = Ringtones.groups,
 ) {
@@ -72,14 +73,13 @@ fun SoundPage(
     val context = LocalContext.current
     val previewer = remember(context) { RingtonePreviewer(context.applicationContext) }
     DisposableEffect(previewer) { onDispose { previewer.stop() } }
-    // 알람음을 끈 알람(진동만)은 맨 위 '사용 안 함'만 고른 모양이에요.
-    val off = selectedId == Alarm.SILENT_SOUND_ID
-    val selected = if (off) null else Ringtones.find(selectedId).id
+    // 시험 알람 F(진동만)는 아무 줄도 고르지 않은 모양이에요.
+    val selected = if (selectedId == Alarm.SILENT_SOUND_ID) null else Ringtones.find(selectedId).id
     val listState = rememberLazyListState()
     val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    // 묶음 제목 줄의 목록 위치. 맨 위 '사용 안 함' 1줄 뒤로 묶음마다 제목 1줄 + 소리 줄 수.
+    // 묶음 제목 줄의 목록 위치. 묶음마다 제목 1줄 + 소리 줄 수.
     val headerIndexes = remember(groups) {
-        groups.runningFold(1) { index, group -> index + 1 + group.ringtones.size }.dropLast(1)
+        groups.runningFold(0) { index, group -> index + 1 + group.ringtones.size }.dropLast(1)
     }
     Column(
         modifier = modifier
@@ -107,17 +107,6 @@ fun SoundPage(
                 bottom = MorningDimens.space32 + navBar,
             ),
         ) {
-            item(key = "off") {
-                MorningRadioRow(
-                    label = stringResource(R.string.edit_off_value),
-                    selected = off,
-                    onClick = {
-                        previewer.stop()
-                        onOff()
-                    },
-                    modifier = Modifier.padding(bottom = MorningDimens.space24),
-                )
-            }
             groups.forEachIndexed { groupIndex, group ->
                 item(key = "group-${group.name}") {
                     Text(
@@ -136,7 +125,7 @@ fun SoundPage(
                             selected = tone.id == selected,
                             onClick = {
                                 onSelect(tone.id)
-                                previewer.preview(tone.id)
+                                previewer.preview(tone.id, volumePercent)
                             },
                             modifier = Modifier.height(MorningDimens.sizeRowPlain),
                         )

@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -23,7 +23,7 @@ abstract class MorningDatabase : RoomDatabase() {
         const val NAME = "morningup.db"
 
         /** 앱이 여는 모든 구조 옮기기. 빌더에 이것만 넘겨요. */
-        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3)
+        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3, Migration3To4)
     }
 }
 
@@ -51,5 +51,16 @@ object Migration2To3 : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE alarms ADD COLUMN vibrationPattern TEXT NOT NULL DEFAULT 'basic'")
         db.execSQL("ALTER TABLE alarms ADD COLUMN gentleSeconds INTEGER NOT NULL DEFAULT 30")
+    }
+}
+
+/**
+ * v3 → v4: S5에서 '사용 안 함'(진동만)을 빼서(11-19 사용자 결정), 그렇게 저장된 알람을 '랜덤'으로 바꿔요.
+ * 표 구조는 그대로이고 글자만 고쳐요.
+ */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration3To4 : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE alarms SET soundId = 'random' WHERE soundId = 'silent'")
     }
 }

@@ -7,7 +7,9 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.data.db.Migration1To2
 import com.lumian.morningup.core.data.db.Migration2To3
+import com.lumian.morningup.core.data.db.Migration3To4
 import com.lumian.morningup.core.data.db.MorningDatabase
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.VibrationPattern
@@ -79,10 +81,35 @@ class MigrationTest {
         assertThat(alarm.missionTypes).containsExactly(MissionType.QuickMath)
     }
 
-    private fun insertV1(id: Long, missions: String) =
+    @Test
+    fun v3ToV4_turnsSilentIntoRandom_andKeepsOtherSounds() = runTest {
+        helper.createDatabase(dbName, 1).apply {
+            execSQL(insertV1(id = 1, missions = "", sound = "silent"))
+            execSQL(insertV1(id = 2, missions = "", sound = "douceur"))
+            execSQL(insertV1(id = 3, missions = ""))
+            close()
+        }
+        helper.runMigrationsAndValidate(dbName, 2, true, Migration1To2).close()
+        helper.runMigrationsAndValidate(dbName, 3, true, Migration2To3).close()
+        helper.runMigrationsAndValidate(dbName, 4, true, Migration3To4).close()
+
+        val db = Room.databaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            MorningDatabase::class.java,
+            dbName,
+        ).apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+        val alarms = AlarmRepository(db.alarmDao()).all().associateBy { it.id }
+        db.close()
+
+        assertThat(alarms.getValue(1).soundId).isEqualTo(Alarm.RANDOM_SOUND_ID)
+        assertThat(alarms.getValue(2).soundId).isEqualTo("douceur")
+        assertThat(alarms.getValue(3).soundId).isEqualTo(Alarm.DEFAULT_SOUND_ID)
+    }
+
+    private fun insertV1(id: Long, missions: String, sound: String = "default") =
         "INSERT INTO alarms (id, hour, minute, repeatDaysMask, skipHolidays, enabled, missions, " +
             "ringAgainIntervalMinutes, ringAgainCount, wakeCheckEnabled, wakeCheckAskAfterMinutes, " +
             "wakeCheckAnswerSeconds, powerOffGuard, soundId, volumePercent, vibrate, gentleWake, background, " +
             "skipOnceDate, nextTriggerAt) VALUES ($id, 6, 30, 31, 0, 1, '$missions', 5, 3, 1, 1, 60, 0, " +
-            "'default', 100, 1, 0, NULL, NULL, 1800000000000)"
+            "'$sound', 100, 1, 0, NULL, NULL, 1800000000000)"
 }

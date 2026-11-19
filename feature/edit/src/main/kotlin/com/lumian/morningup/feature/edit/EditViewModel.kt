@@ -125,8 +125,6 @@ class EditViewModel @Inject constructor(
         val sheet: MissionSheet? = null,
         /** 고른 미션의 값을 기억해 둬요. 빼거나 해제한 뒤 다시 열면 그 값으로 열려요(이 편집 화면 안에서만). */
         val remembered: Map<MissionType, MissionSetting> = emptyMap(),
-        /** 알람음 토글을 다시 켤 때 되살릴 소리. */
-        val lastSound: String = Alarm.DEFAULT_SOUND_ID,
         /** 배경 토글을 다시 켤 때 되살릴 배경(null은 시간대 하늘). */
         val lastBackground: String? = null,
     )
@@ -161,7 +159,6 @@ class EditViewModel @Inject constructor(
                     loading = false,
                     original = loaded,
                     draft = loaded,
-                    lastSound = loaded.soundId.takeUnless { s -> s == Alarm.SILENT_SOUND_ID } ?: Alarm.DEFAULT_SOUND_ID,
                     lastBackground = loaded.background.takeUnless { b -> b == Alarm.BACKGROUND_PLAIN },
                 )
             }
@@ -310,15 +307,10 @@ class EditViewModel @Inject constructor(
 
     fun setPowerOffGuard(on: Boolean) = edit { it.copy(powerOffGuard = on) }
 
-    /** 끄면 진동만(S5). 다시 켜면 마지막으로 고른 소리로 돌아가요. */
-    fun setSound(on: Boolean) = editor.update {
-        it.copy(draft = it.draft.copy(soundId = if (on) it.lastSound else Alarm.SILENT_SOUND_ID))
-    }
-
     /** S5에서 고른 알람음. 목록에 없는 id는 무시해요. */
     fun setSoundId(id: String) {
         if (Ringtones.all.any { it.id == id }) {
-            editor.update { it.copy(draft = it.draft.copy(soundId = id), lastSound = id) }
+            editor.update { it.copy(draft = it.draft.copy(soundId = id)) }
         }
     }
 

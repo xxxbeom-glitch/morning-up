@@ -9,6 +9,7 @@ import android.os.SystemClock
 
 /**
  * S6 볼륨 시트 미리 듣기(11-18 사용자 지시). 알람에 고른 소리를 알람 소리 통로로 들려줘요.
+ * 한 번에 10초 울려요(11-19 사용자 결정). 울리는 중에 막대를 움직이면 소리 크기가 바로 바뀌어요.
  * - [volume]: 볼륨 막대를 움직일 때마다 불러요. 그 크기로 [VOLUME_PREVIEW_MILLIS] 동안 울리고, 계속 움직이면 이어서 울려요.
  * - [gentle]: '볼륨 천천히 올리기' 버튼을 누를 때마다 불러요. 실제 알람처럼 작은 소리에서 그 시간 동안 올라가요.
  */
@@ -96,7 +97,7 @@ class VolumePreviewer(private val context: Context) {
 
     private companion object {
         const val FULL_PERCENT = 100
-        const val VOLUME_PREVIEW_MILLIS = 6_000L
+        const val VOLUME_PREVIEW_MILLIS = 10_000L
         const val HOLD_AFTER_RAMP_MILLIS = 1_000L
         const val MILLIS_PER_SECOND = 1_000L
         const val RAMP_STEP_MILLIS = 100L
