@@ -62,6 +62,10 @@
             android:exported="false" />
 
         <receiver
+            android:name=".BatteryReminderReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".receiver.SystemEventReceiver"
             android:directBootAware="true"
             android:exported="true">

@@ -76,7 +76,7 @@ private val ChevronSize = 16.dp
  * 권한 줄 받침 색. 피그마 '권한' 화면(구역 `781:18261`)에 변수 없이 칠해진 값이라 여기 모아 둬요.
  * 받침 위 아이콘은 흰색이에요.
  */
-private object PermissionTint {
+internal object PermissionTint {
     val Battery = Color(0xFF34C17A)
     val Location = Color(0xFFF2884B)
     val SamsungSleep = Color(0xFFF5A524)
@@ -90,19 +90,19 @@ private object PermissionTint {
 }
 
 /** 권한 줄 하나의 모양. */
-private data class RowSpec(val title: Int, val description: Int, val icon: RowIcon, val tint: Color)
+internal data class RowSpec(val title: Int, val description: Int, val icon: RowIcon, val tint: Color)
 
 /**
  * 줄 아이콘. 화면에 보이는 줄은 피그마 T2-A(388:7368)의 채움 모양을 옮긴 그림([Drawn], 16, 방해 금지만 18.3)이고,
  * '권한' 화면에 줄이 없는 정확한 알람, 전원 종료 방지만 Lucide 선 아이콘([Line], 20)이에요.
  */
-private sealed interface RowIcon {
+internal sealed interface RowIcon {
     data class Drawn(@DrawableRes val res: Int) : RowIcon
 
     data class Line(val vector: ImageVector) : RowIcon
 }
 
-private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
+internal fun spec(permission: AlarmPermission): RowSpec = when (permission) {
     AlarmPermission.Notifications ->
         RowSpec(
             R.string.permission_notifications,
@@ -178,61 +178,81 @@ private fun spec(permission: AlarmPermission): RowSpec = when (permission) {
 fun PermissionRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val open = rememberPermissionOpener(viewModel)
+    PermissionPage(
+        report = report,
+        showSamsungSleep = PermissionSettings.isSamsung,
+        onBack = onBack,
+        onOpen = { open(it) },
+        onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
+        modifier = modifier,
+    )
+}
+
+/**
+ * 권한 줄을 눌렀을 때 그 권한의 폰 설정이나 시스템 창을 여는 함수(결정 126 줄별 이동 표). '권한' 화면과 PL2 시트가 같이 써요.
+ * 알림(안드로이드 13 이상에서 권한 자체가 없을 때), 위치는 시스템 요청 창을 먼저 띄우고, 배터리는 꺼져 있으면 시스템 확인 창이에요.
+ * 아무 화면도 열지 못하면 false를 돌려줘요.
+ */
+@Composable
+internal fun rememberPermissionOpener(viewModel: SettingsViewModel): (AlarmPermission) -> Boolean {
+    val context = LocalContext.current
     val notificationAsk = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         viewModel.refresh()
     }
     val locationAsk = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
         viewModel.refresh()
     }
-    PermissionPage(
-        report = report,
-        showSamsungSleep = PermissionSettings.isSamsung,
-        onBack = onBack,
-        onOpen = { permission ->
-            val granted = report.isGranted(permission)
-            when {
-                permission == AlarmPermission.Notifications && !granted && needsRuntimeNotificationAsk(context) ->
-                    askOrOpen(context, viewModel, Manifest.permission.POST_NOTIFICATIONS, permission) {
-                        notificationAsk.launch(it)
-                    }
-                permission == AlarmPermission.Location && !granted ->
-                    askOrOpen(context, viewModel, Manifest.permission.ACCESS_COARSE_LOCATION, permission) {
-                        locationAsk.launch(it)
-                    }
-                permission == AlarmPermission.Battery && !granted ->
-                    PermissionSettings.open(context, PermissionSettings.batteryRequestIntent(context))
-                else -> openSettings(context, permission)
-            }
-        },
-        onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
-        modifier = modifier,
-    )
+    return { permission ->
+        val granted = viewModel.report.value.isGranted(permission)
+        when {
+            permission == AlarmPermission.Notifications && !granted && needsRuntimeNotificationAsk(context) ->
+                askOrOpen(context, viewModel, Manifest.permission.POST_NOTIFICATIONS, permission) {
+                    notificationAsk.launch(it)
+                }
+            permission == AlarmPermission.Location && !granted ->
+                askOrOpen(context, viewModel, Manifest.permission.ACCESS_COARSE_LOCATION, permission) {
+                    locationAsk.launch(it)
+                }
+            permission == AlarmPermission.Battery && !granted ->
+                PermissionSettings.open(context, PermissionSettings.batteryRequestIntent(context))
+            else -> openSettings(context, permission)
+        }
+    }
 }
 
-/** 그 권한의 폰 설정을 열어요. 앱 목록으로 열리는 화면이면 떠날 때 '목록에서 morning-up을 찾아 켜 주세요'를 띄워요. */
-internal fun openSettings(context: Context, permission: AlarmPermission) {
-    if (PermissionSettings.opensList(permission)) {
+/**
+ * 그 권한의 폰 설정을 열어요. 앱 목록으로 열리는 화면이면 떠날 때 '목록에서 morning-up을 찾아 켜 주세요'를 띄워요.
+ * 열지 못하면 false예요.
+ */
+internal fun openSettings(context: Context, permission: AlarmPermission): Boolean {
+    val opened = PermissionSettings.open(context, PermissionSettings.intentFor(context, permission))
+    if (opened && PermissionSettings.opensList(permission)) {
         // 폰 설정 화면 위에서도 보이도록 시스템 토스트로 띄워요(앱 안 스낵바는 앱을 떠나면 안 보여요).
         Toast.makeText(context, R.string.permission_find_in_list, Toast.LENGTH_LONG).show()
     }
-    PermissionSettings.open(context, PermissionSettings.intentFor(context, permission))
+    return opened
 }
 
-/** 시스템 요청 창으로 물어요. 이미 물었고 시스템이 더 묻지 않는 상태(두 번 거절)면 창 대신 폰 설정으로 보내요. */
+/**
+ * 시스템 요청 창으로 물어요. 이미 물었고 시스템이 더 묻지 않는 상태(두 번 거절)면 창 대신 폰 설정으로 보내요.
+ * 창을 띄웠거나 설정을 열었으면 true예요.
+ */
 internal fun askOrOpen(
     context: Context,
     viewModel: SettingsViewModel,
     manifestPermission: String,
     permission: AlarmPermission,
     launch: (String) -> Unit,
-) {
+): Boolean {
     val activity = context.findActivity()
     val systemWillAsk = activity == null ||
         !viewModel.wasAsked(permission) ||
         ActivityCompat.shouldShowRequestPermissionRationale(activity, manifestPermission)
-    if (systemWillAsk) {
+    return if (systemWillAsk) {
         viewModel.markAsked(permission)
         launch(manifestPermission)
+        true
     } else {
         openSettings(context, permission)
     }

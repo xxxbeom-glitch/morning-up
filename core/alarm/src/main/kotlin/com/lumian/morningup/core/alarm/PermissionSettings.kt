@@ -63,16 +63,21 @@ object PermissionSettings {
 
     val isSamsung: Boolean get() = Build.MANUFACTURER.equals("samsung", ignoreCase = true)
 
-    fun open(context: Context, intent: Intent) {
-        try {
-            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "settings screen missing: %s", intent.action)
-            context.startActivity(appDetails(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        } catch (e: SecurityException) {
-            Timber.w(e, "settings screen blocked: %s", intent.action)
-            context.startActivity(appDetails(context).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-        }
+    /**
+     * 그 설정 화면을 열어요. 화면이 없거나 막혀 있으면 앱 정보 화면으로 보내요.
+     * 앱 정보 화면마저 못 열면 false예요(나중용 권한 시트는 이때 '설정을 열지 못했어요' 토스트를 띄워요).
+     */
+    fun open(context: Context, intent: Intent): Boolean = start(context, intent) || start(context, appDetails(context))
+
+    private fun start(context: Context, intent: Intent): Boolean = try {
+        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        true
+    } catch (e: ActivityNotFoundException) {
+        Timber.w(e, "settings screen missing: %s", intent.action)
+        false
+    } catch (e: SecurityException) {
+        Timber.w(e, "settings screen blocked: %s", intent.action)
+        false
     }
 
     fun appDetails(context: Context): Intent =

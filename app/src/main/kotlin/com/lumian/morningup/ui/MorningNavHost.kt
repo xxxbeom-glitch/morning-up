@@ -11,6 +11,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,6 +25,8 @@ import com.lumian.morningup.BuildConfig
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
 import com.lumian.morningup.core.model.AlarmPermission
+import com.lumian.morningup.core.model.PermissionStep
+import com.lumian.morningup.core.model.banner
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.home.HomeRoute
@@ -34,12 +37,14 @@ import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
+import com.lumian.morningup.feature.settings.PermissionStepSheet
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
 import com.lumian.morningup.feature.settings.TestToolsPage
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
 import com.lumian.morningup.feature.sleep.SleepPlayerRoute
 import com.lumian.morningup.feature.sleep.SleepScreen
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.serialization.Serializable
 
@@ -80,6 +85,8 @@ fun MorningNavHost(
     editRequests: StateFlow<Long?>,
     onEditRequestHandled: () -> Unit,
     modifier: Modifier = Modifier,
+    permissionRequests: StateFlow<PermissionStep?> = MutableStateFlow(null),
+    onPermissionRequestHandled: () -> Unit = {},
     showOnboarding: Boolean = false,
     onOnboardingFinished: () -> Unit = {},
     navController: NavHostController = rememberNavController(),
@@ -93,6 +100,11 @@ fun MorningNavHost(
             launchSingleTop = true
         }
         onEditRequestHandled()
+    }
+    // 권한 시트는 홈 위에 떠요. 다른 화면이 위에 있으면 홈까지 닫고, 시트는 홈 쪽에서 열어요.
+    val pendingPermission by permissionRequests.collectAsStateWithLifecycle()
+    LaunchedEffect(pendingPermission) {
+        if (pendingPermission != null) navController.popBackStack(MainRoute, inclusive = false)
     }
     val reduceMotion = LocalReduceMotion.current
     NavHost(
@@ -110,6 +122,15 @@ fun MorningNavHost(
             val settings: SettingsViewModel = hiltViewModel()
             val report by settings.report.collectAsStateWithLifecycle()
             var homeSelecting by remember { mutableStateOf(false) }
+            // H2 배너를 누르면 나중용 권한 시트 PL2가 홈 위에 떠요(결정 132).
+            var permissionSheet by rememberSaveable { mutableStateOf<PermissionStep?>(null) }
+            // 배터리 전날 밤 알림을 누르면 PL2 2단계로 열어요(필수가 꺼져 있으면 시트가 1단계부터 보여요).
+            val permissionRequest by permissionRequests.collectAsStateWithLifecycle()
+            LaunchedEffect(permissionRequest) {
+                val step = permissionRequest ?: return@LaunchedEffect
+                permissionSheet = step
+                onPermissionRequestHandled()
+            }
             // 첫 알람을 저장해도 권한 창은 띄우지 않아요(결정 128). 꺼진 필수 권한은 H2 배너로 알려요.
             MorningUpApp(
                 alarmTab = { tabModifier ->
@@ -121,10 +142,8 @@ fun MorningNavHost(
                         savedAlarmId = savedId,
                         onSavedAlarmShown = { entry.savedStateHandle[SAVED_ALARM_KEY] = null },
                         onSelectingChange = { homeSelecting = it },
-                        banner = if (report.needsAttention) {
-                            { PermissionBanner(report) }
-                        } else {
-                            null
+                        banner = report.banner?.let { kind ->
+                            { PermissionBanner(kind, onClick = { permissionSheet = kind.startStep }) }
                         },
                     )
                 },
@@ -153,6 +172,9 @@ fun MorningNavHost(
                 settingsAlert = report.needsAttention,
                 hideNav = homeSelecting,
             )
+            permissionSheet?.let { step ->
+                PermissionStepSheet(requested = step, onClose = { permissionSheet = null }, viewModel = settings)
+            }
         }
         composable<OnboardingDestination>(
             enterTransition = { EnterTransition.None },

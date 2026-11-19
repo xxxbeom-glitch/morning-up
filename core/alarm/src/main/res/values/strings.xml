@@ -40,4 +40,9 @@
     <string name="missed_text_powered_off">%1$s 알람은 폰이 꺼져 있는 동안 지나갔어요</string>
     <string name="power_guard_service_label">morning-up 전원 종료 방지</string>
     <string name="power_guard_service_desc">알람 미션을 하는 동안 전원 메뉴가 열리면 바로 닫아요. 화면 내용은 읽거나 저장하지 않아요.</string>
+    <!-- 배터리 전날 밤 알림(결정 113, 119). 채널 이름과 설명은 추천안 -->
+    <string name="channel_reminder">알람 점검</string>
+    <string name="channel_reminder_description">내일 알람이 제때 울리지 못할 수 있을 때 알려요</string>
+    <string name="battery_reminder_title">내일 알람이 울리지 않을 수 있어요</string>
+    <string name="battery_reminder_text">배터리 사용 제한이 켜져 있어요. 눌러서 풀어 주세요.</string>
 </resources>

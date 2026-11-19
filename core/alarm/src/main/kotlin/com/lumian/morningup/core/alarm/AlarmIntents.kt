@@ -19,6 +19,9 @@ object AlarmIntents {
     /** 상태 표시줄 알람 아이콘 → 앱. 이 ID의 편집 화면을 열어요. */
     const val EXTRA_EDIT_ALARM_ID = "com.lumian.morningup.extra.EDIT_ALARM_ID"
 
+    /** 배터리 전날 밤 알림 → 앱. 나중용 권한 시트 PL2를 2단계로 열어요(필수가 꺼져 있으면 1단계). */
+    const val EXTRA_OPEN_BATTERY_SHEET = "com.lumian.morningup.extra.OPEN_BATTERY_SHEET"
+
     /** 울림 타이머는 한 칸뿐이라 요청 코드 하나를 계속 써요. 알람 ID(1부터)와 겹치지 않게 음수로 둬요. */
     const val TIMER_REQUEST_CODE = -1
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -71,15 +72,32 @@ fun MorningDialogSheet(
     tag: String = "dialogSheet",
     picture: @Composable BoxScope.() -> Unit = {},
 ) {
+    MorningBlockingSheet(onBack = onLater, tag = tag) {
+        DialogSheetBody(title, message, confirmLabel, onConfirm, laterLabel, onLater, picture)
+    }
+}
+
+/**
+ * 결정을 받을 때까지 뒤 화면을 막는 모달 바텀시트 틀(손잡이 없음). 막을 누르거나 끌어 내려도 닫히지 않고,
+ * 폰 뒤로 가기만 [onBack]을 불러요. 앱 맨 위 [MorningOverlayRoot] 자리에 그려서 하단 메뉴와 시스템 바 뒤까지 막이 덮여요.
+ * 판은 `background/elevated`, 위 모서리 `radius/card`, 그림자 `shadow/float`이고 아래 시스템 바만큼 안쪽을 비워요.
+ * [front]는 판 위에 겹쳐 그릴 것(토스트 등)이에요.
+ */
+@Composable
+fun MorningBlockingSheet(
+    onBack: () -> Unit,
+    tag: String,
+    front: @Composable BoxScope.() -> Unit = {},
+    content: @Composable ColumnScope.() -> Unit,
+) {
     val sheet: @Composable () -> Unit = {
-        BackHandler(onBack = onLater)
-        DialogSheetContent(title, message, confirmLabel, onConfirm, laterLabel, onLater, tag, picture)
+        BackHandler(onBack = onBack)
+        BlockingSheetFrame(tag, front, content)
     }
     val host = LocalMorningOverlay.current
     if (host == null) {
         sheet()
     } else {
-        // 앱 맨 위 [MorningOverlayRoot]에 그려서 하단 메뉴와 시스템 바 뒤까지 막이 덮여요.
         val latest by rememberUpdatedState(sheet)
         DisposableEffect(host) {
             val entry: @Composable () -> Unit = { latest() }
@@ -118,18 +136,12 @@ fun MorningOverlayRoot(content: @Composable () -> Unit) {
 }
 
 @Composable
-internal fun DialogSheetContent(
-    title: String,
-    message: String,
-    confirmLabel: String,
-    onConfirm: () -> Unit,
-    laterLabel: String,
-    onLater: () -> Unit,
+private fun BlockingSheetFrame(
     tag: String,
-    picture: @Composable BoxScope.() -> Unit,
+    front: @Composable BoxScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = MorningTheme.colors
-    val typography = MorningTheme.typography
     val reduceMotion = MorningTheme.reduceMotion
     val shown = remember { MutableTransitionState(false).apply { targetState = true } }
     val scrim = if (colors.backgroundBase.luminance() < DARK_LUMINANCE) DarkScrim else MorningFixedColors.Scrim
@@ -158,66 +170,92 @@ internal fun DialogSheetContent(
                     .morningShadow(MorningShadows.float, shape)
                     .background(colors.backgroundElevated, shape)
                     .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-                    .navigationBarsPadding()
-                    .padding(top = MorningDimens.space32),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(PictureSize)
-                        .background(colors.backgroundBase, RoundedCornerShape(PictureCorner)),
-                    contentAlignment = Alignment.Center,
-                    content = picture,
-                )
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = MorningDimens.space24,
-                            end = MorningDimens.space24,
-                            top = MorningDimens.space24,
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
-                ) {
-                    Text(
-                        text = title,
-                        style = typography.titleLarge,
-                        color = colors.textPrimary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                    Text(
-                        text = message,
-                        style = typography.bodyLarge,
-                        color = colors.textSecondary,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = MorningDimens.space16,
-                            end = MorningDimens.space16,
-                            top = MorningDimens.space24,
-                            bottom = MorningDimens.space16,
-                        ),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(MorningDimens.space4),
-                ) {
-                    MorningButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
-                    Text(
-                        text = laterLabel,
-                        style = typography.bodyMediumStrong,
-                        color = colors.textTertiary,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(MorningDimens.space8))
-                            .morningClickable(onClick = onLater)
-                            .padding(horizontal = MorningDimens.space16, vertical = MorningDimens.space12),
-                    )
-                }
-            }
+                    .navigationBarsPadding(),
+                content = content,
+            )
+        }
+        front()
+    }
+}
+
+@Composable
+private fun DialogSheetBody(
+    title: String,
+    message: String,
+    confirmLabel: String,
+    onConfirm: () -> Unit,
+    laterLabel: String,
+    onLater: () -> Unit,
+    picture: @Composable BoxScope.() -> Unit,
+) {
+    val colors = MorningTheme.colors
+    val typography = MorningTheme.typography
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = MorningDimens.space32),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(PictureSize)
+                .background(colors.backgroundBase, RoundedCornerShape(PictureCorner)),
+            contentAlignment = Alignment.Center,
+            content = picture,
+        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = MorningDimens.space24,
+                    end = MorningDimens.space24,
+                    top = MorningDimens.space24,
+                ),
+            verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
+        ) {
+            Text(
+                text = title,
+                style = typography.titleLarge,
+                color = colors.textPrimary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text(
+                text = message,
+                style = typography.bodyLarge,
+                color = colors.textSecondary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    start = MorningDimens.space16,
+                    end = MorningDimens.space16,
+                    top = MorningDimens.space24,
+                    bottom = MorningDimens.space16,
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(MorningDimens.space4),
+        ) {
+            MorningButton(text = confirmLabel, onClick = onConfirm, modifier = Modifier.fillMaxWidth())
+            MorningSheetTextButton(text = laterLabel, onClick = onLater)
         }
     }
+}
+
+/** 시트 아래 글자 버튼('나중에', '다음에 하기'). `Body/Medium Strong` `text/tertiary`, 안쪽 위아래 12 좌우 16. */
+@Composable
+fun MorningSheetTextButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MorningTheme.typography.bodyMediumStrong,
+        color = MorningTheme.colors.textTertiary,
+        modifier = modifier
+            .clip(RoundedCornerShape(MorningDimens.space8))
+            .morningClickable(onClick = onClick)
+            .padding(horizontal = MorningDimens.space16, vertical = MorningDimens.space12),
+    )
 }

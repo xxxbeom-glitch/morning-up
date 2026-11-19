@@ -34,9 +34,10 @@ enum class MorningButtonSize { Large, Medium, Circle }
 
 /**
  * 칠 종류. Primary 파랑, Secondary 회색(다이얼로그 '취소', 시트 '선택 해제'), Danger 빨강(다이얼로그 '삭제', Button Alt Danger),
- * Soft 연한 파랑(Button Alt Style=Soft: `primary/subtle` 칠, `primary/text` 글자. 미션 시트 '미리보기').
+ * Soft 연한 파랑(Button Alt Style=Soft: `primary/subtle` 칠, `primary/text` 글자. 미션 시트 '미리보기'),
+ * Muted 꺼진 모양(`background/raised` 칠, `text/disabled` 글자, 흐리게 하지 않음. PL2 '다음' 꺼짐, 피그마 765:13473).
  */
-enum class MorningButtonStyle { Primary, Secondary, Danger, Soft }
+enum class MorningButtonStyle { Primary, Secondary, Danger, Soft, Muted }
 
 private const val DISABLED_ALPHA = 0.45f
 
@@ -61,6 +62,7 @@ fun MorningButton(
         MorningButtonStyle.Secondary -> Triple(colors.backgroundRaised, colors.controlTrackOff, colors.textBody)
         MorningButtonStyle.Danger -> Triple(colors.statusError, colors.statusError, colors.textInverse)
         MorningButtonStyle.Soft -> Triple(colors.primarySubtle, colors.primarySubtle, colors.primaryText)
+        MorningButtonStyle.Muted -> Triple(colors.backgroundRaised, colors.backgroundRaised, colors.textDisabled)
     }
     val fill by animateColorAsState(
         targetValue = if (pressed) down else rest,
@@ -75,7 +77,7 @@ fun MorningButton(
     }
     Box(
         modifier = sized
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
+            .alpha(if (enabled || style == MorningButtonStyle.Muted) 1f else DISABLED_ALPHA)
             .pressScale(interactionSource)
             .background(fill, shape)
             .clickable(

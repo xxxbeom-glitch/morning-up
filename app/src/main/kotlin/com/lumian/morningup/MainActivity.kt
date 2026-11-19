@@ -11,6 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
+import com.lumian.morningup.core.alarm.BatteryReminder
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
@@ -18,6 +19,7 @@ import com.lumian.morningup.core.designsystem.component.MorningOverlayRoot
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.PermissionChecker
+import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.feature.settings.OnboardingStore
 import com.lumian.morningup.ring.RingActivity
@@ -46,8 +48,13 @@ class MainActivity : ComponentActivity() {
 
     @Inject lateinit var onboarding: OnboardingStore
 
+    @Inject lateinit var batteryReminder: BatteryReminder
+
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
     private val editRequests = MutableStateFlow<Long?>(null)
+
+    /** 배터리 전날 밤 알림으로 열렸을 때 열어 달라는 권한 시트 단계. 화면 길이 받아 열면 비워요. */
+    private val permissionRequests = MutableStateFlow<PermissionStep?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // 버튼식 내비게이션 바 뒤에도 흰 막을 깔지 않고 화면 바탕색이 이어지게 해요.
@@ -67,6 +74,8 @@ class MainActivity : ComponentActivity() {
             // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
             rescheduler.rescheduleAll(now.now())
         }
+        // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
+        batteryReminder.schedule()
         checkAlertPermissions()
         if (savedInstanceState == null) readEditRequest(intent)
         // 첫 실행이면 온보딩부터(결정 131). 한 번 정하면 화면을 다시 그려도 바꾸지 않아요.
@@ -82,6 +91,8 @@ class MainActivity : ComponentActivity() {
                         MorningNavHost(
                             editRequests = editRequests,
                             onEditRequestHandled = { editRequests.value = null },
+                            permissionRequests = permissionRequests,
+                            onPermissionRequestHandled = { permissionRequests.value = null },
                             showOnboarding = showOnboarding,
                             onOnboardingFinished = onboarding::markDone,
                             debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
@@ -104,8 +115,15 @@ class MainActivity : ComponentActivity() {
         readEditRequest(intent)
     }
 
-    /** 상태 표시줄 알람 아이콘으로 열렸으면 그 알람의 편집 화면을 열어 달라고 남겨요. */
+    /**
+     * 상태 표시줄 알람 아이콘으로 열렸으면 그 알람의 편집 화면을, 배터리 전날 밤 알림으로 열렸으면
+     * 나중용 권한 시트 2단계를 열어 달라고 남겨요.
+     */
     private fun readEditRequest(intent: Intent?) {
+        if (intent?.getBooleanExtra(AlarmIntents.EXTRA_OPEN_BATTERY_SHEET, false) == true) {
+            permissionRequests.value = PermissionStep.Optional
+            intent.removeExtra(AlarmIntents.EXTRA_OPEN_BATTERY_SHEET)
+        }
         val id = intent?.getLongExtra(AlarmIntents.EXTRA_EDIT_ALARM_ID, NO_ALARM) ?: NO_ALARM
         if (id != NO_ALARM) {
             editRequests.value = id
