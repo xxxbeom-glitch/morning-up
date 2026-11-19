@@ -57,6 +57,7 @@ import com.lumian.morningup.core.designsystem.component.MorningIconButton
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.motion.morningClickable
+import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.SleepTrack
 import com.lumian.morningup.core.model.SleepTracks
@@ -265,10 +266,12 @@ private fun TimerSheet(visible: Boolean, current: Int?, onDismiss: () -> Unit, o
             stringResource(R.string.sleep_timer_sheet_title),
             style = MorningTheme.typography.titleMedium,
             color = MorningTheme.colors.textPrimary,
-            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+            // 피그마 Z2-1(`313:6996`): Sheet Header 아래 16 + 목록 위 8, 줄 높이 `size/row-plain` 44, 목록 아래 32.
+            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
         )
         SleepTracks.TIMER_MINUTES.forEach { minutes ->
             MorningRadioRow(
+                modifier = Modifier.height(MorningDimens.sizeRowPlain),
                 label = if (minutes == null) {
                     stringResource(R.string.sleep_timer_option_off)
                 } else {
@@ -278,6 +281,6 @@ private fun TimerSheet(visible: Boolean, current: Int?, onDismiss: () -> Unit, o
                 onClick = { onPick(minutes) },
             )
         }
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(32.dp))
     }
 }

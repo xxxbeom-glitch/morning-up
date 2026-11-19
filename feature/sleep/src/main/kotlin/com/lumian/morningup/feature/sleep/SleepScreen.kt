@@ -240,8 +240,9 @@ private fun SleepTile(track: SleepTrack, modifier: Modifier = Modifier, onClick:
         ) {
             Text(
                 track.name,
-                style = MorningTheme.typography.bodyMediumStrong,
-                color = Color.White,
+                // 피그마 Z1 트랙 칸: 제목 `Body/Medium` `text/body`, 재생 시간 `Caption/Medium` `text/tertiary`.
+                style = MorningTheme.typography.bodyMedium,
+                color = MorningTheme.colors.textBody,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -249,7 +250,7 @@ private fun SleepTile(track: SleepTrack, modifier: Modifier = Modifier, onClick:
             Text(
                 stringResource(R.string.sleep_minutes, track.minutes),
                 style = MorningTheme.typography.captionMedium,
-                color = Color.White.copy(alpha = 0.7f),
+                color = MorningTheme.colors.textTertiary,
             )
         }
     }
