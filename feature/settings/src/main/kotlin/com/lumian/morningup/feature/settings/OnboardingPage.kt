@@ -46,7 +46,7 @@ import kotlinx.coroutines.delay
 /** 스플래시를 보여 주는 시간. */
 private const val SPLASH_MILLIS = 1_200L
 
-/** 상태 바 아래에서 제목 묶음까지(피그마 384 - 상태 바 52). 위 280 그림 칸(20~300)은 비워 둬요. */
+/** 상태 바 아래에서 제목 묶음까지(피그마 384 - 상태 바 52). 위 280 그림 칸(20~300)에는 [OnboardingPicture]가 들어가요. */
 private val HeadlineTop = 332.dp
 
 /** 상태 바 아래에서 진행 점까지(피그마 512 - 52). */
@@ -205,7 +205,7 @@ fun OnboardingSplash(modifier: Modifier = Modifier) {
     }
 }
 
-/** 온보딩 권한 한 장(O2-1~O2-4, O3). 위 280 그림 칸은 애니메이션을 정할 때까지 비워 둬요. */
+/** 온보딩 권한 한 장(O2-1~O2-4, O3). 위 280 그림 칸에 피그마 그림과 움직임을 그려요(O2-4, O3는 피그마도 비어 있어요). */
 @Composable
 fun OnboardingStepPage(
     step: OnboardingStep,
@@ -228,6 +228,12 @@ fun OnboardingStepPage(
             ),
     ) {
         Box(modifier = Modifier.fillMaxSize().statusBarsPadding()) {
+            OnboardingPicture(
+                step = step,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = OnboardingMotionTokens.SLOT_TOP.dp),
+            )
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

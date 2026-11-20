@@ -137,4 +137,12 @@
     <string name="onboarding_location_title">날씨에 맞춰\n하늘을 바꿔 드려요</string>
     <string name="onboarding_location_sub">선택 사항이에요. 대략적인 위치로 오늘 날씨만 알아봐요.\n위치는 저장하지 않아요.</string>
     <string name="onboarding_location_button">위치 허용하기</string>
+    <!-- 온보딩 그림 속 글자(피그마 Motion Fullscreen, Motion Battery Path). -->
+    <string name="onboarding_motion_clock_before" translatable="false">06:59</string>
+    <string name="onboarding_motion_clock_after" translatable="false">07:00</string>
+    <string name="onboarding_motion_date">11월 18일 수요일</string>
+    <string name="onboarding_motion_time" translatable="false">7:00</string>
+    <string name="onboarding_motion_mission_start">미션 시작</string>
+    <string name="onboarding_motion_battery_label">제한 없음</string>
+    <string name="onboarding_motion_battery_sub">제한 없이 사용</string>
 </resources>
