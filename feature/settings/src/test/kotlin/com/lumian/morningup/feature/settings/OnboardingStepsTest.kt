@@ -33,12 +33,6 @@ class OnboardingStepsTest {
     }
 
     @Test
-    fun dots_areFive_andFollowOrder() {
-        assertThat(OnboardingStep.DotCount).isEqualTo(5)
-        assertThat(OnboardingStep.entries.map { it.dotIndex }).containsExactly(0, 1, 2, 3, 4).inOrder()
-    }
-
-    @Test
     fun grantedSteps_areSkipped_eachOnItsOwn() {
         // 안드로이드 13 이하처럼 전체 화면 알림이 이미 켜져 있으면 O2-2만 빠져요.
         val fullScreenOn = report(

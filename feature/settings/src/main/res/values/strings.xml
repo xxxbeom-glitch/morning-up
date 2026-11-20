@@ -118,31 +118,36 @@
     <string name="faq_a6">홈에서 반복 알람을 끄면 카드에 \'내일 다시 켜기\'가 나와요. 누르면 다음 한 번만 쉬고 그다음부터는 다시 울려요.</string>
     <string name="faq_q7">미션 중에 전원을 꺼 버리면요?</string>
     <string name="faq_a7">알람 편집에서 \'전원 종료 방지\'를 켜면 미션을 하는 동안 전원 메뉴가 열려도 바로 닫혀요. 처음 켤 때 접근성 권한을 켜는 방법을 안내해 드려요.</string>
-    <!-- 온보딩(결정 129, 131). O2-2, O2-4 문구는 결정 129 보충 3, 나머지는 피그마 온보딩 (O) 구역 -->
+    <!-- 온보딩(결정 129, 131). 문구는 피그마 온보딩 (O) 구역 11-20 최신본 -->
     <string name="onboarding_wordmark" translatable="false">morning up</string>
     <string name="onboarding_later">나중에 하기</string>
     <string name="onboarding_skip">건너뛰기</string>
-    <string name="onboarding_notifications_title">알림을\n허용해 주세요</string>
-    <string name="onboarding_notifications_sub">허용하지 않으면 화면 없이 소리만 날 수 있어요.</string>
+    <string name="onboarding_notifications_title">알림을 허용해 주세요</string>
+    <string name="onboarding_notifications_sub">알림 권한을 허용하지 않으면 정상적인\n알람 시간을 받아볼 수 없어요.</string>
     <string name="onboarding_notifications_button">알림 허용하기</string>
     <string name="onboarding_full_screen_title">잠겨 있어도 알람이\n화면 위로 떠요</string>
-    <string name="onboarding_full_screen_sub">허용하지 않으면 잠금 화면에 알람이 바로 안 떠요.</string>
+    <string name="onboarding_full_screen_sub">화면이 꺼져 있을 때 알람이 울리면\n바로 화면으로 보여줘요.</string>
     <string name="onboarding_full_screen_button">전체 화면 알림 허용하기</string>
     <string name="onboarding_battery_title">배터리 사용 제한을\n해제해 주세요</string>
-    <string name="onboarding_battery_sub">해제하지 않으면 절전 기능 때문에\n알람이 늦게 울릴 수 있어요.</string>
+    <string name="onboarding_battery_sub">안드로이드는 백그라운드에 있는 앱을\n자동으로 절전 기능으로 전환해요.\n절전 기능 때문에 알람이 늦게 울릴 수 있어요.</string>
     <string name="onboarding_battery_button">배터리 사용 제한 해제하기</string>
     <string name="onboarding_overlay_title">다른 앱 위에 표시를\n허용해 주세요</string>
-    <string name="onboarding_overlay_sub">허용하지 않으면 홈 버튼에 알람 화면이 사라져요.</string>
+    <string name="onboarding_overlay_sub">알람이 울리는 동안 알람 해제 화면을\n가장 앞으로 띄울 수 있어요.</string>
     <string name="onboarding_overlay_button">다른 앱 위에 표시 허용하기</string>
-    <string name="onboarding_location_title">날씨에 맞춰\n하늘을 바꿔 드려요</string>
-    <string name="onboarding_location_sub">선택 사항이에요. 대략적인 위치로 오늘 날씨만 알아봐요.\n위치는 저장하지 않아요.</string>
+    <string name="onboarding_location_title">날씨에 따라\n앱 테마가 자동으로 변해요</string>
+    <string name="onboarding_location_sub">오늘의 날씨에 따라 앱 화면이 바뀌어요.\n단, 허용하지 않아도 앱을 사용하는 데 문제는 없어요.</string>
     <string name="onboarding_location_button">위치 허용하기</string>
-    <!-- 온보딩 그림 속 글자(피그마 Motion Fullscreen, Motion Battery Path). -->
+    <!-- 온보딩 그림 속 글자(피그마 Motion Fullscreen, Motion Battery Dialog, Motion Overlay Toggle). -->
     <string name="onboarding_motion_clock_before" translatable="false">06:59</string>
     <string name="onboarding_motion_clock_after" translatable="false">07:00</string>
     <string name="onboarding_motion_date">11월 18일 수요일</string>
     <string name="onboarding_motion_time" translatable="false">7:00</string>
     <string name="onboarding_motion_mission_start">미션 시작</string>
-    <string name="onboarding_motion_battery_label">제한 없음</string>
-    <string name="onboarding_motion_battery_sub">제한 없이 사용</string>
+    <string name="onboarding_motion_dialog_title">배터리 최적화를 해제할까요?</string>
+    <string name="onboarding_motion_dialog_body">morning-up은 백그라운드에서\n실행될 수 있으며, 배터리를\n제한 없이 사용할 수 있습니다.</string>
+    <string name="onboarding_motion_dialog_deny">거부</string>
+    <string name="onboarding_motion_dialog_allow">허용</string>
+    <string name="onboarding_motion_app_name" translatable="false">morning-up</string>
+    <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
+    <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
 </resources>

@@ -33,7 +33,7 @@ class OnboardingPageTest {
             }
         }
         compose.onNodeWithText("잠겨 있어도 알람이\n화면 위로 떠요").assertExists()
-        compose.onNodeWithText("허용하지 않으면 잠금 화면에 알람이 바로 안 떠요.").assertExists()
+        compose.onNodeWithText("화면이 꺼져 있을 때 알람이 울리면\n바로 화면으로 보여줘요.").assertExists()
         compose.onNodeWithText("전체 화면 알림 허용하기").performClick()
         compose.onNodeWithText("나중에 하기").performClick()
         assertThat(allowed).isTrue()
@@ -67,15 +67,50 @@ class OnboardingPageTest {
         compose.onNodeWithText("미션 시작").assertExists()
         compose.onNodeWithText("11월 18일 수요일").assertExists()
 
+        // O2-3: 온보딩 전용 대화 상자. 애니메이션 줄이기면 떠 있는 장면에서 멈춰요.
         step = OnboardingStep.Battery
-        compose.onNodeWithText("제한 없음").assertExists()
-        compose.onNodeWithText("제한 없이 사용").assertExists()
+        compose.onNodeWithText("배터리 최적화를 해제할까요?").assertExists()
+        compose.onNodeWithText("거부").assertExists()
+        compose.onNodeWithText("허용").assertExists()
 
-        // O2-4, O3는 피그마 그림 칸이 비어 있어 칸만 있고 그림은 없어요.
+        // O2-4: 앱 이름 카드. 끝 장면은 켜진 스위치와 '함'이에요.
         step = OnboardingStep.Overlay
         compose.onNodeWithTag(PICTURE_TAG_PREFIX + "Overlay").assertExists()
+        compose.onNodeWithText("morning-up").assertExists()
+        compose.onNodeWithText("다른 앱 위에 표시 함").assertExists()
+        compose.onNodeWithText("다른 앱 위에 표시 안 함").assertDoesNotExist()
         compose.onNodeWithText("미션 시작").assertDoesNotExist()
-        compose.onNodeWithText("제한 없음").assertDoesNotExist()
+
+        // O3: 라이트는 낮 그림(구름과 해).
+        step = OnboardingStep.Location
+        compose.onNodeWithTag(WEATHER_DAY_TAG, useUnmergedTree = true).assertExists()
+        compose.onNodeWithTag(WEATHER_NIGHT_TAG, useUnmergedTree = true).assertDoesNotExist()
+    }
+
+    @Test
+    fun darkTheme_weatherIsNight_andModalsStayLight() {
+        var step by mutableStateOf(OnboardingStep.Location)
+        compose.setContent {
+            MorningTheme(darkTheme = true, reduceMotion = true) {
+                OnboardingStepPage(step = step, onAllow = {}, onLater = {})
+            }
+        }
+        compose.onNodeWithTag(WEATHER_NIGHT_TAG, useUnmergedTree = true).assertExists()
+        compose.onNodeWithTag(WEATHER_DAY_TAG, useUnmergedTree = true).assertDoesNotExist()
+
+        step = OnboardingStep.Battery
+        compose.onNodeWithText("배터리 최적화를 해제할까요?").assertExists()
+    }
+
+    @Test
+    fun notificationsStep_usesLatestCopy() {
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                OnboardingStepPage(step = OnboardingStep.Notifications, onAllow = {}, onLater = {})
+            }
+        }
+        compose.onNodeWithText("알림을 허용해 주세요").assertExists()
+        compose.onNodeWithText("알림 권한을 허용하지 않으면 정상적인\n알람 시간을 받아볼 수 없어요.").assertExists()
     }
 
     @Test

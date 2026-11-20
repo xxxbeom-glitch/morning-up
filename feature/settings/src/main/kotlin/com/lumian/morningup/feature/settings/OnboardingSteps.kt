@@ -17,13 +17,7 @@ enum class OnboardingStep(val permission: AlarmPermission) {
     Location(AlarmPermission.Location),
     ;
 
-    /** 진행 점에서 이 장의 자리(0부터). */
-    val dotIndex: Int get() = ordinal
-
     companion object {
-        /** 진행 점 개수. 건너뛰는 장이 있어도 줄이지 않아요. */
-        val DotCount: Int = entries.size
-
         /** 스플래시 다음에 보일 첫 장. 모두 켜져 있으면 null(바로 홈). */
         fun first(report: PermissionReport): OnboardingStep? = after(null, report)
 

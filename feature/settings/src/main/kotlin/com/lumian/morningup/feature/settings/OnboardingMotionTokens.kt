@@ -4,15 +4,16 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.ui.graphics.Color
 
 /**
- * 온보딩 그림(O2-1~O2-3)의 피그마 값. 모두 피그마 dp 그대로예요(11-20 사용자 지시 "원래 설정된 화면의 애니메이션도 같이 반영").
+ * 온보딩 그림(O2-1~O2-4, O3)의 피그마 값. 모두 피그마 dp 그대로예요(11-20 사용자 지시 "원래 설정된 화면의 애니메이션도 같이 반영").
  * 출처: 피그마 `MazZLYfaQndMh9AxlRcz2v`의 `Motion Waves 4`(643:6974), `Motion Icon Shake`(625:7608),
- * `Motion Fullscreen`(632:7251), `Motion Battery Path`(666:7746), 화면 O2-1(743:23090), O2-2(743:23109), O2-3(743:23128).
+ * `Motion Fullscreen`(632:7251), `Motion Battery Dialog`(853:7426),
+ * `Motion Overlay Toggle`(853:7119), `Motion Weather Cloud`(876:7135), `Motion Weather Night`(877:7151),
+ * 화면 O2-1(743:23090), O2-2(743:23109), O2-3(743:23128), O2-4(755:25058), O3(756:13398).
  */
 internal data class FigmaRect(val x: Float, val y: Float, val w: Float, val h: Float)
 
 internal object OnboardingMotionTokens {
-    // 그림 칸: 상태 바 아래 20(피그마 y72 - 52), 좌우 16, 328x280. 움직임 부품은 328x360이고 칸보다 40 위에서 시작해요.
-    const val SLOT_TOP = 20f
+    // 그림 칸: 좌우 16, 328x280. 그림 칸과 글 묶음은 한 덩어리(408)로 화면 세로 가운데에 놓여요. 움직임 부품은 328x360이고 칸보다 40 위에서 시작해요.
     const val SLOT_WIDTH = 328f
     const val SLOT_HEIGHT = 280f
     val Motion = FigmaRect(0f, -40f, 328f, 360f)
@@ -89,33 +90,136 @@ internal object OnboardingMotionTokens {
     val PhoneIslandColor = Color(0xFF000000)
     val AlarmTop = Color(0xFFF2555A)
     val AlarmBottom = Color(0xFFB3242A)
-    val AlarmButtonText = Color(0xFFB3242A)
 
-    // ---- Motion Battery Path: 설정 '제한 없음' 카드 한 줄. 부품(328x360, 자르기 켬) 기준 좌표예요.
-    val BatteryCard = FigmaRect(51f, 146f, 225.8f, 68f)
-    const val BATTERY_CARD_RADIUS = 20f
-    val BatteryIcon = FigmaRect(67f, 162f, 36f, 36f)
-    const val BATTERY_ICON_RADIUS = 10f
-    const val BATTERY_ICON_ALPHA = 0.45f
-    val BatteryLabel = FigmaRect(115f, 161f, 100f, 20f)
-    const val BATTERY_LABEL_SIZE = 14f
-    val BatterySub = FigmaRect(115f, 182f, 100f, 18f)
-    const val BATTERY_SUB_SIZE = 13f
-    val BatteryTrack = FigmaRect(221f, 168f, 40f, 24f)
-    const val BATTERY_TRACK_RADIUS = 12f
-    const val BATTERY_KNOB_Y = 171f
-    const val BATTERY_KNOB_OFF_X = 224f
-    const val BATTERY_KNOB_ON_X = 240f
-    const val BATTERY_KNOB_SIZE = 18f
-    const val BATTERY_TAP_CENTER_X = 241f
-    const val BATTERY_TAP_CENTER_Y = 180f
-    const val BATTERY_TAP_FROM = 36f
-    const val BATTERY_TAP_TO = 44f
-    const val BATTERY_TAP_ALPHA = 0.18f
-    const val BATTERY_START_WAIT = 600L
-    const val BATTERY_PRESS = 150
-    const val BATTERY_PRESS_HOLD = 100L
-    const val BATTERY_SWITCH = 500L
-    const val BATTERY_END_HOLD = 1_600L
-    const val BATTERY_DISSOLVE = 400
+    // ---- Motion Battery Dialog(O2-3): 온보딩 전용 배터리 최적화 해제 대화 상자. 부품(328x360) 기준 좌표예요.
+    // 등장: 16 아래(y 107), 투명 0 → 0.2초 뒤 GENTLE 0.6초. 반복: 0.6초 → '허용' 누름 EASE_OUT 0.15초 → 0.1초 →
+    // 닫힘(12 아래, 투명) GENTLE 0.5초 → 0.8초 → 다시 뜸 GENTLE 0.5초.
+    const val DIALOG_X = 24f
+    const val DIALOG_Y = 91f
+    const val DIALOG_ENTER_Y = 107f
+    const val DIALOG_CLOSED_Y = 103f
+    const val DIALOG_WIDTH = 280f
+    const val DIALOG_HEIGHT = 180f
+    const val DIALOG_RADIUS = 20f
+    // 대화 상자 안(대화 상자 기준 좌표).
+    val DialogTitle = FigmaRect(20f, 24f, 240f, 24f)
+    const val DIALOG_TITLE_SIZE = 16f
+    val DialogBody = FigmaRect(20f, 54f, 240f, 54f)
+    const val DIALOG_BODY_SIZE = 13f
+    const val DIALOG_BODY_LINE = 18f
+    val DialogDeny = FigmaRect(0f, 133f, 139.5f, 47f)
+    val DialogAllow = FigmaRect(140.5f, 133f, 139.5f, 47f)
+    const val DIALOG_BUTTON_SIZE = 14f
+    val DialogDividerH = FigmaRect(0f, 132f, 280f, 1f)
+    val DialogDividerV = FigmaRect(139.5f, 133f, 1f, 47f)
+    const val DIALOG_TAP_CENTER_X = 210.3f
+    const val DIALOG_TAP_CENTER_Y = 156.5f
+    const val DIALOG_START_WAIT = 600L
+    const val DIALOG_PRESS = 150
+    const val DIALOG_PRESS_HOLD = 100L
+    const val DIALOG_CLOSE = 500L
+    const val DIALOG_CLOSED_HOLD = 800L
+    const val DIALOG_REOPEN = 500L
+
+    // O2-3, O2-4 등장: 0.2초 쉬고 GENTLE 0.6초로 16 아래에서 떠오르며 나타나요.
+    const val ENTER_WAIT = 200L
+    const val ENTER_RISE = 600L
+    const val ENTER_FROM = 16f
+
+    // 누름 원(O2-3, O2-4 같음): 36에서 44로 커지며 사라져요. 진하기 18%(text/primary).
+    const val TAP_FROM = 36f
+    const val TAP_TO = 44f
+    const val TAP_ALPHA = 0.18f
+
+    // ---- Motion Overlay Toggle(O2-4): 앱 이름 카드 280x80 + 스위치. 부품(328x360) 기준 좌표예요.
+    // 반복: 0.6초 → 누름 EASE_OUT 0.15초 → 0.1초 → 켜짐 GENTLE 0.5초 → 1.6초 → 처음 장면으로 DISSOLVE 0.4초.
+    val ToggleCard = FigmaRect(24f, 140f, 280f, 80f)
+    const val TOGGLE_CARD_RADIUS = 20f
+    val ToggleIcon = FigmaRect(40f, 162f, 36f, 36f)
+    const val TOGGLE_ICON_RADIUS = 10f
+    const val TOGGLE_ICON_ALPHA = 0.45f
+    val ToggleLabel = FigmaRect(88f, 161f, 150f, 20f)
+    const val TOGGLE_LABEL_SIZE = 14f
+    const val TOGGLE_SUB_X = 88f
+    const val TOGGLE_SUB_W = 150f
+    const val TOGGLE_SUB_H = 18f
+    const val TOGGLE_SUB_OFF_Y = 182f
+    const val TOGGLE_SUB_ON_Y = 186f
+    const val TOGGLE_SUB_SHIFT = 4f
+    const val TOGGLE_SUB_SIZE = 13f
+    val ToggleTrack = FigmaRect(248f, 168f, 40f, 24f)
+    const val TOGGLE_TRACK_RADIUS = 12f
+    const val TOGGLE_KNOB_Y = 171f
+    const val TOGGLE_KNOB_OFF_X = 251f
+    const val TOGGLE_KNOB_ON_X = 267f
+    const val TOGGLE_KNOB_SIZE = 18f
+    const val TOGGLE_TAP_CENTER_X = 268f
+    const val TOGGLE_TAP_CENTER_Y = 180f
+    const val TOGGLE_START_WAIT = 600L
+    const val TOGGLE_PRESS = 150
+    const val TOGGLE_PRESS_HOLD = 100L
+    const val TOGGLE_SWITCH = 500L
+    const val TOGGLE_END_HOLD = 1_600L
+    const val TOGGLE_DISSOLVE = 400
+
+    // ---- Motion Weather Cloud(O3 라이트): 그림 칸(328x280) 기준 좌표예요. 카드 없이 배경 위에 그려요.
+    // 등장: 구름 16 아래 투명 → 0.2초 뒤 GENTLE 0.6초 → 0.1초 뒤 해와 빛이 40 아래에서 EASE_OUT 0.8초.
+    // 반복: 구름만 y 92 ↔ 86, EASE_IN_AND_OUT 1.8초씩.
+    const val CLOUD_Y = 92f
+    const val CLOUD_UP_Y = 86f
+    const val CLOUD_ENTER_Y = 108f
+    val CloudBase = FigmaRect(89f, 48f, 150f, 50f)
+    const val CLOUD_BASE_RADIUS = 25f
+    val CloudPuffSmall = FigmaRect(107f, 20f, 64f, 64f)
+    val CloudPuffBig = FigmaRect(143f, 0f, 84f, 84f)
+    const val SUN_CENTER_X = 210f
+    const val SUN_CENTER_Y = 100f
+    const val SUN_RISE = 40f
+    const val SUN_SIZE = 64f
+    const val SUN_HALO_SIZE = 160f
+    const val SUN_HALO_BLUR = 40f
+    const val SUN_HALO_ALPHA = 0.35f
+    const val SUN_INNER_SIZE = 100f
+    const val SUN_INNER_BLUR = 18f
+    const val SUN_INNER_ALPHA = 0.5f
+    const val CLOUD_ENTER_WAIT = 200L
+    const val CLOUD_ENTER = 600L
+    const val SUN_WAIT = 100L
+    const val SUN_ENTER = 800
+    const val FLOAT_STEP = 1_800
+    const val FLOAT_GAP = 10L
+
+    // 피그마 선형 그라데이션(왼쪽 위 → 오른쪽 아래)의 시작과 끝(크기 대비).
+    const val GRADIENT_FROM = 0.15f
+    const val GRADIENT_TO = 0.85f
+
+    // ---- Motion Weather Night(O3 다크): 구름 없이 별 6개와 노란 초승달 108. 그림 칸 기준 좌표예요.
+    // 등장: 0.2초 뒤 별 1, 3, 5 GENTLE 0.5초 → 0.05초 뒤 별 2, 4, 6 GENTLE 0.5초 → 0.1초 뒤 달이 30 아래에서 EASE_OUT 0.8초.
+    // 반복: 달이 가운데를 축으로 +8도 ↔ -8도(피그마 -8 ↔ +8), 별은 반짝임, EASE_IN_AND_OUT 1.8초씩.
+    val Stars = listOf(
+        FigmaRect(65f, 65f, 10f, 10f),
+        FigmaRect(258f, 60f, 8f, 8f),
+        FigmaRect(97f, 37f, 6f, 6f),
+        FigmaRect(282.5f, 146.5f, 7f, 7f),
+        FigmaRect(45f, 157f, 6f, 6f),
+        FigmaRect(237f, 207f, 6f, 6f),
+    )
+    val StarAlphaDown = listOf(0.9f, 0.4f, 0.7f, 0.3f, 0.8f, 0.35f)
+    val StarAlphaUp = listOf(0.35f, 0.9f, 0.3f, 0.8f, 0.4f, 0.75f)
+    const val STAR_INNER = 0.38f
+    const val STAR_POINTS = 4
+    const val MOON_CENTER_X = 164f
+    const val MOON_CENTER_Y = 140f
+    const val MOON_SIZE = 108f
+    const val MOON_RISE = 30f
+    // 초승달: 지름 108 원에서 (33.4, -15.4)의 지름 97.7 원을 빼요.
+    const val MOON_CUT_X = 33.4f
+    const val MOON_CUT_Y = -15.4f
+    const val MOON_CUT_SIZE = 97.7f
+    const val MOON_SWING = 8f
+    const val STAR_ENTER_WAIT = 200L
+    const val STAR_ENTER = 500L
+    const val STAR_GAP = 50L
+    const val MOON_WAIT = 100L
+    const val MOON_ENTER = 800
 }

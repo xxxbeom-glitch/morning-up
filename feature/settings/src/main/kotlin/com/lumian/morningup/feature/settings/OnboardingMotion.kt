@@ -2,7 +2,6 @@ package com.lumian.morningup.feature.settings
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -13,12 +12,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -39,10 +38,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Lucide
-import com.lumian.morningup.core.designsystem.theme.MorningShadows
+import com.lumian.morningup.core.designsystem.theme.LocalMorningColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.Pretendard
-import com.lumian.morningup.core.designsystem.theme.morningShadow
+import com.lumian.morningup.core.designsystem.theme.lightMorningColors
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,7 +53,8 @@ internal const val PICTURE_TAG_PREFIX = "onboarding-picture-"
 /**
  * 온보딩 권한 장 위의 그림 칸(328x280). 피그마에 정해 둔 그림과 움직임을 그대로 그려요.
  * O2-1 알림: 퍼지는 원 + 흔들리는 앱 칸. O2-2 전체 화면 알림: 퍼지는 원 + 잠금 화면 위로 알람이 올라오는 폰.
- * O2-3 배터리: '제한 없음' 스위치를 켜는 카드. O2-4, O3는 피그마 그림 칸이 비어 있어 비워 둬요.
+ * O2-3 배터리: 온보딩 전용 대화 상자에서 '허용'을 눌러요. O2-4 다른 앱 위에 표시: 앱 이름 카드의 스위치를 켜요.
+ * O3 날씨: 라이트는 구름과 해, 다크는 별과 초승달(카드 없이 배경 위에).
  * 원은 칸 밖으로 나가도 잘리지 않아요(피그마 자르기 꺼짐). 폰의 '애니메이션 줄이기'가 켜져 있으면 끝 장면에서 멈춰 있어요.
  */
 @Composable
@@ -72,21 +72,33 @@ internal fun OnboardingPicture(step: OnboardingStep, modifier: Modifier = Modifi
             OnboardingStep.FullScreen -> {
                 MotionWaves(Modifier.figma(T.Motion))
                 // 부품(328x360)을 75%로 줄여 칸의 (41, 5)에 246x270으로 놓아요.
-                Box(Modifier.figma(T.FullscreenPlace)) {
-                    MotionFullscreen(
-                        Modifier
-                            .figma(ScaledFullscreen)
-                            .graphicsLayer {
-                                scaleX = T.FULLSCREEN_SCALE
-                                scaleY = T.FULLSCREEN_SCALE
-                            },
-                    )
+                // 폰 목업은 다크에서도 라이트 색이에요(피그마 다크 O2-2 폰은 Light 모드 고정, 11-20).
+                LightModal {
+                    Box(Modifier.figma(T.FullscreenPlace)) {
+                        MotionFullscreen(
+                            Modifier
+                                .figma(ScaledFullscreen)
+                                .graphicsLayer {
+                                    scaleX = T.FULLSCREEN_SCALE
+                                    scaleY = T.FULLSCREEN_SCALE
+                                },
+                        )
+                    }
                 }
             }
-            OnboardingStep.Battery -> MotionBatteryPath(Modifier.figma(T.Motion).clipToBounds())
-            OnboardingStep.Overlay, OnboardingStep.Location -> Unit
+            // O2-3, O2-4는 다크에서도 라이트 모달 색으로 그려요(11-20 사용자 의견 "눈에 잘 안 들어온다").
+            OnboardingStep.Battery -> LightModal { MotionBatteryDialog(Modifier.figma(T.Motion)) }
+            OnboardingStep.Overlay -> LightModal { MotionOverlayToggle(Modifier.figma(T.Motion)) }
+            OnboardingStep.Location -> MotionWeather(Modifier.matchParentSize())
         }
     }
+}
+
+/** 다크 테마에서도 라이트 색으로 그려요(O2-2 폰, O2-3 대화 상자, O2-4 토글 카드). */
+@Composable
+private fun LightModal(content: @Composable () -> Unit) {
+    val light = remember { lightMorningColors() }
+    CompositionLocalProvider(LocalMorningColors provides light, content = content)
 }
 
 private val FullMotion = FigmaRect(0f, 0f, T.Motion.w, T.Motion.h)
@@ -102,7 +114,7 @@ private val ScaledFullscreen = FigmaRect(
 /**
  * 부모 안 (x, y)에 w x h로 놓아요(피그마 좌표 그대로). 부모보다 커도 줄이지 않고, 넘치는 부분은 자르지 않아요.
  */
-private fun Modifier.figma(r: FigmaRect): Modifier = layout { measurable, constraints ->
+internal fun Modifier.figma(r: FigmaRect): Modifier = layout { measurable, constraints ->
     val placeable = measurable.measure(Constraints.fixed(r.w.dp.roundToPx(), r.h.dp.roundToPx()))
     layout(constraints.constrainWidth(placeable.width), constraints.constrainHeight(placeable.height)) {
         placeable.place(r.x.dp.roundToPx(), r.y.dp.roundToPx())
@@ -111,23 +123,30 @@ private fun Modifier.figma(r: FigmaRect): Modifier = layout { measurable, constr
 
 /** 피그마 글자 크기(dp)를 폰 글자 크기 설정과 상관없이 그대로 써요. 그림 속 글자라 커지면 폰 밖으로 나가요. */
 @Composable
-private fun fixedSp(size: Float): TextUnit = with(LocalDensity.current) { size.dp.toSp() }
+internal fun fixedSp(size: Float): TextUnit = with(LocalDensity.current) { size.dp.toSp() }
 
 @Composable
-private fun FigmaText(
+internal fun FigmaText(
     text: String,
     rect: FigmaRect,
     size: Float,
     weight: FontWeight,
     color: Color,
     alignment: Alignment = Alignment.Center,
+    lineHeight: Float? = null,
 ) {
     Box(Modifier.figma(rect), contentAlignment = alignment) {
         Text(
             text = text,
-            style = TextStyle(fontFamily = Pretendard, fontWeight = weight, fontSize = fixedSp(size), color = color),
+            style = TextStyle(
+                fontFamily = Pretendard,
+                fontWeight = weight,
+                fontSize = fixedSp(size),
+                lineHeight = lineHeight?.let { fixedSp(it) } ?: TextUnit.Unspecified,
+                color = color,
+            ),
             textAlign = if (alignment == Alignment.Center) TextAlign.Center else TextAlign.Start,
-            maxLines = 1,
+            // 줄은 문구 안 줄바꿈으로만 나눠요(피그마처럼 낱말 단위로 정해 둔 줄).
             softWrap = false,
         )
     }
@@ -332,7 +351,7 @@ private fun PhoneBody(clockNew: Float, alarmRise: Float, alarmAlpha: Float) {
     Box(Modifier.figma(T.PhoneIsland).background(T.PhoneIslandColor, CircleShape))
 }
 
-/** 폰 속 알람 화면. 피그마 지금 값: 빨간 그라데이션, 날짜, 7:00, 흰 동그란 '미션 시작'. */
+/** 폰 속 알람 화면. 피그마 지금 값: 빨간 그라데이션, 날짜, 7:00, 파란 동그란 '미션 시작'. */
 @Composable
 private fun AlarmScreen(modifier: Modifier) {
     val colors = MorningTheme.colors
@@ -351,130 +370,16 @@ private fun AlarmScreen(modifier: Modifier) {
             FontWeight.Bold,
             colors.textOnSky,
         )
-        Box(Modifier.figma(T.AlarmButton).background(colors.surfaceCard, CircleShape)) {
+        // 11-20 사용자 지시: 온보딩 목업의 '미션 시작'은 파란 바탕(primary/default)에 흰 글자(text/on-primary).
+        // 실제 울림 화면 D는 그대로예요.
+        Box(Modifier.figma(T.AlarmButton).background(colors.primaryDefault, CircleShape)) {
             FigmaText(
                 stringResource(R.string.onboarding_motion_mission_start),
                 FigmaRect(0f, 0f, T.AlarmButton.w, T.AlarmButton.h),
                 T.ALARM_BUTTON_TEXT_SIZE,
                 FontWeight.Bold,
-                T.AlarmButtonText,
+                colors.primaryOn,
             )
         }
     }
-}
-
-// ---------------------------------------------------------------- Motion Battery Path
-
-/**
- * '제한 없음' 카드. 0.6초 뒤 누르는 동그라미가 0.15초 만에 나타나고(18%), 0.1초 뒤 Gentle 스프링(0.5초)으로
- * 스위치가 켜지며 동그라미가 커지면서 사라져요. 1.6초 뒤 0.4초 동안 처음 장면으로 겹쳐 바뀌어요.
- */
-@Composable
-private fun MotionBatteryPath(modifier: Modifier = Modifier) {
-    val reduceMotion = MorningTheme.reduceMotion
-    val on = remember { Animatable(0f) }
-    val tapAlpha = remember { Animatable(0f) }
-    val tapGrow = remember { Animatable(0f) }
-    val leaving = remember { Animatable(0f) }
-    LaunchedEffect(reduceMotion) {
-        if (reduceMotion) {
-            on.snapTo(1f)
-            tapAlpha.snapTo(0f)
-            leaving.snapTo(0f)
-            return@LaunchedEffect
-        }
-        val gentle = spring<Float>(dampingRatio = T.GENTLE_DAMPING_RATIO, stiffness = T.GENTLE_STIFFNESS)
-        while (true) {
-            on.snapTo(0f)
-            tapAlpha.snapTo(0f)
-            tapGrow.snapTo(0f)
-            leaving.snapTo(0f)
-            delay(T.BATTERY_START_WAIT)
-            tapAlpha.animateTo(T.BATTERY_TAP_ALPHA, tween(T.BATTERY_PRESS, easing = T.EaseOut))
-            delay(T.BATTERY_PRESS_HOLD)
-            coroutineScope {
-                launch { on.animateTo(1f, gentle) }
-                launch { tapGrow.animateTo(1f, gentle) }
-                launch { tapAlpha.animateTo(0f, gentle) }
-                delay(T.BATTERY_SWITCH)
-            }
-            delay(T.BATTERY_END_HOLD)
-            // 겹쳐 바뀌기(Dissolve): 밑에는 꺼진 스위치, 위에는 켜진 스위치를 두고 위쪽만 흐려지게 해요.
-            on.snapTo(0f)
-            leaving.snapTo(1f)
-            leaving.animateTo(0f, tween(T.BATTERY_DISSOLVE, easing = T.EaseInOut))
-        }
-    }
-    val colors = MorningTheme.colors
-    Box(modifier) {
-        Box(Modifier.figma(T.BatteryCard).background(colors.surfaceCard, RoundedCornerShape(T.BATTERY_CARD_RADIUS.dp)))
-        Box(
-            Modifier
-                .figma(T.BatteryIcon)
-                .graphicsLayer { alpha = T.BATTERY_ICON_ALPHA }
-                .background(colors.controlTrackOff, RoundedCornerShape(T.BATTERY_ICON_RADIUS.dp)),
-        )
-        FigmaText(
-            stringResource(R.string.onboarding_motion_battery_label),
-            T.BatteryLabel,
-            T.BATTERY_LABEL_SIZE,
-            FontWeight.SemiBold,
-            colors.textPrimary,
-            Alignment.CenterStart,
-        )
-        FigmaText(
-            stringResource(R.string.onboarding_motion_battery_sub),
-            T.BatterySub,
-            T.BATTERY_SUB_SIZE,
-            FontWeight.Medium,
-            colors.textTertiary,
-            Alignment.CenterStart,
-        )
-        BatterySwitch(on.value)
-        if (leaving.value > 0f) {
-            Box(Modifier.graphicsLayer { alpha = leaving.value }) { BatterySwitch(1f) }
-        }
-        val tap = tapAlpha.value
-        if (tap > 0f) {
-            val diameter = lerp(T.BATTERY_TAP_FROM, T.BATTERY_TAP_TO, tapGrow.value)
-            Box(
-                Modifier
-                    .figma(
-                        FigmaRect(
-                            T.BATTERY_TAP_CENTER_X - diameter / 2,
-                            T.BATTERY_TAP_CENTER_Y - diameter / 2,
-                            diameter,
-                            diameter,
-                        ),
-                    )
-                    .background(colors.textPrimary.copy(alpha = tap), CircleShape),
-            )
-        }
-    }
-}
-
-@Composable
-private fun BatterySwitch(on: Float) {
-    val colors = MorningTheme.colors
-    Box(
-        Modifier
-            .figma(T.BatteryTrack)
-            .background(
-                lerp(colors.controlTrackOff, colors.primaryDefault, on.coerceIn(0f, 1f)),
-                RoundedCornerShape(T.BATTERY_TRACK_RADIUS.dp),
-            ),
-    )
-    Box(
-        Modifier
-            .figma(
-                FigmaRect(
-                    x = lerp(T.BATTERY_KNOB_OFF_X, T.BATTERY_KNOB_ON_X, on),
-                    y = T.BATTERY_KNOB_Y,
-                    w = T.BATTERY_KNOB_SIZE,
-                    h = T.BATTERY_KNOB_SIZE,
-                ),
-            )
-            .morningShadow(MorningShadows.knob, CircleShape)
-            .background(colors.controlKnob, CircleShape),
-    )
 }
