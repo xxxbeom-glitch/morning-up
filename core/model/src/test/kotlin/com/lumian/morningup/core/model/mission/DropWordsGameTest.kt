@@ -43,7 +43,7 @@ class DropWordsGameTest {
         assertThat(s.words).hasSize(1)
         assertThat(s.correct).isEqualTo(0)
         assertThat(s.target).isEqualTo(5)
-        assertThat(s.keypad).hasSize(SyllableKeypad.SIZE)
+        assertThat(s.keypad).hasSize(DropKeypadLayout.of(s.level).size)
         s.words.single().text.forEach { assertThat(s.keypad).contains(it.toString()) }
     }
 

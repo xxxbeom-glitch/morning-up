@@ -67,6 +67,20 @@ object Hangul {
         return (near + far).asSequence().map(::join).firstOrNull { it != base && it !in exclude }
     }
 
+    /**
+     * [base]와 받침만 다른 음절(예: 산 → 삼, 상, 사). 6, 7단계 Drop Words 키패드에 섞어요(11-20 사용자 지시).
+     * 자주 쓰는 받침부터 골라요. [exclude]에 있는 음절은 고르지 않아요. 만들 수 없으면 null.
+     */
+    fun finalVariant(base: Char, exclude: Set<Char>, random: Random): Char? {
+        val jamo = split(base) ?: return null
+        val common = COMMON_FINALS.filter { it != jamo.final }.shuffled(random)
+        val rest = (0 until FINALS).filter { it != jamo.final && it !in COMMON_FINALS }.shuffled(random)
+        return (common + rest).asSequence().map { join(jamo.copy(final = it)) }.firstOrNull { it !in exclude }
+    }
+
+    /** 받침 없음, ㄱ, ㄴ, ㄹ, ㅁ, ㅂ, ㅅ, ㅇ (유니코드 받침 번호). */
+    private val COMMON_FINALS = listOf(0, 1, 4, 8, 16, 17, 19, 21)
+
     private fun neighbors(value: Int, groups: List<List<Int>>): List<Int> =
         groups.filter { value in it }.flatten().filter { it != value }.distinct()
 }

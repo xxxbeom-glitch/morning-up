@@ -39,6 +39,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
@@ -213,6 +214,8 @@ internal fun MissionKeyBox(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     rest: Color = MissionColors.Fill,
+    height: Dp = MissionKeyHeight,
+    radius: Dp = MissionKeyRadius,
     content: @Composable () -> Unit,
 ) {
     val reduceMotion = MorningTheme.reduceMotion
@@ -226,12 +229,12 @@ internal fun MissionKeyBox(
     )
     Box(
         modifier = modifier
-            .height(MissionKeyHeight)
+            .height(height)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .background(if (pressed) MissionColors.FillPressed else rest, RoundedCornerShape(MissionKeyRadius))
+            .background(if (pressed) MissionColors.FillPressed else rest, RoundedCornerShape(radius))
             .clickable(interactionSource = interaction, indication = null, role = Role.Button) {
                 view.perform(MorningHaptic.KeyTap)
                 onClick()

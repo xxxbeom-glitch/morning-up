@@ -31,7 +31,7 @@ data class DropWordsState(
     val words: List<FallingWord>,
     /** 친 음절들(확인 키 없이 단어가 다 맞으면 바로 정답). */
     val input: String,
-    /** 19칸 음절. 화면 왼쪽 위부터 차례로, 오른쪽 아래 지우기 칸은 빼요. */
+    /** 음절 칸([DropKeypadLayout.size]개, 단계마다 다름). 화면 왼쪽 위부터 차례로, 오른쪽 아래 지우기 칸은 빼요. */
     val keypad: List<String>,
     val fallMillis: Long,
     val finished: Boolean = false,
@@ -72,6 +72,7 @@ class DropWordsGame(
 ) {
     private val range = MissionSetting.rangeOf(MissionType.DropWords)
     private val level = level.coerceIn(range.levels)
+    private val keypadLayout = DropKeypadLayout.of(this.level)
 
     // 개수 범위는 MissionSetting.normalized()가 맞춰 줘요. 시험 알람(forTest)은 5개 아래도 와서 여기서는 1 이상만 봐요(결정 67).
     private val target = target.coerceIn(1, range.counts.last)
@@ -96,7 +97,7 @@ class DropWordsGame(
             nextId = 1,
         )
         val first = spawn(empty, now)
-        return first.copy(keypad = SyllableKeypad.build(needed(first), random))
+        return first.copy(keypad = SyllableKeypad.build(needed(first), keypadLayout, random))
     }
 
     /** 시간이 흘렀어요. 바닥에 닿은 단어를 지우고, 빈 자리에 새 단어를 내리고, 입력이 비어 있으면 빠진 음절을 넣어요. */
@@ -106,7 +107,7 @@ class DropWordsGame(
         if (s.input.isNotEmpty() && s.words.none { it.text.startsWith(s.input) }) s = s.copy(input = "")
         val gap = fallMillis / maxWords
         if (s.words.isEmpty() || (s.words.size < maxWords && now - s.lastSpawnAt >= gap)) s = spawn(s, now)
-        if (s.input.isEmpty()) s = s.copy(keypad = SyllableKeypad.fill(s.keypad, needed(s), random))
+        if (s.input.isEmpty()) s = s.copy(keypad = SyllableKeypad.fill(s.keypad, needed(s), keypadLayout, random))
         return s
     }
 
@@ -127,7 +128,8 @@ class DropWordsGame(
         val left = state.copy(correct = correct, input = "", words = state.words - hit)
         if (correct >= state.target) return left.copy(finished = true) to DropInput.Finished(hit.text)
         val next = tick(left, now)
-        return next.copy(keypad = SyllableKeypad.build(needed(next), random)) to DropInput.Correct(hit.text)
+        val keypad = SyllableKeypad.build(needed(next), keypadLayout, random)
+        return next.copy(keypad = keypad) to DropInput.Correct(hit.text)
     }
 
     fun delete(state: DropWordsState): DropWordsState =
@@ -144,9 +146,8 @@ class DropWordsGame(
             state.copy(input = "") to DropInput.Wrong
         }
 
-    /** 키패드에 꼭 있어야 하는 음절. 먼저 떨어질(먼저 내려온) 단어부터. */
-    private fun needed(state: DropWordsState): List<String> =
-        state.words.sortedBy { it.spawnedAt }.flatMap { w -> w.text.map(Char::toString) }.distinct()
+    /** 키패드에 꼭 있어야 하는 단어. 먼저 떨어질(먼저 내려온) 단어부터. */
+    private fun needed(state: DropWordsState): List<String> = state.words.sortedBy { it.spawnedAt }.map { it.text }
 
     private fun spawn(state: DropWordsState, now: Long): DropWordsState {
         val onScreen = state.words.map { it.text }.toSet()
