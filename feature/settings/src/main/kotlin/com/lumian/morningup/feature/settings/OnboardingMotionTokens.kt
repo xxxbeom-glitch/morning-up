@@ -36,10 +36,15 @@ internal object OnboardingMotionTokens {
     const val WAVE_HOLD = 300L
     const val WAVE_FADE = 600
 
-    // ---- Motion Icon Shake: 파란 앱 칸 104(모서리 26) + 빨간 배지 24. 칸 전체가 (164, 180)을 축으로 ±8도 흔들려요.
-    val IconCard = FigmaRect(112f, 128f, 104f, 104f)
-    const val ICON_CARD_RADIUS = 26f
-    val IconBadge = FigmaRect(196f, 122f, 24f, 24f)
+    // ---- Motion Icon Shake(Type=알림 앱아이콘, 956:7343~7399, 11-21 확정): 앱 아이콘 130(스쿼클 모서리 30, 부드럽게 60%)
+    // + 배지 24가 아이콘 오른쪽 위에 걸쳐요. 칸 전체가 (164, 180)을 축으로 ±8도 흔들려요.
+    // 안드로이드엔 부드러운 모서리(smoothing)가 없어서 가장 가까운 둥근 모서리 30으로 잘라요.
+    val IconCard = FigmaRect(99f, 115f, 130f, 130f)
+    const val ICON_CARD_RADIUS = 30f
+    val IconBadge = FigmaRect(209f, 109f, 24f, 24f)
+    // 배지 색은 톤다운(11-21): 라이트 #BE393D, 다크 #F26262.
+    val IconBadgeLight = Color(0xFFBE393D)
+    val IconBadgeDark = Color(0xFFF26262)
     const val SHAKE_WAIT = 450L
     const val SHAKE_STEP = 60
     const val SHAKE_GAP = 10L

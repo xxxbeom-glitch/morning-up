@@ -3,6 +3,9 @@ package com.lumian.morningup.feature.settings
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -199,7 +202,7 @@ private fun MotionWaves(modifier: Modifier = Modifier) {
 
 // ---------------------------------------------------------------- Motion Icon Shake
 
-/** 파란 앱 칸과 빨간 배지. 0.45초 쉬고, 0.06초씩 ±8도로 8번 흔든 뒤 0.06초 만에 제자리로 와요. */
+/** 앱 아이콘(시계)과 빨간 배지. 0.45초 쉬고, 0.06초씩 ±8도로 8번 흔든 뒤 0.06초 만에 제자리로 와요. */
 @Composable
 private fun MotionIconShake(modifier: Modifier = Modifier) {
     val reduceMotion = MorningTheme.reduceMotion
@@ -221,15 +224,19 @@ private fun MotionIconShake(modifier: Modifier = Modifier) {
     }
     val colors = MorningTheme.colors
     Box(modifier.graphicsLayer { rotationZ = angle.value }) {
-        Box(
-            Modifier
+        // 확정 앱 아이콘 그림(258beaf의 Clock Day 원본)을 그대로 써요.
+        Image(
+            painter = painterResource(R.drawable.onboarding_app_icon),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
                 .figma(T.IconCard)
-                .background(colors.primaryDefault, RoundedCornerShape(T.ICON_CARD_RADIUS.dp)),
+                .clip(RoundedCornerShape(T.ICON_CARD_RADIUS.dp)),
         )
         Box(
             Modifier
                 .figma(T.IconBadge)
-                .background(colors.statusError, CircleShape),
+                .background(if (colors.isDark) T.IconBadgeDark else T.IconBadgeLight, CircleShape),
         )
     }
 }
