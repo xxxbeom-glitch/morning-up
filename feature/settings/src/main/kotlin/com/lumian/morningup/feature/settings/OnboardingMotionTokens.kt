@@ -163,7 +163,7 @@ internal object OnboardingMotionTokens {
     const val TOGGLE_DISSOLVE = 400
 
     // ---- Motion Weather Cloud(O3 라이트): 그림 칸(328x280) 기준 좌표예요. 카드 없이 배경 위에 그려요.
-    // 등장: 구름 16 아래 투명 → 0.2초 뒤 GENTLE 0.6초 → 0.1초 뒤 해와 빛이 40 아래에서 EASE_OUT 0.8초.
+    // 등장(앱은 피그마의 절반, 11-20): 구름 16 아래 투명 → 0.1초 뒤 0.3초 → 0.05초 뒤 해와 빛이 40 아래에서 EASE_OUT 0.4초.
     // 반복: 구름만 y 92 ↔ 86, EASE_IN_AND_OUT 1.8초씩.
     const val CLOUD_Y = 92f
     const val CLOUD_UP_Y = 86f
@@ -182,10 +182,10 @@ internal object OnboardingMotionTokens {
     const val SUN_INNER_SIZE = 100f
     const val SUN_INNER_BLUR = 18f
     const val SUN_INNER_ALPHA = 0.5f
-    const val CLOUD_ENTER_WAIT = 200L
-    const val CLOUD_ENTER = 600L
-    const val SUN_WAIT = 100L
-    const val SUN_ENTER = 800
+    const val CLOUD_ENTER_WAIT = 100L
+    const val CLOUD_ENTER = 300L
+    const val SUN_WAIT = 50L
+    const val SUN_ENTER = 400
     const val FLOAT_STEP = 1_800
     const val FLOAT_GAP = 10L
 
@@ -194,7 +194,7 @@ internal object OnboardingMotionTokens {
     const val GRADIENT_TO = 0.85f
 
     // ---- Motion Weather Night(O3 다크): 구름 없이 별 6개와 노란 초승달 108. 그림 칸 기준 좌표예요.
-    // 등장: 0.2초 뒤 별 1, 3, 5 GENTLE 0.5초 → 0.05초 뒤 별 2, 4, 6 GENTLE 0.5초 → 0.1초 뒤 달이 30 아래에서 EASE_OUT 0.8초.
+    // 등장(앱은 피그마의 절반, 11-20): 0.1초 뒤 별 1, 3, 5 0.25초 → 0.025초 뒤 별 2, 4, 6 0.25초 → 0.05초 뒤 달이 30 아래에서 EASE_OUT 0.4초.
     // 반복: 달이 가운데를 축으로 +8도 ↔ -8도(피그마 -8 ↔ +8), 별은 반짝임, EASE_IN_AND_OUT 1.8초씩.
     val Stars = listOf(
         FigmaRect(65f, 65f, 10f, 10f),
@@ -217,9 +217,13 @@ internal object OnboardingMotionTokens {
     const val MOON_CUT_Y = -15.4f
     const val MOON_CUT_SIZE = 97.7f
     const val MOON_SWING = 8f
-    const val STAR_ENTER_WAIT = 200L
-    const val STAR_ENTER = 500L
-    const val STAR_GAP = 50L
-    const val MOON_WAIT = 100L
-    const val MOON_ENTER = 800
+    const val STAR_ENTER_WAIT = 100L
+    const val STAR_ENTER = 250L
+    const val STAR_GAP = 25L
+    const val MOON_WAIT = 50L
+    const val MOON_ENTER = 400
+
+    // O3 등장만 빠르게(11-20 사용자 요청 "더 빨리"): 등장 시간을 피그마의 절반으로 줄였어요.
+    // GENTLE 용수철은 단단함을 4배로 하면 걸리는 시간이 절반이 돼요(0.6초 → 0.3초, 0.5초 → 0.25초).
+    const val WEATHER_ENTER_STIFFNESS = 400f
 }

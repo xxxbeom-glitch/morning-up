@@ -107,18 +107,22 @@ private fun copyOf(step: OnboardingStep): StepCopy = when (step) {
  * 첫 실행 온보딩(결정 129, 131). 스플래시 뒤에 꺼진 권한 장만 차례로 보여 줘요.
  * 버튼을 누르면 그 권한의 시스템 창이나 폰 설정으로 가고, 돌아와서 켜졌으면 다음 장으로 넘어가요.
  * '나중에 하기'는 다음 장으로 넘겨요(건너뛴 필수 권한은 홈 배너가 다시 알려요). 마지막 장을 넘기면 [onFinished].
+ * [onLightRoundFinished]가 있으면(온보딩 전용 확인 앱) 첫 바퀴를 마칠 때 그것을 부르고, 스플래시 없이
+ * 첫 장부터 한 바퀴 더 보여 줘요. 부르는 쪽이 그때 테마를 다크로 바꿔요(11-20 사용자 요청: 라이트 5장 뒤 다크 5장).
  */
 @Composable
 fun OnboardingRoute(
     onFinished: () -> Unit,
     modifier: Modifier = Modifier,
     showAll: Boolean = false,
+    onLightRoundFinished: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var splashDone by rememberSaveable { mutableStateOf(false) }
     var stepName by rememberSaveable { mutableStateOf<String?>(null) }
+    var lightRoundDone by rememberSaveable { mutableStateOf(false) }
     val step = stepName?.let(OnboardingStep::valueOf)
     // [showAll](온보딩 전용 확인 앱)일 때, 이 장에 들어올 때 권한이 이미 켜져 있었는지. 켜져 있던 장도 보여 줘요.
     val grantedOnEnter by rememberSaveable(stepName) {
@@ -126,7 +130,16 @@ fun OnboardingRoute(
     }
 
     fun goTo(next: OnboardingStep?) {
-        if (next == null) onFinished() else stepName = next.name
+        when {
+            next != null -> stepName = next.name
+            onLightRoundFinished != null && !lightRoundDone -> {
+                lightRoundDone = true
+                onLightRoundFinished()
+                stepName = OnboardingStep.after(null, viewModel.report.value, showAll)?.name
+                if (stepName == null) onFinished()
+            }
+            else -> onFinished()
+        }
     }
 
     LaunchedEffect(Unit) {

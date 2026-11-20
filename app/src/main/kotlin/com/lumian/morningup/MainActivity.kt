@@ -8,6 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
@@ -74,7 +78,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             FitDesignWidth {
                 // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
-                val night = rememberNightByClock(now::now)
+                // 온보딩 전용 확인 앱만 시각을 무시하고 라이트 한 바퀴, 다크 한 바퀴를 차례로 보여요(11-20 사용자 요청).
+                var demoDark by rememberSaveable { mutableStateOf(false) }
+                val clockNight = rememberNightByClock(now::now)
+                val night = if (BuildConfig.ONBOARDING_ONLY) demoDark else clockNight
                 MorningTheme(darkTheme = night) {
                     SystemBarIcons(dark = night)
                     // 결정 시트(전원 종료 방지 등)를 하단 메뉴와 시스템 바 뒤까지 덮어 그리는 자리.
@@ -85,8 +92,17 @@ class MainActivity : ComponentActivity() {
                             permissionRequests = permissionRequests,
                             onPermissionRequestHandled = { permissionRequests.value = null },
                             showOnboarding = showOnboarding,
-                            onOnboardingFinished = onboarding::markDone,
+                            onOnboardingFinished = {
+                                onboarding.markDone()
+                                // 다크 바퀴까지 마치면 라이트 스플래시부터 다시 시작해요.
+                                demoDark = false
+                            },
                             onboardingOnly = BuildConfig.ONBOARDING_ONLY,
+                            onOnboardingLightRoundFinished = if (BuildConfig.ONBOARDING_ONLY) {
+                                { demoDark = true }
+                            } else {
+                                null
+                            },
                             missionOnly = BuildConfig.MISSION_ONLY,
                             debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
                         )

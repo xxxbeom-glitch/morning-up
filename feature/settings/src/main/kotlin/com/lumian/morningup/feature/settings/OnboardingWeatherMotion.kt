@@ -1,6 +1,8 @@
 package com.lumian.morningup.feature.settings
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
@@ -71,8 +73,8 @@ private fun MotionWeatherDay(modifier: Modifier = Modifier) {
         sun.snapTo(0f)
         delay(T.CLOUD_ENTER_WAIT)
         coroutineScope {
-            launch { cloudY.animateTo(T.CLOUD_Y, gentle()) }
-            launch { cloudShown.animateTo(1f, gentle()) }
+            launch { cloudY.animateTo(T.CLOUD_Y, weatherEnter()) }
+            launch { cloudShown.animateTo(1f, weatherEnter()) }
             delay(T.CLOUD_ENTER)
         }
         delay(T.SUN_WAIT)
@@ -182,12 +184,12 @@ private fun MotionWeatherNight(modifier: Modifier = Modifier) {
         listOf(oddStars, evenStars, moon, swing).forEach { it.snapTo(0f) }
         delay(T.STAR_ENTER_WAIT)
         coroutineScope {
-            launch { oddStars.animateTo(1f, gentle()) }
+            launch { oddStars.animateTo(1f, weatherEnter()) }
             delay(T.STAR_ENTER)
         }
         delay(T.STAR_GAP)
         coroutineScope {
-            launch { evenStars.animateTo(1f, gentle()) }
+            launch { evenStars.animateTo(1f, weatherEnter()) }
             delay(T.STAR_ENTER)
         }
         delay(T.MOON_WAIT)
@@ -266,3 +268,7 @@ private fun DrawScope.starPath(rect: FigmaRect): Path {
         close()
     }
 }
+
+/** O3 등장용 GENTLE. 피그마보다 두 배 빨라요(11-20 사용자 요청). */
+private fun weatherEnter(): AnimationSpec<Float> =
+    spring(dampingRatio = T.GENTLE_DAMPING_RATIO, stiffness = T.WEATHER_ENTER_STIFFNESS)
