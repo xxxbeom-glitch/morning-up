@@ -17,6 +17,9 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
+            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 시계 아이콘.
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_clock"
+            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_clock_round"
             buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             buildConfigField("boolean", "MISSION_ONLY", "false")
         }
@@ -25,6 +28,9 @@ android {
             initWith(getByName("debug"))
             applicationIdSuffix = ".onboarding"
             versionNameSuffix = "-onboarding"
+            // 확인용 앱은 아이콘을 바꾸지 않고 예전 임시 아이콘을 그대로 써요(11-21).
+            manifestPlaceholders["appIcon"] = "@drawable/ic_launcher"
+            manifestPlaceholders["appRoundIcon"] = "@drawable/ic_launcher"
             matchingFallbacks += "debug"
             buildConfigField("boolean", "ONBOARDING_ONLY", "true")
             buildConfigField("boolean", "MISSION_ONLY", "false")
@@ -34,11 +40,17 @@ android {
             initWith(getByName("debug"))
             applicationIdSuffix = ".mission"
             versionNameSuffix = "-mission"
+            // 확인용 앱은 아이콘을 바꾸지 않고 예전 임시 아이콘을 그대로 써요(11-21).
+            manifestPlaceholders["appIcon"] = "@drawable/ic_launcher"
+            manifestPlaceholders["appRoundIcon"] = "@drawable/ic_launcher"
             matchingFallbacks += "debug"
             buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             buildConfigField("boolean", "MISSION_ONLY", "true")
         }
         release {
+            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 시계 아이콘.
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_clock"
+            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_clock_round"
             buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             buildConfigField("boolean", "MISSION_ONLY", "false")
             isMinifyEnabled = true
