@@ -111,6 +111,446 @@
    ]
   },
   {
+   "level": 1,
+   "category": "Economy",
+   "question": "가게에서 물건을 사고 내는 것은?",
+   "answer": "돈",
+   "wrong": [
+    "돌멩이",
+    "나뭇잎",
+    "모래"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Economy",
+   "question": "우리나라 돈의 단위는?",
+   "answer": "원",
+   "wrong": [
+    "달러",
+    "엔",
+    "유로"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Economy",
+   "question": "여러 가게가 모여 물건을 파는 곳은?",
+   "answer": "시장",
+   "wrong": [
+    "학교",
+    "병원",
+    "도서관"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Economy",
+   "question": "동전을 모아 두는 작은 통은?",
+   "answer": "저금통",
+   "wrong": [
+    "필통",
+    "물통",
+    "휴지통"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Economy",
+   "question": "천 원짜리 두 장은 모두 얼마일까요?",
+   "answer": "2000원",
+   "wrong": [
+    "1000원",
+    "3000원",
+    "5000원"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Economy",
+   "question": "물건을 사고 받는 종이는?",
+   "answer": "영수증",
+   "wrong": [
+    "상장",
+    "편지",
+    "신문"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "불이 났을 때 거는 전화번호는?",
+   "answer": "119",
+   "wrong": [
+    "112",
+    "114",
+    "120"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "횡단보도에서 건너도 되는 신호 색은?",
+   "answer": "초록색",
+   "wrong": [
+    "빨간색",
+    "검은색",
+    "보라색"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "한 해는 몇 달일까요?",
+   "answer": "12달",
+   "wrong": [
+    "7달",
+    "10달",
+    "24달"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "우리나라를 대표하는 꽃은?",
+   "answer": "무궁화",
+   "wrong": [
+    "장미",
+    "해바라기",
+    "튤립"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "설날에 먹는 대표 음식은?",
+   "answer": "떡국",
+   "wrong": [
+    "송편",
+    "팥죽",
+    "냉면"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Society",
+   "question": "편지나 소포를 부치는 곳은?",
+   "answer": "우체국",
+   "wrong": [
+    "소방서",
+    "수영장",
+    "미용실"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "단군 이야기에서 사람이 된 동물은?",
+   "answer": "곰",
+   "wrong": [
+    "호랑이",
+    "토끼",
+    "여우"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "고조선을 세운 사람은?",
+   "answer": "단군왕검",
+   "wrong": [
+    "세종대왕",
+    "이순신",
+    "주몽"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "경복궁은 어느 나라의 궁궐일까요?",
+   "answer": "조선",
+   "wrong": [
+    "고려",
+    "신라",
+    "백제"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "옛날 임금이 살던 큰 집은?",
+   "answer": "궁궐",
+   "wrong": [
+    "절",
+    "초가집",
+    "서당"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "한글의 처음 이름은?",
+   "answer": "훈민정음",
+   "wrong": [
+    "동의보감",
+    "삼국유사",
+    "대동여지도"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "KoreanHistory",
+   "question": "옛날 아이들이 글을 배우던 곳은?",
+   "answer": "서당",
+   "wrong": [
+    "백화점",
+    "공항",
+    "은행"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "WorldHistory",
+   "question": "자유의 여신상이 있는 나라는?",
+   "answer": "미국",
+   "wrong": [
+    "영국",
+    "일본",
+    "인도"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "WorldHistory",
+   "question": "에펠탑이 있는 도시는?",
+   "answer": "파리",
+   "wrong": [
+    "런던",
+    "로마",
+    "서울"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "WorldHistory",
+   "question": "콜로세움이 있는 나라는?",
+   "answer": "이탈리아",
+   "wrong": [
+    "프랑스",
+    "중국",
+    "멕시코"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "WorldHistory",
+   "question": "타지마할이 있는 나라는?",
+   "answer": "인도",
+   "wrong": [
+    "일본",
+    "브라질",
+    "독일"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "WorldHistory",
+   "question": "빅벤 시계탑이 있는 도시는?",
+   "answer": "런던",
+   "wrong": [
+    "파리",
+    "뉴욕",
+    "베이징"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "People",
+   "question": "발명왕이라고 불리는 사람은?",
+   "answer": "에디슨",
+   "wrong": [
+    "피카소",
+    "모차르트",
+    "콜럼버스"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "People",
+   "question": "라이트 형제가 처음 띄운 것은?",
+   "answer": "비행기",
+   "wrong": [
+    "배",
+    "자동차",
+    "기차"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "People",
+   "question": "암스트롱이 처음 발을 디딘 곳은?",
+   "answer": "달",
+   "wrong": [
+    "화성",
+    "태양",
+    "금성"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "People",
+   "question": "베토벤은 어떤 일을 한 사람일까요?",
+   "answer": "음악가",
+   "wrong": [
+    "화가",
+    "과학자",
+    "운동선수"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "People",
+   "question": "나이팅게일은 어떤 일을 한 사람일까요?",
+   "answer": "간호사",
+   "wrong": [
+    "경찰관",
+    "요리사",
+    "화가"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "개구리의 어릴 때 이름은?",
+   "answer": "올챙이",
+   "wrong": [
+    "애벌레",
+    "병아리",
+    "송아지"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "우리 몸에서 냄새를 맡는 곳은?",
+   "answer": "코",
+   "wrong": [
+    "귀",
+    "눈",
+    "무릎"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "곤충의 다리는 몇 개일까요?",
+   "answer": "6개",
+   "wrong": [
+    "4개",
+    "8개",
+    "10개"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "밤마다 모양이 바뀌어 보이는 것은?",
+   "answer": "달",
+   "wrong": [
+    "태양",
+    "북극성",
+    "지구"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "자석에 붙는 것은?",
+   "answer": "쇠못",
+   "wrong": [
+    "나무젓가락",
+    "지우개",
+    "종이컵"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Science",
+   "question": "아침에 해가 뜨는 방향은?",
+   "answer": "동쪽",
+   "wrong": [
+    "서쪽",
+    "남쪽",
+    "북쪽"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "쓰레기를 종류별로 나눠 버리는 것은?",
+   "answer": "분리수거",
+   "wrong": [
+    "대청소",
+    "설거지",
+    "빨래"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "지진이 나면 먼저 몸을 숨길 곳은?",
+   "answer": "책상 아래",
+   "wrong": [
+    "창문 옆",
+    "엘리베이터",
+    "옥상"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "미세먼지가 심한 날 쓰는 것은?",
+   "answer": "마스크",
+   "wrong": [
+    "선글라스",
+    "장갑",
+    "귀마개"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "차를 탈 때 꼭 매는 것은?",
+   "answer": "안전띠",
+   "wrong": [
+    "넥타이",
+    "목도리",
+    "머리띠"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "불이 나면 코와 입을 막는 것은?",
+   "answer": "젖은 수건",
+   "wrong": [
+    "비닐봉지",
+    "종이컵",
+    "장갑"
+   ]
+  },
+  {
+   "level": 1,
+   "category": "Issues",
+   "question": "물놀이 전에 꼭 하는 것은?",
+   "answer": "준비운동",
+   "wrong": [
+    "낮잠",
+    "숙제",
+    "양치"
+   ]
+  },
+  {
    "level": 2,
    "category": "Science",
    "question": "물이 끓는 온도는?",
@@ -218,6 +658,446 @@
     "위",
     "폐",
     "간"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Economy",
+   "question": "물건을 사서 쓰는 활동은?",
+   "answer": "소비",
+   "wrong": [
+    "생산",
+    "저축",
+    "수출"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Economy",
+   "question": "다른 나라에 물건을 파는 것은?",
+   "answer": "수출",
+   "wrong": [
+    "수입",
+    "저축",
+    "대출"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Economy",
+   "question": "나라 살림을 위해 국민이 내는 돈은?",
+   "answer": "세금",
+   "wrong": [
+    "이자",
+    "용돈",
+    "상금"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Economy",
+   "question": "돈을 쓰지 않고 모아 두는 것은?",
+   "answer": "저축",
+   "wrong": [
+    "소비",
+    "낭비",
+    "지출"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Economy",
+   "question": "돈 없이 물건끼리 바꾸는 것은?",
+   "answer": "물물교환",
+   "wrong": [
+    "저축",
+    "경매",
+    "세금"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Society",
+   "question": "나라의 법 중 가장 높은 법은?",
+   "answer": "헌법",
+   "wrong": [
+    "민법",
+    "형법",
+    "조례"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Society",
+   "question": "경찰에 신고하는 전화번호는?",
+   "answer": "112",
+   "wrong": [
+    "119",
+    "114",
+    "120"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Society",
+   "question": "독도는 어느 도에 속할까요?",
+   "answer": "경상북도",
+   "wrong": [
+    "전라남도",
+    "충청북도",
+    "경기도"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Society",
+   "question": "우리나라에서 가장 큰 섬은?",
+   "answer": "제주도",
+   "wrong": [
+    "거제도",
+    "울릉도",
+    "강화도"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Society",
+   "question": "한글날은 몇 월 며칠일까요?",
+   "answer": "10월 9일",
+   "wrong": [
+    "3월 1일",
+    "8월 15일",
+    "10월 3일"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "조선 때 비의 양을 재던 기구는?",
+   "answer": "측우기",
+   "wrong": [
+    "해시계",
+    "물시계",
+    "첨성대"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "고구려를 세운 사람은?",
+   "answer": "주몽",
+   "wrong": [
+    "왕건",
+    "온조",
+    "이성계"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "신라 때 별을 관찰하던 곳은?",
+   "answer": "첨성대",
+   "wrong": [
+    "석굴암",
+    "불국사",
+    "다보탑"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "광개토대왕은 어느 나라 왕일까요?",
+   "answer": "고구려",
+   "wrong": [
+    "백제",
+    "신라",
+    "고려"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "살수 대첩을 이끈 장수는?",
+   "answer": "을지문덕",
+   "wrong": [
+    "강감찬",
+    "이순신",
+    "김유신"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "KoreanHistory",
+   "question": "조선의 수도 한양은 지금의 어디?",
+   "answer": "서울",
+   "wrong": [
+    "부산",
+    "평양",
+    "경주"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "올림픽이 처음 시작된 나라는?",
+   "answer": "그리스",
+   "wrong": [
+    "이탈리아",
+    "중국",
+    "이집트"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "콜럼버스가 배로 닿은 대륙은?",
+   "answer": "아메리카",
+   "wrong": [
+    "아프리카",
+    "오세아니아",
+    "남극"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "마추픽추가 있는 나라는?",
+   "answer": "페루",
+   "wrong": [
+    "멕시코",
+    "이집트",
+    "인도"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "앙코르 와트가 있는 나라는?",
+   "answer": "캄보디아",
+   "wrong": [
+    "몽골",
+    "영국",
+    "케냐"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "칭기즈 칸이 세운 나라는?",
+   "answer": "몽골 제국",
+   "wrong": [
+    "로마 제국",
+    "오스만 제국",
+    "청나라"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "WorldHistory",
+   "question": "나폴레옹은 어느 나라 황제였을까요?",
+   "answer": "프랑스",
+   "wrong": [
+    "영국",
+    "독일",
+    "러시아"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "모나리자를 그린 화가는?",
+   "answer": "레오나르도 다빈치",
+   "wrong": [
+    "피카소",
+    "고흐",
+    "미켈란젤로"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "3.1 운동 때 만세를 외친 여학생은?",
+   "answer": "유관순",
+   "wrong": [
+    "신사임당",
+    "허난설헌",
+    "황진이"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "동의보감을 쓴 사람은?",
+   "answer": "허준",
+   "wrong": [
+    "정약용",
+    "이황",
+    "장영실"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "어린 왕자를 쓴 작가는?",
+   "answer": "생텍쥐페리",
+   "wrong": [
+    "안데르센",
+    "셰익스피어",
+    "톨스토이"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "만유인력의 법칙을 발표한 사람은?",
+   "answer": "뉴턴",
+   "wrong": [
+    "다윈",
+    "에디슨",
+    "벨"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "People",
+   "question": "대동여지도를 만든 사람은?",
+   "answer": "김정호",
+   "wrong": [
+    "장영실",
+    "허준",
+    "정약용"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "지구가 태양을 한 바퀴 도는 시간은?",
+   "answer": "약 1년",
+   "wrong": [
+    "하루",
+    "한 달",
+    "10년"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "공기 중에 가장 많은 기체는?",
+   "answer": "질소",
+   "wrong": [
+    "산소",
+    "수소",
+    "헬륨"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "나침반의 N극이 가리키는 방향은?",
+   "answer": "북쪽",
+   "wrong": [
+    "남쪽",
+    "동쪽",
+    "서쪽"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "음식의 영양분을 주로 흡수하는 곳은?",
+   "answer": "작은창자",
+   "wrong": [
+    "심장",
+    "폐",
+    "방광"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "고리가 뚜렷하게 보이는 행성은?",
+   "answer": "토성",
+   "wrong": [
+    "수성",
+    "금성",
+    "화성"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Science",
+   "question": "고래는 어떤 동물 무리에 속할까요?",
+   "answer": "포유류",
+   "wrong": [
+    "어류",
+    "파충류",
+    "양서류"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "지구가 점점 더워지는 현상은?",
+   "answer": "지구 온난화",
+   "wrong": [
+    "지진",
+    "장마",
+    "일식"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "일회용 컵 대신 들고 다니는 컵은?",
+   "answer": "텀블러",
+   "wrong": [
+    "종이컵",
+    "비닐컵",
+    "플라스틱컵"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "봄에 사막에서 날아오는 모래 먼지는?",
+   "answer": "황사",
+   "wrong": [
+    "태풍",
+    "장마",
+    "폭설"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "지진 때문에 생기는 큰 파도는?",
+   "answer": "지진 해일",
+   "wrong": [
+    "소나기",
+    "장마",
+    "무지개"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "쓴 물건을 다시 자원으로 쓰는 것은?",
+   "answer": "재활용",
+   "wrong": [
+    "일회용",
+    "낭비",
+    "매립"
+   ]
+  },
+  {
+   "level": 2,
+   "category": "Issues",
+   "question": "생물의 한 종이 모두 사라지는 것은?",
+   "answer": "멸종",
+   "wrong": [
+    "진화",
+    "이사",
+    "겨울잠"
    ]
   },
   {
@@ -331,6 +1211,446 @@
    ]
   },
   {
+   "level": 3,
+   "category": "Science",
+   "question": "피가 굳도록 돕는 혈액 성분은?",
+   "answer": "혈소판",
+   "wrong": [
+    "적혈구",
+    "백혈구",
+    "혈장"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "아밀레이스가 분해하는 영양소는?",
+   "answer": "녹말",
+   "wrong": [
+    "단백질",
+    "지방",
+    "무기염류"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "전류의 단위는?",
+   "answer": "암페어",
+   "wrong": [
+    "볼트",
+    "옴",
+    "와트"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "기체가 액체로 변하는 현상은?",
+   "answer": "액화",
+   "wrong": [
+    "기화",
+    "승화",
+    "융해"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "잎에서 물이 수증기로 빠져나가는 일은?",
+   "answer": "증산 작용",
+   "wrong": [
+    "광합성",
+    "호흡",
+    "발아"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "조선의 기본 법전은?",
+   "answer": "경국대전",
+   "wrong": [
+    "삼국사기",
+    "동의보감",
+    "훈민정음"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "현존하는 가장 오래된 금속 활자본은?",
+   "answer": "직지심체요절",
+   "wrong": [
+    "팔만대장경",
+    "삼국유사",
+    "조선왕조실록"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "동학 농민 운동을 이끈 사람은?",
+   "answer": "전봉준",
+   "wrong": [
+    "김옥균",
+    "안중근",
+    "홍경래"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "거란과 담판해 강동 6주를 얻은 사람은?",
+   "answer": "서희",
+   "wrong": [
+    "강감찬",
+    "윤관",
+    "최영"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "산업 혁명이 처음 일어난 나라는?",
+   "answer": "영국",
+   "wrong": [
+    "프랑스",
+    "독일",
+    "미국"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "함무라비 법전을 남긴 문명은?",
+   "answer": "메소포타미아",
+   "wrong": [
+    "이집트",
+    "인더스",
+    "황허"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "중국을 처음 통일한 왕조는?",
+   "answer": "진",
+   "wrong": [
+    "한",
+    "수",
+    "당"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "르네상스가 처음 시작된 나라는?",
+   "answer": "이탈리아",
+   "wrong": [
+    "영국",
+    "독일",
+    "스페인"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "나라의 주권은 누구에게 있나?",
+   "answer": "국민",
+   "wrong": [
+    "대통령",
+    "국회",
+    "정부"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "재판을 맡는 국가 권력은?",
+   "answer": "사법권",
+   "wrong": [
+    "입법권",
+    "행정권",
+    "자치권"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "국민의 기본 의무는?",
+   "answer": "납세",
+   "wrong": [
+    "선거권",
+    "청원권",
+    "참정권"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "사회 구성원으로 자라 가는 과정은?",
+   "answer": "사회화",
+   "wrong": [
+    "도시화",
+    "세계화",
+    "산업화"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "자기 문화만 옳다고 보는 태도는?",
+   "answer": "자문화 중심주의",
+   "wrong": [
+    "문화 상대주의",
+    "문화 사대주의",
+    "문화 다원주의"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "표의 가치가 모두 같다는 선거 원칙은?",
+   "answer": "평등 선거",
+   "wrong": [
+    "보통 선거",
+    "직접 선거",
+    "비밀 선거"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Economy",
+   "question": "이발, 진료처럼 형태가 없는 것은?",
+   "answer": "서비스",
+   "wrong": [
+    "재화",
+    "자본",
+    "토지"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Economy",
+   "question": "선택 때문에 포기한 가장 큰 가치는?",
+   "answer": "기회비용",
+   "wrong": [
+    "매몰 비용",
+    "고정 비용",
+    "생산비"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Economy",
+   "question": "원하는 것보다 자원이 부족한 상태는?",
+   "answer": "희소성",
+   "wrong": [
+    "독점성",
+    "공공성",
+    "탄력성"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Economy",
+   "question": "공급자가 하나뿐인 시장은?",
+   "answer": "독점",
+   "wrong": [
+    "과점",
+    "완전 경쟁",
+    "담합"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "People",
+   "question": "종교 개혁을 시작한 사람은?",
+   "answer": "루터",
+   "wrong": [
+    "갈릴레이",
+    "콜럼버스",
+    "나폴레옹"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "People",
+   "question": "페니실린을 발견한 사람은?",
+   "answer": "플레밍",
+   "wrong": [
+    "파스퇴르",
+    "코흐",
+    "제너"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "People",
+   "question": "상대성 이론을 발표한 사람은?",
+   "answer": "아인슈타인",
+   "wrong": [
+    "뉴턴",
+    "보어",
+    "퀴리"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Issues",
+   "question": "오존층을 파괴하는 물질은?",
+   "answer": "프레온 가스",
+   "wrong": [
+    "질소",
+    "산소",
+    "수증기"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Issues",
+   "question": "도심이 주변보다 더운 현상은?",
+   "answer": "열섬 현상",
+   "wrong": [
+    "열대야",
+    "엘니뇨",
+    "황사"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "우리나라 최초의 국가는?",
+   "answer": "고조선",
+   "wrong": [
+    "고구려",
+    "부여",
+    "신라"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "소리가 전달되지 않는 곳은?",
+   "answer": "진공",
+   "wrong": [
+    "물속",
+    "공기",
+    "철"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "세포의 유전 정보가 들어 있는 곳은?",
+   "answer": "핵",
+   "wrong": [
+    "세포막",
+    "액포",
+    "리보솜"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "고대 이집트 왕의 무덤은?",
+   "answer": "피라미드",
+   "wrong": [
+    "지구라트",
+    "파르테논",
+    "콜로세움"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Issues",
+   "question": "탄소 배출에 매기는 세금은?",
+   "answer": "탄소세",
+   "wrong": [
+    "부가세",
+    "소득세",
+    "재산세"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "낮과 밤이 생기는 까닭은?",
+   "answer": "지구의 자전",
+   "wrong": [
+    "지구의 공전",
+    "달의 공전",
+    "태양의 자전"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Society",
+   "question": "국회에서 만드는 것은?",
+   "answer": "법률",
+   "wrong": [
+    "판결",
+    "조약",
+    "예산안"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "물의 어는점은 몇 도?",
+   "answer": "0도",
+   "wrong": [
+    "4도",
+    "영하 10도",
+    "10도"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "용암이 식어 굳은 암석은?",
+   "answer": "화성암",
+   "wrong": [
+    "퇴적암",
+    "변성암",
+    "석회암"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "KoreanHistory",
+   "question": "조선 시대 최고 교육 기관은?",
+   "answer": "성균관",
+   "wrong": [
+    "향교",
+    "서원",
+    "서당"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "WorldHistory",
+   "question": "고대 그리스 민주 정치의 중심 도시는?",
+   "answer": "아테네",
+   "wrong": [
+    "스파르타",
+    "로마",
+    "카르타고"
+   ]
+  },
+  {
+   "level": 3,
+   "category": "Science",
+   "question": "한 지역의 오랜 평균 날씨는?",
+   "answer": "기후",
+   "wrong": [
+    "기압",
+    "기단",
+    "일기"
+   ]
+  },
+  {
    "level": 4,
    "category": "Economy",
    "question": "물가가 전반적으로 계속 오르는 현상은?",
@@ -438,6 +1758,446 @@
     "인용",
     "각색",
     "요약"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "물가가 계속 떨어지는 현상은?",
+   "answer": "디플레이션",
+   "wrong": [
+    "인플레이션",
+    "리세션",
+    "스태그플레이션"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "수출액과 수입액의 차이는?",
+   "answer": "무역수지",
+   "wrong": [
+    "재정수지",
+    "국가채무",
+    "경제성장률"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "정부 지출이 수입보다 많은 상태는?",
+   "answer": "재정 적자",
+   "wrong": [
+    "무역 흑자",
+    "재정 흑자",
+    "경상 흑자"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "소비자물가지수의 영어 약자는?",
+   "answer": "CPI",
+   "wrong": [
+    "GDP",
+    "GNI",
+    "WTO"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "기업이 주식을 처음 시장에 내놓는 것은?",
+   "answer": "기업공개",
+   "wrong": [
+    "유상증자",
+    "액면분할",
+    "인수합병"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "인수합병을 영어 약자로 쓰면?",
+   "answer": "M&A",
+   "wrong": [
+    "IPO",
+    "CEO",
+    "ESG"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Economy",
+   "question": "나라나 기업이 빚을 못 갚는 것은?",
+   "answer": "디폴트",
+   "wrong": [
+    "리콜",
+    "덤핑",
+    "버블"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "혼자 사는 사람으로 이뤄진 가구는?",
+   "answer": "1인 가구",
+   "wrong": [
+    "핵가족",
+    "대가족",
+    "다문화 가정"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "결함 제품을 회사가 거둬 고쳐 주는 것은?",
+   "answer": "리콜",
+   "wrong": [
+    "반품",
+    "할부",
+    "덤핑"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "오른 임대료에 원주민이 밀려나는 현상은?",
+   "answer": "젠트리피케이션",
+   "wrong": [
+    "스프롤 현상",
+    "도넛 현상",
+    "열섬 현상"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "노동자들이 함께 일을 멈추는 것은?",
+   "answer": "파업",
+   "wrong": [
+    "해고",
+    "휴직",
+    "퇴직"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "국민이 중요 정책에 직접 투표하는 것은?",
+   "answer": "국민투표",
+   "wrong": [
+    "총선",
+    "여론조사",
+    "보궐선거"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Society",
+   "question": "검사가 법원에 재판을 청구하는 것은?",
+   "answer": "기소",
+   "wrong": [
+    "체포",
+    "송치",
+    "항소"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "환경, 사회, 지배구조를 뜻하는 약자는?",
+   "answer": "ESG",
+   "wrong": [
+    "GDP",
+    "IoT",
+    "CPI"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "사물끼리 인터넷으로 연결하는 기술은?",
+   "answer": "사물인터넷",
+   "wrong": [
+    "블록체인",
+    "메타버스",
+    "클라우드"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "거래 기록을 여럿이 나눠 저장하는 기술은?",
+   "answer": "블록체인",
+   "wrong": [
+    "클라우드",
+    "빅데이터",
+    "메타버스"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "현실처럼 활동하는 3차원 가상 세계는?",
+   "answer": "메타버스",
+   "wrong": [
+    "블록체인",
+    "사물인터넷",
+    "빅데이터"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "파일을 잠그고 돈을 요구하는 악성코드는?",
+   "answer": "랜섬웨어",
+   "wrong": [
+    "스파이웨어",
+    "애드웨어",
+    "방화벽"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "AI로 얼굴을 합성한 가짜 영상은?",
+   "answer": "딥페이크",
+   "wrong": [
+    "메타버스",
+    "랜섬웨어",
+    "챗봇"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Issues",
+   "question": "적도 동태평양 바다가 따뜻해지는 현상은?",
+   "answer": "엘니뇨",
+   "wrong": [
+    "라니냐",
+    "황사",
+    "열돔"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "KoreanHistory",
+   "question": "1945년 해방을 기념하는 국경일은?",
+   "answer": "광복절",
+   "wrong": [
+    "개천절",
+    "제헌절",
+    "현충일"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "KoreanHistory",
+   "question": "헌법 제정을 기념하는 국경일은?",
+   "answer": "제헌절",
+   "wrong": [
+    "광복절",
+    "개천절",
+    "한글날"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "KoreanHistory",
+   "question": "1950년 6월에 시작된 전쟁은?",
+   "answer": "한국 전쟁",
+   "wrong": [
+    "임진왜란",
+    "병자호란",
+    "베트남 전쟁"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "KoreanHistory",
+   "question": "나라 위해 숨진 이를 기리는 날은?",
+   "answer": "현충일",
+   "wrong": [
+    "광복절",
+    "개천절",
+    "제헌절"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "KoreanHistory",
+   "question": "대한민국 정부가 수립된 해는?",
+   "answer": "1948년",
+   "wrong": [
+    "1945년",
+    "1950년",
+    "1919년"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "WorldHistory",
+   "question": "국제연합의 영어 약자는?",
+   "answer": "UN",
+   "wrong": [
+    "EU",
+    "NATO",
+    "OPEC"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "WorldHistory",
+   "question": "베를린 장벽이 무너진 해는?",
+   "answer": "1989년",
+   "wrong": [
+    "1945년",
+    "1961년",
+    "1991년"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "WorldHistory",
+   "question": "미국과 소련이 맞섰던 대립은?",
+   "answer": "냉전",
+   "wrong": [
+    "백년 전쟁",
+    "30년 전쟁",
+    "십자군 전쟁"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "WorldHistory",
+   "question": "유럽연합의 영어 약자는?",
+   "answer": "EU",
+   "wrong": [
+    "UN",
+    "NATO",
+    "ASEAN"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "WorldHistory",
+   "question": "1929년 미국에서 시작된 경제 위기는?",
+   "answer": "대공황",
+   "wrong": [
+    "오일 쇼크",
+    "외환 위기",
+    "닷컴 버블"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Science",
+   "question": "지진이 낸 에너지 크기를 나타내는 말은?",
+   "answer": "규모",
+   "wrong": [
+    "진도",
+    "진원",
+    "진앙"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Science",
+   "question": "몸에 면역이 생기게 하는 약은?",
+   "answer": "백신",
+   "wrong": [
+    "항생제",
+    "진통제",
+    "수면제"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Science",
+   "question": "세균을 죽이거나 막는 약은?",
+   "answer": "항생제",
+   "wrong": [
+    "백신",
+    "진통제",
+    "소화제"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Science",
+   "question": "감염병이 세계적으로 크게 퍼진 상태는?",
+   "answer": "팬데믹",
+   "wrong": [
+    "엔데믹",
+    "인포데믹",
+    "면역"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "Science",
+   "question": "오존층이 막아 주는 빛은?",
+   "answer": "자외선",
+   "wrong": [
+    "적외선",
+    "가시광선",
+    "전파"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "People",
+   "question": "다이너마이트를 발명한 사람은?",
+   "answer": "노벨",
+   "wrong": [
+    "에디슨",
+    "퀴리",
+    "벨"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "People",
+   "question": "한국인 최초의 노벨상 수상자는?",
+   "answer": "김대중",
+   "wrong": [
+    "반기문",
+    "김구",
+    "안중근"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "People",
+   "question": "'나에게는 꿈이 있다' 연설을 한 사람은?",
+   "answer": "마틴 루서 킹",
+   "wrong": [
+    "링컨",
+    "간디",
+    "만델라"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "People",
+   "question": "남아공 첫 흑인 대통령은?",
+   "answer": "넬슨 만델라",
+   "wrong": [
+    "간디",
+    "오바마",
+    "마틴 루서 킹"
+   ]
+  },
+  {
+   "level": 4,
+   "category": "People",
+   "question": "애플을 함께 세운 사람은?",
+   "answer": "스티브 잡스",
+   "wrong": [
+    "빌 게이츠",
+    "일론 머스크",
+    "마크 저커버그"
    ]
   },
   {
@@ -551,6 +2311,446 @@
    ]
   },
   {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "발해를 세운 사람은?",
+   "answer": "대조영",
+   "wrong": [
+    "주몽",
+    "온조",
+    "궁예"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "삼일 운동이 일어난 해는?",
+   "answer": "1919년",
+   "wrong": [
+    "1910년",
+    "1926년",
+    "1929년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "을지문덕이 수나라 군을 크게 이긴 싸움은?",
+   "answer": "살수 대첩",
+   "wrong": [
+    "귀주 대첩",
+    "행주 대첩",
+    "안시성 싸움"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "한국 전쟁이 일어난 해는?",
+   "answer": "1950년",
+   "wrong": [
+    "1948년",
+    "1953년",
+    "1945년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "규장각을 설치한 조선의 왕은?",
+   "answer": "정조",
+   "wrong": [
+    "영조",
+    "세종",
+    "태조"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "대한민국 임시 정부가 처음 세워진 도시는?",
+   "answer": "상하이",
+   "wrong": [
+    "충칭",
+    "베이징",
+    "블라디보스토크"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "WorldHistory",
+   "question": "콜럼버스가 아메리카에 닿은 해는?",
+   "answer": "1492년",
+   "wrong": [
+    "1498년",
+    "1519년",
+    "1453년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "WorldHistory",
+   "question": "제2차 세계대전이 끝난 해는?",
+   "answer": "1945년",
+   "wrong": [
+    "1944년",
+    "1946년",
+    "1939년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "WorldHistory",
+   "question": "나폴레옹이 마지막으로 패한 전투는?",
+   "answer": "워털루 전투",
+   "wrong": [
+    "트라팔가르 해전",
+    "아우스터리츠 전투",
+    "라이프치히 전투"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "원소 기호 Na는 무엇일까요?",
+   "answer": "나트륨",
+   "wrong": [
+    "질소",
+    "네온",
+    "니켈"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "광합성이 일어나는 세포 속 기관은?",
+   "answer": "엽록체",
+   "wrong": [
+    "미토콘드리아",
+    "리보솜",
+    "액포"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "힘의 국제 단위는?",
+   "answer": "뉴턴",
+   "wrong": [
+    "줄",
+    "와트",
+    "파스칼"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "중성 용액의 pH는?",
+   "answer": "7",
+   "wrong": [
+    "0",
+    "1",
+    "14"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "정부가 세금을 걷고 쓰는 경제 활동은?",
+   "answer": "재정",
+   "wrong": [
+    "금융",
+    "무역",
+    "통화"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "수입품에 매기는 세금은?",
+   "answer": "관세",
+   "wrong": [
+    "부가가치세",
+    "소득세",
+    "법인세"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "우리나라 화폐 발행 권한을 가진 곳은?",
+   "answer": "한국은행",
+   "wrong": [
+    "기획재정부",
+    "한국조폐공사",
+    "금융위원회"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "돈을 빌리며 발행하는 빚 증서는?",
+   "answer": "채권",
+   "wrong": [
+    "주식",
+    "수표",
+    "예금통장"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "총수입에서 총비용을 뺀 것은?",
+   "answer": "이윤",
+   "wrong": [
+    "매출액",
+    "원가",
+    "부채"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "의회 다수당이 내각을 꾸리는 정부 형태는?",
+   "answer": "의원내각제",
+   "wrong": [
+    "대통령제",
+    "이원집정부제",
+    "연방제"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "주민이 단체장을 임기 중 물러나게 하는 제도는?",
+   "answer": "주민소환제",
+   "wrong": [
+    "주민투표제",
+    "주민발안제",
+    "주민참여예산제"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "국가 권력을 셋으로 나눠 견제하는 원리는?",
+   "answer": "권력분립",
+   "wrong": [
+    "법치주의",
+    "국민주권",
+    "대의제"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "도시 인구 비율이 높아지는 현상은?",
+   "answer": "도시화",
+   "wrong": [
+    "산업화",
+    "정보화",
+    "교외화"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "People",
+   "question": "노벨상을 두 번 받은 여성 과학자는?",
+   "answer": "마리 퀴리",
+   "wrong": [
+    "리제 마이트너",
+    "이렌 퀴리",
+    "로절린드 프랭클린"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "People",
+   "question": "열하일기를 쓴 사람은?",
+   "answer": "박지원",
+   "wrong": [
+    "박제가",
+    "홍대용",
+    "이익"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Issues",
+   "question": "일과 삶의 균형을 뜻하는 말은?",
+   "answer": "워라밸",
+   "wrong": [
+    "욜로",
+    "소확행",
+    "파이어족"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Issues",
+   "question": "인터넷 속 내 정보를 지워 달라는 권리는?",
+   "answer": "잊힐 권리",
+   "wrong": [
+    "알 권리",
+    "초상권",
+    "저작권"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Issues",
+   "question": "친환경인 척 꾸미는 기업 홍보는?",
+   "answer": "그린워싱",
+   "wrong": [
+    "그린뉴딜",
+    "화이트워싱",
+    "그린벨트"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Issues",
+   "question": "일도 공부도 구직도 하지 않는 청년은?",
+   "answer": "니트족",
+   "wrong": [
+    "캥거루족",
+    "딩크족",
+    "파이어족"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Issues",
+   "question": "전화로 속여 돈을 빼앗는 사기는?",
+   "answer": "보이스피싱",
+   "wrong": [
+    "스미싱",
+    "파밍",
+    "스팸 메일"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "갑오개혁이 일어난 해는?",
+   "answer": "1894년",
+   "wrong": [
+    "1876년",
+    "1884년",
+    "1905년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "DNA 이중나선 구조가 밝혀진 해는?",
+   "answer": "1953년",
+   "wrong": [
+    "1943년",
+    "1962년",
+    "1971년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "강화도 조약을 맺은 해는?",
+   "answer": "1876년",
+   "wrong": [
+    "1866년",
+    "1882년",
+    "1894년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "임오군란이 일어난 해는?",
+   "answer": "1882년",
+   "wrong": [
+    "1876년",
+    "1884년",
+    "1894년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "People",
+   "question": "갑신정변을 이끈 인물은?",
+   "answer": "김옥균",
+   "wrong": [
+    "김홍집",
+    "최익현",
+    "흥선대원군"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "수요와 공급이 만나 정해지는 가격은?",
+   "answer": "균형 가격",
+   "wrong": [
+    "최고 가격",
+    "최저 가격",
+    "원가"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Economy",
+   "question": "두 나라가 관세를 없애기로 한 협정은?",
+   "answer": "FTA",
+   "wrong": [
+    "WTO",
+    "IMF",
+    "OECD"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "우리나라 국회의원 임기는?",
+   "answer": "4년",
+   "wrong": [
+    "3년",
+    "5년",
+    "6년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "KoreanHistory",
+   "question": "병자호란이 일어난 해는?",
+   "answer": "1636년",
+   "wrong": [
+    "1592년",
+    "1627년",
+    "1653년"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Science",
+   "question": "원소의 종류를 정하는 입자 수는?",
+   "answer": "양성자 수",
+   "wrong": [
+    "중성자 수",
+    "전자껍질 수",
+    "질량수"
+   ]
+  },
+  {
+   "level": 5,
+   "category": "Society",
+   "question": "법 앞에 모두 평등하다는 원칙은?",
+   "answer": "평등권",
+   "wrong": [
+    "자유권",
+    "참정권",
+    "청구권"
+   ]
+  },
+  {
    "level": 6,
    "category": "Economy",
    "question": "경기 침체 속 물가 상승은?",
@@ -658,6 +2858,446 @@
     "캐스팅보트",
     "게리맨더링",
     "로그롤링"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "조선의 경국대전을 완성한 왕은?",
+   "answer": "성종",
+   "wrong": [
+    "세조",
+    "태종",
+    "영조"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "강감찬이 거란군을 크게 이긴 싸움은?",
+   "answer": "귀주 대첩",
+   "wrong": [
+    "처인성 전투",
+    "진주 대첩",
+    "행주 대첩"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "동학 농민 운동이 일어난 해는?",
+   "answer": "1894년",
+   "wrong": [
+    "1882년",
+    "1884년",
+    "1895년"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "대동법을 처음 실시한 지역은?",
+   "answer": "경기도",
+   "wrong": [
+    "충청도",
+    "전라도",
+    "강원도"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "흥선 대원군이 전국에 세운 비석은?",
+   "answer": "척화비",
+   "wrong": [
+    "순수비",
+    "공덕비",
+    "영세불망비"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "KoreanHistory",
+   "question": "고려 광종이 처음 실시한 관리 선발 제도는?",
+   "answer": "과거제",
+   "wrong": [
+    "음서제",
+    "독서삼품과",
+    "천거제"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "백년 전쟁을 벌인 두 나라는?",
+   "answer": "영국과 프랑스",
+   "wrong": [
+    "영국과 스페인",
+    "프랑스와 스페인",
+    "영국과 네덜란드"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "흑사병이 유럽을 휩쓴 세기는?",
+   "answer": "14세기",
+   "wrong": [
+    "12세기",
+    "13세기",
+    "16세기"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "콘스탄티노폴리스가 함락된 해는?",
+   "answer": "1453년",
+   "wrong": [
+    "1492년",
+    "1415년",
+    "1517년"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "러시아 10월 혁명이 일어난 해는?",
+   "answer": "1917년",
+   "wrong": [
+    "1905년",
+    "1914년",
+    "1921년"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "미국 남북 전쟁이 시작된 해는?",
+   "answer": "1861년",
+   "wrong": [
+    "1848년",
+    "1865년",
+    "1870년"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "WorldHistory",
+   "question": "일본 메이지 유신이 시작된 해는?",
+   "answer": "1868년",
+   "wrong": [
+    "1853년",
+    "1876년",
+    "1894년"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "빛이 다른 물질로 들어가며 꺾이는 현상은?",
+   "answer": "굴절",
+   "wrong": [
+    "반사",
+    "회절",
+    "산란"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "원자 번호는 같고 질량수가 다른 원소는?",
+   "answer": "동위원소",
+   "wrong": [
+    "동소체",
+    "이성질체",
+    "동족체"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "생물 분류의 기본 단위는?",
+   "answer": "종",
+   "wrong": [
+    "속",
+    "과",
+    "목"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "절대 영도는 섭씨 약 몇 도?",
+   "answer": "영하 273도",
+   "wrong": [
+    "영하 100도",
+    "영하 173도",
+    "영하 373도"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "산과 염기가 만나 물과 염이 생기는 반응은?",
+   "answer": "중화 반응",
+   "wrong": [
+    "산화 반응",
+    "환원 반응",
+    "연소 반응"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Science",
+   "question": "인슐린을 분비하는 기관은?",
+   "answer": "이자(췌장)",
+   "wrong": [
+    "간",
+    "쓸개",
+    "콩팥"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "이미 써서 되찾을 수 없는 비용은?",
+   "answer": "매몰비용",
+   "wrong": [
+    "기회비용",
+    "고정비용",
+    "거래비용"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "채권을 대량 사들여 돈을 푸는 통화 정책은?",
+   "answer": "양적완화",
+   "wrong": [
+    "양적긴축",
+    "테이퍼링",
+    "지급준비율 인상"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "가계 소비에서 식비가 차지하는 비중은?",
+   "answer": "엥겔지수",
+   "wrong": [
+    "슈바베지수",
+    "지니계수",
+    "빅맥지수"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "소득 불평등을 0에서 1로 나타낸 지수는?",
+   "answer": "지니계수",
+   "wrong": [
+    "엥겔지수",
+    "소비자물가지수",
+    "십분위분배율"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "정부 지출이 민간 투자를 밀어내는 효과는?",
+   "answer": "구축 효과",
+   "wrong": [
+    "승수 효과",
+    "낙수 효과",
+    "분수 효과"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "남들을 따라 소비가 느는 효과는?",
+   "answer": "밴드왜건 효과",
+   "wrong": [
+    "베블런 효과",
+    "스놉 효과",
+    "립스틱 효과"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "범죄와 형벌을 법률로 미리 정하는 원칙은?",
+   "answer": "죄형법정주의",
+   "wrong": [
+    "무죄추정",
+    "일사부재리",
+    "적법절차"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "확정 판결된 사건을 다시 재판하지 않는 원칙은?",
+   "answer": "일사부재리",
+   "wrong": [
+    "불고불리",
+    "무죄추정",
+    "증거재판주의"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "법원 제청으로 법률 위헌을 가리는 심판은?",
+   "answer": "위헌법률심판",
+   "wrong": [
+    "헌법소원심판",
+    "탄핵심판",
+    "권한쟁의심판"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "특정 정당에 유리하게 선거구를 나누는 것은?",
+   "answer": "게리맨더링",
+   "wrong": [
+    "로그롤링",
+    "매니페스토",
+    "포크배럴"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "피해자가 고소해야 처벌할 수 있는 죄는?",
+   "answer": "친고죄",
+   "wrong": [
+    "반의사불벌죄",
+    "형식범",
+    "결과범"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Society",
+   "question": "중앙 정부 권한을 지방에 나누는 것은?",
+   "answer": "지방분권",
+   "wrong": [
+    "중앙집권",
+    "관료제",
+    "대의제"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "People",
+   "question": "법의 정신을 쓴 사상가는?",
+   "answer": "몽테스키외",
+   "wrong": [
+    "루소",
+    "로크",
+    "홉스"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "People",
+   "question": "자본론을 쓴 사상가는?",
+   "answer": "마르크스",
+   "wrong": [
+    "레닌",
+    "프루동",
+    "오언"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "People",
+   "question": "우두 접종법을 개발한 사람은?",
+   "answer": "제너",
+   "wrong": [
+    "파스퇴르",
+    "코흐",
+    "지석영"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "People",
+   "question": "로마 제국의 첫 황제는?",
+   "answer": "아우구스투스",
+   "wrong": [
+    "카이사르",
+    "네로",
+    "콘스탄티누스"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Issues",
+   "question": "조직의 비리를 알리는 내부 고발자는?",
+   "answer": "휘슬블로어",
+   "wrong": [
+    "파파라치",
+    "스핀닥터",
+    "로비스트"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Issues",
+   "question": "아이 없이 사는 맞벌이 부부는?",
+   "answer": "딩크족",
+   "wrong": [
+    "니트족",
+    "캥거루족",
+    "여피족"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Issues",
+   "question": "기업에 부당한 요구를 일삼는 소비자는?",
+   "answer": "블랙컨슈머",
+   "wrong": [
+    "프로슈머",
+    "트윈슈머",
+    "그린슈머"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "기업이 주식을 처음 공개하는 것은?",
+   "answer": "IPO",
+   "wrong": [
+    "M&A",
+    "ETF",
+    "ESG"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "중앙은행이 돈을 풀어 경기를 살리는 정책은?",
+   "answer": "양적 완화",
+   "wrong": [
+    "테이퍼링",
+    "긴축",
+    "금리 인상"
+   ]
+  },
+  {
+   "level": 6,
+   "category": "Economy",
+   "question": "정보가 적은 쪽이 불리한 상대를 고르는 현상은?",
+   "answer": "역선택",
+   "wrong": [
+    "도덕적 해이",
+    "무임승차",
+    "매몰 비용"
    ]
   },
   {
@@ -769,6 +3409,446 @@
     "유형원",
     "이익"
    ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "신라 골품제의 가장 높은 등급은?",
+   "answer": "성골",
+   "wrong": [
+    "진골",
+    "6두품",
+    "4두품"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "고려 무신 정권이 시작된 사건은?",
+   "answer": "무신정변",
+   "wrong": [
+    "이자겸의 난",
+    "묘청의 난",
+    "삼별초 항쟁"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "영조가 군포를 1필로 줄인 법은?",
+   "answer": "균역법",
+   "wrong": [
+    "대동법",
+    "영정법",
+    "호포법"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "을미사변으로 시해된 왕비는?",
+   "answer": "명성황후",
+   "wrong": [
+    "인현왕후",
+    "순정효황후",
+    "신정왕후"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "고종이 헤이그에 특사를 보낸 해는?",
+   "answer": "1907년",
+   "wrong": [
+    "1905년",
+    "1909년",
+    "1910년"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "KoreanHistory",
+   "question": "공민왕 때 신돈이 이끈 개혁 기구는?",
+   "answer": "전민변정도감",
+   "wrong": [
+    "교정도감",
+    "식목도감",
+    "도병마사"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "나폴레옹 전쟁 뒤 유럽 질서를 정한 회의는?",
+   "answer": "빈 회의",
+   "wrong": [
+    "베를린 회의",
+    "파리 강화 회의",
+    "얄타 회담"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "1차 대전 뒤 연합국이 독일과 맺은 조약은?",
+   "answer": "베르사유 조약",
+   "wrong": [
+    "생제르맹 조약",
+    "트리아농 조약",
+    "세브르 조약"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "영국 권리장전이 나온 해는?",
+   "answer": "1689년",
+   "wrong": [
+    "1688년",
+    "1628년",
+    "1649년"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "카노사의 굴욕을 겪은 황제는?",
+   "answer": "하인리히 4세",
+   "wrong": [
+    "프리드리히 1세",
+    "오토 1세",
+    "카를 5세"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "아편 전쟁 뒤 청이 영국과 맺은 조약은?",
+   "answer": "난징 조약",
+   "wrong": [
+    "베이징 조약",
+    "톈진 조약",
+    "시모노세키 조약"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "WorldHistory",
+   "question": "서로마 제국이 멸망한 해는?",
+   "answer": "476년",
+   "wrong": [
+    "395년",
+    "410년",
+    "455년"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "DNA에서 아데닌과 짝을 이루는 염기는?",
+   "answer": "티민",
+   "wrong": [
+    "구아닌",
+    "사이토신",
+    "우라실"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "빛의 입자성을 보여 준 전자 방출 현상은?",
+   "answer": "광전 효과",
+   "wrong": [
+    "도플러 효과",
+    "홀 효과",
+    "제만 효과"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "멀어지는 천체의 빛이 붉어지는 현상은?",
+   "answer": "적색 편이",
+   "wrong": [
+    "청색 편이",
+    "중력 렌즈",
+    "연주 시차"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "염색체 수가 반으로 줄어드는 세포 분열은?",
+   "answer": "감수 분열",
+   "wrong": [
+    "체세포 분열",
+    "이분법",
+    "출아법"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "기체 압력과 부피가 반비례하는 법칙은?",
+   "answer": "보일 법칙",
+   "wrong": [
+    "샤를 법칙",
+    "아보가드로 법칙",
+    "헨리 법칙"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Science",
+   "question": "전기 음성도가 가장 큰 원소는?",
+   "answer": "플루오린",
+   "wrong": [
+    "산소",
+    "염소",
+    "질소"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "공급이 스스로 수요를 만든다는 법칙은?",
+   "answer": "세이의 법칙",
+   "wrong": [
+    "왈라스의 법칙",
+    "그레셤의 법칙",
+    "오쿤의 법칙"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "실업률과 물가 상승률의 역관계 곡선은?",
+   "answer": "필립스 곡선",
+   "wrong": [
+    "래퍼 곡선",
+    "로렌츠 곡선",
+    "쿠즈네츠 곡선"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "값이 오르면 수요가 느는 열등재는?",
+   "answer": "기펜재",
+   "wrong": [
+    "베블런재",
+    "정상재",
+    "보완재"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "금리를 낮춰도 돈이 돌지 않는 상황은?",
+   "answer": "유동성 함정",
+   "wrong": [
+    "중진국 함정",
+    "빈곤의 함정",
+    "부채 함정"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "금 1온스를 35달러로 묶은 통화 체제는?",
+   "answer": "브레턴우즈 체제",
+   "wrong": [
+    "금본위제",
+    "킹스턴 체제",
+    "스미스소니언 체제"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Economy",
+   "question": "과열도 침체도 없는 이상적 경제 상태는?",
+   "answer": "골디락스",
+   "wrong": [
+    "스태그플레이션",
+    "리세션",
+    "디스인플레이션"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "시민이 판사와 함께 판결하는 재판 제도는?",
+   "answer": "참심제",
+   "wrong": [
+    "배심제",
+    "대배심제",
+    "순회재판제"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "위법한 증거에서 얻은 증거도 막는 이론은?",
+   "answer": "독수독과 이론",
+   "wrong": [
+    "무죄추정 원칙",
+    "미란다 원칙",
+    "증거재판주의"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "공동 자원이 남용되어 고갈되는 현상은?",
+   "answer": "공유지의 비극",
+   "wrong": [
+    "죄수의 딜레마",
+    "무임승차",
+    "구성의 오류"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "모든 조직은 소수가 지배한다는 법칙은?",
+   "answer": "과두제의 철칙",
+   "wrong": [
+    "파킨슨 법칙",
+    "피터의 원리",
+    "머피의 법칙"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "열세 후보에게 동정표가 쏠리는 현상은?",
+   "answer": "언더독 효과",
+   "wrong": [
+    "밴드왜건 효과",
+    "브래들리 효과",
+    "코트테일 효과"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Society",
+   "question": "신뢰, 관계망처럼 협력을 돕는 자원은?",
+   "answer": "사회적 자본",
+   "wrong": [
+    "문화 자본",
+    "인적 자본",
+    "상징 자본"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "People",
+   "question": "비교 우위론으로 유명한 경제학자는?",
+   "answer": "리카도",
+   "wrong": [
+    "애덤 스미스",
+    "맬서스",
+    "존 스튜어트 밀"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "People",
+   "question": "국제 연맹 창설을 제안한 미국 대통령은?",
+   "answer": "우드로 윌슨",
+   "wrong": [
+    "시어도어 루스벨트",
+    "워런 하딩",
+    "허버트 후버"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "People",
+   "question": "정의론을 쓴 철학자는?",
+   "answer": "존 롤스",
+   "wrong": [
+    "마이클 샌델",
+    "로버트 노직",
+    "아마르티아 센"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "People",
+   "question": "순수이성비판을 쓴 철학자는?",
+   "answer": "칸트",
+   "wrong": [
+    "헤겔",
+    "피히테",
+    "쇼펜하우어"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "People",
+   "question": "왕오천축국전을 쓴 신라 승려는?",
+   "answer": "혜초",
+   "wrong": [
+    "원효",
+    "의상",
+    "의천"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Issues",
+   "question": "작은 변화가 쌓여 급변하는 순간은?",
+   "answer": "티핑 포인트",
+   "wrong": [
+    "데드 크로스",
+    "골든 크로스",
+    "레드 라인"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Issues",
+   "question": "조건 없이 모두에게 주는 소득은?",
+   "answer": "기본소득",
+   "wrong": [
+    "음의 소득세",
+    "근로장려금",
+    "최저임금"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Issues",
+   "question": "소수 의견일수록 입을 닫는다는 이론은?",
+   "answer": "침묵의 나선",
+   "wrong": [
+    "확증 편향",
+    "집단 사고",
+    "방관자 효과"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Issues",
+   "question": "수입품의 탄소 배출에 비용을 매기는 제도는?",
+   "answer": "탄소국경조정",
+   "wrong": [
+    "탄소배출권 거래",
+    "탄소중립 인증",
+    "탄소 상쇄"
+   ]
+  },
+  {
+   "level": 7,
+   "category": "Issues",
+   "question": "단기 계약으로 일감을 받는 경제는?",
+   "answer": "긱 이코노미",
+   "wrong": [
+    "공유 경제",
+    "구독 경제",
+    "토큰 이코노미"
+   ]
   }
  ],
  "dropWords": [
@@ -784,7 +3864,57 @@
     "우유",
     "모자",
     "시계",
-    "가방"
+    "가방",
+    "연필",
+    "책상",
+    "의자",
+    "거울",
+    "수박",
+    "포도",
+    "딸기",
+    "감자",
+    "오이",
+    "당근",
+    "버스",
+    "우산",
+    "신발",
+    "양말",
+    "장갑",
+    "노래",
+    "그림",
+    "친구",
+    "학교",
+    "공원",
+    "시장",
+    "편지",
+    "사진",
+    "라면",
+    "김밥",
+    "두부",
+    "계란",
+    "커피",
+    "녹차",
+    "아침",
+    "햇살",
+    "바람",
+    "꽃잎",
+    "별빛",
+    "달빛",
+    "토끼",
+    "강물",
+    "호수",
+    "산책",
+    "운동",
+    "방석",
+    "창문",
+    "이불",
+    "베개",
+    "칫솔",
+    "수건",
+    "냄비",
+    "접시",
+    "국자",
+    "열쇠"
    ]
   },
   {
@@ -799,7 +3929,57 @@
     "무지개",
     "고양이",
     "옥수수",
-    "지우개"
+    "지우개",
+    "컴퓨터",
+    "세탁기",
+    "선풍기",
+    "청소기",
+    "호랑이",
+    "강아지",
+    "코끼리",
+    "다람쥐",
+    "거북이",
+    "병아리",
+    "민들레",
+    "개나리",
+    "진달래",
+    "소나무",
+    "바나나",
+    "토마토",
+    "복숭아",
+    "고구마",
+    "시금치",
+    "미용실",
+    "우체국",
+    "놀이터",
+    "운동장",
+    "수영장",
+    "기차역",
+    "지하철",
+    "소방차",
+    "경찰서",
+    "손수건",
+    "장난감",
+    "색연필",
+    "책가방",
+    "머리띠",
+    "목도리",
+    "손거울",
+    "초콜릿",
+    "햄버거",
+    "비빔밥",
+    "주먹밥",
+    "도시락",
+    "일요일",
+    "눈사람",
+    "무궁화",
+    "해돋이",
+    "피아노",
+    "만화책",
+    "휴대폰",
+    "오렌지",
+    "아침밥",
+    "월요일"
    ]
   },
   {
@@ -814,7 +3994,57 @@
     "꽃병",
     "콩국수",
     "젓갈",
-    "닭갈비"
+    "닭갈비",
+    "떡국",
+    "팥죽",
+    "콩밥",
+    "국밥",
+    "냉면",
+    "곰탕",
+    "설렁탕",
+    "북엇국",
+    "순댓국",
+    "족발",
+    "찹쌀떡",
+    "송편",
+    "약밥",
+    "정원",
+    "책장",
+    "밥상",
+    "밥솥",
+    "냉동실",
+    "햇볕",
+    "꽃밭",
+    "꽃길",
+    "낙엽",
+    "단풍",
+    "별똥별",
+    "운동복",
+    "낮잠",
+    "늦잠",
+    "출근길",
+    "산책길",
+    "손목",
+    "발목",
+    "귓속말",
+    "맞춤법",
+    "받침",
+    "쌈장",
+    "쌈밥",
+    "돌솥밥",
+    "잡곡밥",
+    "곶감",
+    "들깻잎",
+    "햇곡식",
+    "콩떡",
+    "쑥떡",
+    "꿀떡",
+    "옥상",
+    "식탁",
+    "군밤",
+    "빈대떡",
+    "홍합탕",
+    "육전"
    ]
   },
   {
@@ -829,7 +4059,57 @@
     "고진감래",
     "대기만성",
     "다다익선",
-    "금상첨화"
+    "금상첨화",
+    "일거양득",
+    "일취월장",
+    "이심전심",
+    "역지사지",
+    "오매불망",
+    "우왕좌왕",
+    "유유상종",
+    "자업자득",
+    "적반하장",
+    "전화위복",
+    "죽마고우",
+    "천고마비",
+    "청출어람",
+    "타산지석",
+    "파죽지세",
+    "표리부동",
+    "풍전등화",
+    "학수고대",
+    "허심탄회",
+    "호시탐탐",
+    "화룡점정",
+    "횡설수설",
+    "감언이설",
+    "개과천선",
+    "견물생심",
+    "결초보은",
+    "고군분투",
+    "과유불급",
+    "괄목상대",
+    "구사일생",
+    "군계일학",
+    "권선징악",
+    "금의환향",
+    "기사회생",
+    "노심초사",
+    "동고동락",
+    "마이동풍",
+    "막상막하",
+    "명실상부",
+    "무용지물",
+    "박장대소",
+    "백발백중",
+    "사필귀정",
+    "새옹지마",
+    "설상가상",
+    "선견지명",
+    "십시일반",
+    "안하무인",
+    "온고지신",
+    "대동소이"
    ]
   },
   {
@@ -844,7 +4124,57 @@
     "환율",
     "기준금리",
     "배당금",
-    "항생제"
+    "항생제",
+    "위내시경",
+    "건강검진",
+    "대장내시경",
+    "예방접종",
+    "면역력",
+    "해열제",
+    "진통제",
+    "처방전",
+    "영양제",
+    "체온계",
+    "심전도",
+    "초음파",
+    "물리치료",
+    "응급실",
+    "정형외과",
+    "소아과",
+    "이비인후과",
+    "골다공증",
+    "콜레스테롤",
+    "헌법재판소",
+    "손해배상",
+    "계약서",
+    "피고인",
+    "변호사",
+    "상속세",
+    "증여세",
+    "공소시효",
+    "임대차계약",
+    "근로계약서",
+    "저작권",
+    "특허권",
+    "행정소송",
+    "항소심",
+    "대법원",
+    "내용증명",
+    "물가지수",
+    "국내총생산",
+    "인플레이션",
+    "주가지수",
+    "연말정산",
+    "소득공제",
+    "국민연금",
+    "실업급여",
+    "최저임금",
+    "무역수지",
+    "재무제표",
+    "감가상각",
+    "시가총액",
+    "부가가치세",
+    "가처분"
    ]
   },
   {
@@ -859,7 +4189,57 @@
     "앉은키",
     "얽매이다",
     "끓는점",
-    "핥아먹다"
+    "핥아먹다",
+    "닭고기",
+    "흙탕물",
+    "밝기",
+    "맑다",
+    "읽기",
+    "붉은색",
+    "칡뿌리",
+    "늙은호박",
+    "긁적이다",
+    "묽다",
+    "닮은꼴",
+    "굶다",
+    "옮기다",
+    "삶다",
+    "여덟",
+    "얇다",
+    "짧다",
+    "넓이",
+    "떫다",
+    "외곬",
+    "훑어보다",
+    "읊다",
+    "옳다",
+    "싫다",
+    "잃다",
+    "뚫다",
+    "꿇다",
+    "닳다",
+    "값어치",
+    "없다",
+    "가엾다",
+    "실없다",
+    "품삯",
+    "넋두리",
+    "얹다",
+    "앉히다",
+    "많다",
+    "괜찮다",
+    "끊다",
+    "귀찮다",
+    "점잖다",
+    "언짢다",
+    "끊임없이",
+    "흙빛",
+    "닭장",
+    "읽을거리",
+    "엷다",
+    "값지다",
+    "낡다",
+    "삯바느질"
    ]
   },
   {
@@ -874,7 +4254,57 @@
     "손해배상청구권",
     "소유권이전등기",
     "아세틸살리실산",
-    "이산화탄소"
+    "이산화탄소",
+    "수산화마그네슘",
+    "염화마그네슘",
+    "황산마그네슘",
+    "과망간산칼륨",
+    "차아염소산나트륨",
+    "아세트산에틸",
+    "폴리스타이렌",
+    "폴리프로필렌",
+    "산화알루미늄",
+    "글루탐산나트륨",
+    "아스코르브산",
+    "에틸렌글리콜",
+    "수소이온농도",
+    "아보가드로수",
+    "산화환원반응",
+    "탄산수소칼륨",
+    "갑상선기능검사",
+    "자동심장충격기",
+    "혈중알코올농도",
+    "비스테로이드소염제",
+    "항히스타민제",
+    "적혈구용적률",
+    "공복혈당수치",
+    "예방접종증명서",
+    "국민건강보험공단",
+    "수면무호흡증",
+    "전방십자인대",
+    "손목터널증후군",
+    "거북목증후군",
+    "과민성대장증후군",
+    "자기공명영상",
+    "컴퓨터단층촬영",
+    "근저당권설정등기",
+    "주택임대차보호법",
+    "헌법소원심판",
+    "위헌법률심판",
+    "구속영장실질심사",
+    "부당이득반환청구",
+    "개인정보보호법",
+    "정보통신망법",
+    "공정거래위원회",
+    "유류분반환청구",
+    "임차권등기명령",
+    "전세권설정등기",
+    "지급명령신청",
+    "행정심판위원회",
+    "성년후견제도",
+    "국민참여재판",
+    "재산분할청구권",
+    "개인회생절차"
    ]
   }
  ]
