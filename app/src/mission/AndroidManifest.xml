@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+        <!-- 미션 확인용 앱은 알람을 예약하지 않아요. 부팅, 시각 변경 때 예약과 배터리 알림을 다시 잡는 수신기를 빼요. -->
+        <receiver
+            android:name="com.lumian.morningup.core.alarm.receiver.SystemEventReceiver"
+            tools:node="remove" />
+    </application>
+
+</manifest>

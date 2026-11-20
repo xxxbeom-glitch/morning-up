@@ -64,6 +64,9 @@
     <string name="edit_mission_increase">%1$s 높이기</string>
     <string name="edit_mission_preview">미리보기</string>
     <string name="edit_mission_select">선택 완료</string>
+    <!-- 미션 확인용 앱(11-20 사용자 지시) 설정 시트 버튼. -->
+    <string name="edit_mission_start">시작하기</string>
+    <string name="mission_try_title">미션</string>
     <string name="edit_mission_deselect">선택 해제</string>
     <string-array name="edit_mission_examples_drop_words">
         <item>예: 사과, 나무</item>

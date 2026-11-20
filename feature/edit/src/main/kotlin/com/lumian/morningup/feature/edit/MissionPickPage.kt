@@ -122,13 +122,15 @@ fun MissionPickPage(state: EditUiState, actions: EditActions, modifier: Modifier
     }
 }
 
+/** 미션 카드 한 장. [showCheck]가 false면 오른쪽 체크 원을 그리지 않아요(미션 확인용 앱 목록). */
 @Composable
-private fun MissionCard(
+internal fun MissionCard(
     type: MissionType,
     selected: MissionSetting?,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showCheck: Boolean = true,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
@@ -162,8 +164,10 @@ private fun MissionCard(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        Spacer(Modifier.width(MorningDimens.space12))
-        MorningMissionCheck(selected = selected != null)
+        if (showCheck) {
+            Spacer(Modifier.width(MorningDimens.space12))
+            MorningMissionCheck(selected = selected != null)
+        }
     }
 }
 
@@ -184,9 +188,10 @@ internal fun missionValue(setting: MissionSetting): String = when (setting.type)
 /**
  * S1-3~S1-7 설정 시트 내용. 제목은 미션 이름, 줄은 값 넘기기 줄, 아래 '미리보기'(Soft, 폭 106)와
  * '선택 완료'(안 고른 미션) 또는 '선택 해제'(고른 미션, Secondary).
+ * [onStart]가 있으면(미션 확인용 앱) 버튼은 '시작하기' 하나예요.
  */
 @Composable
-internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
+internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onStart: (() -> Unit)? = null) {
     val setting = sheet.setting
     val typography = MorningTheme.typography
     val levelLabel = stringResource(R.string.edit_mission_level)
@@ -257,6 +262,14 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions) {
         tag = SHEET_COUNT_TAG,
     )
     Spacer(Modifier.height(MorningDimens.space24))
+    if (onStart != null) {
+        MorningButton(
+            text = stringResource(R.string.edit_mission_start),
+            onClick = onStart,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        return
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
         MorningButton(
             text = stringResource(R.string.edit_mission_preview),

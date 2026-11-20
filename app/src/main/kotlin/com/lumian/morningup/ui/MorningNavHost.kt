@@ -29,6 +29,7 @@ import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.banner
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
+import com.lumian.morningup.feature.edit.MissionTryRoute
 import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
@@ -68,6 +69,10 @@ data object LicensesRoute
 @Serializable
 data object TestsRoute
 
+/** 미션 확인용 앱 첫 화면(11-20 사용자 지시). */
+@Serializable
+data object MissionTryDestination
+
 /** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
 data object PermissionsRoute
@@ -80,6 +85,7 @@ private const val SAVED_ALARM_KEY = "savedAlarmId"
  * [editRequests]에 알람 id가 오면(상태 표시줄 알람 아이콘) 그 알람의 편집 화면을 열고 [onEditRequestHandled]를 불러요.
  * [showOnboarding]이면 온보딩부터 시작하고, 끝나면 [onOnboardingFinished]를 부른 뒤 홈으로 가요(뒤로 가도 안 돌아와요).
  * [onboardingOnly](온보딩 전용 확인 앱)면 켜진 권한 장도 다 보여 주고, 끝나면 홈 대신 스플래시부터 다시 보여요.
+ * [missionOnly](미션 확인용 앱)면 미션 목록부터 시작하고, 미션을 끝내거나 닫으면 목록으로 돌아와요.
  */
 @Composable
 fun MorningNavHost(
@@ -91,6 +97,7 @@ fun MorningNavHost(
     showOnboarding: Boolean = false,
     onOnboardingFinished: () -> Unit = {},
     onboardingOnly: Boolean = false,
+    missionOnly: Boolean = false,
     navController: NavHostController = rememberNavController(),
     debugTools: @Composable () -> Unit = {},
 ) {
@@ -111,7 +118,11 @@ fun MorningNavHost(
     val reduceMotion = LocalReduceMotion.current
     NavHost(
         navController = navController,
-        startDestination = if (showOnboarding) OnboardingDestination else MainRoute,
+        startDestination = when {
+            missionOnly -> MissionTryDestination
+            showOnboarding -> OnboardingDestination
+            else -> MainRoute
+        },
         modifier = modifier,
         enterTransition = { pageEnter(reduceMotion) },
         exitTransition = { pageExit(reduceMotion) },
@@ -196,6 +207,13 @@ fun MorningNavHost(
                     }
                 },
                 showAll = onboardingOnly,
+            )
+        }
+        composable<MissionTryDestination> {
+            MissionTryRoute(
+                onStart = { setting ->
+                    navController.navigate(MissionPreviewRoute.of(listOf(setting))) { launchSingleTop = true }
+                },
             )
         }
         composable<PermissionsRoute> {

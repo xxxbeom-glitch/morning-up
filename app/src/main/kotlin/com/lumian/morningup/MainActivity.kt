@@ -65,25 +65,12 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
         // 안드로이드 12+ 시스템 시작 화면은 나가는 애니메이션 없이 바로 걷어요(11-19 사용자 지시).
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) splashScreen.setOnExitAnimationListener { it.remove() }
-        lifecycleScope.launch {
-            // 울리는 중인 알람이 있으면 끌 수 있는 울림 화면으로 보내요(알림을 못 띄운 경우의 길).
-            if (sessions.load() != null) {
-                startActivity(Intent(this@MainActivity, RingActivity::class.java))
-            } else {
-                // 울리는 알람이 없는데 남은 울림, 기다림 알림이 있으면 지워요(앱을 새로 깐 뒤 등).
-                notifications.cancelRinging()
-            }
-            // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
-            rescheduler.rescheduleAll(now.now())
-        }
-        // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
-        // 온보딩 전용 확인 앱은 배터리 알림을 보내지 않아요(원래 앱과 겹치지 않게).
-        if (!BuildConfig.ONBOARDING_ONLY) batteryReminder.schedule()
-        checkAlertPermissions()
-        if (savedInstanceState == null) readEditRequest(intent)
+        // 미션 확인용 앱(11-20 사용자 지시)은 알람 예약, 울림 이어가기, 배터리 알림, 온보딩을 하지 않아요.
+        if (!BuildConfig.MISSION_ONLY) startAlarmUpkeep()
+        if (savedInstanceState == null && !BuildConfig.MISSION_ONLY) readEditRequest(intent)
         // 첫 실행이면 온보딩부터(결정 131). 한 번 정하면 화면을 다시 그려도 바꾸지 않아요.
         // 온보딩 전용 확인 앱(11-19 사용자 지시)은 켤 때마다 온보딩만 보여요.
-        val showOnboarding = BuildConfig.ONBOARDING_ONLY || !onboarding.isDone
+        val showOnboarding = !BuildConfig.MISSION_ONLY && (BuildConfig.ONBOARDING_ONLY || !onboarding.isDone)
         setContent {
             FitDesignWidth {
                 // 테마는 지금 시각을 따라요(아침 라이트, 밤 다크). 폰 다크 모드 설정은 보지 않아요.
@@ -100,12 +87,32 @@ class MainActivity : ComponentActivity() {
                             showOnboarding = showOnboarding,
                             onOnboardingFinished = onboarding::markDone,
                             onboardingOnly = BuildConfig.ONBOARDING_ONLY,
+                            missionOnly = BuildConfig.MISSION_ONLY,
                             debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
                         )
                     }
                 }
             }
         }
+    }
+
+    /** 원래 앱이 켤 때 하는 알람 관리: 울리던 알람 이어가기, 예약 맞추기, 배터리 알림 예약, 권한 진단. */
+    private fun startAlarmUpkeep() {
+        lifecycleScope.launch {
+            // 울리는 중인 알람이 있으면 끌 수 있는 울림 화면으로 보내요(알림을 못 띄운 경우의 길).
+            if (sessions.load() != null) {
+                startActivity(Intent(this@MainActivity, RingActivity::class.java))
+            } else {
+                // 울리는 알람이 없는데 남은 울림, 기다림 알림이 있으면 지워요(앱을 새로 깐 뒤 등).
+                notifications.cancelRinging()
+            }
+            // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
+            rescheduler.rescheduleAll(now.now())
+        }
+        // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
+        // 온보딩 전용 확인 앱은 배터리 알림을 보내지 않아요(원래 앱과 겹치지 않게).
+        if (!BuildConfig.ONBOARDING_ONLY) batteryReminder.schedule()
+        checkAlertPermissions()
     }
 
     /** 기기 설정에서 권한을 바꾸고 돌아오면 바로 다시 확인해요(3번 흐름 표 14). */
