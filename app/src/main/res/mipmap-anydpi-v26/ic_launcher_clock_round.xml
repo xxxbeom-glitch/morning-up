@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 모닝업 앱 아이콘(11-21 확정, 피그마 'App Icon / Clock Day' 921:12691). 원래 앱(debug, release)만 써요. -->
+<!-- 모닝업 앱 아이콘(11-21 사용자 수정본, 피그마 'App Icon / Clock Day Black' 991:12699). 원래 앱(debug, release)만 써요. -->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@drawable/ic_launcher_clock_background" />
     <foreground android:drawable="@mipmap/ic_launcher_clock_foreground" />
