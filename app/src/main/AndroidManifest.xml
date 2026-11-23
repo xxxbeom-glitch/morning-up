@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 수면 라운지는 MVP에서 숨겨요(결정 140, 141). core/alarm의 잠들기 재생 서비스와 권한 선언을 빼요.
+         되살릴 때는 아래 두 줄을 지우고 app/build.gradle.kts의 SLEEP_LOUNGE를 true로 해요. -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        tools:node="remove" />
 
     <application
         android:name=".MorningUpApplication"
@@ -11,6 +18,10 @@
         android:roundIcon="${appRoundIcon}"
         android:supportsRtl="true"
         android:theme="@style/Theme.MorningUp">
+
+        <service
+            android:name="com.lumian.morningup.core.alarm.sleep.SleepPlaybackService"
+            tools:node="remove" />
 
         <activity
             android:name=".MainActivity"

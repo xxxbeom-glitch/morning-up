@@ -11,6 +11,9 @@ android {
     defaultConfig {
         applicationId = "com.lumian.morningup"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // 수면 라운지(잠들기 탭 Z1, Z2) 스위치. MVP에서는 꺼요(결정 140, 141). 코드는 지우지 않고 숨겨요.
+        // 되살릴 때: 이 값을 true로, app/src/main/AndroidManifest.xml의 tools:node="remove" 두 줄을 지워요.
+        buildConfigField("boolean", "SLEEP_LOUNGE", "false")
     }
 
     buildTypes {

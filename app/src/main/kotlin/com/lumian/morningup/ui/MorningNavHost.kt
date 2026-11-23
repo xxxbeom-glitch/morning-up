@@ -187,6 +187,7 @@ fun MorningNavHost(
                     )
                 },
                 settingsAlert = report.needsAttention,
+                sleepLounge = BuildConfig.SLEEP_LOUNGE,
                 hideNav = homeSelecting,
                 alarmTabRequested = showAlarmTab,
                 onAlarmTabShown = { showAlarmTab = false },

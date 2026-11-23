@@ -25,7 +25,7 @@ import com.lumian.morningup.core.designsystem.component.MorningNavItem
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
-/** 앱의 세 탭. 순서가 하단 메뉴 순서예요. */
+/** 앱의 탭. 순서가 하단 메뉴 순서예요. 잠들기 탭은 수면 라운지 스위치를 켰을 때만 보여요(결정 140, 141). */
 enum class TopTab { Alarm, Sleep, Settings }
 
 /**
@@ -38,6 +38,7 @@ fun MorningUpApp(
     settingsTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_settings)) },
     sleepTab: @Composable (Modifier) -> Unit = { Placeholder(stringResource(R.string.tab_sleep)) },
     settingsAlert: Boolean = false,
+    sleepLounge: Boolean = false,
     hideNav: Boolean = false,
     alarmTabRequested: Boolean = false,
     onAlarmTabShown: () -> Unit = {},
@@ -50,18 +51,14 @@ fun MorningUpApp(
             onAlarmTabShown()
         }
     }
-    val labels = listOf(
-        stringResource(R.string.tab_alarm),
-        stringResource(R.string.tab_sleep),
-        stringResource(R.string.tab_settings),
-    )
+    val tabs = if (sleepLounge) TopTab.entries.toList() else listOf(TopTab.Alarm, TopTab.Settings)
     // 잠들기 탭(Z1)은 늘 다크 모드예요. 하단 메뉴도 같이 어둡게 바꿔요.
     MorningTheme(
         darkTheme = tab == TopTab.Sleep || MorningTheme.colors.isDark,
         reduceMotion = MorningTheme.reduceMotion,
     ) {
         SystemBarIcons(dark = MorningTheme.colors.isDark)
-        AppFrame(modifier, tab, labels, settingsAlert, hideNav, onSelect = { tab = it }) {
+        AppFrame(modifier, tabs, tab, settingsAlert, hideNav, onSelect = { tab = it }) {
             when (tab) {
                 TopTab.Alarm -> alarmTab(Modifier.fillMaxSize())
                 TopTab.Sleep -> sleepTab(Modifier.fillMaxSize())
@@ -74,8 +71,8 @@ fun MorningUpApp(
 @Composable
 private fun AppFrame(
     modifier: Modifier,
+    tabs: List<TopTab>,
     tab: TopTab,
-    labels: List<String>,
     settingsAlert: Boolean,
     hideNav: Boolean,
     onSelect: (TopTab) -> Unit,
@@ -90,15 +87,11 @@ private fun AppFrame(
         // 홈 선택 모드(H3-1)에서는 하단 메뉴 자리에 홈의 켜기, 끄기, 복사, 삭제 바가 떠요.
         if (!hideNav) {
             MorningBottomNav(
-                items = listOf(
-                    MorningNavItem(Lucide.AlarmClock, labels[0]),
-                    MorningNavItem(Lucide.Moon, labels[1]),
-                    MorningNavItem(Lucide.Settings, labels[2]),
-                ),
-                selectedIndex = tab.ordinal,
-                onSelect = { onSelect(TopTab.entries[it]) },
+                items = tabs.map { navItem(it) },
+                selectedIndex = tabs.indexOf(tab).coerceAtLeast(0),
+                onSelect = { onSelect(tabs[it]) },
                 // 꺼진 필수 권한이 있으면 설정 아이콘 위에 '확인 필요' 말풍선(design-system 하단 메뉴 Alert).
-                alertIndex = TopTab.Settings.ordinal.takeIf { settingsAlert },
+                alertIndex = tabs.indexOf(TopTab.Settings).takeIf { settingsAlert },
                 alertLabel = stringResource(R.string.tab_settings_alert),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -107,6 +100,13 @@ private fun AppFrame(
             )
         }
     }
+}
+
+@Composable
+private fun navItem(tab: TopTab): MorningNavItem = when (tab) {
+    TopTab.Alarm -> MorningNavItem(Lucide.AlarmClock, stringResource(R.string.tab_alarm))
+    TopTab.Sleep -> MorningNavItem(Lucide.Moon, stringResource(R.string.tab_sleep))
+    TopTab.Settings -> MorningNavItem(Lucide.Settings, stringResource(R.string.tab_settings))
 }
 
 @Composable
