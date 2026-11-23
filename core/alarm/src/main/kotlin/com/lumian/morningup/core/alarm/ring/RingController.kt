@@ -87,6 +87,7 @@ class RingController @Inject constructor(
                 RingEffect.PostMissedNotification(id),
                 RingEffect.SessionEnded(id, RingOutcome.Missed),
             )
+            FlowLog.event("missed_after_long_off", id, FlowLog.effectsOf(ended))
             updateScreen(ended)
             runner.run(saved, ended)
             saved = null
@@ -94,6 +95,7 @@ class RingController @Inject constructor(
         _session.value = saved
         if (saved != null) {
             val effects = RingStateMachine.resume(saved)
+            FlowLog.event("resumed", saved.plan.alarmId, "phase=${saved.phase} " + FlowLog.effectsOf(effects))
             updateScreen(effects)
             runner.run(saved, effects)
         }
@@ -103,6 +105,17 @@ class RingController @Inject constructor(
     private suspend fun apply(event: RingEvent) {
         val current = sessions.load()
         val transition = RingStateMachine.reduce(current, event, now.millis())
+        // 미션 화면 조작(59초 다시 채우기)은 너무 잦아서 흐름 로그에 남기지 않아요.
+        if (event != RingEvent.MissionInteraction) {
+            val after = transition.session
+            val firedId = (event as? RingEvent.AlarmFired)?.plan?.alarmId
+            FlowLog.event(
+                name = FlowLog.nameOf(event),
+                alarmId = (after ?: current)?.plan?.alarmId ?: firedId,
+                detail = "phase=${current?.phase ?: "-"}->${after?.phase ?: "-"} " +
+                    FlowLog.effectsOf(transition.effects),
+            )
+        }
         if (transition.session != current) sessions.save(transition.session)
         _session.value = transition.session
         updateScreen(transition.effects)
@@ -130,7 +143,10 @@ class RingController @Inject constructor(
      * W2 때가 되면 상태표가 ShowWakeCheck로 다시 화면을 정해요.
      */
     fun clearScreen() {
-        if (_screen.value == RingScreen.WakeUp) _screen.value = RingScreen.None
+        if (_screen.value == RingScreen.WakeUp) {
+            FlowLog.event("wake_up_closed", _session.value?.plan?.alarmId)
+            _screen.value = RingScreen.None
+        }
     }
 
     /** 쉬는 중 알림을 눌렀어요. 쉬는 동안에도 울림 화면을 보여 줘서 미션을 시작하거나 끌 수 있게 해요. */

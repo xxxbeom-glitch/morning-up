@@ -1,4 +1,4 @@
-package com.lumian.morningup.ui
+package com.lumian.morningup.debug
 
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionType
@@ -13,7 +13,7 @@ import org.junit.Test
 class AlarmTestCaseTest {
     private val time = LocalTime.of(7, 0)
 
-    private fun alarm(case: AlarmTestCase): Alarm = DebugAlarmViewModel.alarmFor(case, time)
+    private fun alarm(case: AlarmTestCase): Alarm = AlarmTestCases.alarmFor(case, time)
 
     @Test
     fun a_isAllDefaults_ringOnceThenMissed() {

@@ -28,7 +28,6 @@ import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.feature.settings.OnboardingStore
 import com.lumian.morningup.ring.RingActivity
-import com.lumian.morningup.ui.DebugAlarmTools
 import com.lumian.morningup.ui.MorningNavHost
 import com.lumian.morningup.ui.SystemBarIcons
 import com.lumian.morningup.ui.rememberNightByClock
@@ -107,7 +106,6 @@ class MainActivity : ComponentActivity() {
                                 null
                             },
                             missionOnly = BuildConfig.MISSION_ONLY,
-                            debugTools = { if (BuildConfig.DEBUG) DebugAlarmTools() },
                         )
                     }
                 }

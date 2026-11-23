@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- 디버그 빌드 전용 adb 입구(TSK-164). DUMP 권한이 있는 adb shell만 보낼 수 있어요. docs/qa/README.md -->
+        <receiver
+            android:name="com.lumian.morningup.debug.DebugCommandReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP" />
+    </application>
+
+</manifest>

@@ -65,7 +65,7 @@ private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 /**
  * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보. 제목은 숨겨요.
  * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
- * [onOpenTests]가 있으면(디버그 빌드만) 맨 아래에 '테스트' 줄 하나를 붙여요. 시험 도구는 그 페이지에 모아요.
+ * [themeMode]가 있으면(디버그 빌드만) 맨 아래에 '화면 모드(임시)' 줄을 붙여요. 시험 알람은 adb 명령으로 걸어요(docs/qa/README.md).
  */
 @Composable
 fun SettingsRoute(
@@ -74,7 +74,6 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
-    onOpenTests: (() -> Unit)? = null,
     themeMode: ThemeMode? = null,
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
@@ -95,7 +94,6 @@ fun SettingsRoute(
         onFaq = onOpenFaq,
         onLicenses = onOpenLicenses,
         modifier = modifier,
-        onTests = onOpenTests,
         themeMode = themeMode,
         onThemeMode = onThemeMode,
         weatherCard = weatherCard,
@@ -135,7 +133,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onFaq: () -> Unit = {},
     onLicenses: () -> Unit = {},
-    onTests: (() -> Unit)? = null,
     themeMode: ThemeMode? = null,
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
@@ -192,21 +189,16 @@ fun SettingsScreen(
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                     }
                 }
-                // 디버그 빌드만: 화면 모드(임시, TSK-166)와 테스트. 출시 빌드에는 이 카드가 없어요.
-                if (onTests != null || themeMode != null) {
+                // 디버그 빌드만: 화면 모드(임시, TSK-166). 출시 빌드에는 이 카드가 없어요.
+                if (themeMode != null) {
                     MorningSettingsCard(title = null) {
                         NavRows {
-                            if (themeMode != null) {
-                                // 누를 때마다 자동 → 라이트 → 다크 → 자동으로 바뀌어요.
-                                NavRow(
-                                    label = stringResource(R.string.settings_theme_mode),
-                                    value = stringResource(themeMode.labelRes()),
-                                    onClick = { onThemeMode(themeMode.next()) },
-                                )
-                            }
-                            if (onTests != null) {
-                                NavRow(label = stringResource(R.string.settings_tests), onClick = onTests)
-                            }
+                            // 누를 때마다 자동 → 라이트 → 다크 → 자동으로 바뀌어요.
+                            NavRow(
+                                label = stringResource(R.string.settings_theme_mode),
+                                value = stringResource(themeMode.labelRes()),
+                                onClick = { onThemeMode(themeMode.next()) },
+                            )
                         }
                     }
                 }
