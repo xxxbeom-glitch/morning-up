@@ -21,6 +21,7 @@
 
         <service
             android:name="com.lumian.morningup.core.alarm.sleep.SleepPlaybackService"
+            tools:ignore="Instantiatable"
             tools:node="remove" />
 
         <activity
