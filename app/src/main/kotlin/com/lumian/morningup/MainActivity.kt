@@ -22,6 +22,7 @@ import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.component.MorningOverlayRoot
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -81,7 +82,9 @@ class MainActivity : ComponentActivity() {
                 // 온보딩 전용 확인 앱만 시각을 무시하고 라이트 한 바퀴, 다크 한 바퀴를 차례로 보여요(11-20 사용자 요청).
                 var demoDark by rememberSaveable { mutableStateOf(false) }
                 val clockNight = rememberNightByClock(now::now)
-                val night = if (BuildConfig.ONBOARDING_ONLY) demoDark else clockNight
+                // 디버그 빌드는 설정 '화면 모드(임시)'로 라이트, 다크를 고정할 수 있어요(TSK-166).
+                val themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG)
+                val night = if (BuildConfig.ONBOARDING_ONLY) demoDark else themeMode.isDark(clockNight)
                 MorningTheme(darkTheme = night) {
                     SystemBarIcons(dark = night)
                     // 결정 시트(전원 종료 방지 등)를 하단 메뉴와 시스템 바 뒤까지 덮어 그리는 자리.

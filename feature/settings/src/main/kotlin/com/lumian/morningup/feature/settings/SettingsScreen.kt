@@ -1,5 +1,6 @@
 package com.lumian.morningup.feature.settings
 
+import com.lumian.morningup.core.designsystem.theme.ThemeMode
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -74,6 +75,8 @@ fun SettingsRoute(
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
     onOpenTests: (() -> Unit)? = null,
+    themeMode: ThemeMode? = null,
+    onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -93,6 +96,8 @@ fun SettingsRoute(
         onLicenses = onOpenLicenses,
         modifier = modifier,
         onTests = onOpenTests,
+        themeMode = themeMode,
+        onThemeMode = onThemeMode,
         weatherCard = weatherCard,
         // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
         // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보이고, 안 켜고 돌아오면 꺼진 채예요.
@@ -131,6 +136,8 @@ fun SettingsScreen(
     onFaq: () -> Unit = {},
     onLicenses: () -> Unit = {},
     onTests: (() -> Unit)? = null,
+    themeMode: ThemeMode? = null,
+    onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
@@ -185,9 +192,22 @@ fun SettingsScreen(
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                     }
                 }
-                if (onTests != null) {
+                // 디버그 빌드만: 화면 모드(임시, TSK-166)와 테스트. 출시 빌드에는 이 카드가 없어요.
+                if (onTests != null || themeMode != null) {
                     MorningSettingsCard(title = null) {
-                        NavRows { NavRow(label = stringResource(R.string.settings_tests), onClick = onTests) }
+                        NavRows {
+                            if (themeMode != null) {
+                                // 누를 때마다 자동 → 라이트 → 다크 → 자동으로 바뀌어요.
+                                NavRow(
+                                    label = stringResource(R.string.settings_theme_mode),
+                                    value = stringResource(themeMode.labelRes()),
+                                    onClick = { onThemeMode(themeMode.next()) },
+                                )
+                            }
+                            if (onTests != null) {
+                                NavRow(label = stringResource(R.string.settings_tests), onClick = onTests)
+                            }
+                        }
                     }
                 }
             }
@@ -285,4 +305,12 @@ private fun sendFeedback(context: Context, versionName: String, report: Permissi
         .putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_subject))
         .putExtra(Intent.EXTRA_TEXT, body)
     PermissionSettings.open(context, intent)
+}
+
+private fun ThemeMode.next(): ThemeMode = ThemeMode.entries[(ordinal + 1) % ThemeMode.entries.size]
+
+private fun ThemeMode.labelRes(): Int = when (this) {
+    ThemeMode.Auto -> R.string.settings_theme_mode_auto
+    ThemeMode.Light -> R.string.settings_theme_mode_light
+    ThemeMode.Dark -> R.string.settings_theme_mode_dark
 }

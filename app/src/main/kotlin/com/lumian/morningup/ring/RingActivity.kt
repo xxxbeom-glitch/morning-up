@@ -1,5 +1,9 @@
 package com.lumian.morningup.ring
 
+import com.lumian.morningup.core.designsystem.theme.LocalThemeMode
+import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
+import androidx.compose.runtime.CompositionLocalProvider
+import com.lumian.morningup.BuildConfig
 import android.app.KeyguardManager
 import android.content.Intent
 import android.graphics.Color
@@ -100,7 +104,10 @@ class RingActivity : ComponentActivity() {
         }
         setContent {
             FitDesignWidth {
+                // 디버그 빌드에서 고른 화면 모드(TSK-166)를 울림 화면에도 내려 줘요.
+                val themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG)
                 MorningTheme {
+                  CompositionLocalProvider(LocalThemeMode provides themeMode) {
                     val ready by loaded.collectAsStateWithLifecycle()
                     RingRoute(
                         canClose = ready,
@@ -111,6 +118,7 @@ class RingActivity : ComponentActivity() {
                             RingMissionRoute()
                         },
                     )
+                  }
                 }
             }
         }

@@ -1,5 +1,8 @@
 package com.lumian.morningup.ui
 
+import androidx.compose.ui.platform.LocalContext
+import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
+import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -165,6 +168,7 @@ fun MorningNavHost(
                     )
                 },
                 settingsTab = { tabModifier ->
+                    val context = LocalContext.current
                     SettingsRoute(
                         versionName = BuildConfig.VERSION_NAME,
                         onOpenPermissions = {
@@ -178,6 +182,8 @@ fun MorningNavHost(
                         } else {
                             null
                         },
+                        themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG).takeIf { BuildConfig.DEBUG },
+                        onThemeMode = { mode -> ThemeModeStore.set(context, mode) },
                     )
                 },
                 sleepTab = { tabModifier ->

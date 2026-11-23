@@ -1,5 +1,7 @@
 package com.lumian.morningup.feature.ring
 
+import com.lumian.morningup.core.designsystem.theme.LocalThemeMode
+import com.lumian.morningup.core.designsystem.theme.ThemeMode
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Box
@@ -79,10 +81,16 @@ fun RingRoute(
         }
     }
 
-    val night = state.dayPart == DayPart.Night
+    // 디버그 빌드에서 고른 화면 모드(TSK-166)가 있으면 하늘과 테마가 그걸 따라요.
+    val dayPart = when (LocalThemeMode.current) {
+        ThemeMode.Auto -> state.dayPart
+        ThemeMode.Light -> DayPart.Morning
+        ThemeMode.Dark -> DayPart.Night
+    }
+    val night = dayPart == DayPart.Night
     MorningTheme(darkTheme = night, reduceMotion = MorningTheme.reduceMotion) {
         RingContent(
-            state = state,
+            state = state.copy(dayPart = dayPart),
             shown = lastShown,
             awakeTapped = awakeTapped,
             nowMillis = viewModel::nowMillis,
