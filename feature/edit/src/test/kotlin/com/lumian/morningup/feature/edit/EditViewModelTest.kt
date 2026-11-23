@@ -441,6 +441,28 @@ class EditViewModelTest {
         }
     }
 
+    /** ISS-036: 무제한(null)을 고른 뒤 간격을 바꿔도 무제한이 남아요. 꺼짐(0)일 때만 3번으로 켜져요. */
+    @Test
+    fun ringAgainInterval_keepsUnlimitedCount_andOffStartsAtThree() = runTest {
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setRingAgainCount(null)
+            assertThat(awaitItem().draft.ringAgain.count).isNull()
+            vm.setRingAgainInterval(10)
+            assertThat(awaitItem().draft.ringAgain).isEqualTo(RingAgain(10, null))
+            vm.setRingAgain(true)
+            vm.setRingAgainCount(5)
+            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(5)
+            vm.setRingAgainInterval(3)
+            assertThat(awaitItem().draft.ringAgain).isEqualTo(RingAgain(3, 5))
+            vm.setRingAgain(false)
+            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
+            vm.setRingAgainInterval(5)
+            assertThat(awaitItem().draft.ringAgain).isEqualTo(RingAgain(5, 3))
+        }
+    }
+
     @Test
     fun newAlarm_soundStartsRandom_andRandomCanBePicked() = runTest {
         val vm = viewModel(FakeAlarmBook())

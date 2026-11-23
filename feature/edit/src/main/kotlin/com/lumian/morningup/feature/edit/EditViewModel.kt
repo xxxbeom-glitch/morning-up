@@ -245,7 +245,7 @@ class EditViewModel @Inject constructor(
     fun removeMission(type: MissionType) = edit { it.copy(missions = it.missions.filterNot { m -> m.type == type }) }
 
     fun setRingAgain(on: Boolean) = edit {
-        val count = if (on) it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT else 0
+        val count = if (on) countWhenOn(it.ringAgain.count) else 0
         it.copy(ringAgain = RingAgain(it.ringAgain.intervalMinutes, count))
     }
 
@@ -269,11 +269,13 @@ class EditViewModel @Inject constructor(
     fun setRingAgainInterval(minutes: Int) {
         if (minutes in RING_AGAIN_INTERVALS) {
             edit {
-                val count = it.ringAgain.count.takeIf { c -> c != 0 } ?: DEFAULT_RING_AGAIN_COUNT
-                it.copy(ringAgain = RingAgain(minutes, count))
+                it.copy(ringAgain = RingAgain(minutes, countWhenOn(it.ringAgain.count)))
             }
         }
     }
+
+    /** 꺼짐(0)일 때만 처음 횟수(3번)를 넣어요. 무제한(null)과 고른 횟수는 그대로 둬요(ISS-036). */
+    private fun countWhenOn(count: Int?): Int? = if (count == 0) DEFAULT_RING_AGAIN_COUNT else count
 
     /** S3 '횟수'. 1회, 3회, 5회, null(무제한). 꺼져 있었으면 고른 횟수로 켜져요(꺼짐은 횟수 0이라서요). */
     fun setRingAgainCount(count: Int?) {
