@@ -41,6 +41,11 @@ data class RingPlan(
     val minuteMillis: Long = LabSettings.MINUTE_MILLIS,
     /** 실험실 버튼 속이기. null이면 꺼짐이에요. 울림 화면(D0)이 이 값을 봐요. */
     val trick: ButtonTrick? = null,
+    /**
+     * 실험실에서 '미션을 못 할 때 알림 숨기기'를 켰는지(결정 151). 움직임 센서가 없는 폰에서 흔들기 미션이 있으면
+     * 켜 두었어도 false예요(5절 예외). 마지막 바퀴 예외는 상태표가 봐요([MissionEscape.shouldShow]).
+     */
+    val escapeHidden: Boolean = false,
 ) {
     /** [index]번째 미션 설정. 저장된 값이 없거나 종류가 다르면 그 미션의 처음 값이에요. */
     fun missionSetting(index: Int): MissionSetting? {
@@ -52,9 +57,13 @@ data class RingPlan(
     companion object {
         /**
          * 알람과 그때의 전체 설정([settings])으로 이번 울림 값을 정해요. 전체 설정을 바꿔도 이미 시작한 울림은
-         * 이 값대로 가고, 다음 알람부터 새 값을 써요(결정 145 7번).
+         * 이 값대로 가고, 다음 알람부터 새 값을 써요(결정 145 7번). [shakeSupported]는 흔들기를 알아챌 센서가 있는지예요.
          */
-        fun from(alarm: Alarm, settings: WakeCheckSettings = WakeCheckSettings()) = RingPlan(
+        fun from(
+            alarm: Alarm,
+            settings: WakeCheckSettings = WakeCheckSettings(),
+            shakeSupported: Boolean = true,
+        ) = RingPlan(
             alarmId = alarm.id,
             missions = alarm.missionTypes,
             missionSettings = alarm.missions,
@@ -70,6 +79,8 @@ data class RingPlan(
             askTotal = settings.lab.multiAskCount.takeIf { settings.lab.multiAskEnabled },
             minuteMillis = settings.lab.debugMinuteMillis,
             trick = settings.lab.trick,
+            escapeHidden = settings.lab.escapeHidden &&
+                (shakeSupported || MissionType.ShakeShake !in alarm.missionTypes),
         )
     }
 }
@@ -119,6 +130,11 @@ data class RingSession(
      * 물을 때까지는 또 미리 끝낼 수 없어요(한 번에 하나만).
      */
     val earlyUsed: Boolean = false,
+    /**
+     * 이 바퀴에서 미션 비상구 알림(결정 149)을 띄웠는지. 첫 미션을 시작할 때 한 번 띄우고, 미션을 끝내거나 써서 끄거나
+     * 울림이 끝나면 지워요. 다시 잠들기 방지로 처음부터 다시 울리면 그 바퀴의 첫 미션 때 다시 띄워요.
+     */
+    val escapeShown: Boolean = false,
 ) {
     /** 여러 번 묻기의 남은 확인 수. 꺼져 있으면 null. */
     val checksLeft: Int? get() = plan.askTotal?.let { (it - checksDone).coerceAtLeast(0) }
@@ -182,6 +198,12 @@ sealed interface RingEvent {
     /** 미션 없는 알람의 '알람 끄기'. */
     data object DismissWithoutMission : RingEvent
 
+    /**
+     * 미션 비상구 알림에 예문을 맞게 따라 썼어요(결정 149). 미션을 다 끝낸 것과 같게 처리해요. 알림이 떠 있는 동안
+     * (울림, 쉬는 중, 미션 중)만 받아요. 틀리게 보낸 것은 [MissionInteraction]으로 보내 59초를 다시 채워요.
+     */
+    data object MissionEscaped : RingEvent
+
     /** W2 '깼어요'(10초 길게 누르기, 결정 145 9-1). */
     data object WakeCheckConfirmed : RingEvent
 
@@ -207,6 +229,7 @@ sealed interface RingEvent {
             "mission_interaction" to MissionInteraction,
             "mission_completed" to MissionCompleted,
             "dismiss_without_mission" to DismissWithoutMission,
+            "mission_escaped" to MissionEscaped,
             "wake_check_confirmed" to WakeCheckConfirmed,
             "recheck_confirmed" to RecheckConfirmed,
         )
@@ -233,6 +256,18 @@ sealed interface RingEffect {
     data class RestStarted(val nextRingAt: Long, val intervalMinutes: Int, val nextRingNumber: Int?) : RingEffect
 
     data class ShowMission(val index: Int) : RingEffect
+
+    /**
+     * 미션 비상구 알림을 띄워요(결정 149). [fresh]면 새 예문을 고르고(바로 전 것 빼고), 아니면 지금 예문 그대로
+     * 다시 올려요(앱이 다시 살아났을 때).
+     */
+    data class ShowEscape(val fresh: Boolean = true) : RingEffect
+
+    /** 미션 비상구 알림을 지워요. 미션을 다 끝냈거나 울림이 끝났어요. */
+    data object ClearEscape : RingEffect
+
+    /** 미션 비상구로 껐어요. 진단 기록에 '이번 달 n번째' 한 줄을 남겨요(7절). */
+    data class EscapeUsed(val alarmId: Long) : RingEffect
 
     /** W1 해제 완료 화면. */
     data object ShowWakeUp : RingEffect

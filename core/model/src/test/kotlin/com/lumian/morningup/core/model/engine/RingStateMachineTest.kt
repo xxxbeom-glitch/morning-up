@@ -360,7 +360,9 @@ class RingStateMachineTest {
     fun resume_inMission_returnsToSameMission_quietly() {
         var s = reduce(fire().session, RingEvent.MissionStarted, t0).session
         s = reduce(s, RingEvent.MissionCompleted, t0 + 10 * sec).session!!
+        // 첫 미션 때 띄운 미션 비상구 알림도 같은 예문으로 다시 올려요(결정 149).
         assertThat(RingStateMachine.resume(s)).containsExactly(
+            RingEffect.ShowEscape(fresh = false),
             StopSound,
             ShowMission(1),
             ScheduleTimer(s.phaseEndsAt, TimerKind.MissionTimeout),

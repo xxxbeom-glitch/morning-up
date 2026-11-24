@@ -1,6 +1,8 @@
 package com.lumian.morningup.core.model.engine
 
 import com.lumian.morningup.core.model.engine.RingEffect.CancelTimer
+import com.lumian.morningup.core.model.engine.RingEffect.ClearEscape
+import com.lumian.morningup.core.model.engine.RingEffect.EscapeUsed
 import com.lumian.morningup.core.model.engine.RingEffect.MarkPassed
 import com.lumian.morningup.core.model.engine.RingEffect.MultiAskRecorded
 import com.lumian.morningup.core.model.engine.RingEffect.PausedForCall
@@ -12,6 +14,7 @@ import com.lumian.morningup.core.model.engine.RingEffect.RescheduleAlarm
 import com.lumian.morningup.core.model.engine.RingEffect.RestStarted
 import com.lumian.morningup.core.model.engine.RingEffect.ScheduleTimer
 import com.lumian.morningup.core.model.engine.RingEffect.SessionEnded
+import com.lumian.morningup.core.model.engine.RingEffect.ShowEscape
 import com.lumian.morningup.core.model.engine.RingEffect.ShowMission
 import com.lumian.morningup.core.model.engine.RingEffect.ShowRecheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowRingScreen
@@ -59,14 +62,34 @@ object RingStateMachine {
         inCall: Boolean = false,
         random: Random = Random.Default,
     ): Transition {
-        if (event is RingEvent.AlarmFired) return alarmFired(session, event.plan, now)
+        if (event is RingEvent.AlarmFired) return withEscapeCleared(session, alarmFired(session, event.plan, now))
         if (session == null) return NoChange(null)
+        return withEscapeCleared(session, route(session, event, now, inCall, random))
+    }
+
+    /**
+     * 미션 비상구 알림이 떠 있던 세션이 알림 없는 상태로 바뀌면(미션 끝, 써서 끔, 울림 끝) 알림을 지워요.
+     * 써서 끈 경우의 '알람을 껐어요'는 다른 알림이라 함께 지워지지 않아요.
+     */
+    private fun withEscapeCleared(before: RingSession?, t: Transition): Transition {
+        val cleared = before?.escapeShown == true && t.session?.escapeShown != true
+        return if (cleared) t.copy(effects = t.effects + ClearEscape) else t
+    }
+
+    private fun route(
+        session: RingSession,
+        event: RingEvent,
+        now: Long,
+        inCall: Boolean,
+        random: Random,
+    ): Transition {
         return when (event) {
             is RingEvent.TimerFired -> timerFired(session, event.kind, now, inCall)
             RingEvent.MissionStarted -> missionStarted(session, now)
             RingEvent.MissionInteraction -> missionInteraction(session, now)
             RingEvent.MissionCompleted -> missionCompleted(session, now)
             RingEvent.DismissWithoutMission -> dismissWithoutMission(session, now)
+            RingEvent.MissionEscaped -> missionEscaped(session, now)
             RingEvent.WakeCheckConfirmed ->
                 if (session.phase == RingPhase.WakeCheckAsking) {
                     wakeCheckPassed(session, now, random)
@@ -77,7 +100,7 @@ object RingStateMachine {
             is RingEvent.CallChanged -> callChanged(session, event.inCall, now)
             is RingEvent.CancelChecks -> cancelChecks(session, event.alarmId)
             RingEvent.RecheckTurnedOff -> recheckTurnedOff(session)
-            is RingEvent.AlarmFired -> error("위에서 처리했어요")
+            is RingEvent.AlarmFired -> error("reduce에서 처리했어요")
         }
     }
 
@@ -89,7 +112,9 @@ object RingStateMachine {
     fun resume(session: RingSession): List<RingEffect> {
         if (session.pausedLeftMillis != null) return listOf(PausedForCall)
         val timer = ScheduleTimer(session.phaseEndsAt, TimerKind.entries.first { it.phase == session.phase })
-        return when (session.phase) {
+        // 미션 비상구 알림은 앱이 죽으면 남아 있어도 바로 답장 받는 곳이 없어질 수 있어서 같은 예문으로 다시 올려요.
+        val escape = if (session.escapeShown) listOf(ShowEscape(fresh = false)) else emptyList()
+        return escape + when (session.phase) {
             RingPhase.Ringing -> listOf(PlaySound(FULL_VOLUME), ShowRingScreen, timer)
             RingPhase.InMission -> listOf(StopSound, ShowMission(session.missionsDone), timer)
             RingPhase.WakeCheckAsking -> listOf(ShowWakeCheck, timer)
@@ -130,6 +155,8 @@ object RingStateMachine {
             missionsDone = if (reset) 0 else session.missionsDone,
             rounds = if (reset) session.rounds + 1 else session.rounds,
             pausedLeftMillis = null,
+            // 처음부터 다시 울린 바퀴에서는 첫 미션 때 비상구 알림을 다시 띄워요(결정 149 2절).
+            escapeShown = if (reset) false else session.escapeShown,
         )
         return Transition(next, ringEffects(next))
     }
@@ -241,16 +268,36 @@ object RingStateMachine {
     }
 
     private fun startMission(session: RingSession, now: Long): Transition {
-        val mission = session.copy(phase = RingPhase.InMission, phaseEndsAt = now + MISSION_MILLIS)
+        // 이 바퀴에서 처음 미션을 시작할 때 미션 비상구 알림을 한 번 띄워요(결정 149 2절). 그 뒤 59초가 지나 다시
+        // 울리거나 미션을 다시 시작해도 같은 알림이 그대로 남아요.
+        val showEscape = !session.escapeShown && MissionEscape.shouldShow(session)
+        val mission = session.copy(
+            phase = RingPhase.InMission,
+            phaseEndsAt = now + MISSION_MILLIS,
+            escapeShown = session.escapeShown || showEscape,
+        )
         return Transition(
             mission,
-            listOf(
+            listOfNotNull(
                 // 미션 중에는 사용자가 손을 쓰는 중이라 소리를 끄고 진동도 멈춰요(11-17 사용자 지시).
                 StopSound,
                 ShowMission(mission.missionsDone),
                 ScheduleTimer(mission.phaseEndsAt, TimerKind.MissionTimeout),
+                if (showEscape) ShowEscape() else null,
             ),
         )
+    }
+
+    /**
+     * 미션 비상구로 맞게 따라 썼어요(결정 149). 미션을 다 끝낸 것과 같아서 남은 미션을 건너뛰고 W1, W2로 가요.
+     * 알림이 떠 있는 동안(울림, 쉬는 중, 미션 중)만 받아요. 여러 번 묻기 횟수는 줄지 않아요(결정 151).
+     */
+    private fun missionEscaped(session: RingSession, now: Long): Transition {
+        val open = session.phase.isAlarmPhase || session.phase == RingPhase.InMission
+        if (!session.escapeShown || !open) return NoChange(session)
+        val done = session.copy(missionsDone = session.plan.missions.size, escapeShown = false)
+        val end = finish(done, now)
+        return end.copy(effects = listOf(EscapeUsed(session.plan.alarmId)) + end.effects)
     }
 
     private fun missionInteraction(session: RingSession, now: Long): Transition {
@@ -285,6 +332,7 @@ object RingStateMachine {
             phase = RingPhase.AwaitingWakeCheck,
             phaseEndsAt = now + session.plan.wakeCheckAskAfterMinutes * MINUTE,
             roundStartedAt = now,
+            escapeShown = false,
         )
         val ask = ScheduleTimer(waiting.phaseEndsAt, TimerKind.WakeCheckAsk)
         return Transition(waiting, listOf(StopSound, ShowWakeUp, ask))

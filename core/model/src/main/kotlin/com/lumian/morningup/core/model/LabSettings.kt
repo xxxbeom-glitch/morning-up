@@ -51,6 +51,7 @@ data class ButtonTrick(val level: TrickLevel = TrickLevel.Normal, val speed: Tri
  * '확실히 잠깨기' 실험실(결정 146). 모두 처음 꺼짐이에요.
  * - 버튼 속이기: [trickEnabled], [trickLevel], [trickSpeed]. 화면을 처음 만진 때부터 [TRICK_SECONDS]초 동안만 해요.
  * - 여러 번 묻기: [multiAskEnabled], [multiAskCount](W2 1번 + W3 나머지). 켜면 T1 '한 번 더 확인'은 켜진 채 잠겨요.
+ * - [escapeHidden]: 미션을 못 할 때 알림(미션 비상구, 결정 151) 숨기기. 처음 꺼짐(= 알림 뜸)이에요.
  * - [debugMinuteMillis]: 시험용 시간 배율(디버그 빌드의 adb 명령으로만 바뀌어요). 여러 번 묻기의 무작위 간격과
  *   1시간 상한에만 써요. 출시 빌드에서는 늘 1분 = 60초예요.
  */
@@ -60,6 +61,7 @@ data class LabSettings(
     val trickSpeed: TrickSpeed = TrickSpeed.Normal,
     val multiAskEnabled: Boolean = false,
     val multiAskCount: Int = DEFAULT_ASK_COUNT,
+    val escapeHidden: Boolean = false,
     val debugMinuteMillis: Long = MINUTE_MILLIS,
 ) {
     /** 이번 울림에 걸 버튼 속이기. 꺼져 있으면 null. */
