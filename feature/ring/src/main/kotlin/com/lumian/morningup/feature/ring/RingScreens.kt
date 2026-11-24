@@ -1,9 +1,5 @@
 package com.lumian.morningup.feature.ring
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -14,14 +10,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -32,16 +29,11 @@ import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.composables.icons.lucide.Check
-import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
-import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -247,85 +239,96 @@ private fun wakeUpMessage(morning: Boolean, weather: WeatherKind?): Int = when (
 }
 
 /**
- * W2 깨어 있나요. 남은 시간을 크게 보여 주고, 원형 '깼어요'를 누르면 체크로 바뀐 뒤 닫혀요.
+ * W2 '깨어 있나요?'와 W3 '정말 깼어요?'(결정 145 9-1). 남은 시간을 크게 보여 주고, 원형 '깼어요'를 10초 동안
+ * 꾹 누르면([HoldButton]) 끝나요. 일찍 떼면 안내 줄이 '끝까지 누르고 있어야 해요'로 바뀌어요.
+ * - [remainingMillis]가 null이면(W3를 기다리는 중에 미리 연 경우) 시계와 그 아래 안내를 숨겨요.
+ * - [confirmed]면 버튼 없이 '확인했어요'만 보여요. W2는 한 번 더 확인이 켜져 있으면 [nextAskMinutes]분 뒤 다시
+ *   묻는다고 한 줄 더 적어요.
  */
 @Composable
 fun WakeCheckScreen(
     dayPart: DayPart,
-    answerSeconds: Int,
-    remainingMillis: Long,
+    remainingMillis: Long?,
     confirmed: Boolean,
     onAwake: () -> Unit,
     modifier: Modifier = Modifier,
+    recheck: Boolean = false,
+    nextAskMinutes: Int? = null,
 ) {
-    val colors = MorningTheme.colors
-    val typography = MorningTheme.typography
-    val resources = LocalContext.current.resources
     RingSky(dayPart, modifier) {
         Column(
-            modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
+            modifier = Modifier.align(Alignment.Center).systemBarsPadding().padding(horizontal = MorningDimens.space24),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                text = stringResource(R.string.ring_wake_check_title),
-                style = typography.headlineLarge,
-                color = colors.textPrimary,
-            )
-            Spacer(Modifier.height(MorningDimens.space8))
-            Text(
-                text = stringResource(R.string.ring_wake_check_message, AlarmText.duration(resources, answerSeconds)),
-                style = typography.bodyMedium,
-                color = colors.textBody,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(MorningDimens.space32))
-            FixedFontScale {
-                Text(
-                    text = AlarmText.countdown(resources, remainingMillis),
-                    style = typography.displayLarge12h,
-                    color = colors.textPrimary,
-                )
+            if (confirmed) {
+                CheckDone(nextAskMinutes)
+            } else {
+                CheckAsking(recheck, remainingMillis, onAwake)
             }
-            Spacer(Modifier.height(MorningDimens.space40))
-            AwakeButton(confirmed = confirmed, onClick = onAwake)
         }
     }
 }
 
 @Composable
-private fun AwakeButton(confirmed: Boolean, onClick: () -> Unit) {
+private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () -> Unit) {
     val colors = MorningTheme.colors
-    val reduceMotion = MorningTheme.reduceMotion
-    val doneLabel = stringResource(R.string.ring_wake_check_done)
-    Box(
-        modifier = Modifier
-            .size(MorningDimens.sizeButtonCircle)
-            .background(colors.primaryDefault, CircleShape)
-            .morningClickable(haptic = MorningHaptic.Confirm, enabled = !confirmed, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        AnimatedContent(
-            targetState = confirmed,
-            transitionSpec = {
-                fadeIn(MorningMotion.spatial(MorningMotion.SpatialFast, reduceMotion)) togetherWith
-                    fadeOut(MorningMotion.spatial(MorningMotion.SpatialFast, reduceMotion))
-            },
-            label = "awake",
-        ) { done ->
-            if (done) {
-                Icon(
-                    imageVector = Lucide.Check,
-                    contentDescription = null,
-                    tint = colors.primaryOn,
-                    modifier = Modifier.size(MorningDimens.iconLg).semantics { contentDescription = doneLabel },
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.ring_wake_check_awake),
-                    style = MorningTheme.typography.titleMedium,
-                    color = colors.primaryOn,
-                )
-            }
+    val typography = MorningTheme.typography
+    val resources = LocalContext.current.resources
+    var releasedEarly by remember { mutableStateOf(false) }
+    Text(
+        text = stringResource(if (recheck) R.string.ring_recheck_title else R.string.ring_wake_check_title),
+        style = typography.headlineLarge,
+        color = colors.textPrimary,
+    )
+    Spacer(Modifier.height(MorningDimens.space8))
+    Text(
+        text = stringResource(if (releasedEarly) R.string.ring_hold_released_early else R.string.ring_hold_guide),
+        style = typography.bodyMedium,
+        color = if (releasedEarly) colors.primaryText else colors.textBody,
+        textAlign = TextAlign.Center,
+    )
+    if (remainingMillis != null) {
+        Spacer(Modifier.height(MorningDimens.space16))
+        FixedFontScale {
+            Text(
+                text = AlarmText.countdown(resources, remainingMillis),
+                style = typography.displayLarge12h,
+                color = colors.textPrimary,
+            )
         }
+        Spacer(Modifier.height(MorningDimens.space16))
+        Text(
+            text = stringResource(R.string.ring_check_ring_again),
+            style = typography.bodySmall,
+            color = colors.textBody,
+            textAlign = TextAlign.Center,
+        )
+    }
+    Spacer(Modifier.height(MorningDimens.space40))
+    HoldButton(
+        label = stringResource(R.string.ring_wake_check_awake),
+        onComplete = onAwake,
+        onReleasedEarly = { releasedEarly = true },
+        onPressed = { releasedEarly = false },
+    )
+}
+
+@Composable
+private fun CheckDone(nextAskMinutes: Int?) {
+    val colors = MorningTheme.colors
+    val typography = MorningTheme.typography
+    Text(
+        text = stringResource(R.string.ring_wake_check_done),
+        style = typography.headlineLarge,
+        color = colors.textPrimary,
+    )
+    if (nextAskMinutes != null) {
+        Spacer(Modifier.height(MorningDimens.space8))
+        Text(
+            text = stringResource(R.string.ring_wake_check_next, nextAskMinutes),
+            style = typography.bodyMedium,
+            color = colors.textBody,
+            textAlign = TextAlign.Center,
+        )
     }
 }

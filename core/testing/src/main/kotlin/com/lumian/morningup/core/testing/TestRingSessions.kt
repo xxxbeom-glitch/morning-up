@@ -13,6 +13,9 @@ fun testRingSession(
     phaseEndsAt: Long = 0L,
     alarmId: Long = 1L,
     wakeCheckAnswerSeconds: Int = 60,
+    wakeCheckAskAfterMinutes: Int = 1,
+    recheckEnabled: Boolean = false,
+    pausedLeftMillis: Long? = null,
 ) = RingSession(
     plan = RingPlan(
         alarmId = alarmId,
@@ -20,12 +23,14 @@ fun testRingSession(
         intervalMinutes = 5,
         ringAgainCount = null,
         wakeCheckEnabled = true,
-        wakeCheckAskAfterMinutes = 1,
+        wakeCheckAskAfterMinutes = wakeCheckAskAfterMinutes,
         wakeCheckAnswerSeconds = wakeCheckAnswerSeconds,
         missionSettings = missions,
+        recheckEnabled = recheckEnabled,
     ),
     phase = phase,
     ringsLeft = null,
     missionsDone = missionsDone,
     phaseEndsAt = phaseEndsAt,
+    pausedLeftMillis = pausedLeftMillis,
 )

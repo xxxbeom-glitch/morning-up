@@ -18,6 +18,7 @@
 | 시험 알람 A~G 걸기 (다음 분 정각) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ALARM_CASE --es case A` |
 | N분 뒤에 걸기 (1~60) | 위 명령 끝에 `--ei in_minutes 5` |
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
+| 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
 
 - `case`는 `A`~`G`예요. 틀리면 `data="case must be one of A,B,..."`가 나와요.
 - 성공하면 `data="case A alarm 12 at 16:31"`처럼 알람 id와 울릴 시각이 나와요.

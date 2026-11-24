@@ -43,12 +43,10 @@ class AlarmTestCaseTest {
     }
 
     @Test
-    fun d_wakeCheckAfterOneMinuteThirtySeconds() {
+    fun d_wakeCheckOnWithGlobalTimes() {
         val d = alarm(AlarmTestCase.D)
         assertEquals(MissionType.QuickMath, d.missions.single().type)
         assertTrue(d.wakeCheck.enabled)
-        assertEquals(1, d.wakeCheck.askAfterMinutes)
-        assertEquals(30, d.wakeCheck.answerSeconds)
     }
 
     @Test

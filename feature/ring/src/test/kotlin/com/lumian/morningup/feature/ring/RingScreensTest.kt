@@ -1,8 +1,12 @@
 package com.lumian.morningup.feature.ring
 
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.DayPart
@@ -74,24 +78,74 @@ class RingScreensTest {
         compose.onNodeWithText("밖에 비가 와요", substring = true).assertExists()
     }
 
-    @Test
-    fun wakeCheck_showsCountdown_andAwake() {
-        var awake = false
+    private fun wakeCheck(recheck: Boolean = false, remaining: Long? = 42_000, onAwake: () -> Unit = {}) =
         compose.setContent {
             MorningTheme(darkTheme = false, reduceMotion = true) {
                 WakeCheckScreen(
                     dayPart = DayPart.Morning,
-                    answerSeconds = 60,
-                    remainingMillis = 42_000,
+                    remainingMillis = remaining,
                     confirmed = false,
-                    onAwake = { awake = true },
+                    onAwake = onAwake,
+                    recheck = recheck,
                 )
             }
         }
+
+    @Test
+    fun wakeCheck_showsCountdown_andHoldTenSecondsConfirms() {
+        var awake = false
+        wakeCheck { awake = true }
         compose.onNodeWithText("깨어 있나요?").assertExists()
         compose.onNodeWithText("0:42").assertExists()
-        compose.onNodeWithText("1분 안에 눌러 주세요", substring = true).assertExists()
-        compose.onNodeWithText("깼어요").performClick()
+        compose.onNodeWithText("시간 안에 하지 않으면 알람이 다시 울려요").assertExists()
+        // 톡백처럼 두 번 탭하면 10초에 걸쳐 저절로 차요.
+        compose.onNodeWithTag(HOLD_BUTTON_TAG).performSemanticsAction(SemanticsActions.OnClick)
+        compose.mainClock.advanceTimeBy(5_000)
+        assertThat(awake).isFalse()
+        compose.mainClock.advanceTimeBy(6_000)
+        compose.waitForIdle()
         assertThat(awake).isTrue()
+    }
+
+    @Test
+    fun hold_releasedEarly_showsHint_andDoesNotConfirm() {
+        var awake = false
+        wakeCheck { awake = true }
+        compose.mainClock.autoAdvance = false
+        compose.onNodeWithTag(HOLD_BUTTON_TAG).performTouchInput { down(center) }
+        // 시계를 멈춰 둔 채라 누른 것이 반영되도록 한 번 처리해요.
+        compose.waitForIdle()
+        compose.mainClock.advanceTimeByFrame()
+        compose.mainClock.advanceTimeBy(3_000)
+        compose.onNodeWithText("8").assertExists()
+        compose.onNodeWithTag(HOLD_BUTTON_TAG).performTouchInput { up() }
+        compose.waitForIdle()
+        compose.mainClock.advanceTimeBy(2_000)
+        compose.onNodeWithText("끝까지 누르고 있어야 해요").assertExists()
+        assertThat(awake).isFalse()
+    }
+
+    @Test
+    fun recheck_showsTitle_andHidesClockWhenOpenedEarly() {
+        wakeCheck(recheck = true, remaining = null)
+        compose.onNodeWithText("정말 깼어요?").assertExists()
+        compose.onNodeWithText("시간 안에 하지 않으면 알람이 다시 울려요").assertDoesNotExist()
+    }
+
+    @Test
+    fun checkDone_showsNextAsk() {
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                WakeCheckScreen(
+                    dayPart = DayPart.Morning,
+                    remainingMillis = null,
+                    confirmed = true,
+                    onAwake = {},
+                    nextAskMinutes = 3,
+                )
+            }
+        }
+        compose.onNodeWithText("확인했어요").assertExists()
+        compose.onNodeWithText("3분 뒤 한 번 더 물어볼게요").assertExists()
     }
 }

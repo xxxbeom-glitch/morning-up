@@ -107,6 +107,25 @@ fun MorningBlockingSheet(
     }
 }
 
+/**
+ * [content]를 앱 맨 위 [MorningOverlayRoot] 자리에 그려요. 탭 화면에서 여는 [MorningModalSheet]가 하단 메뉴 위로
+ * 올라오게 할 때 써요. 자리가 없으면(시험 화면) 그 자리에 그려요.
+ */
+@Composable
+fun MorningOverlay(content: @Composable () -> Unit) {
+    val host = LocalMorningOverlay.current
+    if (host == null) {
+        content()
+        return
+    }
+    val latest by rememberUpdatedState(content)
+    DisposableEffect(host) {
+        val entry: @Composable () -> Unit = { latest() }
+        host.show(entry)
+        onDispose { host.hide(entry) }
+    }
+}
+
 /** 화면 맨 위에 덮어 그릴 것(결정 시트)을 받아 두는 자리. [MorningOverlayRoot]가 만들어요. */
 class MorningOverlayHost internal constructor() {
     internal var content by mutableStateOf<(@Composable () -> Unit)?>(null)

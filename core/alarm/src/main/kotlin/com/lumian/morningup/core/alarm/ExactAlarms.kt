@@ -107,7 +107,7 @@ class RingTimers @Inject constructor(
     }
 
     private companion object {
-        val WAKE_UP_KINDS = setOf(TimerKind.RestEnded, TimerKind.WakeCheckAsk)
+        val WAKE_UP_KINDS = setOf(TimerKind.RestEnded, TimerKind.WakeCheckAsk, TimerKind.RecheckAsk)
     }
 
     fun cancel() = exact.cancel(AlarmIntents.timerPendingIntent(context, null))

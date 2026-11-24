@@ -6,6 +6,7 @@ import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.WeatherKind
 import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.HolidayCalendar
@@ -39,6 +40,9 @@ sealed interface HomeMessage {
 
     /** 선택 모드 '복사' 뒤 토스트. */
     data class Copied(val count: Int) : HomeMessage
+
+    /** 편집에서 저장해 그 알람의 남은 확인(W2, W3)을 멈췄어요(결정 145). */
+    data object ChecksStopped : HomeMessage
 }
 
 data class HomeUiState(
@@ -77,7 +81,15 @@ class HomeViewModel @Inject constructor(
     private val holidays: HolidayCalendar,
     ticker: MinuteTicker,
     private val weatherSource: WeatherSource,
+    private val checks: WakeCheckGate,
 ) : ViewModel() {
+    /** 한 번 더 확인(W3)이 남았는지. 홈 위쪽 띠가 봐요(결정 145). */
+    val recheckPending: StateFlow<Boolean> = checks.recheckPending
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
+
+    /** 홈 띠 '확인하기'. W3를 지금 열어요. */
+    fun openRecheck() = checks.openRecheck()
+
     private data class Overlay(
         val pendingDelete: List<Alarm> = emptyList(),
         val message: HomeMessage? = null,
@@ -141,8 +153,12 @@ class HomeViewModel @Inject constructor(
     /** 홈이 앞으로 나올 때. 날씨가 오래됐으면 새로 받아요. */
     fun refreshWeather() = weatherSource.refresh()
 
-    /** 편집 화면에서 저장하고 돌아왔어요(H6 토스트). */
-    fun onAlarmSaved(id: Long) {
+    /** 편집 화면에서 저장하고 돌아왔어요(H6 토스트). 남은 확인을 멈췄으면([checksStopped]) 그 토스트예요. */
+    fun onAlarmSaved(id: Long, checksStopped: Boolean = false) {
+        if (checksStopped) {
+            overlay.update { it.copy(message = HomeMessage.ChecksStopped) }
+            return
+        }
         viewModelScope.launch {
             val alarm = book.get(id)
             val current = now.now()

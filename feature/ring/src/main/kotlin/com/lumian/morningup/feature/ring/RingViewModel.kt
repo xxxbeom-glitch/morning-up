@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
 
-/** 울림 화면(D0, M, W1, W2)이 그릴 것. */
+/** 울림 화면(D0, M, W1, W2, W3)이 그릴 것. */
 data class RingUiState(
     /** 지금 보여 줄 화면. [RingScreen.None]이면 닫을 때예요. */
     val screen: RingScreen = RingScreen.None,
@@ -34,9 +34,10 @@ data class RingUiState(
     val dayPart: DayPart = DayPart.Morning,
     /** 미션 없는 알람이면 D0 버튼 글이 '알람 끄기'예요(dev-readiness 4-1). */
     val hasMissions: Boolean = false,
-    /** W2 답할 시간이 끝나는 시각(epoch 밀리초). */
-    val wakeCheckEndsAt: Long? = null,
-    val wakeCheckAnswerSeconds: Int = 60,
+    /** W2, W3 답할 시간이 끝나는 시각(epoch 밀리초). 묻는 중이 아니거나 통화로 멈췄으면 null이에요. */
+    val checkEndsAt: Long? = null,
+    /** W2를 마치면 이 분 뒤 W3를 물어요. 한 번 더 확인이 꺼져 있으면 null이에요. */
+    val nextAskMinutes: Int? = null,
     /** S8 알람 화면 배경. D0에만 써요. */
     val background: String? = null,
     /** W1 날씨 한마디(화면에서 채워요). */
@@ -76,8 +77,11 @@ class RingViewModel @Inject constructor(
         link.send(event)
     }
 
-    /** W2 '깼어요'. */
+    /** W2 '깼어요'(10초 길게 누르기를 마침). */
     fun onAwake() = link.send(RingEvent.WakeCheckConfirmed)
+
+    /** W3 '깼어요'(10초 길게 누르기를 마침). 기다리는 중에 미리 연 경우도 같아요. */
+    fun onRecheckDone() = link.send(RingEvent.RecheckConfirmed)
 
     /** W1 '확인'. */
     fun onWakeUpClosed() = link.closeWakeUp()
@@ -91,10 +95,15 @@ class RingViewModel @Inject constructor(
             screen != RingScreen.None -> screen
             session == null -> RingScreen.None
             session.phase == RingPhase.AwaitingWakeCheck -> RingScreen.None
+            // W3를 기다리는 중에는 닫아요. 알림이나 홈 띠를 누르면 컨트롤러가 W3 화면을 정해 줘요.
+            session.phase == RingPhase.AwaitingRecheck -> RingScreen.None
+            // 통화 때문에 멈춘 W2, W3는 통화가 끝나 다시 물을 때 열어요.
+            session.pausedLeftMillis != null -> RingScreen.None
             // 쉬는 중에는 화면을 닫아요. 쉬는 중 알림을 누르면 컨트롤러가 울림 화면을 정해 줘요(결정 70).
             session.phase == RingPhase.Resting -> RingScreen.None
             session.phase == RingPhase.InMission -> RingScreen.Mission(session.missionsDone)
             session.phase == RingPhase.WakeCheckAsking -> RingScreen.WakeCheck
+            session.phase == RingPhase.RecheckAsking -> RingScreen.Recheck
             else -> RingScreen.Ringing
         }
 
@@ -104,8 +113,8 @@ class RingViewModel @Inject constructor(
             time = at.toLocalTime().withSecond(0).withNano(0),
             dayPart = DayPart.of(at.toLocalTime()),
             hasMissions = session?.plan?.missions?.isNotEmpty() == true,
-            wakeCheckEndsAt = session?.takeIf { it.phase == RingPhase.WakeCheckAsking }?.phaseEndsAt,
-            wakeCheckAnswerSeconds = session?.plan?.wakeCheckAnswerSeconds ?: RingUiState().wakeCheckAnswerSeconds,
+            checkEndsAt = session?.takeIf { it.phase.isAsking && it.pausedLeftMillis == null }?.phaseEndsAt,
+            nextAskMinutes = session?.plan?.takeIf { it.recheckEnabled }?.wakeCheckAskAfterMinutes,
             background = session?.plan?.background,
         )
     }

@@ -32,7 +32,16 @@
     <string name="ring_text_waiting">잠시 뒤 깨어 있는지 물어볼게요</string>
     <!-- W2 깨어 있나요: 울림과 같은 전체 화면 알림으로 띄워요 -->
     <string name="wake_check_title">깨어 있나요?</string>
-    <string name="ring_text_wake_check">깨어 있나요? \'깼어요\'를 눌러 주세요</string>
+    <string name="ring_text_wake_check">깨어 있나요? \'깼어요\'를 10초 동안 꾹 눌러 주세요</string>
+    <!-- W3 정말 깼어요(결정 145) -->
+    <string name="recheck_title">정말 깼어요?</string>
+    <string name="ring_text_recheck">\'깼어요\'를 10초 동안 꾹 눌러 주세요</string>
+    <string name="ring_text_recheck_waiting">잠시 뒤 한 번 더 물어볼게요</string>
+    <!-- W3 기다림 알림. %1$s는 묻는 시각(예: 오전 6:43) -->
+    <string name="recheck_waiting_title">%1$s에 한 번 더 물어볼게요</string>
+    <string name="recheck_waiting_text">정말 깼으면 눌러서 지금 끝낼 수 있어요</string>
+    <string name="clock_am">오전 %1$s</string>
+    <string name="clock_pm">오후 %1$s</string>
 
     <!-- 놓친 알람 알림 -->
     <string name="missed_title">알람을 놓쳤어요</string>

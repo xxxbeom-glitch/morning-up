@@ -46,4 +46,10 @@
     <string name="home_delete_many_title">알람 %1$d개를 삭제할까요?</string>
     <string name="home_delete_many_message">고른 알람과 미션이 함께 삭제돼요.</string>
     <string name="home_copied">알람 %1$d개를 복사했어요</string>
+    <!-- 편집에서 저장해 남은 확인(W2, W3)을 멈춘 토스트(결정 145) -->
+    <string name="home_checks_stopped">남은 확인을 멈췄어요</string>
+    <!-- H0 위쪽 띠: 한 번 더 확인(W3)이 남았을 때(결정 145) -->
+    <string name="home_recheck_title">한 번 더 확인이 남았어요</string>
+    <string name="home_recheck_desc">눌러서 지금 끝낼 수 있어요</string>
+    <string name="home_recheck_action">확인하기</string>
 </resources>

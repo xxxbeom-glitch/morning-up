@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,14 +32,14 @@ import com.lumian.morningup.core.model.DayPart
 import kotlin.math.hypot
 import kotlinx.coroutines.delay
 
-/** W2 '깼어요' 뒤 체크를 보여 주고 닫기까지. */
-private const val AWAKE_CLOSE_DELAY_MILLIS = 600L
+/** W2, W3 '깼어요' 뒤 '확인했어요'를 보여 주고 닫기까지. */
+private const val AWAKE_CLOSE_DELAY_MILLIS = 1_500L
 
-/** W2 남은 시간 다시 그리는 간격. */
+/** W2, W3 남은 시간 다시 그리는 간격. */
 private const val COUNTDOWN_FRAME_MILLIS = 200L
 
 /**
- * 울림 화면 묶음(D0, M, W1, W2). 잠금 화면 위 액티비티(:app의 RingActivity)가 이것 하나만 그려요.
+ * 울림 화면 묶음(D0, M, W1, W2, W3). 잠금 화면 위 액티비티(:app의 RingActivity)가 이것 하나만 그려요.
  * - 미션 화면은 [missionContent] 자리에 :app이 `:feature:mission`을 꽂아요(feature끼리 직접 부르지 않아요).
  * - D0에서 미션으로 넘어갈 때 버튼 자리에서 원형으로 퍼지며 열려요. '애니메이션 줄이기'면 페이드예요.
  * - 보여 줄 화면이 없어지면 [onClose]를 불러요. [canClose]가 false면(저장된 울림을 읽는 중) 기다려요.
@@ -57,13 +56,15 @@ fun RingRoute(
     val ringState by viewModel.uiState.collectAsStateWithLifecycle()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
     val state = ringState.copy(weather = weather)
-    var awakeTapped by remember { mutableStateOf(false) }
-    // 닫히는 동안(W1 확인 뒤, W2 체크 뒤)에도 마지막 화면을 그대로 그려요.
+    // '깼어요'를 마친 화면(W2나 W3)과 그때 정해진 W3까지 남은 분. 닫히는 동안 '확인했어요'를 보여 줘요.
+    var confirmedOn by remember { mutableStateOf<RingScreen?>(null) }
+    var doneNextAsk by remember { mutableStateOf<Int?>(null) }
+    // 닫히는 동안(W1 확인 뒤, W2, W3 체크 뒤)에도 마지막 화면을 그대로 그려요.
     val last = remember { LastScreen() }
     if (state.screen != RingScreen.None) last.screen = state.screen
     val lastShown = last.screen
     LaunchedEffect(state.screen) {
-        if (state.screen != RingScreen.WakeCheck && state.screen != RingScreen.None) awakeTapped = false
+        if (!state.screen.isCheck && state.screen != RingScreen.None) confirmedOn = null
     }
 
     val confirmWakeUp = {
@@ -76,7 +77,7 @@ fun RingRoute(
     }
     LaunchedEffect(state.screen, canClose) {
         if (state.screen == RingScreen.None && canClose) {
-            if (last.screen == RingScreen.WakeCheck) delay(AWAKE_CLOSE_DELAY_MILLIS)
+            if (last.screen.isCheck) delay(AWAKE_CLOSE_DELAY_MILLIS)
             onClose()
         }
     }
@@ -92,13 +93,20 @@ fun RingRoute(
         RingContent(
             state = state.copy(dayPart = dayPart),
             shown = lastShown,
-            awakeTapped = awakeTapped,
+            confirmedOn = confirmedOn,
+            doneNextAsk = doneNextAsk,
             nowMillis = viewModel::nowMillis,
             onMainButton = viewModel::onMainButton,
             onWakeUpConfirmed = confirmWakeUp,
             onAwake = {
-                awakeTapped = true
-                viewModel.onAwake()
+                confirmedOn = lastShown
+                if (lastShown == RingScreen.Recheck) {
+                    doneNextAsk = null
+                    viewModel.onRecheckDone()
+                } else {
+                    doneNextAsk = state.nextAskMinutes
+                    viewModel.onAwake()
+                }
             },
             missionContent = missionContent,
         )
@@ -107,11 +115,14 @@ fun RingRoute(
 
 private class LastScreen(var screen: RingScreen = RingScreen.None)
 
+private val RingScreen.isCheck get() = this == RingScreen.WakeCheck || this == RingScreen.Recheck
+
 @Composable
 private fun RingContent(
     state: RingUiState,
     shown: RingScreen,
-    awakeTapped: Boolean,
+    confirmedOn: RingScreen?,
+    doneNextAsk: Int?,
     nowMillis: () -> Long,
     onMainButton: () -> Unit,
     onWakeUpConfirmed: () -> Unit,
@@ -142,21 +153,24 @@ private fun RingContent(
             onConfirm = onWakeUpConfirmed,
             weather = state.weather,
         )
-        RingScreen.WakeCheck -> {
-            val endsAt = state.wakeCheckEndsAt
-            var remaining by remember { mutableLongStateOf(endsAt?.minus(nowMillis()) ?: 0L) }
-            LaunchedEffect(endsAt, awakeTapped) {
-                while (endsAt != null && !awakeTapped) {
+        RingScreen.WakeCheck, RingScreen.Recheck -> {
+            val confirmed = confirmedOn == shown
+            val endsAt = state.checkEndsAt
+            var remaining by remember { mutableStateOf(endsAt?.minus(nowMillis())) }
+            LaunchedEffect(endsAt, confirmed) {
+                remaining = endsAt?.let { (it - nowMillis()).coerceAtLeast(0) }
+                while (endsAt != null && !confirmed) {
                     remaining = (endsAt - nowMillis()).coerceAtLeast(0)
                     delay(COUNTDOWN_FRAME_MILLIS)
                 }
             }
             WakeCheckScreen(
                 dayPart = state.dayPart,
-                answerSeconds = state.wakeCheckAnswerSeconds,
                 remainingMillis = remaining,
-                confirmed = awakeTapped,
+                confirmed = confirmed,
                 onAwake = onAwake,
+                recheck = shown == RingScreen.Recheck,
+                nextAskMinutes = doneNextAsk,
             )
         }
     }

@@ -85,13 +85,36 @@ class RingViewModelTest {
 
     @Test
     fun wakeCheck_carriesDeadline_andAwakeSendsConfirm() = runTest {
-        val session = testRingSession(RingPhase.WakeCheckAsking, phaseEndsAt = 99_000L, wakeCheckAnswerSeconds = 30)
+        val session = testRingSession(
+            RingPhase.WakeCheckAsking,
+            phaseEndsAt = 99_000L,
+            wakeCheckAskAfterMinutes = 3,
+            recheckEnabled = true,
+        )
         val link = FakeRingLink(session, RingScreen.WakeCheck)
         val vm = viewModel(link)
-        assertThat(vm.uiState.value.wakeCheckEndsAt).isEqualTo(99_000L)
-        assertThat(vm.uiState.value.wakeCheckAnswerSeconds).isEqualTo(30)
+        assertThat(vm.uiState.value.checkEndsAt).isEqualTo(99_000L)
+        // 한 번 더 확인이 켜져 있으면 W2 뒤 '3분 뒤 한 번 더 물어볼게요'.
+        assertThat(vm.uiState.value.nextAskMinutes).isEqualTo(3)
         vm.onAwake()
         assertThat(link.sent).containsExactly(RingEvent.WakeCheckConfirmed)
+    }
+
+    @Test
+    fun recheck_withoutRecheck_hasNoNextAsk_andDoneSendsRecheckConfirmed() = runTest {
+        val session = testRingSession(RingPhase.RecheckAsking, phaseEndsAt = 50_000L)
+        val link = FakeRingLink(session, RingScreen.Recheck)
+        val vm = viewModel(link)
+        assertThat(vm.uiState.value.nextAskMinutes).isNull()
+        vm.onRecheckDone()
+        assertThat(link.sent).containsExactly(RingEvent.RecheckConfirmed)
+    }
+
+    @Test
+    fun pausedForCall_hidesDeadline() = runTest {
+        val session = testRingSession(RingPhase.WakeCheckAsking, phaseEndsAt = 99_000L, pausedLeftMillis = 30_000L)
+        val vm = viewModel(FakeRingLink(session, RingScreen.WakeCheck))
+        assertThat(vm.uiState.value.checkEndsAt).isNull()
     }
 
     @Test
@@ -104,6 +127,8 @@ class RingViewModelTest {
         assertThat(shown(RingPhase.InMission)).isEqualTo(RingScreen.Mission(1))
         assertThat(shown(RingPhase.WakeCheckAsking)).isEqualTo(RingScreen.WakeCheck)
         assertThat(shown(RingPhase.AwaitingWakeCheck)).isEqualTo(RingScreen.None)
+        assertThat(shown(RingPhase.AwaitingRecheck)).isEqualTo(RingScreen.None)
+        assertThat(shown(RingPhase.RecheckAsking)).isEqualTo(RingScreen.Recheck)
         assertThat(RingViewModel.shownScreen(RingScreen.None, null)).isEqualTo(RingScreen.None)
     }
 }

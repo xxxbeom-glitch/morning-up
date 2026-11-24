@@ -9,6 +9,8 @@ import com.lumian.morningup.core.data.db.AlarmDao
 import com.lumian.morningup.core.data.db.DiagnosticLogDao
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.data.session.RingSessionStore
+import com.lumian.morningup.core.data.settings.WakeCheckSettingsPrefs
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmStore
 import dagger.Binds
 import dagger.Module
@@ -52,4 +54,7 @@ object DataModule {
 interface DataBindings {
     @Binds
     fun alarmStore(repository: AlarmRepository): AlarmStore
+
+    @Binds
+    fun wakeCheckSettings(impl: WakeCheckSettingsPrefs): WakeCheckSettingsStore
 }

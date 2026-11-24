@@ -111,9 +111,11 @@ fun HomeRoute(
     onSavedAlarmShown: () -> Unit = {},
     banner: (@Composable () -> Unit)? = null,
     onSelectingChange: (Boolean) -> Unit = {},
+    savedChecksStopped: Boolean = false,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val recheckPending by viewModel.recheckPending.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
         viewModel.refreshWeather()
         onPauseOrDispose {}
@@ -122,7 +124,7 @@ fun HomeRoute(
     BackHandler(enabled = state.selecting, onBack = viewModel::endSelection)
     LaunchedEffect(savedAlarmId) {
         if (savedAlarmId != null) {
-            viewModel.onAlarmSaved(savedAlarmId)
+            viewModel.onAlarmSaved(savedAlarmId, savedChecksStopped)
             onSavedAlarmShown()
         }
     }
@@ -137,7 +139,7 @@ fun HomeRoute(
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
-        banner = banner,
+        banner = withRecheckBanner(recheckPending, viewModel::openRecheck, banner),
         extra = HomeExtraActions(
             onRestOnce = viewModel::restOnce,
             onAllOff = viewModel::turnAllOff,
@@ -758,6 +760,7 @@ private fun Messages(
                     ?: stringResource(R.string.home_saved_off),
             )
             is HomeMessage.Copied -> MorningToast(text = stringResource(R.string.home_copied, shown.count))
+            HomeMessage.ChecksStopped -> MorningToast(text = stringResource(R.string.home_checks_stopped))
             is HomeMessage.Deleted -> MorningSnackbar(
                 text = stringResource(R.string.home_deleted),
                 actionLabel = stringResource(R.string.home_undo),

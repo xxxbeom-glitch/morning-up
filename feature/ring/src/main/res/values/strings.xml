@@ -19,7 +19,19 @@
 
     <!-- W2 깨어 있나요 -->
     <string name="ring_wake_check_title">깨어 있나요?</string>
-    <string name="ring_wake_check_message">%1$s 안에 눌러 주세요\n누르지 않으면 알람이 다시 울려요</string>
     <string name="ring_wake_check_awake">깼어요</string>
     <string name="ring_wake_check_done">확인했어요</string>
+    <!-- W2를 마친 뒤 한 줄. %1$d는 다시 물어보기 간격(분) -->
+    <string name="ring_wake_check_next">%1$d분 뒤 한 번 더 물어볼게요</string>
+
+    <!-- W3 정말 깼어요(결정 145) -->
+    <string name="ring_recheck_title">정말 깼어요?</string>
+
+    <!-- W2, W3 길게 누르기(결정 145 9-1) -->
+    <string name="ring_hold_guide">\'깼어요\'를 10초 동안\n꾹 누르고 있어 주세요</string>
+    <string name="ring_hold_released_early">끝까지 누르고 있어야 해요</string>
+    <string name="ring_check_ring_again">시간 안에 하지 않으면 알람이 다시 울려요</string>
+    <!-- 톡백: 두 번 탭하면 10초 동안 저절로 차요 -->
+    <string name="ring_hold_action">10초 동안 누르기</string>
+    <string name="ring_hold_seconds_left">%1$d초 남았어요</string>
 </resources>

@@ -15,6 +15,7 @@ import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.TimeUntil
 import com.lumian.morningup.core.testing.FakeAlarmBook
+import com.lumian.morningup.core.testing.FakeWakeCheckGate
 import com.lumian.morningup.core.testing.MainDispatcherRule
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -48,13 +49,19 @@ class EditViewModelTest {
         enabled = false,
     )
 
-    private fun viewModel(book: FakeAlarmBook, id: Long = EditRoute.NEW_ALARM, shake: Boolean = true) = EditViewModel(
+    private fun viewModel(
+        book: FakeAlarmBook,
+        id: Long = EditRoute.NEW_ALARM,
+        shake: Boolean = true,
+        checks: FakeWakeCheckGate = FakeWakeCheckGate(),
+    ) = EditViewModel(
         book,
         now,
         noHolidays,
         MinuteTicker { ticks },
         SavedStateHandle(mapOf("alarmId" to id)),
         ShakeSupport { shake },
+        checks,
     )
 
     private suspend fun app.cash.turbine.ReceiveTurbine<EditUiState>.loaded(): EditUiState {
@@ -73,8 +80,8 @@ class EditViewModelTest {
             assertThat(state.draft.time).isEqualTo(LocalTime.of(7, 0))
             // 다시 울림은 꺼진 채 시작해요(켜면 5분 3번).
             assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 0))
-            assertThat(state.draft.wakeCheck)
-                .isEqualTo(WakeCheck(enabled = false, askAfterMinutes = 3, answerSeconds = 60))
+            // 다시 잠들기 방지는 꺼진 채 시작해요. 간격과 시간은 설정 탭 전체 설정이에요(결정 145).
+            assertThat(state.draft.wakeCheck).isEqualTo(WakeCheck(enabled = false))
             // 23:10에 내일 07:00 → 7시간 50분 후.
             assertThat(state.until).isEqualTo(TimeUntil(0, 7, 50))
         }
@@ -218,27 +225,31 @@ class EditViewModelTest {
     }
 
     @Test
-    fun wakeCheckPage_opensClosesWithBack_andPickingValueTurnsOn() = runTest {
-        val vm = viewModel(FakeAlarmBook())
+    fun save_existingAlarm_stopsLeftChecks_andTellsHome() = runTest {
+        val book = FakeAlarmBook(listOf(withMission))
+        val checks = FakeWakeCheckGate(pendingFor = setOf(4))
+        val vm = viewModel(book, id = 4, checks = checks)
         vm.uiState.test {
             loaded()
-            vm.openDetail(EditDetail.WakeCheck)
-            assertThat(awaitItem().detail).isEqualTo(EditDetail.WakeCheck)
-            vm.setWakeCheckAsk(5)
-            vm.setWakeCheckAnswer(180)
+            vm.save()
             var state = awaitItem()
-            if (state.draft.wakeCheck.answerSeconds != 180) state = awaitItem()
-            assertThat(
-                state.draft.wakeCheck,
-            ).isEqualTo(WakeCheck(enabled = true, askAfterMinutes = 5, answerSeconds = 180))
-            // 고를 수 없는 값은 무시해요.
-            vm.setWakeCheckAsk(7)
-            vm.setWakeCheckAnswer(120)
-            expectNoEvents()
-            vm.onBack()
-            val closed = awaitItem()
-            assertThat(closed.detail).isNull()
-            assertThat(closed.confirmExit).isFalse()
+            while (state.exit == null) state = awaitItem()
+            assertThat(state.exit).isEqualTo(EditExit.Saved(4, checksStopped = true))
+            assertThat(checks.calls).containsExactly("cancel:4")
+        }
+    }
+
+    @Test
+    fun saveNew_doesNotTouchChecks() = runTest {
+        val checks = FakeWakeCheckGate()
+        val vm = viewModel(FakeAlarmBook(listOf(withMission)), checks = checks)
+        vm.uiState.test {
+            loaded()
+            vm.save()
+            var state = awaitItem()
+            while (state.exit == null) state = awaitItem()
+            assertThat(state.exit).isEqualTo(EditExit.Saved(5))
+            assertThat(checks.calls).isEmpty()
         }
     }
 

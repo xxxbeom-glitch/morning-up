@@ -20,6 +20,8 @@ import kotlinx.coroutines.CancellationException
  * 상태표 효과를 안드로이드에서 실행해요.
  * 화면 전환(Show 효과)은 [RingController.screen]이 맡고, 여기서는 잠금 화면 위로 띄울 알림만 다시 올려요.
  */
+// 효과마다 맡는 장치가 하나씩이라 묶지 않고 그대로 받아요(W2, W3 짧은 알림음이 더해져 8개).
+@Suppress("LongParameterList")
 @Singleton
 class AndroidRingEffectRunner @Inject constructor(
     private val sound: AlarmSoundPlayer,
@@ -28,6 +30,7 @@ class AndroidRingEffectRunner @Inject constructor(
     private val rescheduler: AlarmRescheduler,
     private val alarms: AlarmStore,
     private val diagnostics: AlarmDiagnostics,
+    private val chime: ChimePlayer,
 ) : RingEffectRunner {
     override suspend fun run(session: RingSession?, effects: List<RingEffect>) {
         // 효과 하나가 실패해도(소리 장치 오류 등) 뒤의 타이머 예약과 다시 예약은 꼭 해요.
@@ -53,8 +56,20 @@ class AndroidRingEffectRunner @Inject constructor(
             RingEffect.ShowRingScreen,
             is RingEffect.ShowMission,
             RingEffect.ShowWakeCheck,
+            RingEffect.ShowRecheck,
             -> notifications.showRinging(session?.phase)
             RingEffect.ShowWakeUp -> Unit
+            RingEffect.PlayChime -> chime.play(session?.plan?.alarmId)
+            RingEffect.PausedForCall -> diagnostics.record("check_paused_for_call", session?.plan?.alarmId)
+            is RingEffect.RecheckScheduled -> {
+                diagnostics.record("recheck_scheduled", session?.plan?.alarmId, "at=${clock(effect.askAt)}")
+                notifications.showRinging(session?.phase, effect.askAt)
+            }
+            is RingEffect.WakeResultRecorded -> {
+                val detail = "result=${effect.result.name} rounds=${effect.rounds}"
+                diagnostics.record("wake_result", effect.alarmId, detail)
+                FlowLog.event("wake_result", effect.alarmId, detail)
+            }
             is RingEffect.RestStarted -> {
                 diagnostics.record(
                     "rest_started",
@@ -75,7 +90,11 @@ class AndroidRingEffectRunner @Inject constructor(
             is RingEffect.MarkPassed -> diagnostics.record("passed", effect.alarmId)
             is RingEffect.SessionEnded -> {
                 notifications.cancelRinging()
-                val event = if (effect.outcome == RingOutcome.Dismissed) "dismissed" else "missed"
+                val event = when (effect.outcome) {
+                    RingOutcome.Dismissed -> "dismissed"
+                    RingOutcome.Missed -> "missed"
+                    RingOutcome.Cancelled -> "checks_cancelled"
+                }
                 diagnostics.record(event, effect.alarmId)
             }
         }

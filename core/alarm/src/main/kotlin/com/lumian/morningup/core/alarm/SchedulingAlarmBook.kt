@@ -3,6 +3,7 @@ package com.lumian.morningup.core.alarm
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmScheduler
 import javax.inject.Inject
@@ -19,6 +20,7 @@ class SchedulingAlarmBook @Inject constructor(
     private val rescheduler: AlarmRescheduler,
     private val scheduler: AlarmScheduler,
     private val now: NowProvider,
+    private val checks: WakeCheckGate? = null,
 ) : AlarmBook {
     override val alarms: Flow<List<Alarm>> = repository.alarms
 
@@ -33,12 +35,15 @@ class SchedulingAlarmBook @Inject constructor(
 
     override suspend fun setEnabled(id: Long, enabled: Boolean) {
         val alarm = repository.get(id) ?: return
+        // 알람을 끄면 그 알람의 남은 확인(W2, W3)도 멈춰요(결정 145).
+        if (!enabled) checks?.cancelFor(id)
         rescheduler.reschedule(alarm.copy(enabled = enabled, nextTriggerAt = null), now.now())
     }
 
     override suspend fun delete(id: Long): Alarm? {
         val alarm = repository.get(id) ?: return null
         scheduler.cancel(id)
+        checks?.cancelFor(id)
         repository.delete(id)
         return alarm
     }

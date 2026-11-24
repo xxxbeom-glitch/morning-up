@@ -12,6 +12,7 @@ import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.TimeUntil
 import com.lumian.morningup.core.testing.FakeAlarmBook
+import com.lumian.morningup.core.testing.FakeWakeCheckGate
 import com.lumian.morningup.core.testing.MainDispatcherRule
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -58,7 +59,9 @@ class HomeViewModelTest {
             missions = listOf(MissionSetting(MissionType.QuickMath)),
         )
 
-    private fun viewModel(book: FakeAlarmBook) = HomeViewModel(book, now, noHolidays, ticker, NoWeather)
+    private val checks = FakeWakeCheckGate()
+
+    private fun viewModel(book: FakeAlarmBook) = HomeViewModel(book, now, noHolidays, ticker, NoWeather, checks)
 
     @Test
     fun showsNextAlarm_inHoursAndMinutes() = runTest {
@@ -166,6 +169,28 @@ class HomeViewModelTest {
             vm.dismissMessage(message!!)
             assertThat(awaitItem().message).isNull()
         }
+    }
+
+    @Test
+    fun savedAlarm_thatStoppedChecks_showsChecksStoppedToast() = runTest {
+        val vm = viewModel(FakeAlarmBook(listOf(a630)))
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.onAlarmSaved(1, checksStopped = true)
+            assertThat(awaitItem().message).isEqualTo(HomeMessage.ChecksStopped)
+        }
+    }
+
+    @Test
+    fun recheckBanner_followsGate_andOpensW3() = runTest {
+        val vm = viewModel(FakeAlarmBook(listOf(a630)))
+        vm.recheckPending.test {
+            assertThat(awaitItem()).isFalse()
+            checks.recheckPending.value = true
+            assertThat(awaitItem()).isTrue()
+        }
+        vm.openRecheck()
+        assertThat(checks.calls).containsExactly("open")
     }
 
     @Test

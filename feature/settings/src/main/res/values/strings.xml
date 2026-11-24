@@ -153,4 +153,19 @@
     <string name="onboarding_motion_app_name" translatable="false">morning-up</string>
     <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
     <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
+    <!-- T1 깼는지 묻기, 한 번 더 확인(결정 145) -->
+    <string name="settings_wake_check">깼는지 묻기</string>
+    <!-- 3분 후, 1분 -->
+    <string name="settings_wake_check_value">%1$d분 후, %2$s</string>
+    <string name="settings_wake_check_sheet_desc">알람을 끈 뒤 깼는지 다시 물어요</string>
+    <string name="settings_wake_check_ask">다시 물어보기</string>
+    <string name="settings_wake_check_answer">대답할 시간</string>
+    <string name="settings_minutes_after">%1$d분 후</string>
+    <string name="settings_minutes">%1$d분</string>
+    <string name="settings_seconds">%1$d초</string>
+    <string name="settings_recheck">한 번 더 확인</string>
+    <string name="settings_recheck_desc">10초 동안 눌러야 완전히 꺼져요</string>
+    <string name="settings_recheck_sheet_desc">\'깼어요\'를 누른 뒤 정말 깼는지 다시 물어요</string>
+    <string name="settings_recheck_minutes">확인할 시간</string>
+    <string name="settings_wake_check_note">알람마다 켜고 끄기는 알람 편집에서 해요</string>
 </resources>

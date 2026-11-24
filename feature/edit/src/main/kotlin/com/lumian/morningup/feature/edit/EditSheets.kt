@@ -31,7 +31,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
 
 /** 알람 편집 화면 위에 띄우는 바텀시트(결정 78, 98). 페이지 대신 시트로 고르는 설정이에요. */
-enum class EditSheet { Volume, RingAgain, WakeCheck, MissionPick }
+enum class EditSheet { Volume, RingAgain, MissionPick }
 
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요. */
 private val FooterBleed = 8.dp
@@ -226,37 +226,3 @@ internal fun RingAgainSheetContent(alarm: Alarm, actions: EditActions, onDone: (
 
 /** 꺼져 있을 때 횟수 칸을 아무것도 고르지 않은 모양으로 두는 값(선택지에 없는 수). */
 private const val NOT_SELECTED = -1
-
-/** S4 다시 잠들기 방지 시트(피그마 `461:8297`, 결정 83): 다시 물어보기 3/5/10분 후, 대답할 시간 30초/1분/3분. */
-@Composable
-internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
-    val wakeCheck = alarm.wakeCheck
-    EditSheetFrame(
-        title = stringResource(R.string.edit_wake_check),
-        description = stringResource(R.string.edit_wake_check_sheet_desc),
-        onDone = onDone,
-    ) {
-        ChipRow(
-            label = stringResource(R.string.edit_wake_check_ask_sheet),
-            options = EditViewModel.WAKE_CHECK_ASK_MINUTES,
-            selected = wakeCheck.askAfterMinutes.takeIf { wakeCheck.enabled },
-            optionLabel = { stringResource(R.string.edit_wake_check_ask_option, it) },
-            onSelect = actions.onWakeCheckAsk,
-        )
-        ChipRow(
-            label = stringResource(R.string.edit_wake_check_answer_sheet),
-            options = EditViewModel.WAKE_CHECK_ANSWER_SECONDS,
-            selected = wakeCheck.answerSeconds.takeIf { wakeCheck.enabled },
-            optionLabel = { sec ->
-                if (sec < SECONDS_PER_MINUTE) {
-                    stringResource(R.string.edit_seconds, sec)
-                } else {
-                    stringResource(R.string.edit_ring_again_interval_option, sec / SECONDS_PER_MINUTE)
-                }
-            },
-            onSelect = actions.onWakeCheckAnswer,
-        )
-    }
-}
-
-private const val SECONDS_PER_MINUTE = 60

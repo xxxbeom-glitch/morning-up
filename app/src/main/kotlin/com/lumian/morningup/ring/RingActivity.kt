@@ -58,9 +58,13 @@ class RingActivity : ComponentActivity() {
     /** 쉬는 중 알림을 눌러 열었어요(결정 70). 쉬는 동안에도 울림 화면을 보여 줘요. */
     private var openedFromRest = false
 
+    /** W3 기다림 알림이나 홈 띠를 눌러 열었어요(결정 145). 정한 때보다 먼저 W3를 보여 줘요. */
+    private var openedForRecheck = false
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false)) controller.openDuringRest()
+        if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_RECHECK, false)) controller.openRecheckEarly()
     }
 
     /** 울림 화면이 떠 있는 동안 옆 볼륨 버튼은 아무 일도 안 해요(11-17 사용자 지시: 소리를 줄여 끄지 못하게). */
@@ -89,6 +93,8 @@ class RingActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) window.isNavigationBarContrastEnforced = false
         openedFromRest = intent?.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false) == true
         if (openedFromRest) controller.openDuringRest()
+        openedForRecheck = intent?.getBooleanExtra(RingNotifications.EXTRA_OPEN_RECHECK, false) == true
+        if (openedForRecheck && controller.openRecheckEarly()) openedForRecheck = false
         resumeIfNeeded()
         lifecycleScope.launch {
             // 세션이 보이면 읽기가 끝난 것이에요. 앱이 새로 떠서 늦게 읽혔으면 그때 쉬는 중 화면을 열어요.
@@ -97,6 +103,10 @@ class RingActivity : ComponentActivity() {
                     if (openedFromRest) {
                         controller.openDuringRest()
                         openedFromRest = false
+                    }
+                    if (openedForRecheck) {
+                        controller.openRecheckEarly()
+                        openedForRecheck = false
                     }
                     loaded.value = true
                 }

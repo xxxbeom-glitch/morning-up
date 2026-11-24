@@ -15,6 +15,7 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.CatchUpHandler
 import com.lumian.morningup.core.model.engine.KoreanHolidays
+import com.lumian.morningup.core.testing.FakeWakeCheckGate
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -56,11 +57,13 @@ class SchedulingAlarmBookTest {
 
         override fun notifyMissed(alarm: Alarm) = Unit
     }
+    private val checks = FakeWakeCheckGate()
     private val book = SchedulingAlarmBook(
         repository,
         AlarmRescheduler(repository, scheduler, noCatchUp, KoreanHolidays),
         scheduler,
         now,
+        checks,
     )
     private val tomorrow0630 = ZonedDateTime.of(2026, 11, 18, 6, 30, 0, 0, start.zone).toInstant().toEpochMilli()
 
@@ -138,5 +141,15 @@ class SchedulingAlarmBookTest {
     @Test
     fun delete_missing_returnsNull() = runTest {
         assertThat(book.delete(99)).isNull()
+    }
+
+    @Test
+    fun turningOffOrDeleting_stopsLeftChecks_turningOnDoesNot() = runTest {
+        val saved = book.save(Alarm(time = LocalTime.of(6, 30)))
+        book.setEnabled(saved.id, true)
+        assertThat(checks.calls).isEmpty()
+        book.setEnabled(saved.id, false)
+        book.delete(saved.id)
+        assertThat(checks.calls).containsExactly("cancel:${saved.id}", "cancel:${saved.id}").inOrder()
     }
 }

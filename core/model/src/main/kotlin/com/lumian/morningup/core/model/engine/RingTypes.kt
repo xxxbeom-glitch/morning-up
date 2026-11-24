@@ -3,6 +3,7 @@ package com.lumian.morningup.core.model.engine
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.WakeCheckSettings
 import kotlinx.serialization.Serializable
 
 /** 울리기 시작할 때 알람에서 떼어 둔 값. 울리는 중에 알람을 고쳐도 이번 울림은 이 값대로 가요. */
@@ -25,6 +26,10 @@ data class RingPlan(
     val powerOffGuard: Boolean = false,
     /** S8 알람 화면 배경 id. null이면 기본 '시간대 하늘'이에요. */
     val background: String? = null,
+    /** W2 '깼어요' 뒤 한 번 더 확인(W3)을 할지(결정 145). 울리기 시작할 때의 전체 설정 값이에요. */
+    val recheckEnabled: Boolean = false,
+    /** W3 '확인할 시간'(분). */
+    val recheckAnswerMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_MINUTES,
 ) {
     /** [index]번째 미션 설정. 저장된 값이 없거나 종류가 다르면 그 미션의 처음 값이에요. */
     fun missionSetting(index: Int): MissionSetting? {
@@ -34,24 +39,48 @@ data class RingPlan(
     }
 
     companion object {
-        fun from(alarm: Alarm) = RingPlan(
+        /**
+         * 알람과 그때의 전체 설정([settings])으로 이번 울림 값을 정해요. 전체 설정을 바꿔도 이미 시작한 울림은
+         * 이 값대로 가고, 다음 알람부터 새 값을 써요(결정 145 7번).
+         */
+        fun from(alarm: Alarm, settings: WakeCheckSettings = WakeCheckSettings()) = RingPlan(
             alarmId = alarm.id,
             missions = alarm.missionTypes,
             missionSettings = alarm.missions,
             intervalMinutes = alarm.ringAgain.intervalMinutes,
             ringAgainCount = alarm.ringAgain.count,
             wakeCheckEnabled = alarm.wakeCheck.enabled,
-            wakeCheckAskAfterMinutes = alarm.wakeCheck.askAfterMinutes,
-            wakeCheckAnswerSeconds = alarm.wakeCheck.answerSeconds,
+            wakeCheckAskAfterMinutes = settings.askAfterMinutes,
+            wakeCheckAnswerSeconds = settings.answerSeconds,
             powerOffGuard = alarm.powerOffGuard && alarm.missions.isNotEmpty(),
             background = alarm.background,
+            recheckEnabled = settings.recheckEnabled,
+            recheckAnswerMinutes = settings.recheckMinutes,
         )
     }
 }
 
-/** 울림 상태(ADR 0002 표). 꺼짐과 놓침은 세션이 끝난 것이라 상태로 두지 않고 [RingEffect.SessionEnded]로 알려요. */
+/**
+ * 울림 상태(ADR 0002 표). 꺼짐과 놓침은 세션이 끝난 것이라 상태로 두지 않고 [RingEffect.SessionEnded]로 알려요.
+ * [AwaitingRecheck], [RecheckAsking]은 W3 '정말 깼어요?' 기다림과 묻는 중이에요(결정 145).
+ */
 @Serializable
-enum class RingPhase { Ringing, Resting, InMission, AwaitingWakeCheck, WakeCheckAsking }
+enum class RingPhase {
+    Ringing,
+    Resting,
+    InMission,
+    AwaitingWakeCheck,
+    WakeCheckAsking,
+    AwaitingRecheck,
+    RecheckAsking,
+    ;
+
+    /** 울린 뒤 확인(W2, W3)을 기다리거나 묻는 중. 이때 다른 알람이 울리면 새 알람이 이겨요(결정 145 7번). */
+    val isCheck: Boolean get() = isAsking || this == AwaitingWakeCheck || this == AwaitingRecheck
+
+    /** W2나 W3 화면을 보여 주며 묻는 중. */
+    val isAsking: Boolean get() = this == WakeCheckAsking || this == RecheckAsking
+}
 
 /** 지금 울리고 있는 알람 하나의 진행. 기기 보호 저장소에 저장해서 앱이 죽어도 이어가요. */
 @Serializable
@@ -63,6 +92,10 @@ data class RingSession(
     val missionsDone: Int,
     /** 지금 단계가 끝나는 시각(epoch 밀리초). 이 시각의 타이머만 받아들여요. */
     val phaseEndsAt: Long,
+    /** W2, W3에 답하지 못해 처음부터 다시 울린 횟수(바퀴). [RingStateMachine.MAX_ROUNDS]까지예요. */
+    val rounds: Int = 0,
+    /** 통화 중이라 W2, W3를 멈춰 둔 동안 남은 시간(밀리초). null이면 멈추지 않았어요. */
+    val pausedLeftMillis: Long? = null,
 )
 
 @Serializable
@@ -72,9 +105,33 @@ enum class TimerKind(val phase: RingPhase) {
     MissionTimeout(RingPhase.InMission),
     WakeCheckAsk(RingPhase.AwaitingWakeCheck),
     WakeCheckTimeout(RingPhase.WakeCheckAsking),
+    RecheckAsk(RingPhase.AwaitingRecheck),
+    RecheckTimeout(RingPhase.RecheckAsking),
 }
 
-enum class RingOutcome { Dismissed, Missed }
+/** 세션이 끝난 까닭. [Cancelled]는 남은 확인을 멈춘 경우예요(알람 끔, 지움, 저장, 새 알람, 한 번 더 확인 끔). */
+enum class RingOutcome { Dismissed, Missed, Cancelled }
+
+/** 다시 잠들기 방지 결과(결정 145 '연속 기록 세는 법'). 진단 기록에만 남겨요. */
+enum class WakeResult {
+    /** W2 '깼어요'로 끝남(한 번 더 확인 꺼짐). */
+    WakeCheckPassed,
+
+    /** W3를 정한 때에 끝냄. */
+    RecheckPassed,
+
+    /** W3를 알림이나 홈 띠로 미리 끝냄. */
+    RecheckPassedEarly,
+
+    /** 다시 울린 바퀴가 상한이라 W1에서 끝남. */
+    EndedByCap,
+
+    /** 다시 울렸는데 아무도 안 꺼서 놓침. */
+    Missed,
+
+    /** 남은 확인을 멈춤. */
+    Cancelled,
+}
 
 sealed interface RingEvent {
     /** 어떤 알람의 시각이 됐어요. 이미 다른 알람이 울리는 중이면 '지나감'으로 처리해요. */
@@ -93,8 +150,20 @@ sealed interface RingEvent {
     /** 미션 없는 알람의 '알람 끄기'. */
     data object DismissWithoutMission : RingEvent
 
-    /** W2 '깼어요'. */
+    /** W2 '깼어요'(10초 길게 누르기, 결정 145 9-1). */
     data object WakeCheckConfirmed : RingEvent
+
+    /** W3 '정말 깼어요?'에서 10초 길게 누르기를 마쳤어요. W3를 기다리는 중(미리 끝내기)에도 받아요. */
+    data object RecheckConfirmed : RingEvent
+
+    /** 통화가 시작되거나 끝났어요. 통화 중에는 W2, W3를 멈추고 시간도 멈춰요. */
+    data class CallChanged(val inCall: Boolean) : RingEvent
+
+    /** 이 알람의 남은 확인(W2, W3)을 멈춰요. 알람을 끄거나 지우거나 편집에서 저장했어요. */
+    data class CancelChecks(val alarmId: Long) : RingEvent
+
+    /** 전체 설정에서 '한 번 더 확인'을 껐어요. 남은 W3를 멈추고, W2가 남았으면 W2에서 끝나요. */
+    data object RecheckTurnedOff : RingEvent
 
     companion object {
         /**
@@ -107,6 +176,7 @@ sealed interface RingEvent {
             "mission_completed" to MissionCompleted,
             "dismiss_without_mission" to DismissWithoutMission,
             "wake_check_confirmed" to WakeCheckConfirmed,
+            "recheck_confirmed" to RecheckConfirmed,
         )
 
         val userEvents: List<RingEvent> = userEventKeys.values.toList()
@@ -137,6 +207,21 @@ sealed interface RingEffect {
 
     /** W2 깨어 있나요 화면. */
     data object ShowWakeCheck : RingEffect
+
+    /** W3 정말 깼어요 화면. */
+    data object ShowRecheck : RingEffect
+
+    /** W2, W3가 뜰 때 짧은 알림음(알람 볼륨의 30%)과 진동 2번(결정 145 3번). */
+    data object PlayChime : RingEffect
+
+    /** 통화 중이라 W2, W3를 멈췄어요. 화면을 닫고 통화가 끝나면 이어서 물어요. */
+    data object PausedForCall : RingEffect
+
+    /** W2를 통과해 [askAt]에 W3를 물어요. 화면을 닫고 안내 알림('오전 6:43에 한 번 더 물어볼게요')을 띄워요. */
+    data class RecheckScheduled(val askAt: Long) : RingEffect
+
+    /** 다시 잠들기 방지 결과를 진단 기록에 남겨요. [rounds]는 다시 울린 바퀴 수예요. */
+    data class WakeResultRecorded(val alarmId: Long, val result: WakeResult, val rounds: Int) : RingEffect
 
     /** 타이머는 한 칸뿐이에요. 새로 예약하면 앞의 것을 바꿔요. */
     data class ScheduleTimer(val at: Long, val kind: TimerKind) : RingEffect

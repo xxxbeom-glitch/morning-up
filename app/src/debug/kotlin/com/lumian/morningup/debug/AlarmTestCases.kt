@@ -23,7 +23,10 @@ enum class AlarmTestCase {
     /** 미션(Drop Words 3개)과 전원 종료 방지. 미션 중 소리 끔, 59초 손 놓으면 다시 울림, 전원 메뉴 막힘. */
     C,
 
-    /** 미션 있음과 다시 잠들기 방지 1분 뒤, 답할 시간 30초. 답 안 하면 처음부터 다시 울려요. */
+    /**
+     * 미션 있음과 다시 잠들기 방지 켬. 간격과 대답할 시간은 전체 설정을 따라요(결정 145). 빨리 시험하려면
+     * WAKE_CHECK 명령으로 1분, 30초처럼 줄여요. 답 안 하면 처음부터 다시 울려요.
+     */
     D,
 
     /** 진동 끔과 부드럽게 깨우기 30초. 작은 소리에서 30초 동안 커져요. */
@@ -41,7 +44,6 @@ object AlarmTestCases {
     private const val INTERVAL_MINUTES = 3
     private const val RING_AGAIN_COUNT = 3
     private const val GENTLE_SECONDS = 30
-    private const val ANSWER_SECONDS = 30
 
     /** 미션 시험은 빨리 끝나도록 짧게: C는 Drop Words 3개(11-17 사용자 지시), D는 Quick Math 1문제. */
     private const val DROP_WORDS_TEST_COUNT = 3
@@ -57,7 +59,7 @@ object AlarmTestCases {
             AlarmTestCase.C -> base.copy(missions = DROP_WORDS_MISSION, powerOffGuard = true)
             AlarmTestCase.D -> base.copy(
                 missions = ONE_QUICK_MISSION,
-                wakeCheck = WakeCheck(enabled = true, askAfterMinutes = 1, answerSeconds = ANSWER_SECONDS),
+                wakeCheck = WakeCheck(enabled = true),
             )
             AlarmTestCase.E -> base.copy(vibrate = false, gentleWake = true, gentleSeconds = GENTLE_SECONDS)
             AlarmTestCase.F -> base.copy(soundId = Alarm.SILENT_SOUND_ID)

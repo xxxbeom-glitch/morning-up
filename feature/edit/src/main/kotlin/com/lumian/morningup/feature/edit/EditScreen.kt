@@ -58,8 +58,8 @@ import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 
-/** 편집 화면의 하위 화면. S1-2(Mission)와 S4(WakeCheck)만 열리고 나머지는 7단계 이후예요. */
-enum class EditDetail { Mission, Preview, RingAgain, WakeCheck, PowerOff, Sound, Vibration, Gentle, Background }
+/** 편집 화면의 하위 화면. */
+enum class EditDetail { Mission, Preview, RingAgain, PowerOff, Sound, Vibration, Gentle, Background }
 
 /** 피그마 S0의 요일 순서(일~토). */
 private val DayOrder = listOf(
@@ -85,7 +85,7 @@ private val ColonWidth = 24.dp
  */
 @Composable
 fun AlarmEditRoute(
-    onSaved: (Long) -> Unit,
+    onSaved: (alarmId: Long, checksStopped: Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
@@ -98,7 +98,7 @@ fun AlarmEditRoute(
     val preview by rememberUpdatedState(onPreview)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
-            is EditExit.Saved -> saved(exit.alarmId)
+            is EditExit.Saved -> saved(exit.alarmId, exit.checksStopped)
             EditExit.Discarded -> close()
             null -> Unit
         }
@@ -121,8 +121,6 @@ fun AlarmEditRoute(
                 onSave = viewModel::save,
                 onKeepEditing = viewModel::keepEditing,
                 onDiscard = viewModel::discard,
-                onWakeCheckAsk = viewModel::setWakeCheckAsk,
-                onWakeCheckAnswer = viewModel::setWakeCheckAnswer,
                 onRingAgainInterval = viewModel::setRingAgainInterval,
                 onRingAgainCount = viewModel::setRingAgainCount,
                 onVolume = viewModel::setVolume,
@@ -164,8 +162,6 @@ data class EditActions(
     val onSave: () -> Unit = {},
     val onKeepEditing: () -> Unit = {},
     val onDiscard: () -> Unit = {},
-    val onWakeCheckAsk: (Int) -> Unit = {},
-    val onWakeCheckAnswer: (Int) -> Unit = {},
     val onRingAgainInterval: (Int) -> Unit = {},
     val onRingAgainCount: (Int?) -> Unit = {},
     val onVolume: (Int) -> Unit = {},
@@ -187,7 +183,6 @@ data class EditActions(
 /** 편집 화면 안에서 페이지로 여는 하위 화면. */
 private val PAGE_DETAILS = setOf(
     EditDetail.Mission,
-    EditDetail.WakeCheck,
     EditDetail.Sound,
     EditDetail.RingAgain,
     EditDetail.Vibration,
@@ -266,13 +261,6 @@ fun EditScreen(
             )
         }
         when (state.detail) {
-            EditDetail.WakeCheck -> WakeCheckPage(
-                wakeCheck = state.draft.wakeCheck,
-                onBack = actions.onCloseDetail,
-                onAsk = actions.onWakeCheckAsk,
-                onAnswer = actions.onWakeCheckAnswer,
-                onOff = { actions.onWakeCheck(false) },
-            )
             EditDetail.Mission -> MissionPickPage(state = state, actions = actions)
             EditDetail.Sound -> SoundPage(
                 selectedId = state.draft.soundId,
@@ -313,7 +301,6 @@ fun EditScreen(
             when (lastSheet) {
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
-                EditSheet.WakeCheck -> WakeCheckSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.MissionPick -> MissionPickSheetContent(
                     state = state,
                     onPick = { type ->
@@ -537,19 +524,12 @@ private fun MissionCard(
             },
             onClick = { onOpenSheet(EditSheet.RingAgain) },
         )
+        // 결정 145: 알람마다는 켜고 끄기만. 간격과 시간은 설정 탭 '깼는지 묻기'에 있어요. 글자를 눌러도 토글이 바뀌어요.
         MorningSettingRow(
             label = stringResource(R.string.edit_wake_check),
-            value = if (alarm.wakeCheck.enabled) {
-                stringResource(R.string.edit_wake_check_value, alarm.wakeCheck.askAfterMinutes)
-            } else {
-                offValue()
-            },
+            value = stringResource(R.string.edit_wake_check_desc),
             state = onOff(alarm.wakeCheck.enabled),
-            onCheckedChange = { on ->
-                actions.onWakeCheck(on)
-                if (on) onOpenSheet(EditSheet.WakeCheck)
-            },
-            onClick = { onOpenSheet(EditSheet.WakeCheck) },
+            onCheckedChange = actions.onWakeCheck,
         )
     }
 }

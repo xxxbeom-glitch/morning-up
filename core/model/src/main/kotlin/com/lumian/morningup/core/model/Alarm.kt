@@ -24,21 +24,10 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
 }
 
 /**
- * 다시 잠들기 방지(W2). 해제하고 [askAfterMinutes]분 뒤 묻고, [answerSeconds]초 안에 '깼어요'를 눌러야 해요.
- * 처음 값은 3분 후, 대답할 시간 1분이에요(결정 83).
+ * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지. 알람마다는 켜고 끄기만 두고, 간격과 시간은 전체 설정
+ * [WakeCheckSettings]에 있어요(결정 145). 낮잠, 주말 알람처럼 알람 하나만 끄는 길이에요.
  */
-data class WakeCheck(val enabled: Boolean = false, val askAfterMinutes: Int = 3, val answerSeconds: Int = 60) {
-    init {
-        require(askAfterMinutes in 1..MAX_ASK_MINUTES)
-        require(answerSeconds in MIN_ANSWER_SECONDS..MAX_ANSWER_SECONDS)
-    }
-
-    companion object {
-        const val MAX_ASK_MINUTES = 10
-        const val MIN_ANSWER_SECONDS = 30
-        const val MAX_ANSWER_SECONDS = 180
-    }
-}
+data class WakeCheck(val enabled: Boolean = false)
 
 /**
  * 알람 하나. [repeatDays]가 비어 있으면 한 번 알람이에요.

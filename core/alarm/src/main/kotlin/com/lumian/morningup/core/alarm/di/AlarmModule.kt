@@ -13,12 +13,16 @@ import com.lumian.morningup.core.alarm.SensorShakeSupport
 import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.alarm.SystemMinuteTicker
 import com.lumian.morningup.core.alarm.ring.AndroidRingEffectRunner
+import com.lumian.morningup.core.alarm.ring.CallMonitor
+import com.lumian.morningup.core.alarm.ring.CallState
 import com.lumian.morningup.core.alarm.ring.RingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingLink
+import com.lumian.morningup.core.alarm.ring.RingWakeCheckGate
 import com.lumian.morningup.core.alarm.ring.ServiceRingLink
 import com.lumian.morningup.core.alarm.weather.WeatherRepository
 import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.PermissionChecker
+import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.WeatherSource
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmScheduler
@@ -100,4 +104,10 @@ interface AlarmBindings {
 
     @Binds
     fun ringLink(impl: ServiceRingLink): RingLink
+
+    @Binds
+    fun callState(impl: CallMonitor): CallState
+
+    @Binds
+    fun wakeCheckGate(impl: RingWakeCheckGate): WakeCheckGate
 }

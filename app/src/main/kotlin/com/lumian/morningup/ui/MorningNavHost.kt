@@ -78,6 +78,9 @@ data object PermissionsRoute
 /** 편집 화면이 저장한 알람 id를 첫 화면에 넘기는 열쇠. */
 private const val SAVED_ALARM_KEY = "savedAlarmId"
 
+/** 저장하면서 그 알람의 남은 확인(W2, W3)을 멈췄는지(결정 145). 홈 토스트가 달라져요. */
+private const val CHECKS_STOPPED_KEY = "checksStopped"
+
 /**
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
  * [editRequests]에 알람 id가 오면(상태 표시줄 알람 아이콘) 그 알람의 편집 화면을 열고 [onEditRequestHandled]를 불러요.
@@ -154,7 +157,11 @@ fun MorningNavHost(
                         },
                         modifier = tabModifier,
                         savedAlarmId = savedId,
-                        onSavedAlarmShown = { entry.savedStateHandle[SAVED_ALARM_KEY] = null },
+                        onSavedAlarmShown = {
+                            entry.savedStateHandle[SAVED_ALARM_KEY] = null
+                            entry.savedStateHandle[CHECKS_STOPPED_KEY] = false
+                        },
+                        savedChecksStopped = entry.savedStateHandle[CHECKS_STOPPED_KEY] ?: false,
                         onSelectingChange = { homeSelecting = it },
                         banner = report.banner?.let { kind ->
                             { PermissionBanner(kind, onClick = { permissionSheet = kind.startStep }) }
@@ -228,7 +235,8 @@ fun MorningNavHost(
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
         composable<EditRoute> {
             AlarmEditRoute(
-                onSaved = { id ->
+                onSaved = { id, checksStopped ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(CHECKS_STOPPED_KEY, checksStopped)
                     navController.previousBackStackEntry?.savedStateHandle?.set(SAVED_ALARM_KEY, id)
                     navController.popBackStack()
                 },

@@ -1,0 +1,108 @@
+package com.lumian.morningup.core.data.settings
+
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.core.content.edit
+import com.lumian.morningup.core.data.db.AlarmDao
+import com.lumian.morningup.core.data.db.AlarmEntity
+import com.lumian.morningup.core.model.WakeCheckSettings
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+
+/**
+ * 다시 잠들기 방지 전체 설정(결정 145). 재부팅 뒤 잠금을 풀기 전에도 울림이 읽어야 해서 기기 보호 저장소에 둬요.
+ * 처음 한 번은 예전 알람마다 값을 옮겨요([migrate]).
+ */
+@Singleton
+class WakeCheckSettingsPrefs internal constructor(
+    private val prefs: SharedPreferences,
+    private val dao: AlarmDao,
+) : WakeCheckSettingsStore {
+    @Inject constructor(@ApplicationContext context: Context, dao: AlarmDao) : this(
+        context.createDeviceProtectedStorageContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE),
+        dao,
+    )
+
+    private val mutex = Mutex()
+    private val state = MutableStateFlow(read())
+
+    override val settings: StateFlow<WakeCheckSettings> = state.asStateFlow()
+
+    override suspend fun current(): WakeCheckSettings {
+        migrate()
+        return state.value
+    }
+
+    override fun update(transform: (WakeCheckSettings) -> WakeCheckSettings) {
+        synchronized(this) {
+            val next = transform(state.value)
+            write(next)
+            state.value = next
+        }
+    }
+
+    /**
+     * 예전에는 알람마다 '다시 물어보기'와 '대답할 시간'이 있었어요. 다시 잠들기 방지가 켜진 알람 중 가장 많이 쓴
+     * (간격, 시간) 쌍을 전체 설정으로 옮겨요. 같으면 먼저 만든 알람(id가 작은 것)의 값이에요. 지금 고를 수 없는 값은
+     * 처음 값으로 바꿔요. 한 번만 하고, 알람이 없거나 다 꺼져 있으면 처음 값 그대로예요.
+     */
+    suspend fun migrate() = mutex.withLock {
+        if (prefs.getBoolean(KEY_MIGRATED, false)) return@withLock
+        val picked = pickLegacy(dao.getAll())
+        synchronized(this) {
+            val next = if (picked != null && !prefs.contains(KEY_ASK)) {
+                state.value.copy(askAfterMinutes = picked.first, answerSeconds = picked.second)
+            } else {
+                state.value
+            }
+            write(next)
+            prefs.edit { putBoolean(KEY_MIGRATED, true) }
+            state.value = next
+        }
+    }
+
+    private fun read() = WakeCheckSettings(
+        askAfterMinutes = prefs.getInt(KEY_ASK, WakeCheckSettings.DEFAULT_ASK_MINUTES),
+        answerSeconds = prefs.getInt(KEY_ANSWER, WakeCheckSettings.DEFAULT_ANSWER_SECONDS),
+        recheckEnabled = prefs.getBoolean(KEY_RECHECK, true),
+        recheckMinutes = prefs.getInt(KEY_RECHECK_MINUTES, WakeCheckSettings.DEFAULT_RECHECK_MINUTES),
+    )
+
+    private fun write(settings: WakeCheckSettings) = prefs.edit {
+        putInt(KEY_ASK, settings.askAfterMinutes)
+        putInt(KEY_ANSWER, settings.answerSeconds)
+        putBoolean(KEY_RECHECK, settings.recheckEnabled)
+        putInt(KEY_RECHECK_MINUTES, settings.recheckMinutes)
+    }
+
+    companion object {
+        private const val PREFS = "wake_check_settings"
+        private const val KEY_ASK = "ask_after_minutes"
+        private const val KEY_ANSWER = "answer_seconds"
+        private const val KEY_RECHECK = "recheck_enabled"
+        private const val KEY_RECHECK_MINUTES = "recheck_minutes"
+        private const val KEY_MIGRATED = "migrated_from_alarms"
+
+        /** 옮길 (간격, 시간). 다시 잠들기 방지가 켜진 알람이 없으면 null. */
+        internal fun pickLegacy(alarms: List<AlarmEntity>): Pair<Int, Int>? {
+            val pairs = alarms.filter { it.wakeCheckEnabled }
+                .sortedBy { it.id }
+                .map { it.wakeCheckAskAfterMinutes to it.wakeCheckAnswerSeconds }
+            if (pairs.isEmpty()) return null
+            val counts = pairs.groupingBy { it }.eachCount()
+            val top = counts.values.max()
+            val (ask, answer) = pairs.first { counts.getValue(it) == top }
+            return Pair(
+                ask.takeIf { it in WakeCheckSettings.ASK_MINUTES } ?: WakeCheckSettings.DEFAULT_ASK_MINUTES,
+                answer.takeIf { it in WakeCheckSettings.ANSWER_SECONDS } ?: WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
+            )
+        }
+    }
+}

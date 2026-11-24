@@ -4,16 +4,21 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.engine.RingEffect.CancelTimer
 import com.lumian.morningup.core.model.engine.RingEffect.MarkPassed
+import com.lumian.morningup.core.model.engine.RingEffect.PausedForCall
+import com.lumian.morningup.core.model.engine.RingEffect.PlayChime
 import com.lumian.morningup.core.model.engine.RingEffect.PlaySound
 import com.lumian.morningup.core.model.engine.RingEffect.PostMissedNotification
+import com.lumian.morningup.core.model.engine.RingEffect.RecheckScheduled
 import com.lumian.morningup.core.model.engine.RingEffect.RescheduleAlarm
 import com.lumian.morningup.core.model.engine.RingEffect.ScheduleTimer
 import com.lumian.morningup.core.model.engine.RingEffect.SessionEnded
 import com.lumian.morningup.core.model.engine.RingEffect.ShowMission
+import com.lumian.morningup.core.model.engine.RingEffect.ShowRecheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowRingScreen
 import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeCheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeUp
 import com.lumian.morningup.core.model.engine.RingEffect.StopSound
+import com.lumian.morningup.core.model.engine.RingEffect.WakeResultRecorded
 import org.junit.Test
 
 class RingStateMachineTest {
@@ -30,6 +35,7 @@ class RingStateMachineTest {
         interval: Int = 5,
         count: Int? = 2,
         wakeCheck: Boolean = false,
+        recheck: Boolean = false,
     ) = RingPlan(
         alarmId = id,
         missions = missions,
@@ -38,6 +44,8 @@ class RingStateMachineTest {
         wakeCheckEnabled = wakeCheck,
         wakeCheckAskAfterMinutes = 3,
         wakeCheckAnswerSeconds = 60,
+        recheckEnabled = recheck,
+        recheckAnswerMinutes = 10,
     )
 
     private fun reduce(s: RingSession?, e: RingEvent, now: Long) = RingStateMachine.reduce(s, e, now)
@@ -377,5 +385,227 @@ class RingStateMachineTest {
     fun resume_awaitingWakeCheck_onlyRearmsTimer() {
         val s = dismissedWithWakeCheck().session!!
         assertThat(RingStateMachine.resume(s)).containsExactly(ScheduleTimer(s.phaseEndsAt, TimerKind.WakeCheckAsk))
+    }
+
+    // 한 번 더 확인(W3, 결정 145) ---------------------------------------------
+
+    /** 미션 1개, W2와 W3 켬. 미션을 t0+30초에 마쳐 W2를 t0+3분30초에 물어요. */
+    private fun dismissedWithRecheck(): Transition {
+        val s = fire(plan(missions = listOf(MissionType.QuickMath), wakeCheck = true, recheck = true)).session
+        val m = reduce(s, RingEvent.MissionStarted, t0).session
+        return reduce(m, RingEvent.MissionCompleted, t0 + 30 * sec)
+    }
+
+    private val w2At get() = t0 + 30 * sec + 3 * min
+
+    private fun w2Asking() = reduce(dismissedWithRecheck().session, RingEvent.TimerFired(TimerKind.WakeCheckAsk), w2At)
+
+    /** W2 '깼어요'를 w2At+10초에 눌러 W3를 기다려요. */
+    private fun awaitingRecheck() = reduce(w2Asking().session, RingEvent.WakeCheckConfirmed, w2At + 10 * sec)
+
+    private val w3At get() = w2At + 10 * sec + 3 * min
+
+    private fun w3Asking() = reduce(awaitingRecheck().session, RingEvent.TimerFired(TimerKind.RecheckAsk), w3At)
+
+    @Test
+    fun wakeCheckAsk_playsChime() {
+        assertThat(w2Asking().effects).containsExactly(
+            ShowWakeCheck,
+            PlayChime,
+            ScheduleTimer(w2At + min, TimerKind.WakeCheckTimeout),
+        )
+    }
+
+    @Test
+    fun wakeCheckConfirmed_withRecheck_waitsSameInterval_quietly() {
+        val t = awaitingRecheck()
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.AwaitingRecheck)
+        assertThat(t.effects).containsExactly(RecheckScheduled(w3At), ScheduleTimer(w3At, TimerKind.RecheckAsk))
+    }
+
+    @Test
+    fun recheckAsk_showsW3_withTenMinutes() {
+        val t = w3Asking()
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.RecheckAsking)
+        assertThat(t.effects)
+            .containsExactly(ShowRecheck, PlayChime, ScheduleTimer(w3At + 10 * min, TimerKind.RecheckTimeout))
+    }
+
+    @Test
+    fun recheckConfirmed_inTime_dismisses_andRecordsResult() {
+        val t = reduce(w3Asking().session, RingEvent.RecheckConfirmed, w3At + 20 * sec)
+        assertThat(t.session).isNull()
+        assertThat(t.effects).containsExactly(
+            StopSound,
+            CancelTimer,
+            WakeResultRecorded(1, WakeResult.RecheckPassed, 0),
+            SessionEnded(1, RingOutcome.Dismissed),
+        )
+    }
+
+    @Test
+    fun recheckConfirmed_whileWaiting_endsEarly() {
+        val t = reduce(awaitingRecheck().session, RingEvent.RecheckConfirmed, w2At + min)
+        assertThat(t.session).isNull()
+        assertThat(t.effects).contains(WakeResultRecorded(1, WakeResult.RecheckPassedEarly, 0))
+    }
+
+    @Test
+    fun recheckConfirmed_inOtherPhase_isIgnored() {
+        val s = w2Asking().session
+        assertThat(reduce(s, RingEvent.RecheckConfirmed, w2At + sec).session).isEqualTo(s)
+    }
+
+    @Test
+    fun wakeCheckConfirmed_withoutRecheck_recordsW2Pass() {
+        val ask = reduce(dismissedWithWakeCheck().session, RingEvent.TimerFired(TimerKind.WakeCheckAsk), t0 + 4 * min)
+        val t = reduce(ask.session, RingEvent.WakeCheckConfirmed, t0 + 4 * min + 10 * sec)
+        assertThat(t.effects).contains(WakeResultRecorded(1, WakeResult.WakeCheckPassed, 0))
+    }
+
+    @Test
+    fun recheckTimeout_ringsAgainFromStart_andCountsRound() {
+        val t = reduce(w3Asking().session, RingEvent.TimerFired(TimerKind.RecheckTimeout), w3At + 10 * min)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
+        assertThat(t.session!!.missionsDone).isEqualTo(0)
+        assertThat(t.session!!.ringsLeft).isEqualTo(2)
+        assertThat(t.session!!.rounds).isEqualTo(1)
+        assertThat(t.effects).containsAtLeast(PlaySound(1f), ShowRingScreen)
+    }
+
+    @Test
+    fun afterTwoRounds_finishEndsAtW1_withoutChecks() {
+        val s = fire(plan(missions = listOf(MissionType.QuickMath), wakeCheck = true, recheck = true)).session!!
+        val capped = s.copy(rounds = RingStateMachine.MAX_ROUNDS)
+        val m = reduce(capped, RingEvent.MissionStarted, t0).session
+        val t = reduce(m, RingEvent.MissionCompleted, t0 + 30 * sec)
+        assertThat(t.session).isNull()
+        assertThat(t.effects).containsAtLeast(
+            ShowWakeUp,
+            WakeResultRecorded(1, WakeResult.EndedByCap, 2),
+            SessionEnded(1, RingOutcome.Dismissed),
+        )
+    }
+
+    @Test
+    fun oneRound_stillAsks() {
+        val s = fire(plan(missions = emptyList(), wakeCheck = true)).session!!.copy(rounds = 1)
+        val t = reduce(s, RingEvent.DismissWithoutMission, t0)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.AwaitingWakeCheck)
+    }
+
+    @Test
+    fun missed_withWakeCheck_recordsMissed() {
+        val s = fire(plan(count = 0, wakeCheck = true)).session
+        val t = reduce(s, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
+        assertThat(t.effects).contains(WakeResultRecorded(1, WakeResult.Missed, 0))
+    }
+
+    @Test
+    fun missed_withoutWakeCheck_recordsNothing() {
+        val t = reduce(fire(plan(count = 0)).session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring)
+        assertThat(t.effects.filterIsInstance<WakeResultRecorded>()).isEmpty()
+    }
+
+    // 통화 중 ---------------------------------------------------------------
+
+    @Test
+    fun askDuringCall_isPaused_withFullAnswerTime() {
+        val waiting = dismissedWithRecheck().session
+        val t = RingStateMachine.reduce(waiting, RingEvent.TimerFired(TimerKind.WakeCheckAsk), w2At, inCall = true)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.WakeCheckAsking)
+        assertThat(t.session!!.pausedLeftMillis).isEqualTo(min)
+        assertThat(t.effects).containsExactly(PausedForCall)
+    }
+
+    @Test
+    fun callStartsWhileAsking_pausesWithTimeLeft_thenResumes() {
+        val asking = w2Asking().session
+        val paused = reduce(asking, RingEvent.CallChanged(inCall = true), w2At + 20 * sec)
+        assertThat(paused.session!!.pausedLeftMillis).isEqualTo(40 * sec)
+        assertThat(paused.effects).containsExactly(CancelTimer, PausedForCall)
+        // 멈춘 동안에는 '깼어요'도 받지 않아요.
+        assertThat(reduce(paused.session, RingEvent.WakeCheckConfirmed, w2At + 30 * sec).session)
+            .isEqualTo(paused.session)
+        val ended = w2At + 5 * min
+        val resumed = reduce(paused.session, RingEvent.CallChanged(inCall = false), ended)
+        assertThat(resumed.session!!.pausedLeftMillis).isNull()
+        assertThat(resumed.effects).containsExactly(
+            ShowWakeCheck,
+            PlayChime,
+            ScheduleTimer(ended + 40 * sec, TimerKind.WakeCheckTimeout),
+        )
+    }
+
+    @Test
+    fun callChanged_whileRinging_doesNothing() {
+        val s = fire().session
+        assertThat(reduce(s, RingEvent.CallChanged(inCall = true), t0 + sec).effects).isEmpty()
+    }
+
+    @Test
+    fun resume_paused_staysPaused() {
+        val paused = reduce(w2Asking().session, RingEvent.CallChanged(inCall = true), w2At + sec).session!!
+        assertThat(RingStateMachine.resume(paused)).containsExactly(PausedForCall)
+    }
+
+    @Test
+    fun resume_recheckAsking_showsW3Again() {
+        val s = w3Asking().session!!
+        assertThat(RingStateMachine.resume(s))
+            .containsExactly(ShowRecheck, ScheduleTimer(s.phaseEndsAt, TimerKind.RecheckTimeout))
+    }
+
+    @Test
+    fun resume_awaitingRecheck_onlyRearmsTimer() {
+        val s = awaitingRecheck().session!!
+        assertThat(RingStateMachine.resume(s)).containsExactly(ScheduleTimer(s.phaseEndsAt, TimerKind.RecheckAsk))
+    }
+
+    // 남은 확인 취소 ----------------------------------------------------------
+
+    @Test
+    fun cancelChecks_forSameAlarm_endsQuietly() {
+        val t = reduce(awaitingRecheck().session, RingEvent.CancelChecks(1), w2At + min)
+        assertThat(t.session).isNull()
+        assertThat(t.effects).containsExactly(
+            StopSound,
+            CancelTimer,
+            WakeResultRecorded(1, WakeResult.Cancelled, 0),
+            SessionEnded(1, RingOutcome.Cancelled),
+        )
+    }
+
+    @Test
+    fun cancelChecks_forOtherAlarm_orWhileRinging_isIgnored() {
+        val waiting = awaitingRecheck().session
+        assertThat(reduce(waiting, RingEvent.CancelChecks(9), w2At + min).session).isEqualTo(waiting)
+        val ringing = fire().session
+        assertThat(reduce(ringing, RingEvent.CancelChecks(1), t0 + sec).session).isEqualTo(ringing)
+    }
+
+    @Test
+    fun recheckTurnedOff_cancelsW3_butKeepsW2() {
+        assertThat(reduce(w3Asking().session, RingEvent.RecheckTurnedOff, w3At + sec).session).isNull()
+        val w2 = reduce(w2Asking().session, RingEvent.RecheckTurnedOff, w2At + sec)
+        assertThat(w2.session!!.phase).isEqualTo(RingPhase.WakeCheckAsking)
+        assertThat(w2.session!!.plan.recheckEnabled).isFalse()
+        assertThat(w2.effects).isEmpty()
+        // 그 뒤 W2를 통과하면 W3 없이 끝나요.
+        assertThat(reduce(w2.session, RingEvent.WakeCheckConfirmed, w2At + 2 * sec).session).isNull()
+    }
+
+    @Test
+    fun newAlarm_duringChecks_cancelsOld_andRingsNew() {
+        val t = reduce(awaitingRecheck().session, RingEvent.AlarmFired(plan(id = 2)), w2At + min)
+        assertThat(t.session!!.plan.alarmId).isEqualTo(2)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
+        assertThat(t.effects).containsAtLeast(
+            WakeResultRecorded(1, WakeResult.Cancelled, 0),
+            SessionEnded(1, RingOutcome.Cancelled),
+            PlaySound(1f),
+            ShowRingScreen,
+            RescheduleAlarm(2),
+        ).inOrder()
     }
 }

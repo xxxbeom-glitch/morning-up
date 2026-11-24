@@ -29,6 +29,9 @@ object FlowLog {
     fun nameOf(event: RingEvent): String = when (event) {
         is RingEvent.AlarmFired -> "fired"
         is RingEvent.TimerFired -> "timer_${event.kind.name.lowercase()}"
+        is RingEvent.CallChanged -> if (event.inCall) "call_started" else "call_ended"
+        is RingEvent.CancelChecks -> "cancel_checks"
+        RingEvent.RecheckTurnedOff -> "recheck_turned_off"
         else -> RingEvent.keyOf(event) ?: event.javaClass.simpleName
     }
 

@@ -2,7 +2,12 @@ package com.lumian.morningup
 
 import android.app.Application
 import android.app.NotificationManager
+import com.lumian.morningup.core.alarm.AlarmScope
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 /**
@@ -11,8 +16,16 @@ import timber.log.Timber
  */
 @HiltAndroidApp
 class MorningUpApplication : Application() {
+    @Inject lateinit var wakeSettings: WakeCheckSettingsStore
+
+    @Inject
+    @AlarmScope
+    lateinit var scope: CoroutineScope
+
     override fun onCreate() {
         super.onCreate()
+        // 예전 알람마다 다시 잠들기 방지 값을 전체 설정으로 한 번 옮겨요(결정 145). 기기 보호 저장소라 잠금 전에도 돼요.
+        scope.launch { wakeSettings.current() }
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }

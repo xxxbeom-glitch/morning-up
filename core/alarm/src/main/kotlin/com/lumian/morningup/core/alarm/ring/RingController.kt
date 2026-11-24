@@ -2,6 +2,8 @@ package com.lumian.morningup.core.alarm.ring
 
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.data.session.RingSessionStore
+import com.lumian.morningup.core.model.InMemoryWakeCheckSettingsStore
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.BootCatchUpPolicy
 import com.lumian.morningup.core.model.engine.RingEffect
@@ -11,6 +13,7 @@ import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingPlan
 import com.lumian.morningup.core.model.engine.RingSession
 import com.lumian.morningup.core.model.engine.RingStateMachine
+import com.lumian.morningup.core.model.engine.WakeResult
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,6 +36,9 @@ sealed interface RingScreen {
 
     /** W2 깨어 있나요. */
     data object WakeCheck : RingScreen
+
+    /** W3 정말 깼어요. 기다리는 중에 알림이나 홈 띠로 미리 열 때도 이 화면이에요(결정 145). */
+    data object Recheck : RingScreen
 }
 
 /** 상태표가 시킨 일을 실제로 하는 쪽. 안드로이드 구현은 [AndroidRingEffectRunner]예요. */
@@ -51,6 +57,8 @@ class RingController @Inject constructor(
     private val alarms: AlarmStore,
     private val runner: RingEffectRunner,
     private val now: NowProvider,
+    private val wakeSettings: WakeCheckSettingsStore = InMemoryWakeCheckSettingsStore(),
+    private val calls: CallState = CallState.NotInCall,
 ) {
     private val mutex = Mutex()
     private val _session = MutableStateFlow<RingSession?>(null)
@@ -65,7 +73,7 @@ class RingController @Inject constructor(
      */
     suspend fun fire(alarmId: Long): Boolean {
         val alarm = alarms.get(alarmId) ?: return false
-        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm))) }
+        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm, wakeSettings.current()))) }
         return true
     }
 
@@ -75,19 +83,15 @@ class RingController @Inject constructor(
      * 앱이나 서비스가 다시 살아났을 때. 이어갈 울림이 있으면 소리, 화면, 타이머를 되살려요.
      * 단계가 끝난 지 10분이 넘은 울림(폰이 오래 꺼져 있었던 경우)은 이어가지 않고 '놓친 알람'으로 끝내요.
      * 놓친 알람에 쓰는 10분 규칙([BootCatchUpPolicy])과 같아요.
+     * 다만 울린 뒤 확인(W2, W3)을 기다리거나 묻던 중이면 알람은 이미 끈 것이라, 놓침 알림 없이 조용히 멈추고
+     * 진단 기록만 남겨요(결정 145 '재부팅'). 10분 안이면 바로 물어요.
      */
     suspend fun resume(): RingSession? = mutex.withLock {
         var saved = sessions.load()
-        if (saved != null && now.millis() - saved.phaseEndsAt > BootCatchUpPolicy.RING_NOW_WINDOW_MILLIS) {
+        if (saved != null && saved.pausedLeftMillis == null && isStale(saved)) {
             sessions.save(null)
-            val id = saved.plan.alarmId
-            val ended = listOf(
-                RingEffect.StopSound,
-                RingEffect.CancelTimer,
-                RingEffect.PostMissedNotification(id),
-                RingEffect.SessionEnded(id, RingOutcome.Missed),
-            )
-            FlowLog.event("missed_after_long_off", id, FlowLog.effectsOf(ended))
+            val ended = staleEffects(saved)
+            FlowLog.event("missed_after_long_off", saved.plan.alarmId, FlowLog.effectsOf(ended))
             updateScreen(ended)
             runner.run(saved, ended)
             saved = null
@@ -98,13 +102,36 @@ class RingController @Inject constructor(
             FlowLog.event("resumed", saved.plan.alarmId, "phase=${saved.phase} " + FlowLog.effectsOf(effects))
             updateScreen(effects)
             runner.run(saved, effects)
+            // 통화 때문에 멈춰 둔 W2, W3는 지금 통화 상태로 이어가거나 계속 멈춰요.
+            if (saved.pausedLeftMillis != null) apply(RingEvent.CallChanged(calls.inCall()))
         }
-        saved
+        _session.value
+    }
+
+    private fun isStale(saved: RingSession) =
+        now.millis() - saved.phaseEndsAt > BootCatchUpPolicy.RING_NOW_WINDOW_MILLIS
+
+    private fun staleEffects(saved: RingSession): List<RingEffect> {
+        val id = saved.plan.alarmId
+        if (saved.phase.isCheck) {
+            return listOf(
+                RingEffect.StopSound,
+                RingEffect.CancelTimer,
+                RingEffect.WakeResultRecorded(id, WakeResult.Cancelled, saved.rounds),
+                RingEffect.SessionEnded(id, RingOutcome.Cancelled),
+            )
+        }
+        return listOf(
+            RingEffect.StopSound,
+            RingEffect.CancelTimer,
+            RingEffect.PostMissedNotification(id),
+            RingEffect.SessionEnded(id, RingOutcome.Missed),
+        )
     }
 
     private suspend fun apply(event: RingEvent) {
         val current = sessions.load()
-        val transition = RingStateMachine.reduce(current, event, now.millis())
+        val transition = RingStateMachine.reduce(current, event, now.millis(), calls.inCall())
         // 미션 화면 조작(59초 다시 채우기)은 너무 잦아서 흐름 로그에 남기지 않아요.
         if (event != RingEvent.MissionInteraction) {
             val after = transition.session
@@ -131,6 +158,9 @@ class RingController @Inject constructor(
                 is RingEffect.ShowMission -> _screen.value = RingScreen.Mission(effect.index)
                 RingEffect.ShowWakeUp -> _screen.value = RingScreen.WakeUp
                 RingEffect.ShowWakeCheck -> _screen.value = RingScreen.WakeCheck
+                RingEffect.ShowRecheck -> _screen.value = RingScreen.Recheck
+                // W2를 통과해 W3를 기다리거나 통화 때문에 멈추면 화면을 닫아요. 끝난 모습은 화면이 잠깐 보여 줘요.
+                is RingEffect.RecheckScheduled, RingEffect.PausedForCall -> _screen.value = RingScreen.None
                 // W1(해제 완료)은 끝난 뒤에도 사용자가 볼 수 있게 남겨요. 놓친 경우만 화면을 닫아요.
                 is RingEffect.SessionEnded -> if (_screen.value != RingScreen.WakeUp) _screen.value = RingScreen.None
                 else -> Unit
@@ -152,5 +182,19 @@ class RingController @Inject constructor(
     /** 쉬는 중 알림을 눌렀어요. 쉬는 동안에도 울림 화면을 보여 줘서 미션을 시작하거나 끌 수 있게 해요. */
     fun openDuringRest() {
         if (_session.value?.phase == RingPhase.Resting) _screen.value = RingScreen.Ringing
+    }
+
+    /**
+     * W3를 기다리는 중 알림이나 홈 띠를 눌렀어요. 정한 때보다 먼저 W3를 열어 지금 끝낼 수 있게 해요.
+     * 이미 묻는 중이면 그 화면을 그대로 보여 줘요. 열었으면 true예요.
+     */
+    fun openRecheckEarly(): Boolean {
+        val phase = _session.value?.phase
+        val open = phase == RingPhase.AwaitingRecheck || phase == RingPhase.RecheckAsking
+        if (open) {
+            FlowLog.event("recheck_opened", _session.value?.plan?.alarmId, "phase=$phase")
+            _screen.value = RingScreen.Recheck
+        }
+        return open
     }
 }

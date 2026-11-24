@@ -25,7 +25,7 @@
     <string name="edit_ring_again_value">%1$d분, %2$d회</string>
     <string name="edit_ring_again_until_off">%1$d분, 무제한</string>
     <string name="edit_wake_check">다시 잠들기 방지</string>
-    <string name="edit_wake_check_value">%1$d분 후</string>
+    <string name="edit_wake_check_desc">알람을 끈 뒤 깼는지 다시 물어요</string>
     <string name="edit_power_off">전원 종료 방지</string>
     <string name="edit_power_off_value">미션 끝날 때까지</string>
 
@@ -116,12 +116,6 @@
         <item>예: (167 × 37) + 1872</item>
     </string-array>
 
-    <!-- S4 다시 잠들기 방지 -->
-    <string name="edit_wake_check_ask_title">언제 물을까요</string>
-    <string name="edit_wake_check_ask_option">%1$d분 후</string>
-    <string name="edit_wake_check_answer_title">답할 시간</string>
-    <string name="edit_wake_check_help">시간 안에 \'깼어요\'를 누르지 않으면 알람이 다시 울려요</string>
-
     <!-- S3 다시 울림 -->
     <string name="edit_ring_again_interval_title">간격</string>
     <string name="edit_ring_again_interval_option">%1$d분</string>
@@ -137,11 +131,8 @@
     <string name="edit_seconds">%1$d초</string>
     <string name="edit_done">완료</string>
     <string name="edit_ring_again_sheet_desc">미션을 못 끝내면 다시 울려요</string>
-    <string name="edit_wake_check_sheet_desc">알람을 끈 뒤 깼는지 한 번 더 물어요</string>
     <string name="edit_ring_again_count_sheet">%1$d회</string>
     <string name="edit_ring_again_unlimited">무제한</string>
-    <string name="edit_wake_check_ask_sheet">다시 물어보기</string>
-    <string name="edit_wake_check_answer_sheet">대답할 시간</string>
     <string name="edit_volume_percent">%1$d%%</string>
     <string name="edit_vibration_title">진동</string>
     <string name="edit_vibration_sub">소리와 함께 울려요</string>

@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.lumian.morningup.core.alarm.ring.CallState
 import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingEffectRunner
 import com.lumian.morningup.core.alarm.ring.RingScreen
@@ -18,14 +19,18 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.InMemoryWakeCheckSettingsStore
 import com.lumian.morningup.core.model.WakeCheck
+import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.core.model.engine.RingOutcome
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
 import com.lumian.morningup.core.model.engine.RingStateMachine
 import com.lumian.morningup.core.model.engine.TimerKind
+import com.lumian.morningup.core.model.engine.WakeResult
 import java.io.File
 import java.time.Instant
 import java.time.LocalTime
@@ -187,8 +192,9 @@ class AlarmWiringTest {
     @Test
     fun wakeCheck_closingW1_thenAskTimer_showsW2_withPlanSettings() = runTest {
         val sessions = sessionStore(tmp.newFile("w.preferences_pb").also { it.delete() })
-        val alarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true, askAfterMinutes = 1, answerSeconds = 60))
-        val controller = RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now)
+        val alarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true))
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(askAfterMinutes = 1, answerSeconds = 60))
+        val controller = RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now, settings)
         controller.fire(3)
         assertThat(
             controller.session.value!!.plan.missionSetting(0),
@@ -293,5 +299,94 @@ class AlarmWiringTest {
         controller.send(RingEvent.TimerFired(TimerKind.RingTimeout))
         assertThat(controller.session.value).isNull()
         assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+    }
+
+    // 한 번 더 확인(결정 145) ---------------------------------------------------
+
+    private val checkAlarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true))
+
+    @Test
+    fun fire_usesGlobalWakeCheckSettings() = runTest {
+        val sessions = sessionStore(tmp.newFile("g.preferences_pb").also { it.delete() })
+        val settings =
+            InMemoryWakeCheckSettingsStore(WakeCheckSettings(5, 30, recheckEnabled = true, recheckMinutes = 3))
+        RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now, settings).fire(3)
+        val plan = sessions.load()!!.plan
+        assertThat(plan.wakeCheckAskAfterMinutes).isEqualTo(5)
+        assertThat(plan.wakeCheckAnswerSeconds).isEqualTo(30)
+        assertThat(plan.recheckEnabled).isTrue()
+        assertThat(plan.recheckAnswerMinutes).isEqualTo(3)
+    }
+
+    @Test
+    fun recheck_waitsQuietly_thenOpensEarly_andEnds() = runTest {
+        val sessions = sessionStore(tmp.newFile("h.preferences_pb").also { it.delete() })
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(askAfterMinutes = 3, answerSeconds = 60))
+        val runner = RecordingRunner()
+        val controller = RingController(sessions, FakeAlarms(checkAlarm), runner, now, settings)
+        controller.fire(3)
+        controller.send(RingEvent.MissionStarted)
+        controller.send(RingEvent.MissionCompleted)
+        clock += 3 * 60_000L
+        controller.send(RingEvent.TimerFired(TimerKind.WakeCheckAsk))
+        controller.send(RingEvent.WakeCheckConfirmed)
+        assertThat(controller.session.value!!.phase).isEqualTo(RingPhase.AwaitingRecheck)
+        assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+
+        // 알림이나 홈 띠를 누르면 W3를 미리 열어요.
+        assertThat(controller.openRecheckEarly()).isTrue()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.Recheck)
+        controller.send(RingEvent.RecheckConfirmed)
+        assertThat(controller.session.value).isNull()
+        assertThat(runner.effects)
+            .contains(RingEffect.WakeResultRecorded(3, WakeResult.RecheckPassedEarly, 0))
+    }
+
+    @Test
+    fun openRecheckEarly_withoutRecheck_doesNothing() = runTest {
+        val sessions = sessionStore(tmp.newFile("i.preferences_pb").also { it.delete() })
+        val controller = RingController(sessions, FakeAlarms(mathAlarm), RecordingRunner(), now)
+        controller.fire(3)
+        assertThat(controller.openRecheckEarly()).isFalse()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.Ringing)
+    }
+
+    @Test
+    fun askDuringCall_keepsScreenClosed() = runTest {
+        val sessions = sessionStore(tmp.newFile("j.preferences_pb").also { it.delete() })
+        var inCall = false
+        val calls = CallState { inCall }
+        val settings = InMemoryWakeCheckSettingsStore()
+        val controller = RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now, settings, calls)
+        controller.fire(3)
+        controller.send(RingEvent.MissionStarted)
+        controller.send(RingEvent.MissionCompleted)
+        controller.clearScreen()
+        clock += 3 * 60_000L
+        inCall = true
+        controller.send(RingEvent.TimerFired(TimerKind.WakeCheckAsk))
+        assertThat(controller.session.value!!.pausedLeftMillis).isEqualTo(60_000L)
+        assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+        inCall = false
+        controller.send(RingEvent.CallChanged(inCall = false))
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
+    }
+
+    @Test
+    fun resume_staleCheckSession_endsQuietly_withoutMissedNotification() = runTest {
+        val sessions = sessionStore(tmp.newFile("k.preferences_pb").also { it.delete() })
+        val first = RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now)
+        first.fire(3)
+        first.send(RingEvent.MissionStarted)
+        first.send(RingEvent.MissionCompleted)
+
+        // W2를 기다리던 중 폰이 꺼졌다가 한참 뒤에 켜졌어요(재부팅 뒤 10분 규칙).
+        clock += 30 * 60_000L
+        val runner = RecordingRunner()
+        val revived = RingController(sessions, FakeAlarms(checkAlarm), runner, now)
+        assertThat(revived.resume()).isNull()
+        assertThat(runner.effects.filterIsInstance<RingEffect.PostMissedNotification>()).isEmpty()
+        assertThat(runner.effects).contains(RingEffect.SessionEnded(3, RingOutcome.Cancelled))
+        assertThat(runner.effects).contains(RingEffect.WakeResultRecorded(3, WakeResult.Cancelled, 0))
     }
 }

@@ -8,6 +8,7 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
+import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
@@ -45,7 +46,7 @@ data class EditRoute(val alarmId: Long = NEW_ALARM) {
 sealed interface EditExit {
     data object Discarded : EditExit
 
-    data class Saved(val alarmId: Long) : EditExit
+    data class Saved(val alarmId: Long, val checksStopped: Boolean = false) : EditExit
 }
 
 data class EditUiState(
@@ -113,6 +114,7 @@ class EditViewModel @Inject constructor(
     ticker: MinuteTicker,
     savedStateHandle: SavedStateHandle,
     shakeSupport: ShakeSupport,
+    private val checks: WakeCheckGate? = null,
 ) : ViewModel() {
     private data class Editor(
         val loading: Boolean = true,
@@ -251,20 +253,6 @@ class EditViewModel @Inject constructor(
 
     fun setWakeCheck(on: Boolean) = edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = on)) }
 
-    /** S4 '언제 물을까요'. 값을 고르면 켜져요('사용 안 함'은 [setWakeCheck] false). */
-    fun setWakeCheckAsk(minutes: Int) {
-        if (minutes in WAKE_CHECK_ASK_MINUTES) {
-            edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = true, askAfterMinutes = minutes)) }
-        }
-    }
-
-    /** S4 '답할 시간'. 고르면 켜져요. */
-    fun setWakeCheckAnswer(seconds: Int) {
-        if (seconds in WAKE_CHECK_ANSWER_SECONDS) {
-            edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = true, answerSeconds = seconds)) }
-        }
-    }
-
     /** S3 '간격'. 꺼져 있었으면 처음 횟수(3번)로 켜져요. */
     fun setRingAgainInterval(minutes: Int) {
         if (minutes in RING_AGAIN_INTERVALS) {
@@ -346,7 +334,9 @@ class EditViewModel @Inject constructor(
         editor.update { it.copy(saving = true) }
         viewModelScope.launch {
             val saved = book.save(current.draft.copy(enabled = true))
-            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id)) }
+            // 울린 뒤 남은 확인(W2, W3)이 있던 알람을 저장하면 그 확인을 멈춰요(결정 145, 홈 토스트).
+            val stopped = current.draft.id != 0L && checks?.cancelFor(saved.id) == true
+            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped)) }
         }
     }
 
@@ -357,10 +347,6 @@ class EditViewModel @Inject constructor(
         private const val DEFAULT_RING_AGAIN_COUNT = 3
         private val DEFAULT_TIME: LocalTime = LocalTime.of(7, 0)
 
-        /** S4 다시 잠들기 방지 시트 선택지(결정 83). */
-        val WAKE_CHECK_ASK_MINUTES = listOf(3, 5, 10)
-        val WAKE_CHECK_ANSWER_SECONDS = listOf(30, 60, 180)
-
         /** S3 다시 울림 시트 선택지(결정 82). 횟수 null은 '무제한'이에요. */
         val RING_AGAIN_INTERVALS = listOf(1, 3, 5, 10)
         val RING_AGAIN_COUNTS = listOf(null, 1, 3, 5)
@@ -368,7 +354,6 @@ class EditViewModel @Inject constructor(
 
         private val OPENABLE_DETAILS = setOf(
             EditDetail.Mission,
-            EditDetail.WakeCheck,
             EditDetail.Sound,
             EditDetail.RingAgain,
             EditDetail.Vibration,
@@ -377,7 +362,7 @@ class EditViewModel @Inject constructor(
         )
 
         /**
-         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(5분, 켜면 3번), 다시 잠들기 방지 1분 후 1분(F9, 꺼진 채),
+         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(5분, 켜면 3번), 다시 잠들기 방지 꺼짐(간격과 시간은 전체 설정, 결정 145),
          * 알람음 기본, 진동 켬, 배경 시간대 하늘. 시각은 오전 7:00.
          */
         fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = 0))

@@ -13,6 +13,7 @@ import android.os.PowerManager
 import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
@@ -44,6 +45,10 @@ class RingService : LifecycleService() {
 
     @Inject lateinit var sleepPlayer: SleepPlayer
 
+    @Inject lateinit var calls: CallMonitor
+
+    @Inject lateinit var chime: ChimePlayer
+
     @Inject
     @AlarmScope
     lateinit var scope: CoroutineScope
@@ -59,9 +64,21 @@ class RingService : LifecycleService() {
     private val relight = Runnable {
         val phase = controller.session.value?.phase
         val off = getSystemService(PowerManager::class.java)?.isInteractive == false
-        if (off && (phase == RingPhase.Ringing || phase == RingPhase.WakeCheckAsking)) {
+        if (off && (phase == RingPhase.Ringing || phase?.isAsking == true)) {
             diagnostics.record("screen_relit", controller.session.value?.plan?.alarmId, phase.name)
             notifications.openScreenNow()
+        }
+    }
+
+    /** W3를 묻는 동안 2분마다 짧은 소리를 내고 화면을 켜요(결정 145 3번). */
+    private val recheckNudge = object : Runnable {
+        override fun run() {
+            val session = controller.session.value
+            if (session?.phase != RingPhase.RecheckAsking || session.pausedLeftMillis != null) return
+            diagnostics.record("recheck_nudge", session.plan.alarmId)
+            chime.play(session.plan.alarmId)
+            notifications.openScreenNow()
+            handler.postDelayed(this, RECHECK_NUDGE_MILLIS)
         }
     }
 
@@ -80,6 +97,26 @@ class RingService : LifecycleService() {
             IntentFilter(Intent.ACTION_SCREEN_OFF),
             ContextCompat.RECEIVER_NOT_EXPORTED,
         )
+        // 통화가 시작되면 W2, W3를 멈추고, 끝나면 남은 시간으로 다시 물어요(결정 145 '통화 중').
+        calls.start(CALL_KEY) { inCall ->
+            scope.launch {
+                controller.send(RingEvent.CallChanged(inCall))
+                if (!inCall) openScreenIfNeeded(intent = null, force = true)
+            }
+        }
+        // 화면에서 남은 확인을 멈추는 등 서비스 밖에서 울림이 끝나면 스스로 멈춰요.
+        lifecycleScope.launch {
+            var previous = controller.session.value
+            controller.session.collect { session ->
+                val ended = previous != null && session == null
+                previous = session
+                if (ended && inFlight == 0) {
+                    sound.stop()
+                    ServiceCompat.stopForeground(this@RingService, ServiceCompat.STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                }
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -143,11 +180,13 @@ class RingService : LifecycleService() {
         }
     }
 
-    private suspend fun openScreenIfNeeded(intent: Intent?) {
-        val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
-        // 울림(D0)과 깨어 있나요 확인(W2) 모두 폰을 쓰는 중이어도 맨 앞에 바로 떠야 해요.
-        val phase = controller.session.value?.phase
-        if (wakeUp && (phase == RingPhase.Ringing || phase == RingPhase.WakeCheckAsking)) {
+    private suspend fun openScreenIfNeeded(intent: Intent?, force: Boolean = false) {
+        val wakeUp = force || intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        // 울림(D0)과 깨어 있나요 확인(W2, W3) 모두 폰을 쓰는 중이어도 맨 앞에 바로 떠야 해요. 통화 중이면 미뤄요.
+        val session = controller.session.value
+        val phase = session?.phase
+        val show = phase == RingPhase.Ringing || (phase?.isAsking == true && session.pausedLeftMillis == null)
+        if (wakeUp && show) {
             withContext(Dispatchers.Main) {
                 // 화면을 맨 앞에 띄웠으면 알림은 조용히 두고, 막혔거나 잠금 화면이면 배너와 전체 화면 알림으로 깨워요.
                 val opened = notifications.openScreenNow()
@@ -166,12 +205,16 @@ class RingService : LifecycleService() {
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
                 stopSelf(startId)
             }
-            RingPhase.Resting, RingPhase.AwaitingWakeCheck -> {
+            RingPhase.Resting, RingPhase.AwaitingWakeCheck, RingPhase.AwaitingRecheck -> {
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
                 notifications.showRinging(phase, controller.session.value?.phaseEndsAt)
                 stopSelf(startId)
             }
-            else -> notifications.showRinging(phase)
+            else -> {
+                notifications.showRinging(phase)
+                handler.removeCallbacks(recheckNudge)
+                if (phase == RingPhase.RecheckAsking) handler.postDelayed(recheckNudge, RECHECK_NUDGE_MILLIS)
+            }
         }
     }
 
@@ -199,8 +242,12 @@ class RingService : LifecycleService() {
     override fun onDestroy() {
         // 울리지 않는 단계면 소리를 확실히 멈춰요. 울리는 중에 시스템이 서비스를 죽이면 START_STICKY로 다시 이어가요.
         val phase = controller.session.value?.phase
-        if (phase == null || phase == RingPhase.Resting || phase == RingPhase.AwaitingWakeCheck) sound.stop()
+        val quiet = phase == null || phase == RingPhase.Resting || phase == RingPhase.AwaitingWakeCheck ||
+            phase == RingPhase.AwaitingRecheck
+        if (quiet) sound.stop()
         handler.removeCallbacks(relight)
+        handler.removeCallbacks(recheckNudge)
+        calls.stop(CALL_KEY)
         unregisterReceiver(screenOffReceiver)
         super.onDestroy()
     }
@@ -211,6 +258,10 @@ class RingService : LifecycleService() {
 
         /** 화면이 꺼지고 잠시 뒤 다시 켜요. 끄자마자 열면 꺼지는 중과 겹쳐요. */
         private const val RELIGHT_DELAY_MILLIS = 600L
+
+        /** W3 묻는 중 짧은 소리와 화면 켜기 간격(2분). */
+        private const val RECHECK_NUDGE_MILLIS = 120_000L
+        private const val CALL_KEY = "ring_checks"
 
         /** 울림 화면 버튼을 서비스로 보내요. 화면이 앞에 있으니 서비스를 앞으로 띄울 수 있어요. */
         fun send(context: Context, event: RingEvent) {

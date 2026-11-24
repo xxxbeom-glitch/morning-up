@@ -7,6 +7,7 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.WakeCheck
+import com.lumian.morningup.core.model.WakeCheckSettings
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
@@ -24,6 +25,7 @@ data class AlarmEntity(
     val ringAgainIntervalMinutes: Int,
     val ringAgainCount: Int?,
     val wakeCheckEnabled: Boolean,
+    /** 예전 알람마다 값. 결정 145부터 전체 설정으로 옮기고(WakeCheckSettingsPrefs) 이 칸은 읽기만 해요. */
     val wakeCheckAskAfterMinutes: Int,
     val wakeCheckAnswerSeconds: Int,
     val powerOffGuard: Boolean,
@@ -53,7 +55,7 @@ fun AlarmEntity.toModel(): Alarm = Alarm(
     // 모르는 미션(앞으로 지운 미션)은 건너뛰어요.
     missions = MissionCodec.decode(missions),
     ringAgain = RingAgain(ringAgainIntervalMinutes, ringAgainCount),
-    wakeCheck = WakeCheck(wakeCheckEnabled, wakeCheckAskAfterMinutes, wakeCheckAnswerSeconds),
+    wakeCheck = WakeCheck(wakeCheckEnabled),
     powerOffGuard = powerOffGuard,
     soundId = soundId,
     volumePercent = volumePercent,
@@ -77,8 +79,8 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     ringAgainIntervalMinutes = ringAgain.intervalMinutes,
     ringAgainCount = ringAgain.count,
     wakeCheckEnabled = wakeCheck.enabled,
-    wakeCheckAskAfterMinutes = wakeCheck.askAfterMinutes,
-    wakeCheckAnswerSeconds = wakeCheck.answerSeconds,
+    wakeCheckAskAfterMinutes = WakeCheckSettings.DEFAULT_ASK_MINUTES,
+    wakeCheckAnswerSeconds = WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
     powerOffGuard = powerOffGuard,
     soundId = soundId,
     volumePercent = volumePercent,

@@ -72,19 +72,17 @@ class EditScreenTest {
     }
 
     @Test
-    fun ringAgainAndWakeCheckSheets_offerNewChoices() {
+    fun ringAgainSheet_offersChoices_andWakeCheckRowOnlyToggles() {
         var interval: Int? = null
         var count: Int? = -1
-        var ask: Int? = null
-        var answer: Int? = null
+        var wakeCheck: Boolean? = null
         val draft = EditViewModel.newAlarm()
         show(
             EditUiState(loading = false, draft = draft),
             EditActions(
                 onRingAgainInterval = { interval = it },
                 onRingAgainCount = { count = it },
-                onWakeCheckAsk = { ask = it },
-                onWakeCheckAnswer = { answer = it },
+                onWakeCheck = { wakeCheck = it },
             ),
         )
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
@@ -94,11 +92,11 @@ class EditScreenTest {
         assertThat(count).isNull()
         compose.onNodeWithText("완료").performClick()
         compose.mainClock.advanceTimeBy(1_000)
+        // 결정 145: 다시 잠들기 방지 줄은 토글만 있어요. 글자를 눌러도 켜지고, 시트는 열리지 않아요.
+        compose.onNodeWithText("알람을 끈 뒤 깼는지 다시 물어요").assertExists()
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
-        compose.onNodeWithText("10분 후").performClick()
-        compose.onNodeWithText("3분").performClick()
-        assertThat(ask).isEqualTo(10)
-        assertThat(answer).isEqualTo(180)
+        assertThat(wakeCheck).isTrue()
+        compose.onNodeWithText("10분 후").assertDoesNotExist()
     }
 
     @Test
@@ -137,23 +135,6 @@ class EditScreenTest {
         // 저장 버튼은 내용 맨 끝에 있어서 내려야 보여요.
         compose.onNodeWithText("저장").performScrollTo().performClick()
         assertThat(saved).isTrue()
-    }
-
-    @Test
-    fun wakeCheckPage_showsOptions_andPicks() {
-        var ask = 0
-        var answer = 0
-        show(
-            EditUiState(loading = false, detail = EditDetail.WakeCheck),
-            actions = EditActions(onWakeCheckAsk = { ask = it }, onWakeCheckAnswer = { answer = it }),
-        )
-        compose.onNodeWithText("언제 물을까요").assertExists()
-        compose.onNodeWithText("답할 시간").assertExists()
-        compose.onNodeWithText("시간 안에 '깼어요'를 누르지 않으면 알람이 다시 울려요").assertExists()
-        compose.onNodeWithText("10분 후").performClick()
-        compose.onNodeWithText("3분").performScrollTo().performClick()
-        assertThat(ask).isEqualTo(10)
-        assertThat(answer).isEqualTo(180)
     }
 
     @Test
