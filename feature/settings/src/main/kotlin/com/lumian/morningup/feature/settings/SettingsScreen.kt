@@ -63,7 +63,7 @@ internal val SettingsToggleRowHeight = 54.dp
 private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 
 /**
- * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보. 제목은 숨겨요.
+ * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보, 실험실. 제목은 숨겨요.
  * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
  * [themeMode]가 있으면(디버그 빌드만) 맨 아래에 '화면 모드(임시)' 줄을 붙여요. 시험 알람은 adb 명령으로 걸어요(docs/qa/README.md).
  */
@@ -78,6 +78,8 @@ fun SettingsRoute(
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     wakeCheckCard: @Composable () -> Unit = { WakeCheckCard() },
+    onOpenLab: () -> Unit = {},
+    labCard: @Composable () -> Unit = { LabCard(onOpen = onOpenLab) },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
@@ -99,6 +101,7 @@ fun SettingsRoute(
         onThemeMode = onThemeMode,
         weatherCard = weatherCard,
         wakeCheckCard = wakeCheckCard,
+        labCard = labCard,
         // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
         // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보이고, 안 켜고 돌아오면 꺼진 채예요.
         powerGuard = powerOn && report.isGranted(AlarmPermission.PowerGuard),
@@ -139,6 +142,7 @@ fun SettingsScreen(
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
     wakeCheckCard: @Composable () -> Unit = {},
+    labCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
 ) {
@@ -194,6 +198,8 @@ fun SettingsScreen(
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                     }
                 }
+                // 맨 아래 '실험실' 작은 글과 '확실히 잠깨기' 카드(결정 146).
+                labCard()
                 // 디버그 빌드만: 화면 모드(임시, TSK-166). 출시 빌드에는 이 카드가 없어요.
                 if (themeMode != null) {
                     MorningSettingsCard(title = null) {

@@ -32,6 +32,7 @@ enum class SettingRowState { On, Off, Disabled, Navigate }
  * 피그마 Setting Row. 왼쪽 라벨(`Body/Medium` `text/body`)과 그 아래 4 띄운 값, 오른쪽 작은 토글.
  * 값 글자는 켜지면 `text/secondary`, 꺼지면 `text/disabled`이고 파란색은 쓰지 않아요.
  * 줄 어디를 눌러도 반응해요. [onClick]이 있으면 하위 설정 화면을 열고, 없으면 토글을 바꿔요.
+ * [toggleLocked]면 토글만 투명도 0.45로 잠겨 누를 수 없고, 라벨과 값은 그대로예요(T1 '한 번 더 확인', 결정 146).
  */
 @Composable
 fun MorningSettingRow(
@@ -41,17 +42,19 @@ fun MorningSettingRow(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
+    toggleLocked: Boolean = false,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val enabled = state != SettingRowState.Disabled
     val checked = state == SettingRowState.On
+    val toggleEnabled = enabled && !toggleLocked
     Row(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = MorningDimens.sizeRow)
             .morningClickable(enabled = enabled, haptic = null) {
-                if (onClick != null) onClick() else onCheckedChange(!checked)
+                if (onClick != null) onClick() else if (toggleEnabled) onCheckedChange(!checked)
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -90,7 +93,7 @@ fun MorningSettingRow(
                 checked = checked,
                 onCheckedChange = onCheckedChange,
                 size = MorningToggleSize.Small,
-                enabled = enabled,
+                enabled = toggleEnabled,
             )
         }
     }

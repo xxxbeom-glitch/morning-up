@@ -83,13 +83,20 @@ fun WakeCheckCardContent(
                 )
             }
             // 스위치는 켜고 끄기, 글자 쪽은 T1-2 시트를 열어요.
+            // 실험실 여러 번 묻기를 켜면 켜진 채 잠겨요(결정 146 3절).
+            val multi = settings.lab.multiAskEnabled
             MorningSettingRow(
                 label = stringResource(R.string.settings_recheck),
-                value = stringResource(R.string.settings_recheck_desc),
-                state = if (settings.recheckEnabled) SettingRowState.On else SettingRowState.Off,
+                value = if (multi) {
+                    stringResource(R.string.settings_recheck_lab, settings.lab.multiAskCount)
+                } else {
+                    stringResource(R.string.settings_recheck_desc)
+                },
+                state = if (settings.recheckOn) SettingRowState.On else SettingRowState.Off,
                 onCheckedChange = onRecheck,
                 onClick = { sheet = WakeCheckSheet.Recheck },
                 modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+                toggleLocked = multi,
             )
         }
         Text(
@@ -178,7 +185,7 @@ private fun ColumnScope.RecheckSheet(settings: WakeCheckSettings, onMinutes: (In
 
 /** 시트 공통 틀: 머리, 내용(머리 아래 16), 아래 '완료' 버튼(위 24). 편집 시트와 같아요. */
 @Composable
-private fun SheetFrame(
+internal fun SheetFrame(
     title: String,
     description: String,
     onDone: () -> Unit,

@@ -38,6 +38,8 @@ import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
 import com.lumian.morningup.feature.settings.FaqPage
 import com.lumian.morningup.feature.settings.LicensesPage
+import com.lumian.morningup.feature.ring.TrickPreviewRoute
+import com.lumian.morningup.feature.settings.LabRoute
 import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
@@ -74,6 +76,14 @@ data object MissionTryDestination
 /** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
 data object PermissionsRoute
+
+/** T3 '확실히 잠깨기' 실험실(결정 146). */
+@Serializable
+data object LabDestination
+
+/** T3-3 버튼 속이기 미리 해보기(소리 없음). */
+@Serializable
+data object TrickPreviewDestination
 
 /** 편집 화면이 저장한 알람 id를 첫 화면에 넘기는 열쇠. */
 private const val SAVED_ALARM_KEY = "savedAlarmId"
@@ -178,6 +188,7 @@ fun MorningNavHost(
                         modifier = tabModifier,
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
+                        onOpenLab = { navController.navigate(LabDestination) { launchSingleTop = true } },
                         themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG).takeIf { BuildConfig.DEBUG },
                         onThemeMode = { mode -> ThemeModeStore.set(context, mode) },
                     )
@@ -224,6 +235,15 @@ fun MorningNavHost(
         }
         composable<PermissionsRoute> {
             PermissionRoute(onBack = { navController.popBackStack() })
+        }
+        composable<LabDestination> {
+            LabRoute(
+                onBack = { navController.popBackStack() },
+                onPreview = { navController.navigate(TrickPreviewDestination) { launchSingleTop = true } },
+            )
+        }
+        composable<TrickPreviewDestination> {
+            TrickPreviewRoute(onClose = { navController.popBackStack<TrickPreviewDestination>(inclusive = true) })
         }
         composable<SleepPlayerRoute> { entry ->
             SleepPlayerPage(
