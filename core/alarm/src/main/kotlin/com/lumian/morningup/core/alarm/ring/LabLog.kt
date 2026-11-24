@@ -30,5 +30,9 @@ class LabLog @Inject constructor(private val diagnostics: AlarmDiagnostics) {
 
         /** 미션 비상구로 껐어요(결정 149 7절). 출시 빌드에도 남아요. */
         const val ESCAPE_USED = "escape_used"
+
+        /** 설정 T3에서 미션 포기 알림 숨기기를 켜거나 껐어요(결정 151). */
+        const val ESCAPE_HIDE_ON = "lab_escape_hide_on"
+        const val ESCAPE_HIDE_OFF = "lab_escape_hide_off"
     }
 }

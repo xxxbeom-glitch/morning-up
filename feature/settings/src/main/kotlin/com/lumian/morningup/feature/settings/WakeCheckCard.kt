@@ -48,7 +48,7 @@ private val ChipGap = 6.dp
 private val RowChipWidth = 60.dp
 
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요(편집 시트와 같음). */
-private val FooterBleed = 8.dp
+internal val FooterBleed = 8.dp
 
 /** '알람' 카드 아래 '깼는지 묻기', '한 번 더 확인' 카드와 아래 작은 글(결정 145, 시안 t1). */
 @Composable
@@ -240,7 +240,7 @@ private fun <T> ChipRow(
     }
 }
 
-private fun Modifier.bleed(horizontal: Dp): Modifier = layout { measurable, constraints ->
+internal fun Modifier.bleed(horizontal: Dp): Modifier = layout { measurable, constraints ->
     val extra = horizontal.roundToPx() * 2
     val placeable = measurable.measure(
         constraints.copy(minWidth = constraints.minWidth + extra, maxWidth = constraints.maxWidth + extra),

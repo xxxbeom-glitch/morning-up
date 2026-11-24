@@ -7,6 +7,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
@@ -19,7 +20,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** 실험실 T1 카드, T3, T3-1, T3-2(결정 146 1절, 시안 TSK-171). */
+/** 실험실 T1 카드, T3, T3-1, T3-2(결정 146 1절, 시안 TSK-171), T3 미션 포기 숨기기와 T3-4(결정 151, 시안 TSK-181). */
 @RunWith(RobolectricTestRunner::class)
 class LabPageTest {
     @get:Rule
@@ -41,6 +42,7 @@ class LabPageTest {
                 onMultiAsk = { calls += "multi:$it" },
                 onMultiAskCount = { calls += "count:$it" },
                 onPreview = { calls += "preview" },
+                onEscapeHidden = { calls += "escape:$it" },
             )
         }
     }
@@ -112,5 +114,44 @@ class LabPageTest {
         }
         compose.onNodeWithText("실험실에서 3번 묻는 중이에요").assertExists()
         assertThat(calls).isEmpty()
+    }
+
+    @Test
+    fun escapeCard_showsRowAndNote() {
+        showPage()
+        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().assertExists()
+        compose.onNodeWithText("미션을 못 할 때 뜨는 알림이에요").assertExists()
+        compose.onNodeWithText("숨겨도 흔들기 센서가 없는 폰이나 마지막 다시 울림에서는 떠요.").assertExists()
+    }
+
+    @Test
+    fun escapeHide_needsConfirm_thenHides() {
+        showPage()
+        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertExists()
+        compose.onNodeWithText("'미션 포기' 알림을 숨길까요?").assertExists()
+        compose.onNodeWithText("숨겨도 이럴 때는 떠요").assertExists()
+        compose.onNodeWithText("2. 다시 울림이 마지막 바퀴일 때, 첫 미션에서").assertExists()
+        assertThat(calls).isEmpty()
+        compose.onNodeWithText("숨기기").performClick()
+        assertThat(calls).containsExactly("escape:true")
+        compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
+    }
+
+    @Test
+    fun escapeHide_cancel_keepsShowing() {
+        showPage()
+        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithText("취소").performClick()
+        compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
+        assertThat(calls).isEmpty()
+    }
+
+    @Test
+    fun escapeShow_turnsOffAtOnce() {
+        showPage(LabSettings(escapeHidden = true))
+        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
+        assertThat(calls).containsExactly("escape:false")
     }
 }

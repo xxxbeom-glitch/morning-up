@@ -34,6 +34,7 @@ import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningOverlay
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
+import com.lumian.morningup.core.designsystem.component.MorningSheetHeader
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.SettingRowState
@@ -49,10 +50,11 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 /** T3에서 여는 시트(결정 146 1절). */
-enum class LabSheet { Trick, MultiAsk }
+enum class LabSheet { Trick, MultiAsk, HideEscape }
 
 const val LAB_TRICK_SHEET_TAG = "lab_trick_sheet"
 const val LAB_MULTI_SHEET_TAG = "lab_multi_sheet"
+const val LAB_ESCAPE_SHEET_TAG = "lab_escape_sheet"
 
 private val ChipGap = 6.dp
 
@@ -91,6 +93,12 @@ class LabViewModel @Inject constructor(
             detail = "count=${lab.multiAskCount}",
             kept = true,
         )
+    }
+
+    /** 미션 포기 알림 숨기기(결정 151). 켤 때는 T3-4에서 '숨기기'를 누른 뒤에만 불려요. */
+    fun setEscapeHidden(hidden: Boolean) {
+        updateLab { it.copy(escapeHidden = hidden) }
+        labLog.record(if (hidden) LabLog.ESCAPE_HIDE_ON else LabLog.ESCAPE_HIDE_OFF, kept = true)
     }
 
     fun setMultiAskCount(count: Int) {
@@ -153,6 +161,7 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         onMultiAsk = viewModel::setMultiAsk,
         onMultiAskCount = viewModel::setMultiAskCount,
         onPreview = onPreview,
+        onEscapeHidden = viewModel::setEscapeHidden,
     )
 }
 
@@ -172,6 +181,7 @@ fun LabScreen(
     onMultiAskCount: (Int) -> Unit,
     onPreview: () -> Unit,
     modifier: Modifier = Modifier,
+    onEscapeHidden: (Boolean) -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf<LabSheet?>(null) }
     val colors = MorningTheme.colors
@@ -233,6 +243,11 @@ fun LabScreen(
                 color = colors.textSecondary,
                 modifier = Modifier.padding(horizontal = MorningDimens.layoutCardPadding),
             )
+            Spacer(Modifier.height(MorningDimens.space4))
+            EscapeCard(
+                hidden = lab.escapeHidden,
+                onToggle = { on -> if (on) sheet = LabSheet.HideEscape else onEscapeHidden(false) },
+            )
         }
     }
     val open = sheet
@@ -241,7 +256,11 @@ fun LabScreen(
             MorningModalSheet(
                 visible = true,
                 onDismiss = { sheet = null },
-                tag = if (open == LabSheet.Trick) LAB_TRICK_SHEET_TAG else LAB_MULTI_SHEET_TAG,
+                tag = when (open) {
+                    LabSheet.Trick -> LAB_TRICK_SHEET_TAG
+                    LabSheet.MultiAsk -> LAB_MULTI_SHEET_TAG
+                    LabSheet.HideEscape -> LAB_ESCAPE_SHEET_TAG
+                },
             ) {
                 when (open) {
                     LabSheet.Trick -> TrickSheet(
@@ -255,9 +274,87 @@ fun LabScreen(
                         onDone = { sheet = null },
                     )
                     LabSheet.MultiAsk -> MultiAskSheet(lab, onMultiAskCount) { sheet = null }
+                    LabSheet.HideEscape -> HideEscapeSheet(
+                        onCancel = { sheet = null },
+                        onHide = {
+                            sheet = null
+                            onEscapeHidden(true)
+                        },
+                    )
                 }
             }
         }
+    }
+}
+
+/**
+ * T3 둘째 카드: '미션 포기' 알림 숨기기 토글 한 줄과 아래 작은 글(결정 151, 시안 1084:13871).
+ * 켜면 바로 바뀌지 않고 T3-4 확인 시트를 먼저 열어요. 끄는 것은 바로 돼요.
+ */
+@Composable
+private fun EscapeCard(hidden: Boolean, onToggle: (Boolean) -> Unit) {
+    MorningSettingsCard(title = null) {
+        MorningSettingRow(
+            label = stringResource(R.string.settings_lab_escape),
+            value = stringResource(R.string.settings_lab_escape_value),
+            state = if (hidden) SettingRowState.On else SettingRowState.Off,
+            onCheckedChange = onToggle,
+            onClick = { onToggle(!hidden) },
+            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+        )
+    }
+    Text(
+        text = stringResource(R.string.settings_lab_escape_note),
+        style = MorningTheme.typography.captionMedium,
+        color = MorningTheme.colors.textSecondary,
+        modifier = Modifier.padding(horizontal = MorningDimens.layoutCardPadding),
+    )
+}
+
+/** T3-4: 제목, 설명, '숨겨도 이럴 때는 떠요'와 두 줄, 아래 '취소'(보조)와 '숨기기'를 같은 너비로(시안 1084:13939). */
+@Composable
+private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit) {
+    val colors = MorningTheme.colors
+    val typography = MorningTheme.typography
+    MorningSheetHeader(
+        title = stringResource(R.string.settings_lab_escape_sheet_title),
+        description = stringResource(R.string.settings_lab_escape_sheet_desc),
+        modifier = Modifier.padding(top = MorningDimens.space8),
+    )
+    Spacer(Modifier.height(MorningDimens.space16))
+    Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
+        Text(
+            text = stringResource(R.string.settings_lab_escape_sheet_label),
+            style = typography.bodyMediumStrong,
+            color = colors.textPrimary,
+        )
+        Text(
+            text = stringResource(R.string.settings_lab_escape_sheet_item1),
+            style = typography.bodyMedium,
+            color = colors.textBody,
+        )
+        Text(
+            text = stringResource(R.string.settings_lab_escape_sheet_item2),
+            style = typography.bodyMedium,
+            color = colors.textBody,
+        )
+    }
+    Spacer(Modifier.height(MorningDimens.space24))
+    Row(
+        modifier = Modifier.fillMaxWidth().bleed(FooterBleed),
+        horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8),
+    ) {
+        MorningButton(
+            text = stringResource(R.string.settings_lab_escape_cancel),
+            onClick = onCancel,
+            style = MorningButtonStyle.Secondary,
+            modifier = Modifier.weight(1f),
+        )
+        MorningButton(
+            text = stringResource(R.string.settings_lab_escape_hide),
+            onClick = onHide,
+            modifier = Modifier.weight(1f),
+        )
     }
 }
 
