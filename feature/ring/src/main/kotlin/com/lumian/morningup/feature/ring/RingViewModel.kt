@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingLink
+import com.lumian.morningup.core.alarm.ring.LabLog
 import com.lumian.morningup.core.alarm.ring.RingScreen
+import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.DayPart
 import com.lumian.morningup.core.model.WeatherKind
 import com.lumian.morningup.core.model.WeatherSource
@@ -42,6 +44,14 @@ data class RingUiState(
     val background: String? = null,
     /** W1 날씨 한마디(화면에서 채워요). */
     val weather: WeatherKind? = null,
+    /** 울리는 알람 번호(실험실 기록용). */
+    val alarmId: Long? = null,
+    /** 이번 울림에 걸 버튼 속이기. 실험실에서 껐으면 null이에요(접근성 자동 꺼짐은 화면이 따로 봐요). */
+    val trick: ButtonTrick? = null,
+    /** 울림 화면이 새로 뜰 때마다 바뀌는 값. 바뀌면 버튼 속이기가 처음부터 다시 걸려요. */
+    val trickKey: Long? = null,
+    /** 여러 번 묻기에서 지금 묻는(또는 미리 연) 확인이 몇 번째인지. 꺼져 있으면 null이에요. */
+    val ask: AskCount? = null,
 )
 
 /**
@@ -54,6 +64,7 @@ class RingViewModel @Inject constructor(
     private val now: NowProvider,
     ticker: MinuteTicker,
     weatherSource: WeatherSource,
+    private val trickRecorder: TrickRecorder,
 ) : ViewModel() {
     /** W1 날씨 한마디. 위치 동의가 없거나 못 불러왔으면 null이라 짧은 인사만 보여요. */
     val weather: StateFlow<WeatherKind?> = weatherSource.weather
@@ -86,6 +97,37 @@ class RingViewModel @Inject constructor(
     /** W1 '확인'. */
     fun onWakeUpClosed() = link.closeWakeUp()
 
+    /**
+     * 화면이 뜰 때 한 번: 버튼 속이기를 지금 걸 수 있는지 봐요. 접근성 때문에 끄면 그 까닭을 진단 기록에 남기고 null을 줘요.
+     * 화면에는 꺼진 까닭을 알리지 않아요(결정 146 2-4).
+     */
+    fun trickFor(state: RingUiState): ButtonTrick? {
+        val trick = state.trick ?: return null
+        val reason = trickRecorder.offReason()
+        if (reason != null) {
+            trickRecorder.record(LabLog.TRICK_AUTO_OFF, state.alarmId, "reason=$reason", kept = true)
+            return null
+        }
+        trickRecorder.record(LabLog.TRICK_SHOWN, state.alarmId, trick.detail())
+        return trick
+    }
+
+    /** 버튼 속이기 기록(결정 146 4절). trick_end만 출시 빌드 진단 기록에도 남겨요. */
+    fun trickListener(state: RingUiState): TrickListener = object : TrickListener {
+        override fun onStart() = trickRecorder.record(LabLog.TRICK_START, state.alarmId, state.trick?.detail().orEmpty())
+
+        override fun onFakeTap(count: Int) = trickRecorder.record(LabLog.TRICK_FAKE_TAP, state.alarmId, "n=$count")
+
+        override fun onEnd(seconds: Int, fakes: Int, expired: Boolean) = trickRecorder.record(
+            LabLog.TRICK_END,
+            state.alarmId,
+            "seconds=$seconds fakes=$fakes expired=$expired",
+            kept = true,
+        )
+    }
+
+    private fun ButtonTrick.detail() = "level=${level.key} speed=${speed.key}"
+
     companion object {
         /**
          * 보여 줄 화면. 앱이 다시 살아나 이어가는 경우 쉬는 중에는 Show 효과가 없어서 단계로 골라요.
@@ -116,6 +158,16 @@ class RingViewModel @Inject constructor(
             checkEndsAt = session?.takeIf { it.phase.isAsking && it.pausedLeftMillis == null }?.phaseEndsAt,
             nextAskMinutes = session?.plan?.takeIf { it.recheckEnabled }?.wakeCheckAskAfterMinutes,
             background = session?.plan?.background,
+            alarmId = session?.plan?.alarmId,
+            trick = session?.plan?.trick,
+            trickKey = session?.takeIf { it.phase == RingPhase.Ringing }?.phaseEndsAt,
+            ask = session?.let { askOf(it) },
         )
+
+        /** 여러 번 묻기에서 지금 묻는 확인 번호(마친 수 + 1). */
+        private fun askOf(session: RingSession): AskCount? {
+            val total = session.plan.askTotal ?: return null
+            return AskCount(number = (session.checksDone + 1).coerceAtMost(total), total = total)
+        }
     }
 }

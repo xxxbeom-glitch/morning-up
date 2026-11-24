@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,6 +42,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningFixedColors
 import com.lumian.morningup.core.designsystem.theme.MorningShadows
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.morningShadow
+import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.DayPart
 import com.lumian.morningup.core.model.WeatherKind
 import com.lumian.morningup.core.ui.AlarmBackgrounds
@@ -86,9 +88,14 @@ fun RingingScreen(
     modifier: Modifier = Modifier,
     background: String? = null,
     onButtonCenter: (Offset) -> Unit = {},
+    trick: ButtonTrick? = null,
+    trickKey: Any? = null,
+    trickListener: TrickListener = TrickListener.None,
 ) {
+    // 화면이 새로 뜨면(다시 울림) [trickKey]가 바뀌어 처음부터 다시 걸려요.
+    val run = remember(trickKey, trick) { trick?.let { TrickRun(it) } }
     ChosenBackground(background, dayPart, modifier) {
-        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter)
+        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener)
     }
 }
 
@@ -132,14 +139,23 @@ private fun BoxScope.RingingContent(
     hasMissions: Boolean,
     onMainButton: () -> Unit,
     onButtonCenter: (Offset) -> Unit,
+    trickRun: TrickRun?,
+    trickListener: TrickListener,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val resources = LocalContext.current.resources
-    run {
+    val label = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss)
+    // 버튼 속이기 중에는 원래 자리를 비워 두고 위 층([TrickLayer])에서 그려요.
+    val tricking = trickRun != null && !trickRun.done
+    Column(
+        modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
         Column(
-            modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
+            // 버튼이 가지 않는 곳(날짜와 시각 둘레).
+            modifier = Modifier.onGloballyPositioned { trickRun?.avoid = it.boundsInRoot() },
         ) {
             Text(text = AlarmText.dateLong(resources, date), style = typography.bodySmall, color = colors.textBody)
             Spacer(Modifier.height(MorningDimens.space4))
@@ -151,14 +167,40 @@ private fun BoxScope.RingingContent(
                     color = colors.textPrimary,
                 )
             }
-            Spacer(Modifier.height(MorningDimens.space40))
+        }
+        // 가짜 버튼을 누르면 시각 아래 이 칸에 '이건 가짜예요'를 1초 보여 줘요(날짜와 같은 색).
+        Box(Modifier.height(MorningDimens.space40), contentAlignment = Alignment.Center) {
+            if (trickRun?.showFakeNotice == true) {
+                Text(
+                    text = stringResource(R.string.ring_trick_fake),
+                    style = typography.bodyMediumStrong,
+                    color = colors.textBody,
+                )
+            }
+        }
+        if (tricking) {
+            Spacer(
+                Modifier
+                    .size(MorningDimens.sizeButtonCircle)
+                    .onGloballyPositioned { trickRun?.home = it.boundsInRoot() },
+            )
+        } else {
             MorningButton(
-                text = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss),
-                onClick = onMainButton,
+                text = label,
+                onClick = {
+                    trickRun?.finish(trickListener)
+                    onMainButton()
+                },
                 size = MorningButtonSize.Circle,
                 haptic = MorningHaptic.Confirm,
                 modifier = Modifier.onGloballyPositioned { onButtonCenter(it.boundsInRoot().center) },
             )
+        }
+    }
+    if (tricking && trickRun != null) {
+        TrickLayer(trickRun, label, trickListener) { center ->
+            onButtonCenter(center)
+            onMainButton()
         }
     }
 }
@@ -254,6 +296,8 @@ fun WakeCheckScreen(
     modifier: Modifier = Modifier,
     recheck: Boolean = false,
     nextAskMinutes: Int? = null,
+    ask: AskCount? = null,
+    multiDone: MultiDone? = null,
 ) {
     RingSky(dayPart, modifier) {
         Column(
@@ -261,20 +305,33 @@ fun WakeCheckScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (confirmed) {
-                CheckDone(nextAskMinutes)
+                CheckDone(nextAskMinutes, multiDone)
             } else {
-                CheckAsking(recheck, remainingMillis, onAwake)
+                CheckAsking(recheck, remainingMillis, onAwake, ask.takeIf { recheck })
             }
         }
     }
 }
 
 @Composable
-private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () -> Unit) {
+private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () -> Unit, ask: AskCount?) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val resources = LocalContext.current.resources
     var releasedEarly by remember { mutableStateOf(false) }
+    if (ask != null) {
+        // 여러 번 묻기 W3: 제목 위 '3번 중 2번째' 또는 '마지막이에요'(시간 안내 글과 같은 색).
+        Text(
+            text = if (ask.isLast) {
+                stringResource(R.string.ring_multi_last)
+            } else {
+                stringResource(R.string.ring_multi_count, ask.total, ask.number)
+            },
+            style = typography.bodySmallStrong,
+            color = colors.textBody,
+        )
+        Spacer(Modifier.height(MorningDimens.space8))
+    }
     Text(
         text = stringResource(if (recheck) R.string.ring_recheck_title else R.string.ring_wake_check_title),
         style = typography.headlineLarge,
@@ -314,7 +371,7 @@ private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () ->
 }
 
 @Composable
-private fun CheckDone(nextAskMinutes: Int?) {
+private fun CheckDone(nextAskMinutes: Int?, multiDone: MultiDone?) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     Text(
@@ -322,13 +379,26 @@ private fun CheckDone(nextAskMinutes: Int?) {
         style = typography.headlineLarge,
         color = colors.textPrimary,
     )
-    if (nextAskMinutes != null) {
+    val next = when (multiDone) {
+        MultiDone.More -> stringResource(R.string.ring_multi_next)
+        MultiDone.Last -> stringResource(R.string.ring_multi_all_done)
+        null -> nextAskMinutes?.let { stringResource(R.string.ring_wake_check_next, it) }
+    }
+    if (next != null) {
         Spacer(Modifier.height(MorningDimens.space8))
         Text(
-            text = stringResource(R.string.ring_wake_check_next, nextAskMinutes),
+            text = next,
             style = typography.bodyMedium,
             color = colors.textBody,
             textAlign = TextAlign.Center,
         )
     }
 }
+
+/** 여러 번 묻기에서 지금 묻는 확인이 몇 번째인지([number]는 1부터). */
+data class AskCount(val number: Int, val total: Int) {
+    val isLast: Boolean get() = number >= total
+}
+
+/** 여러 번 묻기에서 '깼어요'를 마친 뒤 글. [More]는 '조금 뒤 한 번 더 물어볼게요', [Last]는 '오늘 확인을 다 마쳤어요'. */
+enum class MultiDone { More, Last }

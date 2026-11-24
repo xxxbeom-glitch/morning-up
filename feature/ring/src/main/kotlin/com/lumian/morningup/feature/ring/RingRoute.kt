@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -59,6 +60,10 @@ fun RingRoute(
     // '깼어요'를 마친 화면(W2나 W3)과 그때 정해진 W3까지 남은 분. 닫히는 동안 '확인했어요'를 보여 줘요.
     var confirmedOn by remember { mutableStateOf<RingScreen?>(null) }
     var doneNextAsk by remember { mutableStateOf<Int?>(null) }
+    var doneMulti by remember { mutableStateOf<MultiDone?>(null) }
+    // 버튼 속이기: 화면이 새로 뜰 때(trickKey) 한 번만 접근성을 보고 기록해요.
+    val trick = remember(state.trickKey, state.trick) { viewModel.trickFor(state) }
+    val trickListener = remember(state.trickKey, state.alarmId) { viewModel.trickListener(state) }
     // 닫히는 동안(W1 확인 뒤, W2, W3 체크 뒤)에도 마지막 화면을 그대로 그려요.
     val last = remember { LastScreen() }
     if (state.screen != RingScreen.None) last.screen = state.screen
@@ -95,11 +100,15 @@ fun RingRoute(
             shown = lastShown,
             confirmedOn = confirmedOn,
             doneNextAsk = doneNextAsk,
+            doneMulti = doneMulti,
+            trick = trick,
+            trickListener = trickListener,
             nowMillis = viewModel::nowMillis,
             onMainButton = viewModel::onMainButton,
             onWakeUpConfirmed = confirmWakeUp,
             onAwake = {
                 confirmedOn = lastShown
+                doneMulti = state.ask?.let { if (it.isLast) MultiDone.Last else MultiDone.More }
                 if (lastShown == RingScreen.Recheck) {
                     doneNextAsk = null
                     viewModel.onRecheckDone()
@@ -123,6 +132,9 @@ private fun RingContent(
     shown: RingScreen,
     confirmedOn: RingScreen?,
     doneNextAsk: Int?,
+    doneMulti: MultiDone?,
+    trick: ButtonTrick?,
+    trickListener: TrickListener,
     nowMillis: () -> Long,
     onMainButton: () -> Unit,
     onWakeUpConfirmed: () -> Unit,
@@ -130,7 +142,7 @@ private fun RingContent(
     missionContent: @Composable (index: Int) -> Unit,
 ) {
     var buttonCenter by remember { mutableStateOf<Offset?>(null) }
-    val ringing = @Composable {
+    val ringing = @Composable { live: Boolean ->
         RingingScreen(
             date = state.date,
             time = state.time,
@@ -140,11 +152,15 @@ private fun RingContent(
             background = Alarm.BACKGROUND_PLAIN,
             onMainButton = onMainButton,
             onButtonCenter = { buttonCenter = it },
+            // 미션 화면이 퍼지는 동안 아래 깔린 울림 화면에는 걸지 않아요.
+            trick = trick.takeIf { live },
+            trickKey = state.trickKey,
+            trickListener = trickListener,
         )
     }
     when (shown) {
-        RingScreen.None, RingScreen.Ringing -> ringing()
-        is RingScreen.Mission -> MissionReveal(center = buttonCenter, under = ringing) {
+        RingScreen.None, RingScreen.Ringing -> ringing(true)
+        is RingScreen.Mission -> MissionReveal(center = buttonCenter, under = { ringing(false) }) {
             // 미션 순서가 바뀌어도 같은 자리를 유지해요(미션 사이 넘어가기는 미션 화면이 그려요).
             missionContent(shown.index)
         }
@@ -171,6 +187,8 @@ private fun RingContent(
                 onAwake = onAwake,
                 recheck = shown == RingScreen.Recheck,
                 nextAskMinutes = doneNextAsk,
+                ask = state.ask,
+                multiDone = doneMulti,
             )
         }
     }

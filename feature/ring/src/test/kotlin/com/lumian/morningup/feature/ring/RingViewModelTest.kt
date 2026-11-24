@@ -4,7 +4,11 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingScreen
+import com.lumian.morningup.core.alarm.ring.LabLog
+import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.DayPart
+import com.lumian.morningup.core.model.TrickLevel
+import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.WeatherKind
@@ -34,8 +38,9 @@ class RingViewModelTest {
     private val ticks = MutableSharedFlow<Unit>()
     private val ticker = MinuteTicker { ticks }
     private val math = MissionSetting(MissionType.QuickMath)
+    private val recorder = FakeTrickRecorder()
 
-    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather)
+    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather, recorder)
 
     @Test
     fun ringing_showsDateTimeAndMorning() = runTest {
@@ -130,6 +135,55 @@ class RingViewModelTest {
         assertThat(shown(RingPhase.AwaitingRecheck)).isEqualTo(RingScreen.None)
         assertThat(shown(RingPhase.RecheckAsking)).isEqualTo(RingScreen.Recheck)
         assertThat(RingViewModel.shownScreen(RingScreen.None, null)).isEqualTo(RingScreen.None)
+    }
+
+    private fun trickSession(phaseEndsAt: Long = 5_000L) = testRingSession(phaseEndsAt = phaseEndsAt, alarmId = 4).let {
+        it.copy(plan = it.plan.copy(trick = ButtonTrick(TrickLevel.Strong, TrickSpeed.Fast)))
+    }
+
+    @Test
+    fun trick_isPassedWhileRinging_withKeyFromThisRing() = runTest {
+        val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
+        val state = vm.uiState.value
+        assertThat(state.trick).isEqualTo(ButtonTrick(TrickLevel.Strong, TrickSpeed.Fast))
+        assertThat(state.trickKey).isEqualTo(5_000L)
+        assertThat(state.alarmId).isEqualTo(4)
+        assertThat(vm.trickFor(state)).isNotNull()
+        assertThat(recorder.events.single().event).isEqualTo(LabLog.TRICK_SHOWN)
+    }
+
+    @Test
+    fun trick_autoOff_forAccessibility_recordsReasonKept() = runTest {
+        recorder.reason = TrickAccessibility.TALKBACK
+        val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
+        assertThat(vm.trickFor(vm.uiState.value)).isNull()
+        assertThat(recorder.events.single())
+            .isEqualTo(FakeTrickRecorder.Event(LabLog.TRICK_AUTO_OFF, 4, "reason=talkback", kept = true))
+    }
+
+    @Test
+    fun trickEnd_isKept_othersDebugOnly() = runTest {
+        val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
+        val listener = vm.trickListener(vm.uiState.value)
+        listener.onStart()
+        listener.onFakeTap(1)
+        listener.onEnd(seconds = 7, fakes = 1, expired = false)
+        assertThat(recorder.events.map { it.event to it.kept }).containsExactly(
+            LabLog.TRICK_START to false,
+            LabLog.TRICK_FAKE_TAP to false,
+            LabLog.TRICK_END to true,
+        ).inOrder()
+        assertThat(recorder.events.last().detail).isEqualTo("seconds=7 fakes=1 expired=false")
+    }
+
+    @Test
+    fun ask_countsFromChecksDone_onlyWhenMultiAsk() = runTest {
+        val base = testRingSession(RingPhase.RecheckAsking, recheckEnabled = true)
+        assertThat(viewModel(FakeRingLink(base, RingScreen.Recheck)).uiState.value.ask).isNull()
+        val multi = base.copy(plan = base.plan.copy(askTotal = 3), checksDone = 1)
+        assertThat(viewModel(FakeRingLink(multi, RingScreen.Recheck)).uiState.value.ask).isEqualTo(AskCount(2, 3))
+        val last = multi.copy(checksDone = 2)
+        assertThat(viewModel(FakeRingLink(last, RingScreen.Recheck)).uiState.value.ask!!.isLast).isTrue()
     }
 }
 
