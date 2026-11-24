@@ -20,6 +20,9 @@
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
 | 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
 | 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `level`은 weak, normal, strong, `speed`는 slow, normal, fast, `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
+| 미션 포기 숨기기 켜고 끄기 (TSK-182) | 위 `LAB` 명령에 `--ez escape_hidden true` (끄려면 `false`) |
+| 미션 포기 바로 답장 대신 보내기 (TSK-182) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ESCAPE --es answer ok` (`ok`는 지금 예문 그대로, `wrong`은 끝에 마침표를 하나 더한 글, 그 밖의 글은 그대로 보내요. 알림 답장과 같은 길이에요. 결과는 `data="escape Correct"`, `Wrong`, `Ignored`(알림이 없는 때)) |
+| 미션 포기 알림이 떠 있는지 보기 | `adb shell dumpsys notification --noredact` 에서 `id=5`(미션 포기), `id=6`(알람을 껐어요) |
 
 - `case`는 `A`~`G`예요. 틀리면 `data="case must be one of A,B,..."`가 나와요.
 - 성공하면 `data="case A alarm 12 at 16:31"`처럼 알람 id와 울릴 시각이 나와요.
@@ -74,6 +77,11 @@ adb logcat -s MorningFlow:I > flow.log
 | `recheck_ask` | 여러 번 묻기 다음 확인을 예약했어요(몇 번째/전체, 고른 간격 분) |
 | `recheck_pass`, `recheck_miss` * | 여러 번 묻기 확인을 통과했거나 놓쳤어요(몇 번째/전체) |
 | `recheck_cap_60` * | 미션 끝에서 1시간을 넘겨 남은 확인을 없앴어요(남은 수) |
+| `escape_shown` | 첫 미션 때 미션 포기 알림을 띄웠어요(`sentence=` 몇 번째 예문, `fresh=false`면 같은 예문으로 다시 올림, `posted=false`면 알림 권한이 꺼져 못 띄움) |
+| `escape_sent` | 미션 포기 칸에 글을 보냈어요(`result=correct`, `wrong`, `ignored`, `length_diff=` 예문과 글자 수 차이). 쓴 글은 남기지 않아요 |
+| `mission_escaped` | 맞게 써서 엔진이 미션 없이 끄기와 같게 처리했어요 |
+| `escape_used` * | 미션 포기로 껐어요(`month=` 달, `n=` 이번 달 몇 번째) |
+| `debug_escape` | adb로 미션 포기 답장을 보냈어요 |
 
 - `phase=앞->뒤`는 울림 단계가 어떻게 바뀌었는지예요(`Ringing`, `Resting`, `InMission`, `AwaitingWakeCheck`, `WakeCheckAsking`, `-`는 울림 없음).
 - `effects=`는 그 사건으로 앱이 한 일이에요(소리 시작, 화면 띄우기, 타이머 걸기, `SessionEnded` 등).

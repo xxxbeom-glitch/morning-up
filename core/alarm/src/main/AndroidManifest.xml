@@ -61,6 +61,12 @@
             android:directBootAware="true"
             android:exported="false" />
 
+        <!-- 미션 비상구 알림의 바로 답장(결정 149). 우리 알림만 보내요. -->
+        <receiver
+            android:name=".receiver.MissionEscapeReceiver"
+            android:directBootAware="true"
+            android:exported="false" />
+
         <receiver
             android:name=".BatteryReminderReceiver"
             android:exported="false" />

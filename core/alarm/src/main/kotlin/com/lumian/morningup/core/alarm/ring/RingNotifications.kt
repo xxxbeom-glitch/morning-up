@@ -100,7 +100,14 @@ class RingNotifications @Inject constructor(
             lockscreenVisibility = Notification.VISIBILITY_PUBLIC
             setBypassDnd(true)
         }
-        manager.createNotificationChannels(listOf(ringing, status, waiting, missed, fallback))
+        // 미션 비상구(결정 149): 소리, 진동 없는 조용한 알림이지만 바로 답장 버튼이 보이게 기본 중요도예요.
+        val escape = NotificationChannel(CHANNEL_ESCAPE, text(R.string.channel_escape), normal).apply {
+            description = text(R.string.channel_escape_description)
+            setSound(null, null)
+            enableVibration(false)
+            lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+        }
+        manager.createNotificationChannels(listOf(ringing, status, waiting, missed, fallback, escape))
     }
 
     /**
@@ -280,6 +287,7 @@ class RingNotifications @Inject constructor(
 
     fun cancelRinging() {
         manager.cancel(RING_NOTIFICATION_ID)
+        manager.cancel(ESCAPE_NOTIFICATION_ID)
         manager.cancel(WAITING_NOTIFICATION_ID)
         manager.cancel(ALERT_NOTIFICATION_ID)
     }
@@ -397,6 +405,7 @@ class RingNotifications @Inject constructor(
         const val CHANNEL_WAITING = "waiting"
         const val CHANNEL_MISSED = "missed"
         const val CHANNEL_FALLBACK = "ringing_fallback"
+        const val CHANNEL_ESCAPE = "mission_escape"
 
         /** 쉬는 중 알림을 눌러 울림 화면을 열었다는 표시. 쉬는 동안에도 울림 화면을 보여 줘요. */
         const val EXTRA_FROM_REST = "from_rest"
@@ -407,6 +416,10 @@ class RingNotifications @Inject constructor(
         const val WAITING_NOTIFICATION_ID = 2
         private const val FALLBACK_NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID = 4
+
+        /** 미션 비상구 알림과, 써서 끈 뒤 3초 보이는 '알람을 껐어요'(결정 149). */
+        const val ESCAPE_NOTIFICATION_ID = 5
+        const val ESCAPE_DONE_NOTIFICATION_ID = 6
         private const val MISSED_NOTIFICATION_BASE = 1000
         private const val SCREEN_WAKE_MILLIS = 10_000L
         private const val NOON = 12

@@ -7,6 +7,8 @@ import com.lumian.morningup.core.alarm.AlarmScope
 import com.lumian.morningup.core.alarm.BatteryReminder
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.FlowLog
+import com.lumian.morningup.core.alarm.ring.MissionEscapeAnswers
+import com.lumian.morningup.core.alarm.ring.MissionEscapeNotifier
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickLevel
@@ -36,6 +38,10 @@ class DebugCommandReceiver : BroadcastReceiver() {
 
     @Inject lateinit var wakeSettings: WakeCheckSettingsStore
 
+    @Inject lateinit var escapeAnswers: MissionEscapeAnswers
+
+    @Inject lateinit var escapeNotifier: MissionEscapeNotifier
+
     @Inject
     @AlarmScope
     lateinit var scope: CoroutineScope
@@ -51,6 +57,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
             }
             ACTION_WAKE_CHECK -> setWakeCheck(intent)
             ACTION_LAB -> setLab(intent)
+            ACTION_ESCAPE -> sendEscape(intent)
             else -> resultData = "unknown action: ${intent.action}"
         }
     }
@@ -104,6 +111,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
     /**
      * '확실히 잠깨기' 실험실 값을 바꿔요(결정 146, TSK-172). 빠진 값은 그대로 둬요.
      * 예: `--ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6`
+     * `--ez escape_hidden true`는 미션 비상구 알림 숨기기예요(결정 151, TSK-182).
      * `minute_seconds`는 여러 번 묻기의 1분을 몇 초로 셀지(시험 배율, 1~60)예요. 60이면 실제 시간이에요.
      */
     private fun setLab(intent: Intent) {
@@ -115,13 +123,14 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 (lab.debugMinuteMillis / MILLIS_PER_SECOND).toInt()
             }
             old.copy(
-                lab = LabSettings(
+                lab = lab.copy(
                     trickEnabled = intent.boolOr(EXTRA_TRICK, lab.trickEnabled),
                     trickLevel = intent.getStringExtra(EXTRA_LEVEL)?.let { TrickLevel.of(it) } ?: lab.trickLevel,
                     trickSpeed = intent.getStringExtra(EXTRA_SPEED)?.let { TrickSpeed.of(it) } ?: lab.trickSpeed,
                     multiAskEnabled = intent.boolOr(EXTRA_MULTI, lab.multiAskEnabled),
                     multiAskCount = intent.getIntExtra(EXTRA_COUNT, lab.multiAskCount)
                         .takeIf { it in LabSettings.ASK_COUNTS } ?: lab.multiAskCount,
+                    escapeHidden = intent.boolOr(EXTRA_ESCAPE_HIDDEN, lab.escapeHidden),
                     debugMinuteMillis = minuteSeconds * MILLIS_PER_SECOND,
                 ),
             )
@@ -129,6 +138,31 @@ class DebugCommandReceiver : BroadcastReceiver() {
         val result = "lab ${wakeSettings.settings.value.lab}"
         FlowLog.event("debug_lab", detail = result)
         resultData = result
+    }
+
+    /**
+     * 미션 비상구 바로 답장 대신 글을 보내요(결정 149 8절 2번, 바로 답장은 adb로 보낼 수 없어요). 알림 답장과 같은 길이에요.
+     * `--es answer ok`는 지금 예문 그대로, `wrong`은 끝에 마침표 하나를 더한 글, 그 밖의 글은 그대로 보내요.
+     * 예: `--es answer ok`
+     */
+    private fun sendEscape(intent: Intent) {
+        val answer = intent.getStringExtra(EXTRA_ANSWER) ?: ANSWER_OK
+        val pending = goAsync()
+        scope.launch {
+            try {
+                val sentence = escapeNotifier.currentSentence
+                val text = when (answer) {
+                    ANSWER_OK -> sentence
+                    ANSWER_WRONG -> sentence?.let { "$it." }
+                    else -> answer
+                }
+                val result = "escape ${escapeAnswers.answer(text)}"
+                FlowLog.event("debug_escape", detail = result)
+                pending.resultData = result
+            } finally {
+                pending.finish()
+            }
+        }
     }
 
     private fun Intent.boolOr(key: String, fallback: Boolean): Boolean =
@@ -154,6 +188,11 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_MULTI = "multi"
         const val EXTRA_COUNT = "count"
         const val EXTRA_MINUTE_SECONDS = "minute_seconds"
+        const val EXTRA_ESCAPE_HIDDEN = "escape_hidden"
+        const val ACTION_ESCAPE = "com.lumian.morningup.debug.ESCAPE"
+        const val EXTRA_ANSWER = "answer"
+        private const val ANSWER_OK = "ok"
+        private const val ANSWER_WRONG = "wrong"
         private const val SECONDS_PER_MINUTE = 60
         private const val MILLIS_PER_SECOND = 1_000L
         private const val MAX_SECONDS = 600

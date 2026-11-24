@@ -88,6 +88,7 @@ class WakeCheckSettingsPrefsTest {
             trickSpeed = TrickSpeed.Slow,
             multiAskEnabled = true,
             multiAskCount = 5,
+            escapeHidden = true,
             debugMinuteMillis = 6_000L,
         )
         store.update { it.copy(lab = lab) }

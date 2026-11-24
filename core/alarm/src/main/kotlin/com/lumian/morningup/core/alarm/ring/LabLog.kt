@@ -27,5 +27,8 @@ class LabLog @Inject constructor(private val diagnostics: AlarmDiagnostics) {
         const val TRICK_FAKE_TAP = "trick_fake_tap"
         const val TRICK_END = "trick_end"
         const val RECHECK_ASK = "recheck_ask"
+
+        /** 미션 비상구로 껐어요(결정 149 7절). 출시 빌드에도 남아요. */
+        const val ESCAPE_USED = "escape_used"
     }
 }

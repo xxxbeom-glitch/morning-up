@@ -58,4 +58,36 @@
     <string name="channel_reminder_description">내일 알람이 제때 울리지 못할 수 있을 때 알려요</string>
     <string name="battery_reminder_title">내일 알람이 울리지 않을 수 있어요</string>
     <string name="battery_reminder_text">배터리 사용 제한이 켜져 있어요. 눌러서 풀어 주세요.</string>
+    <!-- 미션 비상구 알림(결정 149~151, TSK-182). 버튼 글 '미션 포기'는 가칭이라 escape_action 하나에만 둬요 -->
+    <string name="channel_escape">미션을 못 할 때</string>
+    <string name="channel_escape_description">울림 미션을 할 수 없을 때 문장을 따라 써서 알람을 끄는 알림이에요</string>
+    <string name="escape_title">미션을 못 하겠으면</string>
+    <string name="escape_text">아래 문장을 그대로 따라 쓰면 미션 없이 알람이 꺼져요.</string>
+    <string name="escape_wrong">조금 달라요. 한 번 더 따라 써 주세요.</string>
+    <string name="escape_action">미션 포기</string>
+    <string name="escape_hint">띄어쓰기와 마침표까지 똑같이 써 주세요</string>
+    <string name="escape_done">알람을 껐어요</string>
+    <!-- 따라 쓸 예문 20개. 띄어쓰기 포함 40~60자, 해요체. 손님이 보는 글이라 가운뎃점과 긴 줄표를 쓰지 않아요 -->
+    <string-array name="escape_sentences">
+        <item>지금은 미션을 할 수 없어서 알람을 끄지만 내일 아침에는 꼭 제시간에 일어날게요.</item>
+        <item>오늘은 몸이 좋지 않아서 미션 대신 이 문장을 써요. 끄고 나서 다시 눕지 않을게요.</item>
+        <item>옆 사람이 자고 있어서 미션을 못 해요. 알람이 꺼지면 바로 일어나 물 한 잔 마실게요.</item>
+        <item>미션을 건너뛰는 건 오늘 한 번뿐이에요. 이불 밖으로 나와서 창문을 열어 볼게요.</item>
+        <item>이 문장을 끝까지 따라 쓰는 동안 잠이 조금 깼어요. 이제 일어나서 하루를 시작할게요.</item>
+        <item>알람을 이렇게 끄는 대신 다시 잠들지 않기로 약속해요. 지금 바로 불을 켜고 일어날게요.</item>
+        <item>오늘은 사정이 있어서 미션을 못 하지만 일어날 시간인 건 알아요. 천천히 몸을 일으킬게요.</item>
+        <item>지금 이 문장을 쓰고 있다면 이미 눈은 떴어요. 알람을 끄고 나서 세수부터 하러 갈게요.</item>
+        <item>미션 대신 문장을 쓰는 건 쉬운 길이 아니에요. 다음 알람에는 미션으로 끝내 볼게요.</item>
+        <item>알람이 꺼져도 다시 잠들면 소용없어요. 휴대폰을 내려놓고 자리에서 일어나 기지개를 켤게요.</item>
+        <item>손가락을 움직이다 보니 머리도 조금씩 맑아져요. 알람을 끄면 바로 침대에서 내려올게요.</item>
+        <item>오늘 아침은 미션 대신 이 문장으로 대신해요. 끄고 나면 커튼을 걷고 햇빛을 볼게요.</item>
+        <item>잠깐 눈을 감으면 또 잠들 걸 알아요. 그래서 알람을 끄자마자 거실로 걸어 나갈게요.</item>
+        <item>미션을 못 하는 날도 있어요. 그래도 일어나는 건 미루지 않고 지금 바로 몸을 일으킬게요.</item>
+        <item>이 문장을 다 쓰면 알람이 꺼져요. 꺼진 뒤에는 휴대폰을 멀리 두고 물부터 마실게요.</item>
+        <item>아직 졸리지만 하루를 시작할 시간이에요. 알람을 끈 뒤 가볍게 목과 어깨를 풀어 볼게요.</item>
+        <item>오늘은 미션을 건너뛰지만 늦잠은 건너뛰지 않을게요. 일어나서 창문을 활짝 열 거예요.</item>
+        <item>문장을 천천히 따라 쓰면서 정신을 차리고 있어요. 다 쓰고 나면 바로 이불을 갤게요.</item>
+        <item>알람을 끄는 방법은 바뀌어도 일어나는 시간은 그대로예요. 지금 자리에서 일어날게요.</item>
+        <item>다시 누우면 오늘 계획이 밀려요. 알람이 꺼지면 바로 일어나서 아침을 챙겨 먹을게요.</item>
+    </string-array>
 </resources>

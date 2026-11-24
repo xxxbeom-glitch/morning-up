@@ -83,6 +83,7 @@ class WakeCheckSettingsPrefs internal constructor(
             multiAskEnabled = prefs.getBoolean(KEY_MULTI, false),
             multiAskCount = prefs.getInt(KEY_MULTI_COUNT, LabSettings.DEFAULT_ASK_COUNT)
                 .takeIf { it in LabSettings.ASK_COUNTS } ?: LabSettings.DEFAULT_ASK_COUNT,
+            escapeHidden = prefs.getBoolean(KEY_ESCAPE_HIDDEN, false),
             debugMinuteMillis = prefs.getLong(KEY_DEBUG_MINUTE, LabSettings.MINUTE_MILLIS),
         ),
     )
@@ -97,6 +98,7 @@ class WakeCheckSettingsPrefs internal constructor(
         putString(KEY_TRICK_SPEED, settings.lab.trickSpeed.key)
         putBoolean(KEY_MULTI, settings.lab.multiAskEnabled)
         putInt(KEY_MULTI_COUNT, settings.lab.multiAskCount)
+        putBoolean(KEY_ESCAPE_HIDDEN, settings.lab.escapeHidden)
         putLong(KEY_DEBUG_MINUTE, settings.lab.debugMinuteMillis)
     }
 
@@ -114,6 +116,9 @@ class WakeCheckSettingsPrefs internal constructor(
         private const val KEY_TRICK_SPEED = "lab_trick_speed"
         private const val KEY_MULTI = "lab_multi_ask"
         private const val KEY_MULTI_COUNT = "lab_multi_ask_count"
+
+        /** 미션 비상구 알림 숨기기(결정 151). */
+        private const val KEY_ESCAPE_HIDDEN = "lab_escape_hidden"
 
         /** 시험용 1분 길이. 디버그 adb 명령만 바꿔요. */
         private const val KEY_DEBUG_MINUTE = "lab_debug_minute_millis"

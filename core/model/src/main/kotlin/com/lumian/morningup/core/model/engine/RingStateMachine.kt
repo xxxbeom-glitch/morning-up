@@ -73,7 +73,10 @@ object RingStateMachine {
      */
     private fun withEscapeCleared(before: RingSession?, t: Transition): Transition {
         val cleared = before?.escapeShown == true && t.session?.escapeShown != true
-        return if (cleared) t.copy(effects = t.effects + ClearEscape) else t
+        if (!cleared) return t
+        // 세션이 끝나는 경우 '끝남'이 늘 마지막 효과가 되게 그 앞에 넣어요.
+        val end = t.effects.indexOfFirst { it is SessionEnded }.takeIf { it >= 0 } ?: t.effects.size
+        return t.copy(effects = t.effects.take(end) + ClearEscape + t.effects.drop(end))
     }
 
     private fun route(

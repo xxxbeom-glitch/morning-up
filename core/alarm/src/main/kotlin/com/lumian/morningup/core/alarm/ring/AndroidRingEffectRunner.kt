@@ -20,7 +20,7 @@ import kotlinx.coroutines.CancellationException
  * 상태표 효과를 안드로이드에서 실행해요.
  * 화면 전환(Show 효과)은 [RingController.screen]이 맡고, 여기서는 잠금 화면 위로 띄울 알림만 다시 올려요.
  */
-// 효과마다 맡는 장치가 하나씩이라 묶지 않고 그대로 받아요(W2, W3 짧은 알림음, 실험실 기록이 더해져 9개).
+// 효과마다 맡는 장치가 하나씩이라 묶지 않고 그대로 받아요(W2, W3 짧은 알림음, 실험실 기록, 미션 비상구가 더해져 10개).
 @Suppress("LongParameterList")
 @Singleton
 class AndroidRingEffectRunner @Inject constructor(
@@ -32,6 +32,7 @@ class AndroidRingEffectRunner @Inject constructor(
     private val diagnostics: AlarmDiagnostics,
     private val chime: ChimePlayer,
     private val labLog: LabLog,
+    private val escape: MissionEscapeNotifier,
 ) : RingEffectRunner {
     override suspend fun run(session: RingSession?, effects: List<RingEffect>) {
         // 효과 하나가 실패해도(소리 장치 오류 등) 뒤의 타이머 예약과 다시 예약은 꼭 해요.
@@ -60,6 +61,7 @@ class AndroidRingEffectRunner @Inject constructor(
             RingEffect.ShowRecheck,
             -> notifications.showRinging(session?.phase)
             RingEffect.ShowWakeUp -> Unit
+            is RingEffect.ShowEscape, RingEffect.ClearEscape, is RingEffect.EscapeUsed -> runEscape(session, effect)
             RingEffect.PlayChime -> chime.play(session?.plan?.alarmId)
             RingEffect.PausedForCall -> diagnostics.record("check_paused_for_call", session?.plan?.alarmId)
             is RingEffect.RecheckScheduled -> {
@@ -111,6 +113,20 @@ class AndroidRingEffectRunner @Inject constructor(
                 }
                 diagnostics.record(event, effect.alarmId)
             }
+        }
+    }
+
+    /** 미션 비상구 알림(결정 149). */
+    private fun runEscape(session: RingSession?, effect: RingEffect) {
+        when (effect) {
+            is RingEffect.ShowEscape -> escape.show(session?.plan?.alarmId, effect.fresh)
+            RingEffect.ClearEscape -> escape.clear()
+            is RingEffect.EscapeUsed -> {
+                // 진단 기록 한 줄: '미션 비상구 사용, 이번 달 n번째'(7절). 쓴 글은 남기지 않아요.
+                val (month, count) = escape.countUse(diagnostics.now())
+                labLog.record(LabLog.ESCAPE_USED, effect.alarmId, "month=$month n=$count", kept = true)
+            }
+            else -> Unit
         }
     }
 

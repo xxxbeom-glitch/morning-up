@@ -1,6 +1,7 @@
 package com.lumian.morningup.core.alarm.ring
 
 import com.lumian.morningup.core.alarm.NowProvider
+import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.model.InMemoryWakeCheckSettingsStore
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
@@ -59,6 +60,8 @@ class RingController @Inject constructor(
     private val now: NowProvider,
     private val wakeSettings: WakeCheckSettingsStore = InMemoryWakeCheckSettingsStore(),
     private val calls: CallState = CallState.NotInCall,
+    /** 흔들기 센서가 없는 폰은 미션 비상구 숨기기를 켜 두어도 알림을 띄워요(결정 151 5절). */
+    private val shake: ShakeSupport = ShakeSupport { true },
 ) {
     private val mutex = Mutex()
     private val _session = MutableStateFlow<RingSession?>(null)
@@ -73,7 +76,7 @@ class RingController @Inject constructor(
      */
     suspend fun fire(alarmId: Long): Boolean {
         val alarm = alarms.get(alarmId) ?: return false
-        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm, wakeSettings.current()))) }
+        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm, wakeSettings.current(), shake.available()))) }
         return true
     }
 
@@ -121,10 +124,11 @@ class RingController @Inject constructor(
                 RingEffect.SessionEnded(id, RingOutcome.Cancelled),
             )
         }
-        return listOf(
+        return listOfNotNull(
             RingEffect.StopSound,
             RingEffect.CancelTimer,
             RingEffect.PostMissedNotification(id),
+            if (saved.escapeShown) RingEffect.ClearEscape else null,
             RingEffect.SessionEnded(id, RingOutcome.Missed),
         )
     }
