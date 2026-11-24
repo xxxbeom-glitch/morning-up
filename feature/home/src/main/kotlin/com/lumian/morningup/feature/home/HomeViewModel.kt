@@ -87,6 +87,10 @@ class HomeViewModel @Inject constructor(
     val recheckPending: StateFlow<Boolean> = checks.recheckPending
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
 
+    /** 실험실 여러 번 묻기의 남은 확인 수. 아니면 null이에요(결정 146). */
+    val recheckLeft: StateFlow<Int?> = checks.recheckLeft
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
+
     /** 홈 띠 '확인하기'. W3를 지금 열어요. */
     fun openRecheck() = checks.openRecheck()
 

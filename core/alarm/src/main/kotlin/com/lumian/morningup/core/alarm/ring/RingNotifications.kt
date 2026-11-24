@@ -19,6 +19,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
 import com.lumian.morningup.core.model.engine.RingPhase
+import com.lumian.morningup.core.model.engine.RingSession
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.Instant
 import java.time.LocalTime
@@ -26,6 +27,15 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import javax.inject.Singleton
+
+/**
+ * 실험실 여러 번 묻기(결정 146)에서 W3를 기다리는 알림 내용. [left]는 남은 확인 수, [canFinishEarly]는 이번
+ * 기다림에 아직 미리 끝내지 않아 지금 하나 끝낼 수 있는지예요.
+ */
+data class RecheckNotice(val left: Int, val canFinishEarly: Boolean)
+
+/** 세션에서 알림 내용. 여러 번 묻기가 아니면 null이에요. */
+fun RingSession.recheckNotice(): RecheckNotice? = checksLeft?.let { RecheckNotice(it, canFinishEarly) }
 
 /** 울림 화면(app의 RingActivity)을 여는 Intent. app 모듈이 채워 넣어요. */
 fun interface RingScreenIntentFactory {
@@ -97,9 +107,9 @@ class RingNotifications @Inject constructor(
      * 앞 서비스 알림(ID 1). 울리는 동안 알림창에 조용히 남아요(배너, 전체 화면 없음).
      * 화면을 깨우는 일은 [openScreenNow]가 하고, 그게 막히면 [alertRinging]이 배너와 전체 화면으로 대신해요.
      */
-    fun ringing(phase: RingPhase?, phaseEndsAt: Long? = null): Notification {
+    fun ringing(phase: RingPhase?, phaseEndsAt: Long? = null, notice: RecheckNotice? = null): Notification {
         ensureChannels()
-        if (isWaiting(phase)) return waiting(phase, phaseEndsAt)
+        if (isWaiting(phase)) return waiting(phase, phaseEndsAt, notice)
         return ringBuilder(CHANNEL_STATUS, phase)
             .setOnlyAlertOnce(true)
             .build()
@@ -154,8 +164,10 @@ class RingNotifications @Inject constructor(
      * 쉬는 중이면 다시 울릴 시각을 적고, 누르면 울림 화면을 열어 지금 끌 수 있게 해요(결정 70).
      * W2 기다림은 할 일이 없는 울림 화면 대신 앱 홈을 열어요.
      */
-    private fun waiting(phase: RingPhase?, phaseEndsAt: Long?): Notification {
-        if (phase == RingPhase.AwaitingRecheck) return recheckWaiting(phaseEndsAt)
+    private fun waiting(phase: RingPhase?, phaseEndsAt: Long?, notice: RecheckNotice?): Notification {
+        if (phase == RingPhase.AwaitingRecheck) {
+            return if (notice != null) multiRecheckWaiting(notice) else recheckWaiting(phaseEndsAt)
+        }
         val resting = phase == RingPhase.Resting
         val target = if (resting) {
             screenIntent.create(context).putExtra(EXTRA_FROM_REST, true)
@@ -211,6 +223,34 @@ class RingNotifications @Inject constructor(
         return builder.build()
     }
 
+    /**
+     * 여러 번 묻기의 W3 기다림 알림(결정 146 3절). 묻는 때가 무작위라 시각과 줄어드는 시계를 달지 않아요.
+     * 제목 '곧 한 번 더 물어볼게요', 본문 '남은 확인 2번. 눌러서 지금 하나 끝낼 수 있어요'.
+     * 이번 기다림에 이미 하나 미리 끝냈으면 본문은 남은 수만 적고, 누르면 앱 홈을 열어요(한 번에 하나만).
+     */
+    private fun multiRecheckWaiting(notice: RecheckNotice): Notification {
+        val target = if (notice.canFinishEarly) {
+            screenIntent.create(context).putExtra(EXTRA_OPEN_RECHECK, true)
+        } else {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)
+        }
+        val open = target?.let {
+            PendingIntent.getActivity(context, 2, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        }
+        val body = if (notice.canFinishEarly) R.string.recheck_multi_waiting_text else R.string.recheck_multi_left
+        return NotificationCompat.Builder(context, CHANNEL_WAITING)
+            .setSmallIcon(R.drawable.ic_alarm_clock)
+            .setContentTitle(text(R.string.recheck_multi_waiting_title))
+            .setContentText(context.getString(body, notice.left))
+            .setCategory(NotificationCompat.CATEGORY_STATUS)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setOngoing(true)
+            .setSilent(true)
+            .setShowWhen(false)
+            .setContentIntent(open)
+            .build()
+    }
+
     /** 12시간제 시각. 예: 오전 6:43. */
     private fun clock12(millis: Long): String {
         val at = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalTime()
@@ -223,7 +263,7 @@ class RingNotifications @Inject constructor(
      * 다시 울릴 때 ID 1이 새 알림으로 올라와야 잠금 화면 위로 울림 화면이 떠요.
      */
     @SuppressLint("MissingPermission")
-    fun showRinging(phase: RingPhase?, phaseEndsAt: Long? = null) {
+    fun showRinging(phase: RingPhase?, phaseEndsAt: Long? = null, notice: RecheckNotice? = null) {
         if (!manager.areNotificationsEnabled()) {
             diagnostics.record("notifications_disabled")
             return
@@ -231,7 +271,7 @@ class RingNotifications @Inject constructor(
         // 깨우기 알림은 울림(D0)이나 W2 동안만 남기고, 미션을 시작하거나 쉬면 지워요.
         if (phase != RingPhase.Ringing && phase?.isAsking != true) manager.cancel(ALERT_NOTIFICATION_ID)
         if (isWaiting(phase)) {
-            manager.notify(WAITING_NOTIFICATION_ID, ringing(phase, phaseEndsAt))
+            manager.notify(WAITING_NOTIFICATION_ID, ringing(phase, phaseEndsAt, notice))
         } else {
             manager.cancel(WAITING_NOTIFICATION_ID)
             manager.notify(RING_NOTIFICATION_ID, ringing(phase))

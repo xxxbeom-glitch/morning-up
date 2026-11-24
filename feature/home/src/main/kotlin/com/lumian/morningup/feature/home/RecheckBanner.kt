@@ -33,7 +33,7 @@ private val TextGap = 2.dp
  * 기본 안내색(primary) 타이머 아이콘이에요. 어디를 눌러도 W3를 바로 열어 지금 끝낼 수 있어요.
  */
 @Composable
-fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier, left: Int? = null) {
     val colors = MorningTheme.colors
     val shape = RoundedCornerShape(MorningDimens.radiusCard)
     Row(
@@ -50,12 +50,17 @@ fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier) {
         Icon(Lucide.Timer, null, tint = colors.primaryDefault, modifier = Modifier.size(BannerIcon))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(TextGap)) {
             Text(
-                stringResource(R.string.home_recheck_title),
+                // 실험실 여러 번 묻기면 남은 횟수를 붙이고, 한 번에 하나만 끝낼 수 있어 '하나'를 더해요(결정 146).
+                if (left != null) {
+                    stringResource(R.string.home_recheck_title_count, left)
+                } else {
+                    stringResource(R.string.home_recheck_title)
+                },
                 style = MorningTheme.typography.bodyMediumStrong,
                 color = colors.textPrimary,
             )
             Text(
-                stringResource(R.string.home_recheck_desc),
+                stringResource(if (left != null) R.string.home_recheck_desc_one else R.string.home_recheck_desc),
                 style = MorningTheme.typography.captionMedium,
                 color = colors.textSecondary,
             )
@@ -73,11 +78,12 @@ internal fun withRecheckBanner(
     pending: Boolean,
     onOpen: () -> Unit,
     banner: (@Composable () -> Unit)?,
+    left: Int? = null,
 ): (@Composable () -> Unit)? {
     if (!pending) return banner
     return {
         Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space12)) {
-            RecheckBanner(onClick = onOpen)
+            RecheckBanner(onClick = onOpen, left = left)
             banner?.invoke()
         }
     }

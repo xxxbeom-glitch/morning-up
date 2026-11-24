@@ -189,8 +189,10 @@ class RingController @Inject constructor(
      * 이미 묻는 중이면 그 화면을 그대로 보여 줘요. 열었으면 true예요.
      */
     fun openRecheckEarly(): Boolean {
-        val phase = _session.value?.phase
-        val open = phase == RingPhase.AwaitingRecheck || phase == RingPhase.RecheckAsking
+        val session = _session.value
+        val phase = session?.phase
+        // 여러 번 묻기에서 이번 기다림에 이미 하나 미리 끝냈으면 열지 않아요(한 번에 하나만, 결정 146).
+        val open = session?.canFinishEarly == true || phase == RingPhase.RecheckAsking
         if (open) {
             FlowLog.event("recheck_opened", _session.value?.plan?.alarmId, "phase=$phase")
             _screen.value = RingScreen.Recheck

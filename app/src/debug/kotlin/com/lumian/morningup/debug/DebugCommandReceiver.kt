@@ -8,6 +8,9 @@ import com.lumian.morningup.core.alarm.BatteryReminder
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.FlowLog
 import com.lumian.morningup.core.data.AlarmRepository
+import com.lumian.morningup.core.model.LabSettings
+import com.lumian.morningup.core.model.TrickLevel
+import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +50,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 resultData = result
             }
             ACTION_WAKE_CHECK -> setWakeCheck(intent)
+            ACTION_LAB -> setLab(intent)
             else -> resultData = "unknown action: ${intent.action}"
         }
     }
@@ -97,6 +101,39 @@ class DebugCommandReceiver : BroadcastReceiver() {
         resultData = result
     }
 
+    /**
+     * '확실히 잠깨기' 실험실 값을 바꿔요(결정 146, TSK-172). 빠진 값은 그대로 둬요.
+     * 예: `--ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6`
+     * `minute_seconds`는 여러 번 묻기의 1분을 몇 초로 셀지(시험 배율, 1~60)예요. 60이면 실제 시간이에요.
+     */
+    private fun setLab(intent: Intent) {
+        wakeSettings.update { old ->
+            val lab = old.lab
+            val minuteSeconds = if (intent.hasExtra(EXTRA_MINUTE_SECONDS)) {
+                intent.getIntExtra(EXTRA_MINUTE_SECONDS, SECONDS_PER_MINUTE).coerceIn(1, SECONDS_PER_MINUTE)
+            } else {
+                (lab.debugMinuteMillis / MILLIS_PER_SECOND).toInt()
+            }
+            old.copy(
+                lab = LabSettings(
+                    trickEnabled = intent.boolOr(EXTRA_TRICK, lab.trickEnabled),
+                    trickLevel = intent.getStringExtra(EXTRA_LEVEL)?.let { TrickLevel.of(it) } ?: lab.trickLevel,
+                    trickSpeed = intent.getStringExtra(EXTRA_SPEED)?.let { TrickSpeed.of(it) } ?: lab.trickSpeed,
+                    multiAskEnabled = intent.boolOr(EXTRA_MULTI, lab.multiAskEnabled),
+                    multiAskCount = intent.getIntExtra(EXTRA_COUNT, lab.multiAskCount)
+                        .takeIf { it in LabSettings.ASK_COUNTS } ?: lab.multiAskCount,
+                    debugMinuteMillis = minuteSeconds * MILLIS_PER_SECOND,
+                ),
+            )
+        }
+        val result = "lab ${wakeSettings.settings.value.lab}"
+        FlowLog.event("debug_lab", detail = result)
+        resultData = result
+    }
+
+    private fun Intent.boolOr(key: String, fallback: Boolean): Boolean =
+        if (hasExtra(key)) getBooleanExtra(key, fallback) else fallback
+
     private fun Intent.intOr(key: String, fallback: Int): Int =
         if (hasExtra(key)) getIntExtra(key, fallback).coerceIn(1, MAX_SECONDS) else fallback
 
@@ -110,6 +147,15 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_ANSWER_SECONDS = "answer_seconds"
         const val EXTRA_RECHECK = "recheck"
         const val EXTRA_RECHECK_MINUTES = "recheck_minutes"
+        const val ACTION_LAB = "com.lumian.morningup.debug.LAB"
+        const val EXTRA_TRICK = "trick"
+        const val EXTRA_LEVEL = "level"
+        const val EXTRA_SPEED = "speed"
+        const val EXTRA_MULTI = "multi"
+        const val EXTRA_COUNT = "count"
+        const val EXTRA_MINUTE_SECONDS = "minute_seconds"
+        private const val SECONDS_PER_MINUTE = 60
+        private const val MILLIS_PER_SECOND = 1_000L
         private const val MAX_SECONDS = 600
         private const val MAX_MINUTES = 60
     }

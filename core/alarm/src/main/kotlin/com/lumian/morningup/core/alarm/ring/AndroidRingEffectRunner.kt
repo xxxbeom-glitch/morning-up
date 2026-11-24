@@ -20,7 +20,7 @@ import kotlinx.coroutines.CancellationException
  * 상태표 효과를 안드로이드에서 실행해요.
  * 화면 전환(Show 효과)은 [RingController.screen]이 맡고, 여기서는 잠금 화면 위로 띄울 알림만 다시 올려요.
  */
-// 효과마다 맡는 장치가 하나씩이라 묶지 않고 그대로 받아요(W2, W3 짧은 알림음이 더해져 8개).
+// 효과마다 맡는 장치가 하나씩이라 묶지 않고 그대로 받아요(W2, W3 짧은 알림음, 실험실 기록이 더해져 9개).
 @Suppress("LongParameterList")
 @Singleton
 class AndroidRingEffectRunner @Inject constructor(
@@ -31,6 +31,7 @@ class AndroidRingEffectRunner @Inject constructor(
     private val alarms: AlarmStore,
     private val diagnostics: AlarmDiagnostics,
     private val chime: ChimePlayer,
+    private val labLog: LabLog,
 ) : RingEffectRunner {
     override suspend fun run(session: RingSession?, effects: List<RingEffect>) {
         // 효과 하나가 실패해도(소리 장치 오류 등) 뒤의 타이머 예약과 다시 예약은 꼭 해요.
@@ -63,7 +64,19 @@ class AndroidRingEffectRunner @Inject constructor(
             RingEffect.PausedForCall -> diagnostics.record("check_paused_for_call", session?.plan?.alarmId)
             is RingEffect.RecheckScheduled -> {
                 diagnostics.record("recheck_scheduled", session?.plan?.alarmId, "at=${clock(effect.askAt)}")
-                notifications.showRinging(session?.phase, effect.askAt)
+                if (effect.number != null) {
+                    // 여러 번 묻기: 몇 번째/전체와 고른 간격은 디버그 흐름 로그에만 남겨요(결정 146 4절).
+                    labLog.record(
+                        LabLog.RECHECK_ASK,
+                        session?.plan?.alarmId,
+                        "n=${effect.number}/${effect.total} gap=${effect.gapMinutes}m at=${clock(effect.askAt)}",
+                    )
+                }
+                notifications.showRinging(session?.phase, effect.askAt, session?.recheckNotice())
+            }
+            is RingEffect.MultiAskRecorded -> {
+                val left = effect.left?.let { " left=$it" }.orEmpty()
+                labLog.record(effect.kind.event, effect.alarmId, "n=${effect.number}/${effect.total}$left", effect.kind.kept)
             }
             is RingEffect.WakeResultRecorded -> {
                 val detail = "result=${effect.result.name} rounds=${effect.rounds}"

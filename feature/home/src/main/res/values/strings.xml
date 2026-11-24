@@ -51,5 +51,7 @@
     <!-- H0 위쪽 띠: 한 번 더 확인(W3)이 남았을 때(결정 145) -->
     <string name="home_recheck_title">한 번 더 확인이 남았어요</string>
     <string name="home_recheck_desc">눌러서 지금 끝낼 수 있어요</string>
+    <string name="home_recheck_title_count">한 번 더 확인이 %1$d번 남았어요</string>
+    <string name="home_recheck_desc_one">눌러서 지금 하나 끝낼 수 있어요</string>
     <string name="home_recheck_action">확인하기</string>
 </resources>

@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.lumian.morningup.core.data.db.AlarmDao
 import com.lumian.morningup.core.data.db.AlarmEntity
+import com.lumian.morningup.core.model.LabSettings
+import com.lumian.morningup.core.model.TrickLevel
+import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -73,6 +76,15 @@ class WakeCheckSettingsPrefs internal constructor(
         answerSeconds = prefs.getInt(KEY_ANSWER, WakeCheckSettings.DEFAULT_ANSWER_SECONDS),
         recheckEnabled = prefs.getBoolean(KEY_RECHECK, true),
         recheckMinutes = prefs.getInt(KEY_RECHECK_MINUTES, WakeCheckSettings.DEFAULT_RECHECK_MINUTES),
+        lab = LabSettings(
+            trickEnabled = prefs.getBoolean(KEY_TRICK, false),
+            trickLevel = TrickLevel.of(prefs.getString(KEY_TRICK_LEVEL, null)),
+            trickSpeed = TrickSpeed.of(prefs.getString(KEY_TRICK_SPEED, null)),
+            multiAskEnabled = prefs.getBoolean(KEY_MULTI, false),
+            multiAskCount = prefs.getInt(KEY_MULTI_COUNT, LabSettings.DEFAULT_ASK_COUNT)
+                .takeIf { it in LabSettings.ASK_COUNTS } ?: LabSettings.DEFAULT_ASK_COUNT,
+            debugMinuteMillis = prefs.getLong(KEY_DEBUG_MINUTE, LabSettings.MINUTE_MILLIS),
+        ),
     )
 
     private fun write(settings: WakeCheckSettings) = prefs.edit {
@@ -80,6 +92,12 @@ class WakeCheckSettingsPrefs internal constructor(
         putInt(KEY_ANSWER, settings.answerSeconds)
         putBoolean(KEY_RECHECK, settings.recheckEnabled)
         putInt(KEY_RECHECK_MINUTES, settings.recheckMinutes)
+        putBoolean(KEY_TRICK, settings.lab.trickEnabled)
+        putString(KEY_TRICK_LEVEL, settings.lab.trickLevel.key)
+        putString(KEY_TRICK_SPEED, settings.lab.trickSpeed.key)
+        putBoolean(KEY_MULTI, settings.lab.multiAskEnabled)
+        putInt(KEY_MULTI_COUNT, settings.lab.multiAskCount)
+        putLong(KEY_DEBUG_MINUTE, settings.lab.debugMinuteMillis)
     }
 
     companion object {
@@ -89,6 +107,16 @@ class WakeCheckSettingsPrefs internal constructor(
         private const val KEY_RECHECK = "recheck_enabled"
         private const val KEY_RECHECK_MINUTES = "recheck_minutes"
         private const val KEY_MIGRATED = "migrated_from_alarms"
+
+        // 실험실 '확실히 잠깨기'(결정 146)
+        private const val KEY_TRICK = "lab_trick"
+        private const val KEY_TRICK_LEVEL = "lab_trick_level"
+        private const val KEY_TRICK_SPEED = "lab_trick_speed"
+        private const val KEY_MULTI = "lab_multi_ask"
+        private const val KEY_MULTI_COUNT = "lab_multi_ask_count"
+
+        /** 시험용 1분 길이. 디버그 adb 명령만 바꿔요. */
+        private const val KEY_DEBUG_MINUTE = "lab_debug_minute_millis"
 
         /** 옮길 (간격, 시간). 다시 잠들기 방지가 켜진 알람이 없으면 null. */
         internal fun pickLegacy(alarms: List<AlarmEntity>): Pair<Int, Int>? {

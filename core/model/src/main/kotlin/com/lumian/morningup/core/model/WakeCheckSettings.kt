@@ -3,6 +3,7 @@ package com.lumian.morningup.core.model
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * 다시 잠들기 방지 전체 설정(결정 145). 알람마다는 켜고 끄기([WakeCheck])만 두고, 값은 앱 전체에 한 번만 둬요.
@@ -10,13 +11,18 @@ import kotlinx.coroutines.flow.StateFlow
  * - [answerSeconds]: W2 '대답할 시간'.
  * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.
  * - [recheckMinutes]: W3 '확인할 시간'. 처음 10분.
+ * - [lab]: '확실히 잠깨기' 실험실(결정 146). 여러 번 묻기를 켜면 [recheckEnabled]와 관계없이 W3를 물어요.
  */
 data class WakeCheckSettings(
     val askAfterMinutes: Int = DEFAULT_ASK_MINUTES,
     val answerSeconds: Int = DEFAULT_ANSWER_SECONDS,
     val recheckEnabled: Boolean = true,
     val recheckMinutes: Int = DEFAULT_RECHECK_MINUTES,
+    val lab: LabSettings = LabSettings(),
 ) {
+    /** 실제로 W3를 묻는지. 실험실 여러 번 묻기를 켜면 '한 번 더 확인'은 켜진 채 잠겨요. */
+    val recheckOn: Boolean get() = recheckEnabled || lab.multiAskEnabled
+
     companion object {
         const val DEFAULT_ASK_MINUTES = 3
         const val DEFAULT_ANSWER_SECONDS = 60
@@ -48,8 +54,11 @@ interface WakeCheckSettingsStore {
  * 결정 145 '남은 확인 취소' 표대로 알람을 끄거나 지우거나 저장하면 남은 확인을 멈춰요.
  */
 interface WakeCheckGate {
-    /** 한 번 더 확인(W3)을 기다리는 중인지. 홈 위쪽 띠가 봐요. */
+    /** 한 번 더 확인(W3)을 기다리는 중이고 지금 미리 끝낼 수 있는지. 홈 위쪽 띠가 봐요. */
     val recheckPending: Flow<Boolean>
+
+    /** 실험실 여러 번 묻기의 남은 확인 수. 여러 번 묻기가 아니면 null이에요(띠 글이 '한 번 더 확인이 2번 남았어요'). */
+    val recheckLeft: Flow<Int?> get() = flowOf(null)
 
     /** [alarmId]의 남은 확인을 모두 멈춰요. 멈춘 것이 있으면 true예요. */
     suspend fun cancelFor(alarmId: Long): Boolean

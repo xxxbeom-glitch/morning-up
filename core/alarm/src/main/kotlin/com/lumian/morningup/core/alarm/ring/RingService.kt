@@ -207,7 +207,8 @@ class RingService : LifecycleService() {
             }
             RingPhase.Resting, RingPhase.AwaitingWakeCheck, RingPhase.AwaitingRecheck -> {
                 ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
-                notifications.showRinging(phase, controller.session.value?.phaseEndsAt)
+                val session = controller.session.value
+                notifications.showRinging(phase, session?.phaseEndsAt, session?.recheckNotice())
                 stopSelf(startId)
             }
             else -> {

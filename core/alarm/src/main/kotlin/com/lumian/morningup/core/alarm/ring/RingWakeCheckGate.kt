@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.engine.RingEvent
-import com.lumian.morningup.core.model.engine.RingPhase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,7 +22,11 @@ class RingWakeCheckGate @Inject constructor(
     private val screenIntent: RingScreenIntentFactory,
 ) : WakeCheckGate {
     override val recheckPending: Flow<Boolean> = controller.session
-        .map { it?.phase == RingPhase.AwaitingRecheck }
+        .map { it?.canFinishEarly == true }
+        .distinctUntilChanged()
+
+    override val recheckLeft: Flow<Int?> = controller.session
+        .map { session -> session?.takeIf { it.canFinishEarly }?.checksLeft }
         .distinctUntilChanged()
 
     override suspend fun cancelFor(alarmId: Long): Boolean {

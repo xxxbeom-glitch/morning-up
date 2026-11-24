@@ -116,6 +116,7 @@ fun HomeRoute(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val recheckPending by viewModel.recheckPending.collectAsStateWithLifecycle()
+    val recheckLeft by viewModel.recheckLeft.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
         viewModel.refreshWeather()
         onPauseOrDispose {}
@@ -139,7 +140,7 @@ fun HomeRoute(
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
-        banner = withRecheckBanner(recheckPending, viewModel::openRecheck, banner),
+        banner = withRecheckBanner(recheckPending, viewModel::openRecheck, banner, recheckLeft),
         extra = HomeExtraActions(
             onRestOnce = viewModel::restOnce,
             onAllOff = viewModel::turnAllOff,

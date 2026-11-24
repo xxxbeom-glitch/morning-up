@@ -9,6 +9,9 @@ import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.data.db.toEntity
 import com.lumian.morningup.core.data.settings.WakeCheckSettingsPrefs
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.LabSettings
+import com.lumian.morningup.core.model.TrickLevel
+import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
 import java.time.LocalTime
@@ -73,5 +76,23 @@ class WakeCheckSettingsPrefsTest {
         val again = WakeCheckSettingsPrefs(prefs, db.alarmDao())
         assertThat(again.current())
             .isEqualTo(WakeCheckSettings(askAfterMinutes = 10, answerSeconds = 30, recheckEnabled = false))
+    }
+
+    @Test
+    fun labSettings_startOff_andKeepAfterReopen() = runTest {
+        val store = WakeCheckSettingsPrefs(prefs, db.alarmDao())
+        assertThat(store.current().lab).isEqualTo(LabSettings())
+        val lab = LabSettings(
+            trickEnabled = true,
+            trickLevel = TrickLevel.Weak,
+            trickSpeed = TrickSpeed.Slow,
+            multiAskEnabled = true,
+            multiAskCount = 5,
+            debugMinuteMillis = 6_000L,
+        )
+        store.update { it.copy(lab = lab) }
+        val again = WakeCheckSettingsPrefs(prefs, db.alarmDao())
+        assertThat(again.current().lab).isEqualTo(lab)
+        assertThat(again.current().recheckOn).isTrue()
     }
 }

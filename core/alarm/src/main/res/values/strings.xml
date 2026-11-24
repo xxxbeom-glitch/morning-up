@@ -40,6 +40,10 @@
     <!-- W3 기다림 알림. %1$s는 묻는 시각(예: 오전 6:43) -->
     <string name="recheck_waiting_title">%1$s에 한 번 더 물어볼게요</string>
     <string name="recheck_waiting_text">정말 깼으면 눌러서 지금 끝낼 수 있어요</string>
+    <!-- 실험실 여러 번 묻기(결정 146): 무작위라 시각을 적지 않아요 -->
+    <string name="recheck_multi_waiting_title">곧 한 번 더 물어볼게요</string>
+    <string name="recheck_multi_waiting_text">남은 확인 %1$d번. 눌러서 지금 하나 끝낼 수 있어요</string>
+    <string name="recheck_multi_left">남은 확인 %1$d번</string>
     <string name="clock_am">오전 %1$s</string>
     <string name="clock_pm">오후 %1$s</string>
 
