@@ -156,6 +156,8 @@ class RingNotifications @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
+            // 미션 비상구 알림과 한 묶음으로 접히지 않게 그룹을 따로 둬요(ISS-042).
+            .setGroup(GROUP_RINGING)
             .setContentIntent(screenPendingIntent())
     }
 
@@ -406,6 +408,15 @@ class RingNotifications @Inject constructor(
         const val CHANNEL_MISSED = "missed"
         const val CHANNEL_FALLBACK = "ringing_fallback"
         const val CHANNEL_ESCAPE = "mission_escape"
+
+        /**
+         * 알림 그룹(ISS-042). 그룹을 정하지 않은 알림이 둘 이상이면 안드로이드(삼성 One UI 포함)가 앱 이름으로 자동 묶음을
+         * 만들어 접어 둬요. 울림 알림과 미션 비상구 알림에 서로 다른 그룹을 주면 자동 묶음 대상에서 빠지고,
+         * 그룹마다 알림이 하나라 요약 알림 없이 각각 펼쳐진 채로 보여요.
+         */
+        const val GROUP_RINGING = "morning_ringing"
+        const val GROUP_ESCAPE = "morning_escape"
+        const val GROUP_ESCAPE_DONE = "morning_escape_done"
 
         /** 쉬는 중 알림을 눌러 울림 화면을 열었다는 표시. 쉬는 동안에도 울림 화면을 보여 줘요. */
         const val EXTRA_FROM_REST = "from_rest"

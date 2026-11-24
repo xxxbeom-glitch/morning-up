@@ -90,6 +90,7 @@ class MissionEscapeNotifier @Inject constructor(
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setAutoCancel(true)
+            .setGroup(RingNotifications.GROUP_ESCAPE_DONE)
             .setTimeoutAfter(MissionEscape.DONE_MILLIS)
             .build()
         manager.notify(RingNotifications.ESCAPE_DONE_NOTIFICATION_ID, done)
@@ -163,6 +164,8 @@ class MissionEscapeNotifier @Inject constructor(
             .setOnlyAlertOnce(true)
             .setShowWhen(false)
             .setDeleteIntent(dismissed)
+            // 울림 알림과 한 묶음으로 접히면 예문과 버튼을 보려고 두 번 펼쳐야 해요. 그룹을 따로 둬 바로 보이게 해요(ISS-042).
+            .setGroup(RingNotifications.GROUP_ESCAPE)
             .addAction(action)
             .build()
         manager.notify(RingNotifications.ESCAPE_NOTIFICATION_ID, notification)
