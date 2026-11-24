@@ -16,8 +16,10 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.RemoteInput
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.alarm.receiver.MissionEscapeReceiver
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -51,8 +53,15 @@ class RingNotifications @Inject constructor(
     @ApplicationContext private val context: Context,
     private val screenIntent: RingScreenIntentFactory,
     private val diagnostics: AlarmDiagnostics,
+    private val escape: MissionEscapeStore,
 ) {
     private val manager = NotificationManagerCompat.from(context)
+
+    /** 지금 올라가 있는 울림 알림(ID 1 또는 2)의 재료. 미션 비상구를 붙이거나 뗄 때 같은 내용으로 다시 올려요. */
+    private data class Shown(val phase: RingPhase?, val endsAt: Long?, val notice: RecheckNotice?)
+
+    @Volatile
+    private var shown: Shown? = null
 
     fun ensureChannels() {
         val high = NotificationManager.IMPORTANCE_HIGH
@@ -116,11 +125,71 @@ class RingNotifications @Inject constructor(
      */
     fun ringing(phase: RingPhase?, phaseEndsAt: Long? = null, notice: RecheckNotice? = null): Notification {
         ensureChannels()
+        shown = Shown(phase, phaseEndsAt, notice)
         if (isWaiting(phase)) return waiting(phase, phaseEndsAt, notice)
         return ringBuilder(CHANNEL_STATUS, phase)
             .setOnlyAlertOnce(true)
+            .withEscape(text(phaseText(phase)))
             .build()
     }
+
+    /**
+     * 미션 비상구가 열렸거나 닫혔거나 바뀌었어요. 지금 올라가 있는 울림 알림을 같은 내용으로 다시 올려 붙이거나 떼요.
+     * 올라간 알림이 없으면(울림이 끝남) 아무것도 하지 않고 false예요.
+     */
+    fun refreshEscape(): Boolean {
+        val now = shown ?: return false
+        if (!manager.areNotificationsEnabled()) {
+            diagnostics.record("escape_blocked", detail = "notifications_off")
+            return false
+        }
+        showRinging(now.phase, now.endsAt, now.notice)
+        return true
+    }
+
+    /**
+     * 미션 비상구(결정 149~151)가 열려 있으면 이 알림에 예문과 '미션 포기' 바로 답장 버튼을 붙여요(ISS-042).
+     * 따로 알림으로 두면 안드로이드(삼성 One UI 포함)가 앱 알림을 그룹 키와 상관없이 하나로 묶어 접어요.
+     * 소리 없는 기본 중요도 통로로 바꿔 알림창 위쪽에 펼쳐 보이게 하고, 밀어서 지우면 받는 곳이 다시 올려요.
+     */
+    private fun NotificationCompat.Builder.withEscape(base: String): NotificationCompat.Builder {
+        val view = escape.current() ?: return this
+        val first = text(if (view.wrong) R.string.escape_wrong else R.string.escape_text)
+        val input = RemoteInput.Builder(MissionEscapeNotifier.KEY_REPLY)
+            .setLabel(text(R.string.escape_hint))
+            .build()
+        val reply = PendingIntent.getBroadcast(
+            context,
+            REQUEST_ESCAPE_REPLY,
+            escapeIntent(MissionEscapeReceiver.ACTION_REPLY),
+            // 바로 답장 글을 안드로이드가 채워 넣어야 해서 바꿀 수 있는(mutable) Intent예요. 받는 곳은 우리 앱으로 정해져 있어요.
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+        )
+        val action = NotificationCompat.Action.Builder(R.drawable.ic_alarm_clock, text(R.string.escape_action), reply)
+            .addRemoteInput(input)
+            .setAllowGeneratedReplies(false)
+            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
+            .setShowsUserInterface(false)
+            .build()
+        // 안드로이드 14부터는 밀어서 지울 수 없는 알림도 지워질 수 있어서, 지워지면 받는 곳이 같은 예문으로 다시 올려요.
+        val dismissed = PendingIntent.getBroadcast(
+            context,
+            REQUEST_ESCAPE_DISMISSED,
+            escapeIntent(MissionEscapeReceiver.ACTION_DISMISSED),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        // 펼친 글: 지금 단계 글, 빈 줄, '미션을 못 하겠으면', 안내(또는 '조금 달라요'), 예문.
+        val body = listOf(base, "", text(R.string.escape_title), first, view.sentence).joinToString("\n")
+        return setChannelId(CHANNEL_ESCAPE)
+            .setContentText(first)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(body))
+            .setOnlyAlertOnce(true)
+            .setDeleteIntent(dismissed)
+            .addAction(action)
+    }
+
+    private fun escapeIntent(action: String) =
+        Intent(context, MissionEscapeReceiver::class.java).setAction(action).setPackage(context.packageName)
 
     /**
      * 울림 화면을 바로 띄우지 못했거나 잠금 화면일 때만 올리는 깨우기 알림(ID 4).
@@ -156,8 +225,6 @@ class RingNotifications @Inject constructor(
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
-            // 미션 비상구 알림과 한 묶음으로 접히지 않게 그룹을 따로 둬요(ISS-042).
-            .setGroup(GROUP_RINGING)
             .setContentIntent(screenPendingIntent())
     }
 
@@ -201,6 +268,7 @@ class RingNotifications @Inject constructor(
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setContentIntent(open)
+            .withEscape(body)
             .build()
     }
 
@@ -288,6 +356,7 @@ class RingNotifications @Inject constructor(
     }
 
     fun cancelRinging() {
+        shown = null
         manager.cancel(RING_NOTIFICATION_ID)
         manager.cancel(ESCAPE_NOTIFICATION_ID)
         manager.cancel(WAITING_NOTIFICATION_ID)
@@ -409,14 +478,6 @@ class RingNotifications @Inject constructor(
         const val CHANNEL_FALLBACK = "ringing_fallback"
         const val CHANNEL_ESCAPE = "mission_escape"
 
-        /**
-         * 알림 그룹(ISS-042). 그룹을 정하지 않은 알림이 둘 이상이면 안드로이드(삼성 One UI 포함)가 앱 이름으로 자동 묶음을
-         * 만들어 접어 둬요. 울림 알림과 미션 비상구 알림에 서로 다른 그룹을 주면 자동 묶음 대상에서 빠지고,
-         * 그룹마다 알림이 하나라 요약 알림 없이 각각 펼쳐진 채로 보여요.
-         */
-        const val GROUP_RINGING = "morning_ringing"
-        const val GROUP_ESCAPE = "morning_escape"
-        const val GROUP_ESCAPE_DONE = "morning_escape_done"
 
         /** 쉬는 중 알림을 눌러 울림 화면을 열었다는 표시. 쉬는 동안에도 울림 화면을 보여 줘요. */
         const val EXTRA_FROM_REST = "from_rest"
@@ -428,11 +489,15 @@ class RingNotifications @Inject constructor(
         private const val FALLBACK_NOTIFICATION_ID = 3
         private const val ALERT_NOTIFICATION_ID = 4
 
-        /** 미션 비상구 알림과, 써서 끈 뒤 3초 보이는 '알람을 껐어요'(결정 149). */
+        /**
+         * 예전 따로 띄우던 미션 비상구 알림(지금은 울림 알림에 붙여요, ISS-042)과, 써서 끈 뒤 3초 보이는 '알람을 껐어요'(결정 149).
+         */
         const val ESCAPE_NOTIFICATION_ID = 5
         const val ESCAPE_DONE_NOTIFICATION_ID = 6
         private const val MISSED_NOTIFICATION_BASE = 1000
         private const val SCREEN_WAKE_MILLIS = 10_000L
         private const val NOON = 12
+        private const val REQUEST_ESCAPE_REPLY = 50
+        private const val REQUEST_ESCAPE_DISMISSED = 51
     }
 }

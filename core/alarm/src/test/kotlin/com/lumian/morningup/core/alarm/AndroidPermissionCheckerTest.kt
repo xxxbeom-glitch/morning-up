@@ -8,6 +8,7 @@ import android.os.PowerManager
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.lumian.morningup.core.alarm.ring.MissionEscapeStore
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.data.diagnostics.DiagnosticLog
@@ -41,7 +42,7 @@ class AndroidPermissionCheckerTest {
         CoroutineScope(Dispatchers.Unconfined),
     )
     private val exact = ExactAlarms(context, context.getSystemService(AlarmManager::class.java), diagnostics)
-    private val notifications = RingNotifications(context, { Intent() }, diagnostics)
+    private val notifications = RingNotifications(context, { Intent() }, diagnostics, MissionEscapeStore(context))
     private val checker = AndroidPermissionChecker(context, exact, notifications, diagnostics)
     private val power = shadowOf(context.getSystemService(PowerManager::class.java))
     private val audio = context.getSystemService(AudioManager::class.java)
