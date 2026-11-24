@@ -148,4 +148,21 @@ class RingScreensTest {
         compose.onNodeWithText("확인했어요").assertExists()
         compose.onNodeWithText("3분 뒤 한 번 더 물어볼게요").assertExists()
     }
+
+    @Test
+    fun trickPreview_a11yOff_showsNotice() {
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                TrickPreviewScreen(
+                    trick = null,
+                    onClose = {},
+                    trickOff = true,
+                    date = LocalDate.of(2026, 11, 24),
+                    time = LocalTime.of(7, 0),
+                )
+            }
+        }
+        compose.onNodeWithText("미리 해보기, 소리는 나지 않아요").assertExists()
+        compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
+    }
 }

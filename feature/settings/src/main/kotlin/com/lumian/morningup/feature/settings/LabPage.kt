@@ -18,15 +18,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.alarm.ring.LabLog
+import com.lumian.morningup.core.alarm.ring.TrickAccessibility
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
 import com.lumian.morningup.core.designsystem.component.MorningButtonStyle
@@ -152,6 +155,8 @@ private fun labValue(lab: LabSettings): String {
 @Composable
 fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val trickOff = remember { TrickAccessibility.offReason(context) != null }
     LabScreen(
         lab = settings.lab,
         onBack = onBack,
@@ -162,6 +167,7 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         onMultiAskCount = viewModel::setMultiAskCount,
         onPreview = onPreview,
         onEscapeHidden = viewModel::setEscapeHidden,
+        trickOff = trickOff,
     )
 }
 
@@ -182,6 +188,7 @@ fun LabScreen(
     onPreview: () -> Unit,
     modifier: Modifier = Modifier,
     onEscapeHidden: (Boolean) -> Unit = {},
+    trickOff: Boolean = false,
 ) {
     var sheet by rememberSaveable { mutableStateOf<LabSheet?>(null) }
     val colors = MorningTheme.colors
@@ -216,7 +223,7 @@ fun LabScreen(
             MorningSettingsCard(title = null) {
                 MorningSettingRow(
                     label = stringResource(R.string.settings_lab_trick),
-                    value = trickValue(lab),
+                    value = if (trickOff) stringResource(R.string.settings_lab_trick_a11y) else trickValue(lab),
                     state = if (lab.trickEnabled) SettingRowState.On else SettingRowState.Off,
                     onCheckedChange = { on ->
                         onTrick(on)

@@ -11,4 +11,6 @@
     <string name="settings_lab_escape_sheet_item2">2. 다시 울림이 마지막 바퀴일 때, 첫 미션에서</string>
     <string name="settings_lab_escape_cancel">취소</string>
     <string name="settings_lab_escape_hide">숨기기</string>
+    <!-- 접근성 기능 때문에 버튼 속이기가 꺼질 때 T3 버튼 속이기 줄 둘째 줄(ISS-041) -->
+    <string name="settings_lab_trick_a11y">접근성 기능이 켜져 있어 버튼 속이기가 꺼져요</string>
 </resources>

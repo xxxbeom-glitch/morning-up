@@ -1,10 +1,8 @@
 package com.lumian.morningup.feature.ring
 
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
-import android.provider.Settings
-import android.view.accessibility.AccessibilityManager
 import com.lumian.morningup.core.alarm.ring.LabLog
+import com.lumian.morningup.core.alarm.ring.TrickAccessibility
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -22,30 +20,6 @@ interface TrickRecorder {
 
     /** [LabLog.record]와 같아요. */
     fun record(event: String, alarmId: Long?, detail: String = "", kept: Boolean = false)
-}
-
-/**
- * 접근성 자동 꺼짐 까닭(2-4, 사용자 확정 11-24).
- * - `talkback`: 터치 탐색이 켜져 있어요.
- * - `a11y_service`: 스위치 제어 같은 다른 접근성 서비스가 켜져 있어요. 우리 앱의 전원 종료 방지(PowerGuardService)는 세지 않아요.
- * - `no_animation`: 폰 설정 '애니메이션 삭제'(애니메이터 길이 배율 0)예요.
- */
-object TrickAccessibility {
-    const val TALKBACK = "talkback"
-    const val A11Y_SERVICE = "a11y_service"
-    const val NO_ANIMATION = "no_animation"
-
-    fun offReason(context: Context): String? {
-        val manager = context.getSystemService(AccessibilityManager::class.java)
-        if (manager?.isTouchExplorationEnabled == true) return TALKBACK
-        val others = manager
-            ?.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
-            .orEmpty()
-            .any { it.resolveInfo?.serviceInfo?.packageName != context.packageName }
-        if (others) return A11Y_SERVICE
-        val scale = Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f)
-        return if (scale == 0f) NO_ANIMATION else null
-    }
 }
 
 class AndroidTrickRecorder @Inject constructor(

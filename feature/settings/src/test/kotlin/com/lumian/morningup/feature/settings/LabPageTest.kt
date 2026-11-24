@@ -31,7 +31,7 @@ class LabPageTest {
 
     private val calls = mutableListOf<String>()
 
-    private fun showPage(lab: LabSettings = LabSettings()) = compose.setContent {
+    private fun showPage(lab: LabSettings = LabSettings(), trickOff: Boolean = false) = compose.setContent {
         MorningTheme(darkTheme = false, reduceMotion = true) {
             LabScreen(
                 lab = lab,
@@ -43,6 +43,7 @@ class LabPageTest {
                 onMultiAskCount = { calls += "count:$it" },
                 onPreview = { calls += "preview" },
                 onEscapeHidden = { calls += "escape:$it" },
+                trickOff = trickOff,
             )
         }
     }
@@ -153,5 +154,11 @@ class LabPageTest {
         compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
         compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
         assertThat(calls).containsExactly("escape:false")
+    }
+
+    @Test
+    fun trickRow_a11yOff_showsNotice() {
+        showPage(LabSettings(trickEnabled = true), trickOff = true)
+        compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
     }
 }

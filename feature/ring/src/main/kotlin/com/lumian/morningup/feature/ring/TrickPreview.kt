@@ -27,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.X
+import com.lumian.morningup.core.alarm.ring.TrickAccessibility
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
 import com.lumian.morningup.core.designsystem.theme.FixedFontScale
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -54,13 +55,13 @@ class TrickPreviewViewModel @Inject constructor(store: WakeCheckSettingsStore) :
 /**
  * T3-3 버튼 속이기 미리 해보기(결정 146 1절, 2-4). 울림 화면(D0)을 소리 없이 띄워요. 위에 '미리 해보기, 소리는 나지
  * 않아요', 오른쪽 위 닫기(Lucide x). 진짜 버튼을 누르면 버튼 자리에 '잘했어요'와 '곧 설정으로 돌아가요'를 보이고 돌아가요.
- * 접근성 자동 꺼짐은 울림 때와 같이 따라요(기록은 남기지 않아요).
+ * 접근성 자동 꺼짐은 울림 때와 같이 따라요(기록은 남기지 않아요). 꺼지면 위 줄 아래에 까닭을 한 줄 더 보여요(ISS-041).
  */
 @Composable
 fun TrickPreviewRoute(onClose: () -> Unit, viewModel: TrickPreviewViewModel = hiltViewModel()) {
     val context = LocalContext.current
-    val trick = remember { viewModel.trick.takeIf { TrickAccessibility.offReason(context) == null } }
-    TrickPreviewScreen(trick = trick, onClose = onClose)
+    val off = remember { TrickAccessibility.offReason(context) != null }
+    TrickPreviewScreen(trick = viewModel.trick.takeUnless { off }, onClose = onClose, trickOff = off)
 }
 
 @Composable
@@ -68,6 +69,7 @@ fun TrickPreviewScreen(
     trick: ButtonTrick?,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    trickOff: Boolean = false,
     date: LocalDate = remember { LocalDate.now() },
     time: LocalTime = remember { LocalTime.now().withSecond(0).withNano(0) },
 ) {
@@ -96,14 +98,14 @@ fun TrickPreviewScreen(
                     trickKey = Unit,
                 )
             }
-            PreviewTopBar(onClose)
+            PreviewTopBar(trickOff, onClose)
         }
     }
 }
 
-/** 위 줄: 왼쪽 '미리 해보기, 소리는 나지 않아요', 오른쪽 닫기(누르는 칸 48). */
+/** 위 줄: 왼쪽 '미리 해보기, 소리는 나지 않아요'(접근성으로 꺼지면 아래에 안내 한 줄), 오른쪽 닫기(누르는 칸 48). */
 @Composable
-private fun PreviewTopBar(onClose: () -> Unit) {
+private fun PreviewTopBar(trickOff: Boolean, onClose: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -111,12 +113,20 @@ private fun PreviewTopBar(onClose: () -> Unit) {
             .padding(start = MorningDimens.space24, end = MorningDimens.space12, top = MorningDimens.space12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = stringResource(R.string.ring_preview_top),
-            style = MorningTheme.typography.bodySmall,
-            color = MorningTheme.colors.textBody,
-            modifier = Modifier.weight(1f),
-        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.ring_preview_top),
+                style = MorningTheme.typography.bodySmall,
+                color = MorningTheme.colors.textBody,
+            )
+            if (trickOff) {
+                Text(
+                    text = stringResource(R.string.ring_preview_trick_off),
+                    style = MorningTheme.typography.bodySmall,
+                    color = MorningTheme.colors.textBody,
+                )
+            }
+        }
         MorningIconButton(
             icon = Lucide.X,
             contentDescription = stringResource(R.string.ring_preview_close),
