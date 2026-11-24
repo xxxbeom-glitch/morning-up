@@ -15,7 +15,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 
 /**
  * 피그마 Preview Button(`297:7400`). 폭 꽉 참, 높이 36, 모서리 12, `primary/subtle` 칠,
- * `Body/Small Strong` `primary/text`. 편집 화면 '미리 해보기', 홈 카드 '내일 다시 켜기'에 써요.
+ * `Body/Small Strong` `primary/text`. 편집 화면 '미리 해보기', 홈 카드 '이번만 쉬기'에 써요.
  */
 @Composable
 fun MorningPreviewButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {

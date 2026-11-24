@@ -105,7 +105,7 @@ class HomeScreenTest {
                 resting = mapOf(3L to DayOfWeek.WEDNESDAY),
             ),
         )
-        compose.onNodeWithText("내일 다시 켜기").assertExists()
+        compose.onNodeWithText("이번만 쉬기").assertExists()
         compose.onNodeWithText("수요일에 다시 울려요").assertExists()
     }
 

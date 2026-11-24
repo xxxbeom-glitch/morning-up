@@ -27,7 +27,7 @@
     <string name="home_deleted">알람을 지웠어요</string>
     <string name="home_undo">되돌리기</string>
     <!-- H8 이번만 쉬기 -->
-    <string name="home_rest_offer">내일 다시 켜기</string>
+    <string name="home_rest_offer">이번만 쉬기</string>
     <string name="home_resting">%1$s요일에 다시 울려요</string>
 
     <!-- H3 더보기, 선택 모드 -->

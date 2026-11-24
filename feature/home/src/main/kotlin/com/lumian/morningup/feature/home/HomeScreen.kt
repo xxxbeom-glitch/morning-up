@@ -355,7 +355,7 @@ private fun AlarmList(
     }
 }
 
-/** 카드 모양: 켜진 모양인지, '내일 다시 켜기'(Rest Offer), 쉬는 중(Resting), 선택 모드면 골랐는지. */
+/** 카드 모양: 켜진 모양인지, '이번만 쉬기'(Rest Offer), 쉬는 중(Resting), 선택 모드면 골랐는지. */
 private data class CardLook(
     val shownOn: Boolean,
     val restOffer: Boolean = false,

@@ -54,7 +54,7 @@ data class HomeUiState(
     /** H5 삭제 확인 중인 알람. 비어 있으면 확인 창이 없어요. */
     val pendingDelete: List<Alarm> = emptyList(),
     val message: HomeMessage? = null,
-    /** H8 Rest Offer: 이 화면에서 방금 끈 반복 알람. 카드 아래 '내일 다시 켜기'가 붙어요. */
+    /** H8 Rest Offer: 이 화면에서 방금 끈 반복 알람. 카드 아래 '이번만 쉬기'가 붙어요. */
     val restOffers: Set<Long> = emptySet(),
     /** H8 Resting: '이번만 쉬기' 중인 알람과 다시 울릴 요일. 토글은 꺼진 모양으로 보여요. */
     val resting: Map<Long, DayOfWeek> = emptyMap(),
@@ -153,7 +153,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** 카드 토글. 반복 알람을 끄면 '내일 다시 켜기'를 달고, 쉬는 중인 알람을 켜면 쉬기를 풀어요. */
+    /** 카드 토글. 반복 알람을 끄면 '이번만 쉬기'를 달고, 쉬는 중인 알람을 켜면 쉬기를 풀어요. */
     fun setEnabled(alarm: Alarm, enabled: Boolean) {
         val resting = alarm.id in uiState.value.resting
         val offer = !enabled && alarm.isRepeating
@@ -168,7 +168,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** H8 '내일 다시 켜기': 다시 켜되 바로 다음 한 번만 쉬어요. */
+    /** H8 '이번만 쉬기': 다시 켜되 바로 다음 한 번만 쉬어요. */
     fun restOnce(alarm: Alarm) {
         overlay.update { it.copy(restOffers = it.restOffers - alarm.id) }
         viewModelScope.launch {
@@ -178,7 +178,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** 더보기 '모든 알람 끄기'. 켜져 있던 반복 알람마다 '내일 다시 켜기'를 달아요(H8-4). */
+    /** 더보기 '모든 알람 끄기'. 켜져 있던 반복 알람마다 '이번만 쉬기'를 달아요(H8-4). */
     fun turnAllOff() = turnOff(uiState.value.alarms)
 
     /** 더보기 '모든 알람 켜기'(모두 꺼져 있을 때만 보여요). 쉬는 중인 알람은 쉬기를 풀어요. */

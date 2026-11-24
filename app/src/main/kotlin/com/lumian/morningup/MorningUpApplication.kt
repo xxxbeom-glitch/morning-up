@@ -1,6 +1,7 @@
 package com.lumian.morningup
 
 import android.app.Application
+import android.app.NotificationManager
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
@@ -15,5 +16,15 @@ class MorningUpApplication : Application() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         }
+        if (!BuildConfig.SLEEP_LOUNGE) {
+            // 수면 라운지를 숨긴 판에서는 예전 설치 때 만든 '잠들기 재생' 알림 종류를 지워요(ISS-039).
+            // 알림 종류는 앱을 업데이트해도 남아서, 폰 알림 설정에 쓰지 않는 줄로 보였어요.
+            getSystemService(NotificationManager::class.java)?.deleteNotificationChannel(SLEEP_CHANNEL)
+        }
+    }
+
+    private companion object {
+        /** core/alarm `SleepPlaybackService.CHANNEL`과 같은 값이에요. */
+        const val SLEEP_CHANNEL = "sleep_playback"
     }
 }

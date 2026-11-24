@@ -104,7 +104,7 @@ class HomeViewModelTest {
             var state = awaitItem()
             while (state.next?.alarm?.id != 2L) state = awaitItem()
             assertThat(book.calls).containsExactly("enable:1:false")
-            // 반복 알람을 끄면 '내일 다시 켜기'가 붙어요(H8 Rest Offer).
+            // 반복 알람을 끄면 '이번만 쉬기'가 붙어요(H8 Rest Offer).
             assertThat(state.restOffers).containsExactly(1L)
             // 평일 06:30이 꺼지면 다음은 토요일 07:10이에요.
             assertThat(state.next!!.alarm.id).isEqualTo(2)
@@ -210,7 +210,7 @@ class HomeViewModelTest {
             var state = awaitItem()
             while (state.alarms.any { it.id != 3L && it.enabled }) state = awaitItem()
             assertThat(state.selection).isNull()
-            // 이미 꺼져 있던 8:00은 그대로, 켜져 있던 반복 알람마다 '내일 다시 켜기'(H8-4).
+            // 이미 꺼져 있던 8:00은 그대로, 켜져 있던 반복 알람마다 '이번만 쉬기'(H8-4).
             assertThat(state.restOffers).containsExactly(1L, 2L)
             assertThat(book.calls).containsExactly("enable:1:false", "enable:2:false")
         }
@@ -225,7 +225,7 @@ class HomeViewModelTest {
             vm.turnAllOff()
             var state = awaitItem()
             while (state.alarms.any { it.enabled }) state = awaitItem()
-            // 모두 꺼진 뒤 '모든 알람 켜기'는 원래 꺼져 있던 8:00까지 모두 켜고 '내일 다시 켜기'를 거둬요.
+            // 모두 꺼진 뒤 '모든 알람 켜기'는 원래 꺼져 있던 8:00까지 모두 켜고 '이번만 쉬기'를 거둬요.
             vm.turnAllOn()
             while (state.alarms.any { !it.enabled } || state.restOffers.isNotEmpty()) state = awaitItem()
             assertThat(state.alarms.all { state.shownOn(it) }).isTrue()
