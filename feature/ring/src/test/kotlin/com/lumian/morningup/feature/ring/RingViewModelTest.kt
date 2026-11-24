@@ -154,6 +154,15 @@ class RingViewModelTest {
     }
 
     @Test
+    fun trick_afterRinging_isNotShownAgain_andNotRecorded() = runTest {
+        val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
+        // 미션, W1, W2로 넘어가면 trickKey가 비어요. 이때 다시 불려도 걸지 않고 기록도 남기지 않아요.
+        val later = vm.uiState.value.copy(trickKey = null)
+        assertThat(vm.trickFor(later)).isNull()
+        assertThat(recorder.events).isEmpty()
+    }
+
+    @Test
     fun trick_autoOff_forAccessibility_recordsReasonKept() = runTest {
         recorder.reason = TrickAccessibility.TALKBACK
         val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))

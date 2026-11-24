@@ -102,6 +102,9 @@ class RingViewModel @Inject constructor(
      * 화면에는 꺼진 까닭을 알리지 않아요(결정 146 2-4).
      */
     fun trickFor(state: RingUiState): ButtonTrick? {
+        // 울리는 단계(D0)에서만 걸어요. 미션, W1, W2로 넘어가면 trickKey가 비면서 다시 불리는데,
+        // 이때 trick_shown이 또 찍혀 W2에도 걸린 것처럼 보였어요(기록만 겹침, 화면에는 안 걸림).
+        if (state.trickKey == null) return null
         val trick = state.trick ?: return null
         val reason = trickRecorder.offReason()
         if (reason != null) {
