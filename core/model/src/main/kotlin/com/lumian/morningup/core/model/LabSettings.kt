@@ -26,6 +26,7 @@ enum class TrickLevel(val key: String) {
 
 /** 버튼이 옮겨 가고 숨는 빠르기(11-24 사용자 추가). [factor]는 보통 대비 시간 배율이에요(작을수록 빨라요). */
 @Serializable
+@Suppress("MagicNumber")
 enum class TrickSpeed(val key: String, val factor: Float) {
     @SerialName("slow")
     Slow("slow", 1.5f),

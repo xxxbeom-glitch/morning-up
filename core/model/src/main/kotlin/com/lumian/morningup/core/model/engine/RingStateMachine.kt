@@ -68,7 +68,11 @@ object RingStateMachine {
             RingEvent.MissionCompleted -> missionCompleted(session, now)
             RingEvent.DismissWithoutMission -> dismissWithoutMission(session, now)
             RingEvent.WakeCheckConfirmed ->
-                if (session.phase == RingPhase.WakeCheckAsking) wakeCheckPassed(session, now, random) else NoChange(session)
+                if (session.phase == RingPhase.WakeCheckAsking) {
+                    wakeCheckPassed(session, now, random)
+                } else {
+                    NoChange(session)
+                }
             RingEvent.RecheckConfirmed -> recheckConfirmed(session, now, random)
             is RingEvent.CallChanged -> callChanged(session, event.inCall, now)
             is RingEvent.CancelChecks -> cancelChecks(session, event.alarmId)

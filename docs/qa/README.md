@@ -19,6 +19,7 @@
 | N분 뒤에 걸기 (1~60) | 위 명령 끝에 `--ei in_minutes 5` |
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
 | 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
+| 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `level`은 weak, normal, strong, `speed`는 slow, normal, fast, `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
 
 - `case`는 `A`~`G`예요. 틀리면 `data="case must be one of A,B,..."`가 나와요.
 - 성공하면 `data="case A alarm 12 at 16:31"`처럼 알람 id와 울릴 시각이 나와요.
@@ -62,8 +63,20 @@ adb logcat -s MorningFlow:I > flow.log
 | `timer_wakechecktimeout` | W2에 답하지 않아 처음부터 다시 울려요 |
 | `resumed` | 앱이나 서비스가 다시 살아나 울림을 이어가요 |
 | `missed_after_long_off` | 폰이 오래 꺼져 있어 이어가지 않고 놓친 알람으로 끝냈어요 |
+| `debug_lab` | adb로 실험실 값을 바꿨어요 |
+| `lab_trick_on`, `lab_trick_off` * | 설정 T3에서 버튼 속이기를 켜거나 껐어요(`level=`, `speed=`) |
+| `lab_recheck_on`, `lab_recheck_off` * | 설정 T3에서 여러 번 묻기를 켜거나 껐어요(`count=`) |
+| `trick_shown` | 버튼 속이기를 건 울림 화면이 떴어요(`level=`, `speed=`) |
+| `trick_auto_off` * | 접근성 때문에 이번 울림은 버튼 속이기를 껐어요(`reason=talkback`, `a11y_service`, `no_animation`) |
+| `trick_start` | 화면을 처음 만졌어요. 여기서부터 20초예요 |
+| `trick_fake_tap` | 가짜 버튼을 눌렀어요(`n=` 몇 번째) |
+| `trick_end` * | 진짜 버튼을 눌렀어요(`seconds=` 첫 터치부터, `fakes=` 가짜 누른 수, `expired=` 20초가 지나 멈춘 뒤인지) |
+| `recheck_ask` | 여러 번 묻기 다음 확인을 예약했어요(몇 번째/전체, 고른 간격 분) |
+| `recheck_pass`, `recheck_miss` * | 여러 번 묻기 확인을 통과했거나 놓쳤어요(몇 번째/전체) |
+| `recheck_cap_60` * | 미션 끝에서 1시간을 넘겨 남은 확인을 없앴어요(남은 수) |
 
 - `phase=앞->뒤`는 울림 단계가 어떻게 바뀌었는지예요(`Ringing`, `Resting`, `InMission`, `AwaitingWakeCheck`, `WakeCheckAsking`, `-`는 울림 없음).
 - `effects=`는 그 사건으로 앱이 한 일이에요(소리 시작, 화면 띄우기, 타이머 걸기, `SessionEnded` 등).
 - 미션 화면 조작(59초 다시 채우기)은 너무 잦아서 남기지 않아요.
 - 소리 크기, 진동, 화면 꺼짐 같은 자세한 기록은 따로 있는 진단 기록(`tools/read-diag.py`)을 봐요.
+- `*` 표시 사건은 출시 빌드에서도 폰 안 진단 기록에 남아요(결정 146 4절). 밖으로는 보내지 않아요.

@@ -216,6 +216,30 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
 
     internal val buttons = List(if (trick.level == TrickLevel.Strong) 1 + FAKE_COUNT else 1) { TrickButton() }
 
+    /** 버튼 [index]에 손가락이 닿았어요. 사라진 뒤(흐려지는 0.15초 지남)면 무시해요. */
+    internal fun tap(index: Int, listener: TrickListener, onFake: () -> Unit, onReal: (Offset) -> Unit) {
+        val button = buttons[index]
+        val box = area
+        if (button.alpha.value <= VISIBLE_ALPHA || box == null) return
+        if (index == realIndex) {
+            finish(listener)
+            onReal(button.center.value + box.topLeft)
+        } else {
+            fakes += 1
+            listener.onFakeTap(fakes)
+            onFake()
+            if (!expired) cycle += 1
+        }
+    }
+
+    /** '이건 가짜예요'를 1초 보여 줘요. 그 사이 또 누르면 새로 1초예요. */
+    internal suspend fun flashFakeNotice() {
+        val tick = ++noticeTick
+        showFakeNotice = true
+        delay(FAKE_NOTICE_MILLIS)
+        if (noticeTick == tick) showFakeNotice = false
+    }
+
     internal fun touched(listener: TrickListener) {
         if (firstTouchAt != null) return
         firstTouchAt = SystemClock.elapsedRealtime()
@@ -255,25 +279,12 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
     val avoidPad = with(density) { TrickAvoidPad.toPx() }
 
     val onTap: (Int) -> Unit = { index ->
-        val button = run.buttons[index]
-        val area = run.area
-        if (button.alpha.value > VISIBLE_ALPHA && area != null) {
-            if (index == run.realIndex) {
-                view.perform(MorningHaptic.Confirm)
-                run.finish(currentListener)
-                currentOnReal(button.center.value + area.topLeft)
-            } else {
-                run.fakes += 1
-                currentListener.onFakeTap(run.fakes)
-                view.perform(MorningHaptic.Reject)
-                val tick = ++run.noticeTick
-                run.showFakeNotice = true
-                scope.launch {
-                    delay(FAKE_NOTICE_MILLIS)
-                    if (run.noticeTick == tick) run.showFakeNotice = false
-                }
-                if (!run.expired) run.cycle += 1
-            }
+        run.tap(index, currentListener, onFake = {
+            view.perform(MorningHaptic.Reject)
+            scope.launch { run.flashFakeNotice() }
+        }) { center ->
+            view.perform(MorningHaptic.Confirm)
+            currentOnReal(center)
         }
     }
 
@@ -312,39 +323,44 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
     LaunchedEffect(run, area?.size, run.cycle, run.expired) {
         if (area == null) return@LaunchedEffect
         val avoid = run.avoid?.translate(-area.topLeft)?.inflate(avoidPad)
-        val places = { TrickPlacer.place(run.buttons.size, area.size, avoid, minSize, maxSize, touchMin, gap, run.random) }
-        val factor = run.trick.speed.factor
+        val places = {
+            TrickPlacer.place(run.buttons.size, area.size, avoid, minSize, maxSize, touchMin, gap, run.random)
+        }
         if (run.expired) {
-            val home = run.home?.center?.minus(area.topLeft)
-            run.returnHome(home, maxSize)
+            run.returnHome(run.home?.center?.minus(area.topLeft), maxSize)
             run.done = true
-            return@LaunchedEffect
-        }
-        if (!run.placed) {
-            run.snapTo(places())
-            run.placed = true
         } else {
-            // 가짜를 눌러 다시 섞어요.
-            run.moveTo(places(), (MOVE_MILLIS * factor).roundToInt())
+            run.play(places, shakePx)
         }
-        var hideNext = false
-        while (isActive) {
-            if (run.trick.level != TrickLevel.Weak && hideNext) {
-                delay((SEEN_MILLIS * factor).toLong())
-                run.fade(0f)
-                delay(((HIDDEN_MILLIS * factor) - 2 * FADE_MILLIS).toLong().coerceAtLeast(0))
-                run.snapTo(places())
-                if (run.buttons.size > 1) run.realIndex = run.random.nextInt(run.buttons.size)
-                run.fade(1f)
-            } else {
-                val shake = (SHAKE_MILLIS * factor).roundToInt()
-                val move = (MOVE_MILLIS * factor).roundToInt()
-                delay(((MOVE_EVERY_MILLIS * factor) - shake - move).toLong().coerceAtLeast(0))
-                run.shake(shakePx, shake)
-                run.moveTo(places(), move)
-            }
-            hideNext = !hideNext
+    }
+}
+
+/** 자리 잡기(처음) 또는 다시 섞기(가짜를 누른 뒤), 그다음 강도대로 옮기기와 숨바꼭질을 되풀이해요. */
+private suspend fun TrickRun.play(places: () -> List<TrickSpot>, shakePx: Float) = coroutineScope {
+    val factor = trick.speed.factor
+    if (!placed) {
+        snapTo(places())
+        placed = true
+    } else {
+        moveTo(places(), (MOVE_MILLIS * factor).roundToInt())
+    }
+    var hideNext = false
+    while (isActive) {
+        if (trick.level != TrickLevel.Weak && hideNext) {
+            delay((SEEN_MILLIS * factor).toLong())
+            fade(0f)
+            delay(((HIDDEN_MILLIS * factor) - 2 * FADE_MILLIS).toLong().coerceAtLeast(0))
+            snapTo(places())
+            if (buttons.size > 1) realIndex = random.nextInt(buttons.size)
+            fade(1f)
+        } else {
+            val shake = (SHAKE_MILLIS * factor).roundToInt()
+            val move = (MOVE_MILLIS * factor).roundToInt()
+            delay(((MOVE_EVERY_MILLIS * factor) - shake - move).toLong().coerceAtLeast(0))
+            shake(shakePx, shake)
+            moveTo(places(), move)
         }
+        hideNext = !hideNext
     }
 }
 
@@ -377,7 +393,7 @@ private suspend fun TrickRun.shake(amplitude: Float, millis: Int) = coroutineSco
                     durationMillis = millis
                     amplitude at step
                     -amplitude at step * 2
-                    amplitude at step * 3
+                    amplitude at step * (SHAKE_STEPS - 1)
                 },
             )
         }

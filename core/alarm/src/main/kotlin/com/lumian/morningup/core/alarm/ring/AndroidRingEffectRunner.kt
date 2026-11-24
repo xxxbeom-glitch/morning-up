@@ -76,7 +76,8 @@ class AndroidRingEffectRunner @Inject constructor(
             }
             is RingEffect.MultiAskRecorded -> {
                 val left = effect.left?.let { " left=$it" }.orEmpty()
-                labLog.record(effect.kind.event, effect.alarmId, "n=${effect.number}/${effect.total}$left", effect.kind.kept)
+                val detail = "n=${effect.number}/${effect.total}$left"
+                labLog.record(effect.kind.event, effect.alarmId, detail, effect.kind.kept)
             }
             is RingEffect.WakeResultRecorded -> {
                 val detail = "result=${effect.result.name} rounds=${effect.rounds}"

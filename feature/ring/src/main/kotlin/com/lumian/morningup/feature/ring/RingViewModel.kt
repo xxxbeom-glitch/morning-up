@@ -114,7 +114,8 @@ class RingViewModel @Inject constructor(
 
     /** 버튼 속이기 기록(결정 146 4절). trick_end만 출시 빌드 진단 기록에도 남겨요. */
     fun trickListener(state: RingUiState): TrickListener = object : TrickListener {
-        override fun onStart() = trickRecorder.record(LabLog.TRICK_START, state.alarmId, state.trick?.detail().orEmpty())
+        override fun onStart() =
+            trickRecorder.record(LabLog.TRICK_START, state.alarmId, state.trick?.detail().orEmpty())
 
         override fun onFakeTap(count: Int) = trickRecorder.record(LabLog.TRICK_FAKE_TAP, state.alarmId, "n=$count")
 
