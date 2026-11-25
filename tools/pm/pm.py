@@ -10,7 +10,7 @@
   pm.py check | build [--force]
 
 쓰기 (모두 --as "[방 이름]" 필수, 기록은 events.jsonl)
-  pm.py add-task --parent 4 --title "..." --as Leader [key=value ...]   # parent는 묶음 WBS(1~7) 또는 TSK 키
+  pm.py add-task --parent 4 --title "..." --as Leader [key=value ...]   # parent는 묶음 WBS(1~8) 또는 TSK 키
   pm.py add-issue --title "..." --as "[QA 1]" [severity=high task=TSK-042 repro="..."]
   pm.py set <TSK-/ISS-> --as X key=value [key+=v ...]
   pm.py claim TSK-042 --as X          # owner=X, doing
@@ -50,10 +50,10 @@ TASK_STATUS = ["todo", "doing", "review", "waiting_user", "done", "hold", "cance
 ISSUE_STATUS = ["open", "doing", "reopened", "resolved", "closed"]
 SEVERITY = ["high", "medium", "low"]
 VERIFY = ["auto", "agent", "user"]  # 자동 시험 / Claude 가 adb·로그로 확인 / 사용자가 실제 폰으로
-AREA = ["ops", "plan", "design", "dev", "release", "marketing", "qa"]
-AREA_WBS = {"ops": "1", "plan": "2", "design": "3", "dev": "4", "release": "5", "marketing": "6", "qa": "7"}
+AREA = ["ops", "plan", "design", "dev", "release", "marketing", "qa", "research"]
+AREA_WBS = {"ops": "1", "plan": "2", "design": "3", "dev": "4", "release": "5", "marketing": "6", "qa": "7", "research": "8"}
 DEFAULT_REVIEWER = {"ops": "Leader", "plan": "Leader", "design": "Leader", "dev": "QA", "release": "Leader",
-                    "marketing": "Leader", "qa": "Leader"}
+                    "marketing": "Leader", "qa": "Leader", "research": "Leader"}
 CLOSED_TASK = {"done", "cancelled"}
 OPEN_ISSUE = {"open", "doing", "reopened"}
 
@@ -75,10 +75,10 @@ KO_ISSUE = {"open": "열림", "doing": "진행 중", "reopened": "재발생", "r
 KO_SEV = {"high": "높음", "medium": "보통", "low": "낮음"}
 KO_VERIFY = {"auto": "자동 시험", "agent": "Claude 확인", "user": "사용자 확인"}
 KO_AREA = {"ops": "운영", "plan": "기획", "design": "디자인", "dev": "개발", "release": "출시",
-           "marketing": "마케팅", "qa": "QA"}
-ROLE_OF_AREA = {"plan": "기획", "design": "디자인", "dev": "개발", "marketing": "마케팅", "qa": "QA"}
+           "marketing": "마케팅", "qa": "QA", "research": "리서치"}
+ROLE_OF_AREA = {"plan": "기획", "design": "디자인", "dev": "개발", "marketing": "마케팅", "qa": "QA", "research": "리서치"}
 
-ACTOR_RE = re.compile(r"^(Leader|사용자|\[(기획|디자인|개발|마케팅|QA) \d+(-\d+)?\])$")
+ACTOR_RE = re.compile(r"^(Leader|사용자|\[(기획|디자인|개발|마케팅|QA|리서치) \d+(-\d+)?\])$")
 
 
 def die(msg, code=2):
@@ -561,7 +561,7 @@ def mutate(a, actor, tasks, issues):
     if c == "add-task":
         g = find(db, a.parent)
         if not is_group(g):
-            die(f"--parent 는 묶음이어야 해요 (1~7 또는 묶음 키). {g['id']} 는 일이에요")
+            die(f"--parent 는 묶음이어야 해요 (1~8 또는 묶음 키). {g['id']} 는 일이에요")
         o = {k: default_of(k) for k in TASK_FIELDS}
         o.update(id=next_key(tasks, "TSK"), wbs=a.wbs or next_wbs(tasks, g), parent=g["id"], title=a.title,
                  area=g["area"], status="todo", reviewer=DEFAULT_REVIEWER.get(g["area"]))

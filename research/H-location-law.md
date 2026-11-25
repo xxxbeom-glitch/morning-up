@@ -30,3 +30,34 @@
 - https://www.law.go.kr/법령/위치정보의보호및이용등에관한법률
 - https://www.lbsc.kr/front/content/contentViewer.do?contentId=CONTENT_0000081
 - https://www.lbsc.kr/front/content/contentViewer.do?contentId=CONTENT_0000091
+
+## 11-24 추가 조사
+### 지금 앱이 실제로 하는 일 (코드 확인)
+- 권한은 `ACCESS_COARSE_LOCATION`만 써요. 정확한 위치와 백그라운드 위치는 쓰지 않아요.
+- 좌표를 0.05도 칸(약 5km)으로 반올림해서 폰이 Open-Meteo로 바로 보내요(`WeatherRepository.kt`). 우리 서버는 없어요. 저장하지도 않고, 이름이나 메일 같은 신원 정보와 묶지 않아요.
+
+### 새로 확인한 것
+- 단말기에서만 쓰고 사업자 서버로 보내지 않으면 신고 대상이 아니라는 해석이 널리 쓰여요. 방통위와 KISA 해설서(2022.6)가 근거로 인용되지만, 원문은 아직 확인하지 못했어요.
+- 외부 API로 직접 보내는 경우에 대한 공식 해석은 여전히 찾지 못했어요. 한 개발팀은 센터에 물었지만 '대상 아님'이라는 확답을 받지 못했어요(GitHub 이슈).
+- 소상공인과 1인 창조기업의 간이신고
+  - 수수료가 없어요.
+  - 사업을 시작하고 1개월 안에 하면 돼요.
+  - 온라인으로 접수해요(emsit.go.kr).
+  - 서류는 소상공인 확인서와 사업 내용 설명이에요.
+- 신고하면 따라오는 일
+  - 위치기반서비스 이용약관
+  - 위치 동의 받기
+  - 위치정보 이용, 제공 사실을 자동으로 기록하고 보관하기
+
+### 추천
+1. 출시 전에 위치정보지원센터에 서면으로 물어요. 질의 내용: "좌표를 약 5km로 반올림해 폰에서 외부 날씨 API로 바로 보내고, 사업자 서버로는 보내거나 저장하지 않는다. 신고 대상인가?"
+2. 답이 '대상 아님'이면 신고하지 않아요. 답을 문서로 보관해요.
+3. 답이 '대상'이거나 애매하면 간이신고를 해요(무료). 약관, 동의, 기록 기능을 출시 일정에 넣어요.
+4. 출시 전에 답이 오지 않아도 소상공인은 출시 뒤 1개월 안에 신고할 수 있어요. 출시를 막지는 않아요.
+
+### 출처(11-24)
+- https://www.gov.kr/mw/AA020InfoCappView.do?HighCtgCD=A09001&CappBizCD=15701000086&tp_seq=
+- https://www.emsit.go.kr/cp/cv/Cp1440000_0182_03Reg.do
+- https://www.catchsecu.com/archives/14060
+- https://github.com/FogMap2026/FogApp/issues/151
+- https://github.com/team-offway/offway-frontend/issues/260

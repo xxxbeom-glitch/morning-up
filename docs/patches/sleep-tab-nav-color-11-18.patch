@@ -1,0 +1,32 @@
+diff --git a/app/src/main/kotlin/com/lumian/morningup/ui/MorningUpApp.kt b/app/src/main/kotlin/com/lumian/morningup/ui/MorningUpApp.kt
+index a6f5f26..9e6c2d4 100644
+--- a/app/src/main/kotlin/com/lumian/morningup/ui/MorningUpApp.kt
++++ b/app/src/main/kotlin/com/lumian/morningup/ui/MorningUpApp.kt
+@@ -55,18 +55,16 @@ fun MorningUpApp(
+         stringResource(R.string.tab_sleep),
+         stringResource(R.string.tab_settings),
+     )
+-    // 잠들기 탭(Z1)은 늘 다크 모드예요. 하단 메뉴도 같이 어둡게 바꿔요.
+-    MorningTheme(
+-        darkTheme = tab == TopTab.Sleep || MorningTheme.colors.isDark,
+-        reduceMotion = MorningTheme.reduceMotion,
+-    ) {
+-        SystemBarIcons(dark = MorningTheme.colors.isDark)
+-        AppFrame(modifier, tab, labels, settingsAlert, hideNav, onSelect = { tab = it }) {
+-            when (tab) {
+-                TopTab.Alarm -> alarmTab(Modifier.fillMaxSize())
+-                TopTab.Sleep -> sleepTab(Modifier.fillMaxSize())
+-                TopTab.Settings -> settingsTab(Modifier.fillMaxSize())
++    // 잠들기 탭(Z1) 화면은 늘 다크예요. 하단 메뉴는 다른 탭처럼 지금 시각의 테마(아침 라이트, 밤 다크)를 따라요(11-18 사용자 지시).
++    val sleeping = tab == TopTab.Sleep
++    SystemBarIcons(dark = sleeping || MorningTheme.colors.isDark)
++    AppFrame(modifier, tab, labels, settingsAlert, hideNav, onSelect = { tab = it }) {
++        when (tab) {
++            TopTab.Alarm -> alarmTab(Modifier.fillMaxSize())
++            TopTab.Sleep -> MorningTheme(darkTheme = true, reduceMotion = MorningTheme.reduceMotion) {
++                sleepTab(Modifier.fillMaxSize())
+             }
++            TopTab.Settings -> settingsTab(Modifier.fillMaxSize())
+         }
+     }
+ }

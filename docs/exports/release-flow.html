@@ -1,0 +1,302 @@
+<title>모닝업 출시 흐름</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* 레이아웃: 위에서 아래로 '요약 → 지금 바로 → 주차 막대 → 단계 카드 → 마케팅 → 정할 것'. 모닝업 앱 색(맑은 파랑, 해 주황)을 그대로 씀 */
+:root{
+  --bg:#F2F4F9; --card:#FFFFFF; --raised:#E9EDF5; --line:#E3E7F0;
+  --fg:#14202E; --body:#2E3A4A; --muted:#556274; --faint:#8592A4;
+  --key:#0B6CF0; --key-soft:#EEF5FF; --key-text:#0A5DD0;
+  --sun:#F28A3C; --sun-soft:#FFF1E6; --sun-text:#B35410;
+  --ok:#0E9F6E; --ok-soft:#E7F7F0;
+  --sky-a:#0A78C2; --sky-b:#5FB2E3;
+  --f-display:"Space Grotesk","IBM Plex Sans KR",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B0F16; --card:#151B25; --raised:#222A36; --line:#2B3442;
+  --fg:#F2F5FA; --body:#D4DBE5; --muted:#A7B2C1; --faint:#8592A4;
+  --key:#8AB8FB; --key-soft:#13305A; --key-text:#B9D4FD;
+  --sun:#FFB067; --sun-soft:#3A2614; --sun-text:#FFB067;
+  --ok:#4CD3A0; --ok-soft:#123528;
+  --sky-a:#121A28; --sky-b:#283752; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0F16; --card:#151B25; --raised:#222A36; --line:#2B3442;
+  --fg:#F2F5FA; --body:#D4DBE5; --muted:#A7B2C1; --faint:#8592A4;
+  --key:#8AB8FB; --key-soft:#13305A; --key-text:#B9D4FD;
+  --sun:#FFB067; --sun-soft:#3A2614; --sun-text:#FFB067;
+  --ok:#4CD3A0; --ok-soft:#123528;
+  --sky-a:#121A28; --sky-b:#283752; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--body);font-family:var(--f-body);font-size:15px;line-height:1.6;word-break:keep-all}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{color:var(--fg);margin:0;text-wrap:balance}
+h2{font-size:20px;font-weight:700}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.num{font-family:var(--f-display);font-variant-numeric:tabular-nums}
+
+/* 첫 장면: 아침 하늘 띠 */
+.hero{margin-top:calc(-1 * env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 40px);padding-bottom:36px;background:linear-gradient(180deg,var(--sky-a),var(--sky-b));color:#fff}
+.hero .inner{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+.hero h1{color:#fff;font-size:clamp(26px,5vw,38px);font-weight:700;line-height:1.25}
+.hero p{margin:0;color:#E1EDF7;max-width:60ch}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.stat{background:rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat b{font-family:var(--f-display);font-size:28px;color:#fff;font-weight:600;line-height:1.2}
+.stat span{font-size:13px;color:#E1EDF7}
+@media (max-width:560px){.stats{grid-template-columns:1fr}}
+
+/* 지금 바로 */
+.urgent{display:flex;gap:16px;align-items:flex-start;background:var(--sun-soft);border-radius:16px;padding:18px 20px}
+.urgent .dot{flex:none;width:36px;height:36px;border-radius:50%;background:var(--sun);display:grid;place-items:center;color:#fff}
+.urgent h3{font-size:16px}
+.urgent p{margin:4px 0 0;color:var(--body)}
+.urgent .due{color:var(--sun-text);font-weight:600}
+
+/* 주차 막대 */
+.gantt{background:var(--card);border-radius:16px;padding:20px;overflow-x:auto}
+.g-inner{min-width:640px;display:grid;grid-template-columns:150px 1fr;row-gap:8px;column-gap:12px;align-items:center}
+.g-scale{position:relative;height:22px;display:grid;grid-template-columns:repeat(10,1fr);font-size:12px;color:var(--faint)}
+.g-scale span{border-left:1px solid var(--line);padding-left:4px}
+.g-label{font-size:13px;color:var(--body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.g-label .num{color:var(--faint);margin-right:6px}
+.g-track{position:relative;height:22px;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--line) calc(10% - 1px),var(--line) 10%)}
+.bar{position:absolute;top:3px;bottom:3px;border-radius:6px;background:var(--key)}
+.bar.user{background:var(--sun)}
+.bar.after{background:repeating-linear-gradient(135deg,var(--key) 0 6px,var(--key-soft) 6px 12px)}
+.bar.now{outline:2px solid var(--fg);outline-offset:1px}
+.launch{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ok)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+
+/* 단계 카드 */
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.step{background:var(--card);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.step-head{display:flex;align-items:center;gap:12px}
+.step-no{flex:none;width:34px;height:34px;border-radius:10px;background:var(--key-soft);color:var(--key-text);display:grid;place-items:center;font-family:var(--f-display);font-weight:700}
+.step h3{font-size:16px;line-height:1.35}
+.step .who{font-size:12px;color:var(--muted)}
+.pill{margin-left:auto;flex:none;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--raised);color:var(--muted)}
+.pill.now{background:var(--key-soft);color:var(--key-text)}
+.pill.half{background:var(--ok-soft);color:var(--ok)}
+.kv{display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:14px;margin:0}
+.kv dt{color:var(--faint);font-size:13px}
+.kv dd{margin:0;min-width:0}
+.kv dd.me{color:var(--sun-text);font-weight:500}
+
+/* 마케팅 줄 */
+.lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.lane{background:var(--card);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.lane .when{font-size:12px;font-weight:600;color:var(--key-text)}
+.lane b{color:var(--fg);font-weight:600}
+.lane .tag{font-size:12px;color:var(--faint)}
+.lane.done .when{color:var(--ok)}
+@media (max-width:820px){.lanes{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:480px){.lanes{grid-template-columns:1fr}}
+
+/* 정할 것 */
+.decide{background:var(--card);border-radius:16px;padding:6px 20px}
+.decide-row{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}
+.decide-row:last-child{border-bottom:0}
+.decide-row .st{flex:none;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.st.open{background:var(--sun-soft);color:var(--sun-text)}
+.st.done{background:var(--ok-soft);color:var(--ok)}
+.decide-row p{margin:0}
+.decide-row small{display:block;color:var(--muted);font-size:13px}
+section{display:flex;flex-direction:column;gap:14px}
+.sec-head{display:flex;flex-direction:column;gap:4px}
+.sec-head p{margin:0;color:var(--muted);font-size:14px}
+footer{font-size:12px;color:var(--faint)}
+</style>
+
+<header class="hero">
+  <div class="inner">
+    <span class="eyebrow" style="color:#E1EDF7">아이디어 4 · 11-23 정리안, 확정 아님</span>
+    <h1>지금부터 구글 플레이 출시까지</h1>
+    <p>앱 기능은 0~10단계 개발을 한 바퀴 다 돌았어요. 남은 일은 대부분 고치고, 시험하고, 등록하는 일이에요.</p>
+    <div class="stats">
+      <div class="stat"><b class="num">9단계</b><span>출시까지 남은 큰 단위</span></div>
+      <div class="stat"><b class="num">5~7주</b><span>출시 전까지 예상 기간</span></div>
+      <div class="stat"><b class="num">계정 있음</b><span>'루미안' 계정, 온톡 출시 경험</span></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="urgent" role="note">
+    <div class="dot" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+    </div>
+    <div>
+      <h3>지금 바로: 판매자 상태 선언</h3>
+      <p>플레이 콘솔에 알림이 떠 있어요. 하지 않으면 계정의 앱(온톡 포함)이 삭제될 수 있어요. 사용자가 직접 제출하고, 넣을 정보는 그때 같이 골라요.</p>
+      <p class="due">기한: 2027년 2월 전</p>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>주차별 흐름</h2>
+      <p>2~5단계는 나란히 가요. 빗금 막대는 출시 뒤 일이에요.</p>
+    </div>
+    <div class="gantt">
+      <div class="g-inner">
+        <div></div>
+        <div class="g-scale num"><span>1주</span><span>2주</span><span>3주</span><span>4주</span><span>5주</span><span>6주</span><span>7주</span><span>8주</span><span>9주</span><span>10주</span></div>
+
+        <div class="g-label"><span class="num">1</span>MVP 범위 잠그기</div>
+        <div class="g-track"><div class="bar" style="left:0;width:4%"></div></div>
+
+        <div class="g-label"><span class="num">2</span>남은 디자인과 개발</div>
+        <div class="g-track"><div class="bar" style="left:4%;width:25%"></div></div>
+
+        <div class="g-label"><span class="num">3</span>내 폰 2대로 테스트</div>
+        <div class="g-track"><div class="bar user" style="left:15%;width:14%"></div></div>
+
+        <div class="g-label"><span class="num">4</span>기기 호환성 조사</div>
+        <div class="g-track"><div class="bar now" style="left:4%;width:5%"></div></div>
+
+        <div class="g-label"><span class="num">5</span>스토어 등록 준비물</div>
+        <div class="g-track"><div class="bar" style="left:9%;width:20%"></div></div>
+
+        <div class="g-label"><span class="num">6</span>출시판 빌드와 서명</div>
+        <div class="g-track"><div class="bar" style="left:29%;width:3%"></div></div>
+
+        <div class="g-label"><span class="num">7</span>비공개 테스트 14일</div>
+        <div class="g-track"><div class="bar user" style="left:32%;width:25%"></div></div>
+
+        <div class="g-label"><span class="num">8</span>프로덕션 신청, 출시</div>
+        <div class="g-track"><div class="bar" style="left:57%;width:8%"></div><div class="launch" style="left:65%"></div></div>
+
+        <div class="g-label"><span class="num">9</span>출시 뒤 지표, 첫 업데이트</div>
+        <div class="g-track"><div class="bar after" style="left:65%;width:35%"></div></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--key)"></i>방에서 하는 일</span>
+        <span><i style="background:var(--sun)"></i>사용자가 많이 움직이는 일</span>
+        <span><i style="background:var(--key);outline:2px solid var(--fg);outline-offset:1px"></i>지금 하는 중</span>
+        <span><i style="background:var(--ok);width:3px"></i>출시 (약 6~7주째)</span>
+      </div>
+      <p class="note">막대 길이는 예상이에요. 빨리 가면 5주, 늦으면 7주쯤이에요.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>단계별로 할 일</h2>
+      <p>주황 글씨는 사용자가 직접 할 일이에요.</p>
+    </div>
+    <div class="steps">
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">1</div><div><h3>MVP 범위 잠그기</h3><div class="who">기획, 사용자 · 1~3일</div></div><span class="pill half">거의 끝</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>넣을 기능 확정. 날씨, 전원 종료 방지 넣기(결정 142), 수면 라운지 빼기(140, 141), 카메라 미션 보류(138)</dd>
+          <dt>끝 기준</dt><dd>결정 문서에 MVP 기능 표 하나</dd>
+          <dt>직접</dt><dd class="me">앱 이름 정하기(5단계 전까지, '깨'/GGAE 후보)</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">2</div><div><h3>남은 디자인과 개발</h3><div class="who">디자인, 개발 · 1~2주</div></div><span class="pill">다음</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>다시 잠들기 확인 횟수, 하단 메뉴 2탭, 재생 권한 빼기, 실제 알람음, 울림 화면 빨리 뜨게. 디자인은 S4 시트 줄, 다크 검수, 스플래시</dd>
+          <dt>끝 기준</dt><dd>개발 후 필수 체크리스트 통과</dd>
+          <dt>직접</dt><dd class="me">단위마다 폰에서 확인</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">3</div><div><h3>내 폰 2대로 사용성 테스트</h3><div class="who">사용자, 개발 · 1주</div></div><span class="pill">다음</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>S24+, Z플립5로 실제 아침 알람. 2~3일 그냥 두기, 주말 넘겨 월요일 알람 확인</dd>
+          <dt>끝 기준</dt><dd>예비 알람 없이 3일 연속 제때 울림</dd>
+          <dt>직접</dt><dd class="me">실제로 써 보기</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">4</div><div><h3>기기 호환성 조사</h3><div class="who">개발 · 2~3일</div></div><span class="pill now">지금 하는 중</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>정리 앱, 방해 금지, 루틴, 제조사 절전 때문에 알람이 실패하는지 조사(아이디어 6)</dd>
+          <dt>끝 기준</dt><dd>실패 원인과 우리 대책 목록</dd>
+          <dt>직접</dt><dd>없음</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">5</div><div><h3>스토어 등록 준비물</h3><div class="who">기획, 디자인, 마케팅 · 1주</div></div><span class="pill">다음</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>이름과 설명 글, 아이콘과 스크린샷, 개인정보처리방침 주소, 권한 신고(위치, 접근성 등), 위치정보사업 신고 확인, 등급 설문</dd>
+          <dt>끝 기준</dt><dd>등록에 필요한 글, 그림, 답변이 다 있음</dd>
+          <dt>직접</dt><dd class="me">사업자 정보 넣을 항목 고르기</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">6</div><div><h3>출시판 빌드와 서명</h3><div class="who">개발 · 1~2일</div></div><span class="pill">나중</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>출시판 AAB, 플레이 앱 서명, 대상 SDK 확인, 확인용 앱과 테스트 페이지가 빠졌는지 확인</dd>
+          <dt>끝 기준</dt><dd>서명된 AAB가 내부 테스트에 올라감</dd>
+          <dt>직접</dt><dd class="me">업로드 키 백업 보관</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">7</div><div><h3>비공개 테스트 14일</h3><div class="who">사용자, 개발 · 2~3주</div></div><span class="pill">나중</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>개인 계정이라 테스터 12명이 14일 동안 계속 참여해야 해요. 온톡 때처럼 외부 업체에 맡겨요</dd>
+          <dt>끝 기준</dt><dd>12명 이상 14일 연속 참여, 고칠 것 반영</dd>
+          <dt>직접</dt><dd class="me">업체 맡기기</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">8</div><div><h3>프로덕션 신청과 출시</h3><div class="who">사용자, 개발 · 며칠~1주</div></div><span class="pill">나중</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>프로덕션 신청, 설문 답변, 심사. 처음엔 일부 사용자에게만 먼저 내보내기(단계적 출시) 추천</dd>
+          <dt>끝 기준</dt><dd>심사 통과, 스토어에 공개</dd>
+          <dt>직접</dt><dd class="me">신청 버튼, 설문 제출</dd>
+        </dl>
+      </article>
+
+      <article class="step">
+        <div class="step-head"><div class="step-no">9</div><div><h3>출시 뒤 지표와 첫 업데이트</h3><div class="who">기획, 개발, 마케팅 · 출시 뒤 2~4주</div></div><span class="pill">출시 뒤</span></div>
+        <dl class="kv">
+          <dt>할 일</dt><dd>설치, 삭제, 1일과 7일과 30일 유지율, 비정상 종료, 별점. 플레이 콘솔 기본 통계만 써요</dd>
+          <dt>끝 기준</dt><dd>첫 2주 기록, 첫 업데이트 배포</dd>
+          <dt>직접</dt><dd class="me">지표 보기, 다음 기능 고르기</dd>
+        </dl>
+      </article>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>마케팅은 나란히</h2>
+      <p>아이디어 5, 7, 8, 9가 들어갈 자리예요.</p>
+    </div>
+    <div class="lanes">
+      <div class="lane"><span class="when">5단계와 나란히</span><b>알라미와 무엇이 다른가</b><span>스토어 글 핵심 문장</span><span class="tag">아이디어 9</span></div>
+      <div class="lane done"><span class="when">5~7단계 · 방향 확정</span><b>앱 전용 한 장 사이트</b><span>GitHub Pages, 개인정보처리방침 겸용. 검색 노출 기본</span><span class="tag">아이디어 5</span></div>
+      <div class="lane"><span class="when">7단계</span><b>인스타그램 계정 열기</b><span>첫 SNS는 하나만</span><span class="tag">아이디어 7</span></div>
+      <div class="lane"><span class="when">8단계 뒤</span><b>짤 포스팅, 안전한 홍보</b><span>댓글 도배 대신 정책에 맞는 방법</span><span class="tag">아이디어 7, 8</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>사용자가 정할 것</h2></div>
+    <div class="decide">
+      <div class="decide-row"><span class="st open">남음</span><p>판매자 상태 선언에 넣을 정보<small>사용자가 직접 제출, 2027년 2월 전</small></p></div>
+      <div class="decide-row"><span class="st open">남음</span><p>앱 이름<small>'깨'/GGAE 후보. 스토어 그림을 만들기 전(5단계 전)까지</small></p></div>
+      <div class="decide-row"><span class="st done">정함</span><p>날씨와 전원 종료 방지는 첫 버전에 넣기<small>결정 142, 11-23</small></p></div>
+      <div class="decide-row"><span class="st done">정함</span><p>앱 아이콘은 Clock Day Black<small>11-22</small></p></div>
+    </div>
+  </section>
+
+  <footer>출처: docs/idea4-release-workflow.md (11-23 기획 2 정리), 비공개 테스트 조건은 구글 플레이 콘솔 도움말 기준.</footer>
+</main>
