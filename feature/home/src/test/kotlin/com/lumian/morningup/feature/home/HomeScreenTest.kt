@@ -83,6 +83,19 @@ class HomeScreenTest {
     }
 
     @Test
+    fun savedToast_restReleased_saysRestReleased() {
+        show(
+            HomeUiState(
+                loading = false,
+                alarms = listOf(alarm),
+                today = today,
+                message = HomeMessage.Saved(TimeUntil(0, 7, 20), restReleased = true),
+            ),
+        )
+        compose.onNodeWithText("이번만 쉬기를 풀었어요. 7시간 20분 뒤에 울려요").assertExists()
+    }
+
+    @Test
     fun header_withoutNext_doesNothing() {
         var opened: Alarm? = null
         show(

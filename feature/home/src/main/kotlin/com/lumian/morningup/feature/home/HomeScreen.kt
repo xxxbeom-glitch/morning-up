@@ -124,6 +124,7 @@ fun HomeRoute(
     banner: (@Composable () -> Unit)? = null,
     onSelectingChange: (Boolean) -> Unit = {},
     savedChecksStopped: Boolean = false,
+    savedRestReleased: Boolean = false,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -137,7 +138,7 @@ fun HomeRoute(
     BackHandler(enabled = state.selecting, onBack = viewModel::endSelection)
     LaunchedEffect(savedAlarmId) {
         if (savedAlarmId != null) {
-            viewModel.onAlarmSaved(savedAlarmId, savedChecksStopped)
+            viewModel.onAlarmSaved(savedAlarmId, savedChecksStopped, savedRestReleased)
             onSavedAlarmShown()
         }
     }
@@ -820,7 +821,10 @@ private fun Messages(
         when (shown) {
             is HomeMessage.Saved -> MorningToast(
                 text = shown.until
-                    ?.let { stringResource(R.string.home_saved, AlarmText.until(res, it)) }
+                    ?.let {
+                        val saved = if (shown.restReleased) R.string.home_saved_rest_released else R.string.home_saved
+                        stringResource(saved, AlarmText.until(res, it))
+                    }
                     ?: stringResource(R.string.home_saved_off),
             )
             is HomeMessage.Copied -> MorningToast(text = stringResource(R.string.home_copied, shown.count))

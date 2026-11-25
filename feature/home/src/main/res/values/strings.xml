@@ -24,6 +24,7 @@
 
     <!-- H6 저장 토스트, H7 삭제 스낵바 -->
     <string name="home_saved">알람을 저장했어요. %1$s 뒤에 울려요</string>
+    <string name="home_saved_rest_released">이번만 쉬기를 풀었어요. %1$s 뒤에 울려요</string>
     <string name="home_saved_off">알람을 저장했어요</string>
     <string name="home_deleted">알람을 지웠어요</string>
     <string name="home_undo">되돌리기</string>

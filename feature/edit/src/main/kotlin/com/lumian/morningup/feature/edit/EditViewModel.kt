@@ -21,6 +21,7 @@ import com.lumian.morningup.core.ui.AlarmBackgrounds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
 import java.time.LocalTime
+import java.time.ZonedDateTime
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +47,9 @@ data class EditRoute(val alarmId: Long = NEW_ALARM) {
 sealed interface EditExit {
     data object Discarded : EditExit
 
-    data class Saved(val alarmId: Long, val checksStopped: Boolean = false) : EditExit
+    /** [restReleased]면 쉬는 알람의 시각, 요일, 공휴일 쉬기를 바꿔 '이번만 쉬기'를 풀었어요(결정 159). */
+    data class Saved(val alarmId: Long, val checksStopped: Boolean = false, val restReleased: Boolean = false) :
+        EditExit
 }
 
 data class EditUiState(
@@ -143,7 +146,9 @@ class EditViewModel @Inject constructor(
             isNew = e.original.id == EditRoute.NEW_ALARM,
             draft = e.draft,
             changed = e.draft != e.original,
-            until = NextAlarm.ringTimeIfSaved(e.draft, at, holidays)?.let { TimeUntil.between(at, it) },
+            // 결정 159: 시각, 요일을 안 바꾼 동안은 쉬기를 넣고, 바꾸면 쉬기를 뺀 새 울림으로 세요.
+            until = NextAlarm.ringTimeIfSaved(toSave(e.original, e.draft), at, holidays)
+                ?.let { TimeUntil.between(at, it) },
             confirmExit = e.confirmExit,
             saving = e.saving,
             exit = e.exit,
@@ -332,15 +337,32 @@ class EditViewModel @Inject constructor(
         val current = editor.value
         if (current.loading || current.saving || current.exit != null) return
         editor.update { it.copy(saving = true) }
+        val released = restingAt(current.original, now.now()) && timingChanged(current.original, current.draft)
         viewModelScope.launch {
-            val saved = book.save(current.draft.copy(enabled = true))
+            val saved = book.save(toSave(current.original, current.draft).copy(enabled = true))
             // 울린 뒤 남은 확인(W2, W3)이 있던 알람을 저장하면 그 확인을 멈춰요(결정 145, 홈 토스트).
             val stopped = current.draft.id != 0L && checks?.cancelFor(saved.id) == true
-            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped)) }
+            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped, released)) }
         }
     }
 
+    /** 결정 159: 언제 울리는지(시각, 요일, 공휴일 쉬기)를 바꿨으면 '이번만 쉬기'를 풀어요. 처음 값으로 되돌렸으면 안 바꾼 거예요. */
+    private fun toSave(original: Alarm, draft: Alarm): Alarm =
+        if (timingChanged(original, draft)) draft.copy(skipOnceDate = null) else draft
+
+    /** 연 알람이 지금 쉬는 중인지. 쉬는 날이 오늘이나 어제(자정을 넘겨 울린 날)거나 그 뒤면 쉬는 중으로 쳐요. */
+    private fun restingAt(original: Alarm, at: ZonedDateTime): Boolean {
+        val skip = original.skipOnceDate ?: return false
+        return original.enabled && original.isRepeating && !skip.isBefore(at.toLocalDate().minusDays(1))
+    }
+
     companion object {
+        /** 울리는 때를 바꾸는 값이 바뀌었는지(결정 159). */
+        fun timingChanged(original: Alarm, draft: Alarm): Boolean =
+            original.time != draft.time ||
+                original.repeatDays != draft.repeatDays ||
+                original.skipHolidays != draft.skipHolidays
+
         /** [EditRoute]의 속성 이름. 타입 안전 경로는 속성 이름으로 SavedStateHandle에 값을 넣어요. */
         const val ALARM_ID_KEY = "alarmId"
         private const val STOP_TIMEOUT_MILLIS = 5_000L

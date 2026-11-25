@@ -239,6 +239,98 @@ class EditViewModelTest {
         }
     }
 
+    /** 화, 수 06:30 반복이고 화요일(11-17)을 쉬는 중인 알람(결정 159). */
+    private val resting = Alarm(
+        id = 7,
+        time = LocalTime.of(6, 30),
+        repeatDays = setOf(DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY),
+        skipOnceDate = LocalDate.of(2026, 11, 17),
+    )
+
+    private suspend fun EditViewModel.savedExit(
+        turbine: app.cash.turbine.ReceiveTurbine<EditUiState>,
+    ): EditExit? {
+        save()
+        var state = turbine.awaitItem()
+        while (state.exit == null) state = turbine.awaitItem()
+        return state.exit
+    }
+
+    @Test
+    fun resting_untilCountsRest_untilTimingChanges_andRevertCountsAgain() = runTest {
+        val vm = viewModel(FakeAlarmBook(listOf(resting)), id = 7)
+        vm.uiState.test {
+            // 쉬기를 넣고 세면 수요일 06:30: 1일 7시간 20분.
+            assertThat(loaded().until).isEqualTo(TimeUntil(1, 7, 20))
+            vm.setTime(7, 0)
+            // 시각을 바꾸면 쉬기를 뺀 새 울림(화 07:00).
+            assertThat(awaitItem().until).isEqualTo(TimeUntil(0, 7, 50))
+            vm.setTime(6, 30)
+            // 처음 값으로 되돌리면 다시 쉬기를 넣고 세요.
+            assertThat(awaitItem().until).isEqualTo(TimeUntil(1, 7, 20))
+        }
+    }
+
+    @Test
+    fun resting_saveWithTimeChange_releasesRest_andTellsHome() = runTest {
+        val book = FakeAlarmBook(listOf(resting))
+        val vm = viewModel(book, id = 7)
+        vm.uiState.test {
+            loaded()
+            vm.setTime(7, 0)
+            awaitItem()
+            assertThat(vm.savedExit(this)).isEqualTo(EditExit.Saved(7, restReleased = true))
+            assertThat(book.get(7)!!.skipOnceDate).isNull()
+        }
+    }
+
+    @Test
+    fun resting_saveWithDayOrHolidayChange_releasesRest() = runTest {
+        val changes = listOf<(EditViewModel) -> Unit>({ it.toggleDay(DayOfWeek.FRIDAY) }, { it.setSkipHolidays(true) })
+        for (change in changes) {
+            val book = FakeAlarmBook(listOf(resting))
+            val vm = viewModel(book, id = 7)
+            vm.uiState.test {
+                loaded()
+                change(vm)
+                awaitItem()
+                assertThat(vm.savedExit(this)).isEqualTo(EditExit.Saved(7, restReleased = true))
+                assertThat(book.get(7)!!.skipOnceDate).isNull()
+            }
+        }
+    }
+
+    @Test
+    fun resting_saveWithOtherChange_keepsRest() = runTest {
+        val book = FakeAlarmBook(listOf(resting))
+        val vm = viewModel(book, id = 7)
+        vm.uiState.test {
+            loaded()
+            vm.setVibrate(false)
+            awaitItem()
+            vm.setTime(7, 0)
+            awaitItem()
+            vm.setTime(6, 30)
+            awaitItem()
+            assertThat(vm.savedExit(this)).isEqualTo(EditExit.Saved(7))
+            assertThat(book.get(7)!!.skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 17))
+        }
+    }
+
+    @Test
+    fun staleSkip_timeChange_clearsSilently() = runTest {
+        // 지난주에 쉬고 끝난 날짜가 남아 있으면 지금 쉬는 중이 아니라 '풀었어요'를 띄우지 않아요.
+        val book = FakeAlarmBook(listOf(resting.copy(skipOnceDate = LocalDate.of(2026, 11, 10))))
+        val vm = viewModel(book, id = 7)
+        vm.uiState.test {
+            loaded()
+            vm.setTime(7, 0)
+            awaitItem()
+            assertThat(vm.savedExit(this)).isEqualTo(EditExit.Saved(7))
+            assertThat(book.get(7)!!.skipOnceDate).isNull()
+        }
+    }
+
     @Test
     fun saveNew_doesNotTouchChecks() = runTest {
         val checks = FakeWakeCheckGate()

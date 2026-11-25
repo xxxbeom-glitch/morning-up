@@ -85,7 +85,7 @@ private val ColonWidth = 24.dp
  */
 @Composable
 fun AlarmEditRoute(
-    onSaved: (alarmId: Long, checksStopped: Boolean) -> Unit,
+    onSaved: (alarmId: Long, checksStopped: Boolean, restReleased: Boolean) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
@@ -98,7 +98,7 @@ fun AlarmEditRoute(
     val preview by rememberUpdatedState(onPreview)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
-            is EditExit.Saved -> saved(exit.alarmId, exit.checksStopped)
+            is EditExit.Saved -> saved(exit.alarmId, exit.checksStopped, exit.restReleased)
             EditExit.Discarded -> close()
             null -> Unit
         }

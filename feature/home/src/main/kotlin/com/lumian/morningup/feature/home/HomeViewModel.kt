@@ -32,8 +32,8 @@ import kotlinx.coroutines.launch
 
 /** 홈 아래에 잠깐 뜨는 알림. */
 sealed interface HomeMessage {
-    /** H6 저장 토스트. [until]이 null이면 울릴 시각이 없어요(꺼짐). */
-    data class Saved(val until: TimeUntil?) : HomeMessage
+    /** H6 저장 토스트. [until]이 null이면 울릴 시각이 없어요(꺼짐). [restReleased]면 쉬기를 푼 저장이에요(결정 159). */
+    data class Saved(val until: TimeUntil?, val restReleased: Boolean = false) : HomeMessage
 
     /** H7 삭제 스낵바. '되돌리기'로 [alarms]를 되살려요(선택 모드에서는 여러 개). */
     data class Deleted(val alarms: List<Alarm>) : HomeMessage
@@ -202,7 +202,7 @@ class HomeViewModel @Inject constructor(
     fun refreshWeather() = weatherSource.refresh()
 
     /** 편집 화면에서 저장하고 돌아왔어요(H6 토스트). 남은 확인을 멈췄으면([checksStopped]) 그 토스트예요. */
-    fun onAlarmSaved(id: Long, checksStopped: Boolean = false) {
+    fun onAlarmSaved(id: Long, checksStopped: Boolean = false, restReleased: Boolean = false) {
         if (checksStopped) {
             overlay.update { it.copy(message = HomeMessage.ChecksStopped) }
             return
@@ -213,7 +213,7 @@ class HomeViewModel @Inject constructor(
             val until = alarm
                 ?.let { NextRingCalculator.next(it, current, holidays) }
                 ?.let { TimeUntil.between(current, it) }
-            overlay.update { it.copy(message = HomeMessage.Saved(until)) }
+            overlay.update { it.copy(message = HomeMessage.Saved(until, restReleased)) }
         }
     }
 
