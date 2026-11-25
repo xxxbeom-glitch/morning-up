@@ -21,10 +21,14 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
@@ -40,6 +44,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -241,6 +252,28 @@ fun HomeScreen(
     }
 }
 
+/** 홈 목록 맨 위에서 카드가 흐려지며 사라지는 높이(ISS-046, 피그마 H9 목록 올림). */
+private val ListTopFade = 24.dp
+
+/**
+ * 맨 위 [height]만큼 내용이 투명→불투명으로 흐려지게 알파 마스크를 씌워요(배경색 띠가 아니에요).
+ * 맨 위에 있을 때는 머리 글이 흐려지지 않게, 올린 만큼(최대 [height]) 서서히 생겨요.
+ */
+private fun Modifier.topFade(state: LazyListState, height: Dp): Modifier = this
+    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+    .drawWithContent {
+        drawContent()
+        val full = height.toPx()
+        val scrolled = if (state.firstVisibleItemIndex > 0) full else state.firstVisibleItemScrollOffset.toFloat()
+        val fade = scrolled.coerceIn(0f, full)
+        if (fade <= 0f) return@drawWithContent
+        drawRect(
+            brush = Brush.verticalGradient(listOf(Color.Transparent, Color.Black), startY = 0f, endY = fade),
+            size = Size(size.width, fade),
+            blendMode = BlendMode.DstIn,
+        )
+    }
+
 /** 시각을 아직 모를 때(처음 그리는 순간) 하늘. */
 private val DEFAULT_SKY_TIME: LocalTime = LocalTime.of(7, 0)
 
@@ -311,8 +344,15 @@ private fun AlarmList(
     val (headline, subline) = headerTexts(state)
     val reduceMotion = MorningTheme.reduceMotion
     val navBar = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val listState = rememberLazyListState()
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        // ISS-046: 목록은 상태 표시줄 바로 아래에서 잘려 시계, 아이콘과 겹치지 않아요(띠는 깔지 않음).
+        // 안쪽 머리의 statusBarsPadding은 여기서 먹어서 0이 돼요. 잘리는 맨 위 24dp는 카드가 투명하게 흐려져요.
+        modifier = Modifier
+            .fillMaxSize()
+            .windowInsetsPadding(WindowInsets.statusBars)
+            .topFade(listState, ListTopFade),
         contentPadding = PaddingValues(bottom = navBar + bottomReserve + MorningDimens.space16),
         verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
     ) {
