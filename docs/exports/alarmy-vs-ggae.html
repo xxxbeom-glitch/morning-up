@@ -1,0 +1,297 @@
+<title>알라미와 깨 비교판</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@500;600;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 위 요약 → 아침 흐름 두 줄 비교 → 이번만 쉬기 달력 → 기능 대조표(거르기) → 가져온 것 진행판 */
+:root{
+  --bg:#f5f7fb; --surface:#ffffff; --line:#dfe4ee; --fg:#18202e; --muted:#5d6779;
+  --sky:#3a7bd5; --sky-soft:#e3edfb;           /* 우리 앱(하늘) */
+  --rival:#d9822b; --rival-soft:#fbeedd;        /* 알라미 */
+  --ok:#2f8f5b; --ok-soft:#dff3e7; --warn:#b5651d; --idle:#8a93a5; --idle-soft:#eceff4;
+  --display:"IBM Plex Sans KR","Noto Sans KR",system-ui,sans-serif;
+  --body:"Noto Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141c; --surface:#171e29; --line:#2a3342; --fg:#e7ecf4; --muted:#9aa5b8;
+  --sky:#6ea4f0; --sky-soft:#1b2b44; --rival:#f0a560; --rival-soft:#3a2914;
+  --ok:#5cc58a; --ok-soft:#173326; --warn:#e3a066; --idle:#7d8799; --idle-soft:#222a36; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141c; --surface:#171e29; --line:#2a3342; --fg:#e7ecf4; --muted:#9aa5b8;
+  --sky:#6ea4f0; --sky-soft:#1b2b44; --rival:#f0a560; --rival-soft:#3a2914;
+  --ok:#5cc58a; --ok-soft:#173326; --warn:#e3a066; --idle:#7d8799; --idle-soft:#222a36; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.6}
+.wrap{max-width:1080px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.3}
+h1{font-size:clamp(1.6rem,4vw,2.2rem)}
+h2{font-size:1.3rem}
+h3{font-size:1rem}
+p{margin:0}
+.lead{color:var(--muted);max-width:68ch}
+.meta{font-family:var(--mono);font-size:.78rem;color:var(--muted);letter-spacing:.02em}
+section{display:grid;gap:16px;min-width:0}
+.sec-head{display:grid;gap:4px}
+.who{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:.85rem}
+.dot{width:10px;height:10px;border-radius:50%}
+.dot.us{background:var(--sky)} .dot.them{background:var(--rival)}
+
+/* 요약 수치 */
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:2px}
+.stat b{font-family:var(--display);font-size:1.7rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-size:.82rem;color:var(--muted)}
+@media (max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* 흐름 */
+.lanes{display:grid;gap:14px}
+.lane{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:12px;min-width:0}
+.lane.them{border-top:4px solid var(--rival)} .lane.us{border-top:4px solid var(--sky)}
+.steps{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;align-items:stretch}
+.step{flex:0 0 168px;border-radius:10px;padding:10px 12px;display:grid;gap:4px;align-content:start;font-size:.85rem}
+.them .step{background:var(--rival-soft)} .us .step{background:var(--sky-soft)}
+.step strong{font-size:.9rem}
+.step small{color:var(--muted);line-height:1.45}
+.arrow{flex:0 0 auto;align-self:center;color:var(--muted);font-size:1.1rem}
+.branch{font-size:.82rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:1px 7px;border-radius:999px;letter-spacing:.02em;white-space:nowrap}
+.tag.ad{background:var(--rival);color:var(--surface)}
+.tag.pay{background:var(--warn);color:var(--surface)}
+.tag.free{background:var(--ok);color:var(--surface)}
+
+/* 이번만 쉬기 달력 */
+.cal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:14px;overflow-x:auto}
+.cal-row{display:grid;grid-template-columns:96px repeat(5,minmax(64px,1fr));gap:6px;align-items:center;min-width:460px}
+.cal-row .lbl{font-weight:700;font-size:.85rem}
+.day{border-radius:8px;padding:8px 4px;text-align:center;font-size:.8rem;display:grid;gap:2px;background:var(--idle-soft);color:var(--muted)}
+.day.hd{background:none;font-weight:700;color:var(--fg)}
+.day.ring{background:var(--ok-soft);color:var(--ok);font-weight:700}
+.day.skip{background:var(--idle-soft);color:var(--idle);text-decoration:line-through}
+.day.press{outline:2px solid var(--fg);outline-offset:-2px}
+.cal-note{font-size:.85rem;color:var(--muted)}
+
+/* 대조표 */
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:5px 12px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+.chip .n{font-family:var(--mono);font-size:.75rem;opacity:.75;margin-left:4px}
+.tbl-wrap{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+thead th{font-family:var(--display);font-size:.8rem;color:var(--muted);position:sticky;top:0;background:var(--surface)}
+tbody tr:last-child td{border-bottom:none}
+td.area{font-weight:700;white-space:nowrap}
+td.them{border-left:3px solid var(--rival)} td.us{border-left:3px solid var(--sky)}
+.st{font-size:.75rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.st.take{background:var(--ok-soft);color:var(--ok)}
+.st.same{background:var(--sky-soft);color:var(--sky)}
+.st.diff{background:var(--idle-soft);color:var(--muted)}
+.st.ours{background:var(--sky);color:var(--surface)}
+.st.theirs{background:var(--rival-soft);color:var(--rival)}
+.group td{background:var(--bg);font-family:var(--display);font-weight:700;font-size:.8rem;color:var(--muted);letter-spacing:.04em}
+
+/* 진행판 */
+.board{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:grid;gap:6px;align-content:start}
+.card .num{font-family:var(--mono);font-size:.75rem;color:var(--muted)}
+.card p{font-size:.86rem;color:var(--muted)}
+.prog{display:flex;gap:4px;margin-top:4px}
+.prog i{flex:1;height:6px;border-radius:3px;background:var(--idle-soft)}
+.prog i.on{background:var(--ok)}
+.prog-l{font-size:.75rem;color:var(--muted)}
+.strengths{display:flex;flex-wrap:wrap;gap:8px}
+.strengths span{background:var(--sky-soft);color:var(--sky);font-weight:700;font-size:.85rem;padding:6px 12px;border-radius:999px}
+.foot{font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:no-preference){.chip{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:8px">
+    <p class="meta">TSK-193 조사 · 결정 156~161 반영 · 2026-11-25</p>
+    <h1>알라미와 깨, 한눈에 비교</h1>
+    <p class="lead">Z플립5에 알라미 26.43.0을 깔아 무료 화면 112장을 기록한 결과를 우리 앱 기준과 나란히 놓았어요. 익숙한 흐름은 가져오고, 광고와 결제 유도는 뺀다는 방향이에요.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap"><span class="who"><i class="dot them"></i>알라미</span><span class="who"><i class="dot us"></i>우리 앱(깨)</span></div>
+  </header>
+
+  <section aria-label="요약">
+    <div class="stats">
+      <div class="stat"><b>112</b><span>기록한 알라미 화면</span></div>
+      <div class="stat"><b id="c-take">0</b><span>가져온 흐름</span></div>
+      <div class="stat"><b id="c-same">0</b><span>이미 같은 것</span></div>
+      <div class="stat"><b id="c-ours">0</b><span>우리만 있는 것</span></div>
+      <div class="stat"><b id="c-theirs">0</b><span>알라미만 있는 것</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>아침 흐름 비교</h2><p class="lead">알람이 울리고 나서 완전히 깰 때까지의 길이에요.</p></div>
+    <div class="lanes">
+      <div class="lane them">
+        <span class="who"><i class="dot them"></i>알라미</span>
+        <div class="steps">
+          <div class="step"><strong>울림 화면</strong><small>날짜, 시각, 이름, '알람 미루기'(남은 수), '미션 시작'</small><span class="tag ad">위아래 광고</span></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>미루기 화면</strong><small>'04:56' 남은 시간, '2번 남음'. 뒤로 키를 눌러도 미루기</small></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>미션</strong><small>수학, 색깔 타일 등. 틀려도 벌 없음, 음소거 3회</small><span class="tag ad">광고 띠</span></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>난이도 시트</strong><small>'다음 알람부터는 난이도를 올려볼까요?'</small></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>아침 탭</strong><small>날씨, 오늘의 한마디, 운세, 기분, 펫</small><span class="tag ad">큰 광고</span></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>다시 잠들기 방지</strong><small>1~10분 뒤 버튼으로 기상 인증</small><span class="tag pay">유료</span></div>
+        </div>
+        <p class="branch">아무도 끄지 않으면: '알람 자동 해제'를 켜 두면 1~30분 뒤 꺼져요(처음엔 사용 안 함).</p>
+      </div>
+      <div class="lane us">
+        <span class="who"><i class="dot us"></i>우리 앱</span>
+        <div class="steps">
+          <div class="step"><strong>D 울림 화면</strong><small>하늘, 날짜, 시각, '미션 시작'만. 스누즈 없음</small></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>미션 M1~M4</strong><small>Drop Words, Pop Quiz, Quick Math, Shake. 틀리면 오답 화면</small></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>W1 해제 완료</strong><small>날씨, 연속 기록. 단순하게</small></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>W2 '깼어요' 알림</strong><small>다시 잠들기 방지 확인</small><span class="tag free">무료</span></div>
+          <span class="arrow">→</span>
+          <div class="step"><strong>W3 길게 누르기</strong><small>10초 눌러 확인 끝</small><span class="tag free">무료</span></div>
+        </div>
+        <p class="branch">아무도 끄지 않으면: 1분 울리고 멈춘 뒤 다시 울림 간격만큼 쉬고 또 울려요. 첫 미션 때는 알림에서 문장을 따라 써서 빠져나가는 비상 탈출이 있어요.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>'이번만 쉬기' 대 '한 번만 건너뛰기'</h2><p class="lead">월~금 반복 알람이고, 수요일 아침 알람이 이미 울린 뒤 오후에 눌렀을 때예요. 흐름(끄면 바로 제안, 확인 창 없음)은 같고 쉬는 날이 달라요.</p></div>
+    <div class="cal">
+      <div class="cal-row"><span></span><span class="day hd">월</span><span class="day hd">화</span><span class="day hd">수</span><span class="day hd">목</span><span class="day hd">금</span></div>
+      <div class="cal-row"><span class="lbl" style="color:var(--rival)">알라미</span><span class="day">지남</span><span class="day">지남</span><span class="day press">울림 뒤 누름</span><span class="day skip">쉼</span><span class="day ring">울림</span></div>
+      <div class="cal-row"><span class="lbl" style="color:var(--sky)">우리(결정 156)</span><span class="day">지남</span><span class="day">지남</span><span class="day press">이미 울림, 쉴 것 없음</span><span class="day ring">울림</span><span class="day ring">울림</span></div>
+      <p class="cal-note">알라미는 '지금부터 다음 한 번'을 쉬어요. 우리는 '오늘 것만' 쉬고, 울리지 않는 날에 누르면 다음 한 번을 쉬어요. 알라미는 편집에서 저장만 해도 건너뛰기가 말없이 풀리지만, 우리는 시각, 요일, 공휴일 쉬기를 바꿀 때만 풀고 토스트로 알려요(결정 159).</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>기능 대조표</h2><p class="lead">칩을 눌러 종류별로 걸러 볼 수 있어요.</p></div>
+    <div class="filters" role="group" aria-label="대조표 거르기">
+      <button class="chip" id="f-all" data-f="all" aria-pressed="true">전체<span class="n"></span></button>
+      <button class="chip" id="f-take" data-f="take" aria-pressed="false">가져옴<span class="n"></span></button>
+      <button class="chip" id="f-same" data-f="same" aria-pressed="false">같음<span class="n"></span></button>
+      <button class="chip" id="f-diff" data-f="diff" aria-pressed="false">일부러 다름<span class="n"></span></button>
+      <button class="chip" id="f-ours" data-f="ours" aria-pressed="false">우리만<span class="n"></span></button>
+      <button class="chip" id="f-theirs" data-f="theirs" aria-pressed="false">알라미만<span class="n"></span></button>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>항목</th><th>알라미</th><th>우리 앱</th><th>판정</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>가져온 흐름 진행판</h2><p class="lead">추천 1~5위를 사용자가 승인했고(11-25), 화면 그리기는 끝났어요.</p></div>
+    <div class="board" id="board"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>알라미에 없는 우리 강점</h2><p class="lead">출시 소개 글에 쓸 만한 점이에요.</p></div>
+    <div class="strengths"><span>다시 잠들기 방지 무료</span><span>비상 탈출(문장 따라 쓰기)</span><span>튕기는 버튼 실험실</span><span>광고 없음</span><span>결제 유도 없음</span><span>하늘 배경</span></div>
+  </section>
+
+  <p class="foot">원본 기록: research/M-alarmy-compare.md, 캡처 docs/exports/tsk-193/. 계정 만들기, 로그인, 결제 없이 무료 화면만 봤어요. 다시 잠들기 방지 실제 동작, 미션 여러 개, 걷기와 스쿼트, 알람 전 수정 방지, 광고 없는 화면은 구독해야 볼 수 있어요. 미루는 중에 알람 스위치를 끄는 장면은 [리서치 4]가 조사하고 있어요.</p>
+</div>
+
+<script>
+const ROWS = [
+ ["첫 실행", [
+  ["첫 실행", "소개 3장, 첫 알람 4단계(시각, 배경, 소리, 미션)", "스플래시, 온보딩, 권한 한 화면에 하나씩", "diff"],
+  ["결제 유도", "온보딩 끝에 결제 3겹(결제, 50% 할인, 나가기 확인). 잠긴 칸 누르면 결제", "1차 결제 없음", "diff"],
+  ["권한 안내", "알림은 1단계 안 카드, 배터리와 다른 앱 위는 목록 한 장", "하나씩 안내, 나중용 시트, 홈 경고 띠", "same"],
+  ["마케팅 수신", "설치 날짜로 동의가 이미 켜져 있음", "해당 없음", "diff"]
+ ]],
+ ["홈", [
+  ["다음 알람 문구", "'n시간 n분 후에 울려요', 누르면 그 알람 편집", "하늘 위 문구, 누르면 S0 편집(결정 157)", "take"],
+  ["알람 카드", "요일 7칸, 시각, 이름, 스위치, 더보기", "같은 구성", "same"],
+  ["끄면 쉬기 제안", "'한 번만 건너뛰기' 알약", "'이번만 쉬기', 기준 날만 다름(결정 156)", "same"],
+  ["켜진 채 쉬기", "카드 더보기 '알람 1회 건너뛰기'", "선택 모드 아래 바에 '이번만 쉬기'(결정 158)", "take"],
+  ["삭제", "확인 창 없이 지우고 '실행취소' 띠", "확인 창 없이 지우고 '되돌리기' 스낵바(결정 160)", "take"],
+  ["복제", "더보기 '알람 복제', 건너뛰기까지 복사", "선택 모드 '복제', 쉬기와 남은 확인은 복사 안 함(결정 161)", "take"],
+  ["빈 홈", "'아직 알람이 없어요' 한 줄", "H1 빈 홈", "same"],
+  ["홈 메뉴", "정렬, 꺼진 알람 삭제", "선택 끄기, 모든 알람 끄기", "diff"],
+  ["퀵 알람(N분 뒤)", "1분~1시간 칩을 눌러 더함", "없음(2차 후보: 잠들기 탭 'N분 뒤 깨우기')", "theirs"],
+  ["습관 알람", "하루 여러 시각, 3단계 만들기", "없음", "theirs"],
+  ["광고", "홈 띠, 울림, 미션, 아침 탭", "없음(결정 148)", "diff"]
+ ]],
+ ["알람 편집", [
+  ["편집 저장과 쉬기", "저장만 해도 건너뛰기가 말없이 풀림", "시각, 요일, 공휴일 쉬기를 바꿀 때만 풀고 토스트(결정 159)", "take"],
+  ["새 알람 처음 값", "지금 시각, 매일, 미션 없음", "미션 없음으로 시작", "same"],
+  ["저장 안 하고 나가기", "확인 창", "S0-1 확인 창", "same"],
+  ["미션 수", "10종, 2번째 칸부터 유료, 걷기 스쿼트 유료", "4종, 모두 무료", "diff"],
+  ["미션 설정 시트", "예제, 난이도 막대, 횟수 드럼롤, 미리보기와 완료", "같은 구조(S1-3A~6A)", "same"],
+  ["수학 난이도 이름", "7단계, 끝은 '지옥 모드'", "단계 이름 재미는 없음(미뤄도 됨)", "theirs"],
+  ["소리 고르기", "묶음 칩과 긴 목록, 내 음악, 녹음", "태그 칩 방식(S5)", "same"],
+  ["볼륨 시트", "볼륨, 부드럽게 깨우기, 미리듣기", "볼륨, 진동, 부드럽게 깨우기 묶음(결정 98)", "same"],
+  ["알람 전 수정 방지", "있음(유료)", "없음", "theirs"]
+ ]],
+ ["울림과 미션", [
+  ["미루기(스누즈)", "버튼, 뒤로 키도 미루기, 간격과 횟수 설정", "스누즈 없음, 안 끄면 1분 울리고 쉬었다 다시", "diff"],
+  ["미션 틀렸을 때", "벌도 표시도 거의 없음", "오답 화면", "diff"],
+  ["미션 중 소리 줄이기", "음소거 아이콘, 처음부터 켜짐, 3회", "규칙 없음", "theirs"],
+  ["미션 끝난 뒤", "난이도 올릴까요 시트, 아침 탭", "W1 해제 완료(날씨, 연속 기록)", "diff"],
+  ["다시 잠들기 방지", "1~10분 뒤 버튼 인증, 유료", "W2 '깼어요', W3 길게 누르기, 무료", "ours"],
+  ["비상 탈출", "무료 화면에서 못 찾음", "첫 미션 때 알림에서 문장 따라 쓰기", "ours"],
+  ["버튼 속이기", "없음", "실험실 튕기는 버튼(결정 155)", "ours"],
+  ["알람 자동 해제", "1~30분 무응답 시 꺼짐", "다시 울림 규칙으로 대신", "diff"]
+ ]],
+ ["설정과 그 밖", [
+  ["전원 끄기 방지", "다른 앱 위, 접근성, 성공 건수 표시", "앱 설정과 접근성 동의(결정 101). 성공 건수 없음", "same"],
+  ["앱 삭제 방지", "있음", "없음", "theirs"],
+  ["수면", "마이크로 코골이 측정", "잠들기 탭(소리, 숨쉬기)", "diff"],
+  ["리포트", "기상, 수면, 습관 주간과 일별 기록", "연속 기록만(W1)", "theirs"],
+  ["아침 탭", "운세, 기분, 펫, 좋은 글", "없음(날씨는 홈과 W1)", "theirs"],
+  ["앱 종료 확인", "재미 문구 확인 창", "없음", "theirs"]
+ ]]
+];
+const LABEL = {take:"가져옴", same:"같음", diff:"일부러 다름", ours:"우리만", theirs:"알라미만"};
+const BOARD = [
+ ["1", "홈 문구 누르면 편집", "결정 157", "하늘 위 문구를 누르면 다음에 울릴 알람 편집이 열려요.", 3],
+ ["2", "켜진 채 이번만 쉬기", "결정 158", "선택 모드 아래 바에 '이번만 쉬기'. 바는 켜기, 끄기, 이번만 쉬기, 복제, 삭제 다섯 칸.", 2],
+ ["3", "편집 저장 때 쉬기 풀기", "결정 159", "시각, 요일, 공휴일 쉬기를 바꾸면 쉬기를 풀고 토스트로 알려요.", 3],
+ ["4", "삭제 확인 창 빼기", "결정 160", "바로 지우고 '되돌리기' 스낵바만 띄워요.", 3],
+ ["5", "알람 복제", "결정 161", "'복사'를 '복제'로. 쉬기와 남은 확인은 복사하지 않아요.", 3]
+];
+const STAGES = ["결정", "화면", "개발", "폰 시험"];
+
+const tb = document.getElementById("rows");
+const counts = {take:0,same:0,diff:0,ours:0,theirs:0};
+ROWS.forEach(([g, items]) => {
+  const gr = document.createElement("tr"); gr.className = "group"; gr.dataset.g = g;
+  gr.innerHTML = `<td colspan="4">${g}</td>`; tb.appendChild(gr);
+  items.forEach(([a, them, us, k]) => {
+    counts[k]++;
+    const tr = document.createElement("tr"); tr.dataset.k = k; tr.dataset.g = g;
+    tr.innerHTML = `<td class="area">${a}</td><td class="them">${them}</td><td class="us">${us}</td><td><span class="st ${k}">${LABEL[k]}</span></td>`;
+    tb.appendChild(tr);
+  });
+});
+const total = Object.values(counts).reduce((a,b)=>a+b,0);
+["take","same","ours","theirs"].forEach(k => document.getElementById("c-"+k).textContent = counts[k]);
+document.querySelectorAll(".chip").forEach(c => {
+  const f = c.dataset.f; c.querySelector(".n").textContent = f === "all" ? total : counts[f];
+  c.addEventListener("click", () => {
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === c ? "true" : "false"));
+    const shown = new Set();
+    tb.querySelectorAll("tr[data-k]").forEach(tr => { const on = f === "all" || tr.dataset.k === f; tr.hidden = !on; if (on) shown.add(tr.dataset.g); });
+    tb.querySelectorAll("tr.group").forEach(tr => tr.hidden = !shown.has(tr.dataset.g));
+  });
+});
+const bd = document.getElementById("board");
+BOARD.forEach(([n, t, d, p, done]) => {
+  const el = document.createElement("div"); el.className = "card";
+  const bars = STAGES.map((s, i) => `<i class="${i < done ? "on" : ""}" title="${s}"></i>`).join("");
+  el.innerHTML = `<span class="num">추천 ${n}위 · ${d}</span><h3>${t}</h3><p>${p}</p><div class="prog">${bars}</div><span class="prog-l">${STAGES[done-1]}까지 끝 · 다음: ${STAGES[done] || "끝"}</span>`;
+  bd.appendChild(el);
+});
+</script>
