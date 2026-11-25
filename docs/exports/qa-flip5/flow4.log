@@ -1,0 +1,17 @@
+--------- beginning of main
+11-25 13:27:27.111 I/MorningFlow(23397): at=13:27:27.111 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:27:27.344 I/MorningFlow(23397): at=13:27:27.344 alarm=18 event=debug_case_scheduled case A alarm 18 at 13:28
+11-25 13:28:00.114 I/MorningFlow(23397): at=13:28:00.113 alarm=18 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:28:00.617 I/MorningFlow(23397): at=13:28:00.617 alarm=18 event=trick_shown speed=normal
+11-25 13:28:05.884 I/MorningFlow(23397): at=13:28:05.884 alarm=18 event=trick_start speed=normal
+11-25 13:28:34.791 I/MorningFlow(23397): at=13:28:34.791 alarm=18 event=trick_end seconds=28 expired=true
+11-25 13:28:34.800 I/MorningFlow(23397): at=13:28:34.800 alarm=18 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:28:45.825 I/MorningFlow(23397): at=13:28:45.825 alarm=- event=wake_up_closed
+11-25 13:29:53.179 I/MorningFlow(23397): at=13:29:53.179 alarm=19 event=debug_case_scheduled case A alarm 19 at 13:30
+11-25 13:30:00.043 I/MorningFlow(23397): at=13:30:00.043 alarm=19 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:30:00.181 I/MorningFlow(23397): at=13:30:00.181 alarm=19 event=trick_shown speed=normal
+11-25 13:30:12.156 I/MorningFlow(23397): at=13:30:12.156 alarm=19 event=trick_start speed=normal
+11-25 13:30:34.468 I/MorningFlow(23397): at=13:30:34.468 alarm=19 event=trick_end seconds=22 expired=true
+11-25 13:30:34.483 I/MorningFlow(23397): at=13:30:34.483 alarm=19 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:30:36.829 I/MorningFlow(23397): at=13:30:36.829 alarm=- event=wake_up_closed
+11-25 13:31:22.669 I/MorningFlow(23397): at=13:31:22.669 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)

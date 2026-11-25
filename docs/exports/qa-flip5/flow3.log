@@ -1,0 +1,66 @@
+--------- beginning of main
+11-25 11:45:31.835 I/MorningFlow( 3928): at=11:45:31.835 alarm=11 event=debug_case_scheduled case B alarm 11 at 11:46
+11-25 11:46:00.042 I/MorningFlow( 3928): at=11:46:00.041 alarm=11 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:48:00.062 I/MorningFlow( 3928): at=11:48:00.062 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 11:51:00.127 I/MorningFlow( 3928): at=11:51:00.126 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:53:00.154 I/MorningFlow( 3928): at=11:53:00.153 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 11:56:00.219 I/MorningFlow( 3928): at=11:56:00.219 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:58:00.247 I/MorningFlow( 3928): at=11:58:00.247 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 12:01:00.320 I/MorningFlow( 3928): at=12:01:00.320 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 12:03:00.347 I/MorningFlow( 3928): at=12:03:00.347 alarm=11 event=timer_ringtimeout phase=Ringing->- effects=StopSound,CancelTimer,PostMissedNotification,SessionEnded
+11-25 12:03:07.889 I/MorningFlow( 3928): at=12:03:07.889 alarm=- event=debug_wake_check wake check WakeCheckSettings(askAfterMinutes=5, answerSeconds=30, recheckEnabled=true, recheckMinutes=10, lab=LabSettings(trickEnabled=false, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000))
+11-25 12:03:08.069 I/MorningFlow( 3928): at=12:03:08.069 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickLevel=Normal, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:06:05.460 I/MorningFlow(18468): at=13:06:05.460 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:06:05.664 I/MorningFlow(18468): at=13:06:05.664 alarm=12 event=debug_case_scheduled case A alarm 12 at 13:07
+11-25 13:07:00.124 I/MorningFlow(18468): at=13:07:00.124 alarm=12 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:07:00.650 I/MorningFlow(18468): at=13:07:00.650 alarm=12 event=trick_shown speed=normal
+11-25 13:08:45.801 I/MorningFlow(18468): at=13:08:45.801 alarm=12 event=trick_start speed=normal
+11-25 13:08:55.867 I/MorningFlow(18468): at=13:08:55.866 alarm=12 event=trick_end seconds=10 expired=false
+11-25 13:08:55.890 I/MorningFlow(18468): at=13:08:55.890 alarm=12 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:09:09.657 I/MorningFlow(18468): at=13:09:09.657 alarm=- event=wake_up_closed
+11-25 13:09:09.910 I/MorningFlow(18468): at=13:09:09.910 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickSpeed=Fast, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:09:10.066 I/MorningFlow(18468): at=13:09:10.065 alarm=13 event=debug_case_scheduled case A alarm 13 at 13:10
+11-25 13:10:00.069 I/MorningFlow(18468): at=13:10:00.069 alarm=13 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:10:00.289 I/MorningFlow(18468): at=13:10:00.289 alarm=13 event=trick_shown speed=fast
+11-25 13:10:25.845 I/MorningFlow(18468): at=13:10:25.845 alarm=13 event=trick_start speed=fast
+11-25 13:10:49.901 I/MorningFlow(18468): at=13:10:49.900 alarm=13 event=trick_end seconds=24 expired=true
+11-25 13:10:49.916 I/MorningFlow(18468): at=13:10:49.916 alarm=13 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:11:01.688 I/MorningFlow(18468): at=13:11:01.688 alarm=- event=wake_up_closed
+11-25 13:11:01.850 I/MorningFlow(18468): at=13:11:01.850 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickSpeed=Slow, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:11:02.069 I/MorningFlow(18468): at=13:11:02.069 alarm=14 event=debug_case_scheduled case C alarm 14 at 13:12
+11-25 13:12:00.062 I/MorningFlow(18468): at=13:12:00.062 alarm=14 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:12:00.299 I/MorningFlow(18468): at=13:12:00.299 alarm=14 event=trick_shown speed=slow
+11-25 13:12:27.632 I/MorningFlow(18468): at=13:12:27.631 alarm=14 event=trick_shown speed=slow
+11-25 13:12:49.089 I/MorningFlow(18468): at=13:12:49.089 alarm=14 event=trick_start speed=slow
+11-25 13:13:05.932 I/MorningFlow(18468): at=13:13:05.932 alarm=14 event=trick_shown speed=slow
+11-25 13:14:00.082 I/MorningFlow(18468): at=13:14:00.082 alarm=14 event=timer_ringtimeout phase=Ringing->- effects=StopSound,CancelTimer,PostMissedNotification,SessionEnded
+11-25 13:15:46.360 I/MorningFlow(18468): at=13:15:46.359 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 13:15:46.526 I/MorningFlow(18468): at=13:15:46.525 alarm=15 event=debug_case_scheduled case C alarm 15 at 13:16
+11-25 13:16:00.069 I/MorningFlow(18468): at=13:16:00.069 alarm=15 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:16:00.305 I/MorningFlow(18468): at=13:16:00.305 alarm=15 event=trick_shown speed=normal
+11-25 13:16:03.859 I/MorningFlow(18468): at=13:16:03.858 alarm=15 event=trick_start speed=normal
+11-25 13:16:30.657 I/MorningFlow(18468): at=13:16:30.657 alarm=15 event=trick_end seconds=26 expired=true
+11-25 13:16:30.675 I/MorningFlow(18468): at=13:16:30.675 alarm=15 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 13:16:30.729 I/MorningFlow(18468): at=13:16:30.729 alarm=15 event=escape_shown sentence=7 fresh=true posted=true
+11-25 13:17:29.711 I/MorningFlow(18468): at=13:17:29.711 alarm=15 event=timer_missiontimeout phase=InMission->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 13:17:29.727 I/MorningFlow(18468): at=13:17:29.727 alarm=15 event=trick_shown speed=normal
+11-25 13:17:42.273 I/MorningFlow(18468): at=13:17:42.273 alarm=15 event=trick_start speed=normal
+11-25 13:18:04.488 I/MorningFlow(18468): at=13:18:04.488 alarm=15 event=trick_end seconds=22 expired=true
+11-25 13:18:04.500 I/MorningFlow(18468): at=13:18:04.500 alarm=15 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer
+11-25 13:18:06.751 I/MorningFlow(18468): at=13:18:06.751 alarm=15 event=escape_sent result=correct length_diff=0
+11-25 13:18:06.766 I/MorningFlow(18468): at=13:18:06.766 alarm=- event=debug_escape escape Correct
+11-25 13:18:06.776 I/MorningFlow(18468): at=13:18:06.776 alarm=15 event=mission_escaped phase=InMission->- effects=EscapeUsed,StopSound,CancelTimer,ShowWakeUp,ClearEscape,SessionEnded
+11-25 13:18:06.780 I/MorningFlow(18468): at=13:18:06.780 alarm=15 event=escape_used month=2026-11 n=3
+11-25 13:18:40.446 I/MorningFlow(18468): at=13:18:40.446 alarm=16 event=debug_case_scheduled case A alarm 16 at 13:19
+11-25 13:19:00.035 I/MorningFlow(18468): at=13:19:00.035 alarm=16 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:19:00.050 I/MorningFlow(18468): at=13:19:00.050 alarm=16 event=trick_auto_off reason=no_animation
+11-25 13:19:41.885 I/MorningFlow(18468): at=13:19:41.885 alarm=16 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:19:54.162 I/MorningFlow(18468): at=13:19:54.162 alarm=- event=wake_up_closed
+11-25 13:19:54.383 I/MorningFlow(18468): at=13:19:54.383 alarm=17 event=debug_case_scheduled case A alarm 17 at 13:20
+11-25 13:20:00.039 I/MorningFlow(18468): at=13:20:00.039 alarm=17 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 13:20:00.163 I/MorningFlow(18468): at=13:20:00.163 alarm=17 event=trick_shown speed=normal
+11-25 13:20:05.730 I/MorningFlow(18468): at=13:20:05.730 alarm=17 event=trick_start speed=normal
+11-25 13:20:27.953 I/MorningFlow(18468): at=13:20:27.953 alarm=17 event=trick_end seconds=22 expired=true
+11-25 13:20:27.960 I/MorningFlow(18468): at=13:20:27.960 alarm=17 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 13:20:52.905 I/MorningFlow(18468): at=13:20:52.905 alarm=- event=wake_up_closed
+11-25 13:20:53.120 I/MorningFlow(18468): at=13:20:53.120 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)

@@ -1,0 +1,4 @@
+--------- beginning of main
+11-25 15:37:37.439  8463  8638 I MorningFlow: at=15:37:37.439 alarm=37 event=debug_case_scheduled case A alarm 37 at 16:07 silent
+11-25 15:37:37.591  8463  8635 I MorningFlow: at=15:37:37.591 alarm=38 event=debug_case_scheduled case A alarm 38 at 16:12 silent
+11-25 15:37:37.758  8463  8635 I MorningFlow: at=15:37:37.758 alarm=39 event=debug_case_scheduled case A alarm 39 at 16:17 silent

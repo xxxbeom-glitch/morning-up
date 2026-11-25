@@ -1,0 +1,5 @@
+--------- beginning of main
+11-25 14:46:47.373 I/MorningFlow(31408): at=14:46:47.373 alarm=26 event=debug_case_scheduled case A alarm 26 at 14:48 silent
+11-25 14:48:00.101 I/MorningFlow(31408): at=14:48:00.101 alarm=26 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 14:48:04.425 I/MorningFlow(31408): at=14:48:04.425 alarm=26 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 14:48:06.678 I/MorningFlow(31408): at=14:48:06.678 alarm=- event=wake_up_closed

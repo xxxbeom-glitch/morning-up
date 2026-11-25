@@ -1,0 +1,97 @@
+--------- beginning of main
+11-25 11:11:32.547 I/MorningFlow( 3928): at=11:11:32.547 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickLevel=Normal, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)
+11-25 11:11:32.681 I/MorningFlow( 3928): at=11:11:32.681 alarm=- event=debug_wake_check wake check WakeCheckSettings(askAfterMinutes=5, answerSeconds=30, recheckEnabled=true, recheckMinutes=10, lab=LabSettings(trickEnabled=false, trickLevel=Normal, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000))
+11-25 11:11:38.258 I/MorningFlow( 3928): at=11:11:38.258 alarm=3 event=debug_case_scheduled case D alarm 3 at 11:14
+11-25 11:11:38.442 I/MorningFlow( 3928): at=11:11:38.442 alarm=- event=debug_wake_check wake check WakeCheckSettings(askAfterMinutes=5, answerSeconds=30, recheckEnabled=true, recheckMinutes=10, lab=LabSettings(trickEnabled=false, trickLevel=Normal, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000))
+11-25 11:14:00.050 I/MorningFlow( 3928): at=11:14:00.050 alarm=3 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:14:10.318 I/MorningFlow( 3928): at=11:14:10.318 alarm=3 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 11:14:10.368 I/MorningFlow( 3928): at=11:14:10.368 alarm=3 event=escape_shown sentence=18 fresh=true posted=true
+11-25 11:14:21.360 I/MorningFlow( 3928): at=11:14:21.360 alarm=3 event=mission_completed phase=InMission->AwaitingWakeCheck effects=StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 11:14:44.108 I/MorningFlow( 3928): at=11:14:44.108 alarm=3 event=wake_up_closed
+11-25 11:14:55.426 I/MorningFlow( 3928): at=11:14:55.426 alarm=3 event=cancel_checks phase=AwaitingWakeCheck->- effects=StopSound,CancelTimer,WakeResultRecorded,SessionEnded
+11-25 11:14:55.433 I/MorningFlow( 3928): at=11:14:55.433 alarm=3 event=wake_result result=Cancelled rounds=0
+11-25 11:18:00.725 I/MorningFlow( 3928): at=11:18:00.724 alarm=- event=debug_lab lab LabSettings(trickEnabled=true, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=true, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000)
+11-25 11:18:00.971 I/MorningFlow( 3928): at=11:18:00.971 alarm=4 event=debug_case_scheduled case D alarm 4 at 11:19
+11-25 11:19:00.050 I/MorningFlow( 3928): at=11:19:00.050 alarm=4 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:19:00.198 I/MorningFlow( 3928): at=11:19:00.197 alarm=4 event=trick_shown level=strong speed=fast
+11-25 11:19:15.575 I/MorningFlow( 3928): at=11:19:15.575 alarm=4 event=trick_start level=strong speed=fast
+11-25 11:19:15.575 I/MorningFlow( 3928): at=11:19:15.575 alarm=4 event=trick_fake_tap n=1
+11-25 11:19:38.616 I/MorningFlow( 3928): at=11:19:38.616 alarm=4 event=trick_end seconds=23 fakes=1 expired=true
+11-25 11:19:38.630 I/MorningFlow( 3928): at=11:19:38.630 alarm=4 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 11:19:38.672 I/MorningFlow( 3928): at=11:19:38.672 alarm=4 event=escape_shown sentence=4 fresh=true posted=true
+11-25 11:19:46.703 I/MorningFlow( 3928): at=11:19:46.703 alarm=4 event=escape_sent result=wrong length_diff=1
+11-25 11:19:46.712 I/MorningFlow( 3928): at=11:19:46.712 alarm=- event=debug_escape escape Wrong
+11-25 11:19:49.675 I/MorningFlow( 3928): at=11:19:49.675 alarm=4 event=escape_sent result=correct length_diff=0
+11-25 11:19:49.689 I/MorningFlow( 3928): at=11:19:49.689 alarm=- event=debug_escape escape Correct
+11-25 11:19:49.696 I/MorningFlow( 3928): at=11:19:49.696 alarm=4 event=mission_escaped phase=InMission->AwaitingWakeCheck effects=EscapeUsed,StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 11:19:49.701 I/MorningFlow( 3928): at=11:19:49.701 alarm=4 event=escape_used month=2026-11 n=1
+11-25 11:20:00.874 I/MorningFlow( 3928): at=11:20:00.874 alarm=4 event=wake_up_closed
+11-25 11:21:03.203 I/MorningFlow( 3928): at=11:21:03.203 alarm=4 event=cancel_checks phase=AwaitingWakeCheck->- effects=StopSound,CancelTimer,WakeResultRecorded,SessionEnded
+11-25 11:21:03.277 I/MorningFlow( 3928): at=11:21:03.277 alarm=4 event=wake_result result=Cancelled rounds=0
+11-25 11:21:40.893 I/MorningFlow( 3928): at=11:21:40.893 alarm=- event=debug_wake_check wake check WakeCheckSettings(askAfterMinutes=1, answerSeconds=30, recheckEnabled=true, recheckMinutes=10, lab=LabSettings(trickEnabled=true, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=true, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000))
+11-25 11:21:41.090 I/MorningFlow( 3928): at=11:21:41.090 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=true, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000)
+11-25 11:21:41.305 I/MorningFlow( 3928): at=11:21:41.305 alarm=5 event=debug_case_scheduled case D alarm 5 at 11:22
+11-25 11:22:00.062 I/MorningFlow( 3928): at=11:22:00.062 alarm=5 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:22:09.272 I/MorningFlow( 3928): at=11:22:09.272 alarm=5 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 11:22:09.311 I/MorningFlow( 3928): at=11:22:09.311 alarm=5 event=escape_shown sentence=1 fresh=true posted=true
+11-25 11:22:20.313 I/MorningFlow( 3928): at=11:22:20.313 alarm=5 event=mission_completed phase=InMission->AwaitingWakeCheck effects=StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 11:22:22.580 I/MorningFlow( 3928): at=11:22:22.579 alarm=5 event=wake_up_closed
+11-25 11:23:20.376 I/MorningFlow( 3928): at=11:23:20.376 alarm=5 event=timer_wakecheckask phase=AwaitingWakeCheck->WakeCheckAsking effects=ShowWakeCheck,PlayChime,ScheduleTimer
+11-25 11:23:50.400 I/MorningFlow( 3928): at=11:23:50.400 alarm=5 event=timer_wakechecktimeout phase=WakeCheckAsking->Ringing effects=MultiAskRecorded,PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:23:50.411 I/MorningFlow( 3928): at=11:23:50.411 alarm=5 event=recheck_miss n=1/3
+11-25 11:24:02.224 I/MorningFlow( 3928): at=11:24:02.224 alarm=5 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 11:24:02.274 I/MorningFlow( 3928): at=11:24:02.274 alarm=5 event=escape_shown sentence=4 fresh=true posted=true
+11-25 11:24:14.202 I/MorningFlow( 3928): at=11:24:14.202 alarm=5 event=mission_completed phase=InMission->AwaitingWakeCheck effects=StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 11:24:16.426 I/MorningFlow( 3928): at=11:24:16.426 alarm=5 event=wake_up_closed
+11-25 11:25:14.241 I/MorningFlow( 3928): at=11:25:14.241 alarm=5 event=timer_wakecheckask phase=AwaitingWakeCheck->WakeCheckAsking effects=ShowWakeCheck,PlayChime,ScheduleTimer
+11-25 11:25:26.591 I/MorningFlow( 3928): at=11:25:26.591 alarm=5 event=wake_check_confirmed phase=WakeCheckAsking->AwaitingRecheck effects=MultiAskRecorded,StopSound,RecheckScheduled,ScheduleTimer
+11-25 11:25:26.600 I/MorningFlow( 3928): at=11:25:26.600 alarm=5 event=recheck_pass n=1/3
+11-25 11:25:26.600 I/MorningFlow( 3928): at=11:25:26.600 alarm=5 event=recheck_ask n=2/3 gap=12m at=11:26:38
+11-25 11:26:38.629 I/MorningFlow( 3928): at=11:26:38.629 alarm=5 event=timer_recheckask phase=AwaitingRecheck->RecheckAsking effects=ShowRecheck,PlayChime,ScheduleTimer
+11-25 11:28:23.800 I/MorningFlow( 3928): at=11:28:23.800 alarm=5 event=recheck_confirmed phase=RecheckAsking->AwaitingRecheck effects=MultiAskRecorded,StopSound,RecheckScheduled,ScheduleTimer
+11-25 11:28:23.809 I/MorningFlow( 3928): at=11:28:23.808 alarm=5 event=recheck_pass n=2/3
+11-25 11:28:23.809 I/MorningFlow( 3928): at=11:28:23.809 alarm=5 event=recheck_ask n=3/3 gap=11m at=11:29:29
+11-25 11:29:29.849 I/MorningFlow( 3928): at=11:29:29.849 alarm=5 event=timer_recheckask phase=AwaitingRecheck->RecheckAsking effects=ShowRecheck,PlayChime,ScheduleTimer
+11-25 11:29:43.710 I/MorningFlow( 3928): at=11:29:43.710 alarm=5 event=recheck_confirmed phase=RecheckAsking->- effects=MultiAskRecorded,StopSound,CancelTimer,WakeResultRecorded,SessionEnded
+11-25 11:29:43.718 I/MorningFlow( 3928): at=11:29:43.718 alarm=5 event=recheck_pass n=3/3
+11-25 11:29:43.719 I/MorningFlow( 3928): at=11:29:43.719 alarm=5 event=wake_result result=RecheckPassed rounds=1
+11-25 11:30:06.948 I/MorningFlow( 3928): at=11:30:06.947 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000)
+11-25 11:30:07.132 I/MorningFlow( 3928): at=11:30:07.132 alarm=6 event=debug_case_scheduled case A alarm 6 at 11:31
+11-25 11:31:00.103 I/MorningFlow( 3928): at=11:31:00.103 alarm=6 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:33:00.125 I/MorningFlow( 3928): at=11:33:00.125 alarm=6 event=timer_ringtimeout phase=Ringing->- effects=StopSound,CancelTimer,PostMissedNotification,SessionEnded
+11-25 11:33:08.833 I/MorningFlow( 3928): at=11:33:08.833 alarm=7 event=debug_case_scheduled case E alarm 7 at 11:34
+11-25 11:34:00.075 I/MorningFlow( 3928): at=11:34:00.075 alarm=7 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:34:37.012 I/MorningFlow( 3928): at=11:34:37.012 alarm=7 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 11:34:44.656 I/MorningFlow( 3928): at=11:34:44.656 alarm=- event=wake_up_closed
+11-25 11:34:44.902 I/MorningFlow( 3928): at=11:34:44.902 alarm=8 event=debug_case_scheduled case F alarm 8 at 11:35
+11-25 11:35:00.038 I/MorningFlow( 3928): at=11:35:00.038 alarm=8 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:35:09.846 I/MorningFlow( 3928): at=11:35:09.846 alarm=8 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 11:35:17.116 I/MorningFlow( 3928): at=11:35:17.116 alarm=- event=wake_up_closed
+11-25 11:35:17.337 I/MorningFlow( 3928): at=11:35:17.337 alarm=9 event=debug_case_scheduled case G alarm 9 at 11:36
+11-25 11:36:00.060 I/MorningFlow( 3928): at=11:36:00.060 alarm=9 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:38:00.085 I/MorningFlow( 3928): at=11:38:00.085 alarm=9 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 11:41:00.152 I/MorningFlow( 3928): at=11:41:00.151 alarm=9 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:41:13.795 I/MorningFlow( 3928): at=11:41:13.795 alarm=9 event=dismiss_without_mission phase=Ringing->- effects=StopSound,CancelTimer,ShowWakeUp,SessionEnded
+11-25 11:41:16.029 I/MorningFlow( 3928): at=11:41:16.029 alarm=- event=wake_up_closed
+11-25 11:41:17.279 I/MorningFlow( 3928): at=11:41:17.279 alarm=10 event=debug_case_scheduled case C alarm 10 at 11:42
+11-25 11:42:00.061 I/MorningFlow( 3928): at=11:42:00.061 alarm=10 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:42:20.241 I/MorningFlow( 3928): at=11:42:20.241 alarm=10 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 11:42:20.277 I/MorningFlow( 3928): at=11:42:20.277 alarm=10 event=escape_shown sentence=6 fresh=true posted=true
+11-25 11:43:19.272 I/MorningFlow( 3928): at=11:43:19.272 alarm=10 event=timer_missiontimeout phase=InMission->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:43:29.267 I/MorningFlow( 3928): at=11:43:29.267 alarm=10 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer
+11-25 11:44:07.971 I/MorningFlow( 3928): at=11:44:07.971 alarm=10 event=escape_sent result=correct length_diff=0
+11-25 11:44:07.978 I/MorningFlow( 3928): at=11:44:07.978 alarm=- event=debug_escape escape Correct
+11-25 11:44:07.990 I/MorningFlow( 3928): at=11:44:07.990 alarm=10 event=mission_escaped phase=InMission->- effects=EscapeUsed,StopSound,CancelTimer,ShowWakeUp,ClearEscape,SessionEnded
+11-25 11:44:07.993 I/MorningFlow( 3928): at=11:44:07.993 alarm=10 event=escape_used month=2026-11 n=2
+11-25 11:44:10.216 I/MorningFlow( 3928): at=11:44:10.216 alarm=- event=wake_up_closed
+11-25 11:45:31.835 I/MorningFlow( 3928): at=11:45:31.835 alarm=11 event=debug_case_scheduled case B alarm 11 at 11:46
+11-25 11:46:00.042 I/MorningFlow( 3928): at=11:46:00.041 alarm=11 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 11:48:00.062 I/MorningFlow( 3928): at=11:48:00.062 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 11:51:00.127 I/MorningFlow( 3928): at=11:51:00.126 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:53:00.154 I/MorningFlow( 3928): at=11:53:00.153 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 11:56:00.219 I/MorningFlow( 3928): at=11:56:00.219 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 11:58:00.247 I/MorningFlow( 3928): at=11:58:00.247 alarm=11 event=timer_ringtimeout phase=Ringing->Resting effects=StopSound,RestStarted,ScheduleTimer
+11-25 12:01:00.320 I/MorningFlow( 3928): at=12:01:00.320 alarm=11 event=timer_restended phase=Resting->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer
+11-25 12:03:00.347 I/MorningFlow( 3928): at=12:03:00.347 alarm=11 event=timer_ringtimeout phase=Ringing->- effects=StopSound,CancelTimer,PostMissedNotification,SessionEnded
+11-25 12:03:07.889 I/MorningFlow( 3928): at=12:03:07.889 alarm=- event=debug_wake_check wake check WakeCheckSettings(askAfterMinutes=5, answerSeconds=30, recheckEnabled=true, recheckMinutes=10, lab=LabSettings(trickEnabled=false, trickLevel=Strong, trickSpeed=Fast, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=6000))
+11-25 12:03:08.069 I/MorningFlow( 3928): at=12:03:08.069 alarm=- event=debug_lab lab LabSettings(trickEnabled=false, trickLevel=Normal, trickSpeed=Normal, multiAskEnabled=false, multiAskCount=3, escapeHidden=false, debugMinuteMillis=60000)

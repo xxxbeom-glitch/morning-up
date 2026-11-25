@@ -1,0 +1,20 @@
+--------- beginning of main
+11-25 15:20:03.419 27043 27157 I MorningFlow: at=15:20:03.419 alarm=29 event=debug_case_scheduled case A alarm 29 at 16:00 silent
+11-25 15:23:40.553 27043 27157 I MorningFlow: at=15:23:40.553 alarm=30 event=debug_case_scheduled case D alarm 30 at 15:24 silent
+11-25 15:24:00.063 27043 27158 I MorningFlow: at=15:24:00.063 alarm=30 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 15:25:25.010 27043 27157 I MorningFlow: at=15:25:25.009 alarm=30 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 15:25:25.070 27043 27157 I MorningFlow: at=15:25:25.070 alarm=30 event=escape_shown sentence=17 fresh=true posted=true
+11-25 15:25:38.580 27043 27156 I MorningFlow: at=15:25:38.579 alarm=30 event=mission_completed phase=InMission->AwaitingWakeCheck effects=StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 15:25:50.665 27043 27043 I MorningFlow: at=15:25:50.665 alarm=30 event=wake_up_closed
+11-25 15:26:07.404 27043 27043 I MorningFlow: at=15:26:07.404 alarm=30 event=cancel_checks phase=AwaitingWakeCheck->- effects=StopSound,CancelTimer,WakeResultRecorded,SessionEnded
+11-25 15:26:07.431 27043 27043 I MorningFlow: at=15:26:07.431 alarm=30 event=wake_result result=Cancelled rounds=0
+11-25 15:28:55.199 27043 27155 I MorningFlow: at=15:28:55.199 alarm=34 event=debug_case_scheduled case D alarm 34 at 15:29 silent
+11-25 15:29:00.235 27043 27158 I MorningFlow: at=15:29:00.235 alarm=34 event=fired phase=-->Ringing effects=PlaySound,ShowRingScreen,ScheduleTimer,RescheduleAlarm
+11-25 15:29:08.437 27043 27156 I MorningFlow: at=15:29:08.437 alarm=34 event=mission_started phase=Ringing->InMission effects=StopSound,ShowMission,ScheduleTimer,ShowEscape
+11-25 15:29:08.509 27043 27158 I MorningFlow: at=15:29:08.509 alarm=34 event=escape_shown sentence=18 fresh=true posted=true
+11-25 15:29:26.635 27043 27155 I MorningFlow: at=15:29:26.635 alarm=34 event=mission_completed phase=InMission->AwaitingWakeCheck effects=StopSound,ShowWakeUp,ScheduleTimer,ClearEscape
+11-25 15:29:29.400 27043 27043 I MorningFlow: at=15:29:29.400 alarm=34 event=wake_up_closed
+11-25 15:30:02.174 27043 27043 I MorningFlow: at=15:30:02.174 alarm=34 event=cancel_checks phase=AwaitingWakeCheck->- effects=StopSound,CancelTimer,WakeResultRecorded,SessionEnded
+11-25 15:30:02.199 27043 27043 I MorningFlow: at=15:30:02.199 alarm=34 event=wake_result result=Cancelled rounds=0
+11-25 15:32:42.923 27043 27149 I MorningFlow: at=15:32:42.922 alarm=35 event=debug_case_scheduled case A alarm 35 at 16:12 silent
+11-25 15:32:43.102 27043 27149 I MorningFlow: at=15:32:43.102 alarm=36 event=debug_case_scheduled case A alarm 36 at 16:17 silent
