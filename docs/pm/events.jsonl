@@ -655,3 +655,10 @@
 {"at": "2026-11-25 16:46:49", "by": "[개발 19]", "id": "TSK-202", "action": "set", "changes": {"commits": [[], ["e7c10e8"]]}}
 {"at": "2026-11-25 16:46:50", "by": "[개발 19]", "id": "TSK-203", "action": "set", "changes": {"commits": [[], ["122f288"]]}}
 {"at": "2026-11-25 16:46:57", "by": "[개발 19]", "id": "TSK-205", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-25"]}}
+{"at": "2026-11-25 16:54:05", "by": "[개발 19]", "id": "TSK-205", "action": "set", "changes": {"commits": [[], ["8cee221"]]}}
+{"at": "2026-11-25 16:54:11", "by": "[개발 19]", "id": "TSK-202", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["e7c10e8: 새 알람 다시 울림 처음 켬(5분 3회), 울리는 알람 카드와 편집 저장 막기와 토스트, 쉬는 중 뒤 알람 울림, 홈 띠 2개, W3 1시간 끝 글. 단위 시험 통과, 폰 확인은 QA 1"]]}}
+{"at": "2026-11-25 16:54:11", "by": "[개발 19]", "id": "TSK-203", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["122f288: ADR과 결정 146, 149의 울림 60초를 2분으로, 미션 중 20%를 소리 끔으로. 문서만"]]}}
+{"at": "2026-11-25 16:54:12", "by": "[개발 19]", "id": "TSK-205", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["8cee221: 최근 사흘 단어를 기기에 남겨 다음 날 같은 단계에서 뒤로 미룸, 모자라면 오래된 것부터. 사흘 연속 안 겹침 단위 시험"]]}}
+{"at": "2026-11-25 16:54:37", "by": "[개발 19]", "id": "TSK-206", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-25"]}}
+{"at": "2026-11-25 16:54:42", "by": "Leader", "id": "TSK-207", "action": "create", "changes": {"id": [null, "TSK-207"], "wbs": [null, "4.65"], "parent": [null, "TSK-004"], "title": [null, "실험실 다시 잠들기 방지 안내와 이름, 알림 권한 배너 글 반영하기"], "area": [null, "dev"], "reviewer": [null, "QA"], "status": [null, "todo"]}}
+{"at": "2026-11-25 16:54:51", "by": "Leader", "id": "TSK-207", "action": "set", "changes": {"owner": [null, "[개발 19]"], "reviewer": ["QA", "[QA 1]"], "due": [null, "2026-11-26"], "decisions": [[], ["164", "167"]], "acceptance": [[], ["켜진 알람 중 다시 잠들기 방지 켠 알람이 없으면 T1 카드 아래와 T3 여러 번 묻기 둘째 줄에 안내", "T1 카드 이름 '다시 잠들기 방지'", "O2-1, H2 알림 배너에 '미션을 못 할 때 끄는 길도 알림으로 와요'", "시험, 빌드 통과"]]}}
