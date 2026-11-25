@@ -20,9 +20,9 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 시계 아이콘.
-            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_clock"
-            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_clock_round"
+            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 앱 아이콘(11-25 지발좀 인나유, TSK-188).
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_app"
+            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_app_round"
             buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             buildConfigField("boolean", "MISSION_ONLY", "false")
         }
@@ -51,9 +51,9 @@ android {
             buildConfigField("boolean", "MISSION_ONLY", "true")
         }
         release {
-            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 시계 아이콘.
-            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_clock"
-            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_clock_round"
+            // 앱 아이콘(11-21 사용자 확정 "앱 아이콘 모닝업 앱 1개에만 적용"): 원래 앱(debug, release)만 앱 아이콘(11-25 지발좀 인나유, TSK-188).
+            manifestPlaceholders["appIcon"] = "@mipmap/ic_launcher_app"
+            manifestPlaceholders["appRoundIcon"] = "@mipmap/ic_launcher_app_round"
             buildConfigField("boolean", "ONBOARDING_ONLY", "false")
             buildConfigField("boolean", "MISSION_ONLY", "false")
             isMinifyEnabled = true
