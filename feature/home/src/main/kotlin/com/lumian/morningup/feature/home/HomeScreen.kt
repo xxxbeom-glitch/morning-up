@@ -338,7 +338,7 @@ private fun AlarmList(
                 look = CardLook(
                     shownOn = state.shownOn(alarm),
                     restOffer = selection == null && state.showsRestOffer(alarm),
-                    restingDay = state.resting[alarm.id].takeIf { selection == null },
+                    resting = state.resting[alarm.id].takeIf { selection == null },
                     selected = selection?.contains(alarm.id),
                     ringsToday = state.time?.let { alarm.time > it } ?: true,
                 ),
@@ -362,7 +362,7 @@ private fun AlarmList(
 private data class CardLook(
     val shownOn: Boolean,
     val restOffer: Boolean = false,
-    val restingDay: DayOfWeek? = null,
+    val resting: RestLabel? = null,
     /** null이면 선택 모드가 아니에요. */
     val selected: Boolean? = null,
     /** 반복 없는 알람이 오늘 울리는지(아니면 내일). 요일 줄 글자에 써요. */
@@ -414,9 +414,14 @@ private fun AlarmCard(
                 Spacer(Modifier.width(MorningDimens.space16))
             }
             Column(Modifier.weight(1f)) {
-                look.restingDay?.let { day ->
+                look.resting?.let { label ->
                     Text(
-                        text = stringResource(R.string.home_resting, AlarmText.dayShort(res, day)),
+                        text = when (label) {
+                            is RestLabel.InMinutes -> stringResource(R.string.home_resting_minutes, label.minutes)
+                            is RestLabel.InHours -> stringResource(R.string.home_resting_hours, label.hours)
+                            is RestLabel.OnDay ->
+                                stringResource(R.string.home_resting, AlarmText.dayShort(res, label.day))
+                        },
                         style = MorningTheme.typography.captionStrong,
                         color = colors.statusError,
                     )

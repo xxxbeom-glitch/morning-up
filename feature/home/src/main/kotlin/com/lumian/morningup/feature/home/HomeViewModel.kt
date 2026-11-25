@@ -15,9 +15,11 @@ import com.lumian.morningup.core.model.engine.NextRingCalculator
 import com.lumian.morningup.core.model.engine.TimeUntil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -45,6 +47,33 @@ sealed interface HomeMessage {
     data object ChecksStopped : HomeMessage
 }
 
+/**
+ * 쉬는 중 카드 글(결정 154). 다음 울림까지 1시간 안이면 [InMinutes](올림, 최소 1분),
+ * 24시간 안이면 [InHours](내림), 넘으면 [OnDay]예요.
+ */
+sealed interface RestLabel {
+    data class InMinutes(val minutes: Long) : RestLabel
+
+    data class InHours(val hours: Long) : RestLabel
+
+    data class OnDay(val day: DayOfWeek) : RestLabel
+
+    companion object {
+        private const val MINUTES_PER_HOUR = 60L
+        private const val HOURS_PER_DAY = 24L
+
+        /** [now]부터 [ring]까지. 초는 버린 지금 시각으로 세서 남은 분이 올림이 돼요. */
+        fun between(now: ZonedDateTime, ring: ZonedDateTime): RestLabel {
+            val minutes = Duration.between(now.truncatedTo(ChronoUnit.MINUTES), ring).toMinutes()
+            return when {
+                minutes < MINUTES_PER_HOUR -> InMinutes(minutes.coerceAtLeast(1))
+                minutes < MINUTES_PER_HOUR * HOURS_PER_DAY -> InHours(minutes / MINUTES_PER_HOUR)
+                else -> OnDay(ring.dayOfWeek)
+            }
+        }
+    }
+}
+
 data class HomeUiState(
     val loading: Boolean = true,
     val alarms: List<Alarm> = emptyList(),
@@ -60,8 +89,8 @@ data class HomeUiState(
     val message: HomeMessage? = null,
     /** H8 Rest Offer: 이 화면에서 방금 끈 반복 알람. 카드 아래 '이번만 쉬기'가 붙어요. */
     val restOffers: Set<Long> = emptySet(),
-    /** H8 Resting: '이번만 쉬기' 중인 알람과 다시 울릴 요일. 토글은 꺼진 모양으로 보여요. */
-    val resting: Map<Long, DayOfWeek> = emptyMap(),
+    /** H8 Resting: '이번만 쉬기' 중인 알람과 다시 울릴 때까지의 글. 토글은 꺼진 모양으로 보여요. */
+    val resting: Map<Long, RestLabel> = emptyMap(),
     /** H3-1 선택 모드에서 고른 알람. null이면 선택 모드가 아니에요. */
     val selection: Set<Long>? = null,
 ) {
@@ -99,6 +128,8 @@ class HomeViewModel @Inject constructor(
         val message: HomeMessage? = null,
         val restOffers: Set<Long> = emptySet(),
         val selection: Set<Long>? = null,
+        /** 울리는 중이거나 남은 확인을 기다리던 중에 끈 알람. 이 '이번만 쉬기'는 오늘 것을 쉰 걸로 쳐요(결정 154). */
+        val restToday: Set<Long> = emptySet(),
         /** 지금 알림이 닫히면 이어서 띄울 것. 삭제 스낵바 뒤 '남은 확인을 멈췄어요' 토스트예요(결정 153). */
         val queued: HomeMessage? = null,
     )
@@ -125,21 +156,44 @@ class HomeViewModel @Inject constructor(
             pendingDelete = o.pendingDelete,
             message = o.message,
             restOffers = o.restOffers,
-            resting = alarms.mapNotNull { a -> restingDay(a, at)?.let { a.id to it } }.toMap(),
+            resting = alarms.mapNotNull { a -> restingLabel(a, at)?.let { a.id to it } }.toMap(),
             selection = o.selection?.filterTo(LinkedHashSet()) { it in ids },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HomeUiState())
 
     /**
-     * '이번만 쉬기'가 바로 다음 울림을 건너뛰고 있으면 그다음 울릴 요일. 건너뛸 날이 이미 지났거나
-     * 다음 울림과 상관없으면 null이라 보통 카드로 돌아가요.
+     * '이번만 쉬기' 중이면 다시 울릴 때까지의 글. 아니면 null이라 보통 카드로 돌아가요. 쉬는 중은 두 가지예요.
+     * - 바로 다음 울림을 건너뛰는 중([Alarm.skipOnceDate]가 그날).
+     * - 울린 뒤 끄고 쉬어서 오늘 것을 쉰 걸로 친 경우([Alarm.skipOnceDate]가 이미 울린 그날). 그다음 울림 전까지예요.
      */
-    private fun restingDay(alarm: Alarm, at: ZonedDateTime): DayOfWeek? {
-        val skip = alarm.skipOnceDate
-        val active = skip != null && alarm.enabled && alarm.isRepeating
-        val skipsNext = active &&
-            NextRingCalculator.next(alarm.copy(skipOnceDate = null), at, holidays)?.toLocalDate() == skip
-        return if (skipsNext) NextRingCalculator.next(alarm, at, holidays)?.dayOfWeek else null
+    private fun restingLabel(alarm: Alarm, at: ZonedDateTime): RestLabel? {
+        val skip = alarm.skipOnceDate?.takeIf { alarm.enabled && alarm.isRepeating } ?: return null
+        val plain = alarm.copy(skipOnceDate = null)
+        val upcoming = NextRingCalculator.next(plain, at, holidays)
+        val resting = upcoming != null &&
+            (upcoming.toLocalDate() == skip || restedOn(plain, skip, at, upcoming))
+        val ring = if (resting) NextRingCalculator.next(alarm, at, holidays) else null
+        return ring?.let { RestLabel.between(at, it) }
+    }
+
+    /** [skip]날 울림이 이미 지났고, 그 뒤 첫 울림이 [upcoming]인지. 그 사이에 다른 울림이 지났으면 쉬기는 끝났어요. */
+    private fun restedOn(plain: Alarm, skip: LocalDate, at: ZonedDateTime, upcoming: ZonedDateTime): Boolean {
+        val dayStart = skip.atStartOfDay(at.zone).minusSeconds(1)
+        val rang = NextRingCalculator.next(plain, dayStart, holidays) ?: return false
+        if (rang.toLocalDate() != skip || rang.isAfter(at)) return false
+        return NextRingCalculator.next(plain, rang, holidays) == upcoming
+    }
+
+    /** [now]까지 마지막으로 울릴 차례였던 날. 자정을 넘겨 확인 중이어도 울린 그날이에요. */
+    private fun lastRingDate(alarm: Alarm, now: ZonedDateTime): LocalDate? {
+        val plain = alarm.copy(enabled = true, skipOnceDate = null)
+        var last: ZonedDateTime? = null
+        var ring = NextRingCalculator.next(plain, now.minusDays(LOOK_BACK_DAYS), holidays)
+        while (ring != null && !ring.isAfter(now)) {
+            last = ring
+            ring = NextRingCalculator.next(plain, ring, holidays)
+        }
+        return last?.toLocalDate()
     }
 
     /**
@@ -179,8 +233,13 @@ class HomeViewModel @Inject constructor(
     fun setEnabled(alarm: Alarm, enabled: Boolean) {
         val resting = alarm.id in uiState.value.resting
         val offer = !enabled && alarm.isRepeating
+        // 끄기 직전에 울리는 중이거나 남은 확인을 기다렸는지 봐요. 끄면 확인이 멈춰서 나중엔 알 수 없어요(결정 154).
+        val today = offer && checks.isActive(alarm.id)
         overlay.update {
-            it.copy(restOffers = if (offer) it.restOffers + alarm.id else it.restOffers - alarm.id)
+            it.copy(
+                restOffers = if (offer) it.restOffers + alarm.id else it.restOffers - alarm.id,
+                restToday = if (today) it.restToday + alarm.id else it.restToday - alarm.id,
+            )
         }
         viewModelScope.launch {
             when {
@@ -202,12 +261,21 @@ class HomeViewModel @Inject constructor(
 
     private fun showChecksStopped() = overlay.update { it.copy(message = HomeMessage.ChecksStopped) }
 
-    /** H8 '이번만 쉬기': 다시 켜되 바로 다음 한 번만 쉬어요. */
+    /**
+     * H8 '이번만 쉬기': 다시 켜되 한 번만 쉬어요(결정 154). 울리는 중이거나 남은 확인을 기다리다 끈 알람이면
+     * 오늘 울린 것을 쉰 걸로 치고 다음 정상 울림은 그대로 둬요. 그 밖에는 바로 다음 한 번을 건너뛰어요.
+     */
     fun restOnce(alarm: Alarm) {
-        overlay.update { it.copy(restOffers = it.restOffers - alarm.id) }
+        val today = alarm.id in overlay.value.restToday
+        overlay.update { it.copy(restOffers = it.restOffers - alarm.id, restToday = it.restToday - alarm.id) }
         viewModelScope.launch {
             val on = alarm.copy(enabled = true, skipOnceDate = null)
-            val skip = NextRingCalculator.next(on, now.now(), holidays)?.toLocalDate()
+            val at = now.now()
+            val skip = if (today) {
+                lastRingDate(on, at)
+            } else {
+                NextRingCalculator.next(on, at, holidays)?.toLocalDate()
+            }
             book.save(on.copy(skipOnceDate = skip))
         }
     }
@@ -221,7 +289,11 @@ class HomeViewModel @Inject constructor(
     private fun turnOff(alarms: List<Alarm>) {
         val state = uiState.value
         val targets = alarms.filter { state.shownOn(it) }
-        overlay.update { o -> o.copy(restOffers = o.restOffers + targets.filter { it.isRepeating }.map { it.id }) }
+        val repeating = targets.filter { it.isRepeating }.map { it.id }.toSet()
+        val today = repeating.filter { checks.isActive(it) }.toSet()
+        overlay.update { o ->
+            o.copy(restOffers = o.restOffers + repeating, restToday = o.restToday - repeating + today)
+        }
         viewModelScope.launch {
             val stopped = stopChecks(targets.map { it.id })
             targets.forEach { book.setEnabled(it.id, false) }
@@ -232,7 +304,8 @@ class HomeViewModel @Inject constructor(
     private fun turnOn(alarms: List<Alarm>) {
         val state = uiState.value
         val targets = alarms.filterNot { state.shownOn(it) }
-        overlay.update { o -> o.copy(restOffers = o.restOffers - targets.map { it.id }.toSet()) }
+        val ids = targets.map { it.id }.toSet()
+        overlay.update { o -> o.copy(restOffers = o.restOffers - ids, restToday = o.restToday - ids) }
         viewModelScope.launch {
             targets.forEach {
                 if (it.id in state.resting) book.save(it.copy(skipOnceDate = null)) else book.setEnabled(it.id, true)
@@ -330,5 +403,8 @@ class HomeViewModel @Inject constructor(
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L
+
+        /** 마지막 울림을 찾을 때 거슬러 보는 날 수. 매주 한 번인 알람도 넘어요. */
+        const val LOOK_BACK_DAYS = 8L
     }
 }

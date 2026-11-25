@@ -102,7 +102,7 @@ class HomeScreenTest {
                 alarms = listOf(resting, weekly),
                 today = today,
                 restOffers = setOf(2L),
-                resting = mapOf(3L to DayOfWeek.WEDNESDAY),
+                resting = mapOf(3L to RestLabel.OnDay(DayOfWeek.WEDNESDAY)),
             ),
         )
         compose.onNodeWithText("이번만 쉬기").assertExists()

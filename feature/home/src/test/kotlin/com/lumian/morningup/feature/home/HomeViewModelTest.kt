@@ -271,6 +271,100 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun restOnce_afterRingWhileChecksPending_restsToday_andRingsNextNormalDay() = runTest {
+        // 수요일 06:30 알람이 울린 뒤 07:00, 남은 확인을 기다리는 중이에요.
+        clock = ZonedDateTime.of(2026, 11, 18, 7, 0, 0, 0, seoul)
+        checks.pendingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.alarms.first().enabled) state = awaitItem()
+            // 토글로 끄면서 확인은 멈췄지만, '이번만 쉬기'는 끄기 직전 상태로 판단해요.
+            assertThat(checks.pendingFor).isEmpty()
+            vm.restOnce(state.alarms.first())
+            while (1L !in state.resting) state = awaitItem()
+            assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 18))
+            // 목요일 06:30까지 23시간 30분이라 '23시간 뒤'예요.
+            assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
+            assertThat(state.resting[1L]).isEqualTo(RestLabel.InHours(23))
+            assertThat(state.shownOn(state.alarms.first())).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun restOnce_whileRinging_restsToday() = runTest {
+        clock = ZonedDateTime.of(2026, 11, 18, 6, 31, 0, 0, seoul)
+        checks.ringingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.alarms.first().enabled) state = awaitItem()
+            vm.restOnce(state.alarms.first())
+            while (1L !in state.resting) state = awaitItem()
+            assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 19))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun restOnce_afterChecksEnded_skipsNextRing() = runTest {
+        // 수요일 07:00이지만 남은 확인이 없어요(이미 끝남). 지금처럼 다음 한 번(목요일)을 쉬어요.
+        clock = ZonedDateTime.of(2026, 11, 18, 7, 0, 0, 0, seoul)
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.alarms.first().enabled) state = awaitItem()
+            vm.restOnce(state.alarms.first())
+            while (1L !in state.resting) state = awaitItem()
+            assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
+            assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 20))
+            assertThat(state.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.FRIDAY))
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun restedToday_endsAfterNextRing() = runTest {
+        // 수요일 것을 쉰 걸로 친 알람이 목요일 06:30에 울리고 나면 보통 카드로 돌아가요.
+        clock = ZonedDateTime.of(2026, 11, 19, 6, 31, 0, 0, seoul)
+        val rested = a630.copy(skipOnceDate = LocalDate.of(2026, 11, 18))
+        val vm = viewModel(FakeAlarmBook(listOf(rested)))
+        vm.uiState.test {
+            val state = awaitItem().let { if (it.loading) awaitItem() else it }
+            assertThat(state.resting).isEmpty()
+        }
+    }
+
+    @Test
+    fun restLabel_boundaries() {
+        val ring = ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul)
+        fun at(minutesBefore: Long, seconds: Long = 0) = ring.minusMinutes(minutesBefore).plusSeconds(seconds)
+        // 24시간 넘으면 요일, 딱 24시간도 요일이에요.
+        assertThat(RestLabel.between(at(24 * 60 + 1), ring)).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
+        assertThat(RestLabel.between(at(24 * 60), ring)).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
+        // 23시간 59분은 내림해 23시간이에요.
+        assertThat(RestLabel.between(at(24 * 60 - 1), ring)).isEqualTo(RestLabel.InHours(23))
+        // 딱 1시간은 '1시간 뒤', 59분은 '59분 뒤'예요.
+        assertThat(RestLabel.between(at(60), ring)).isEqualTo(RestLabel.InHours(1))
+        assertThat(RestLabel.between(at(59), ring)).isEqualTo(RestLabel.InMinutes(59))
+        // 분은 올림이에요. 58분 30초 남으면 59분, 1분 30초 남으면 2분이에요.
+        assertThat(RestLabel.between(at(59, 30), ring)).isEqualTo(RestLabel.InMinutes(59))
+        assertThat(RestLabel.between(at(2, 30), ring)).isEqualTo(RestLabel.InMinutes(2))
+        // 30초 남아도 0분이 아니라 1분이에요.
+        assertThat(RestLabel.between(ring.minusSeconds(30), ring)).isEqualTo(RestLabel.InMinutes(1))
+    }
+
+    @Test
     fun recheckBanner_followsGate_andOpensW3() = runTest {
         val vm = viewModel(FakeAlarmBook(listOf(a630)))
         vm.recheckPending.test {
@@ -295,7 +389,8 @@ class HomeViewModelTest {
             while (1L !in state.resting) state = awaitItem()
             // 월요일 밤에 쉬면 화요일 한 번만 쉬고 수요일에 다시 울려요.
             assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 17))
-            assertThat(state.resting[1L]).isEqualTo(DayOfWeek.WEDNESDAY)
+            // 월요일 23:10부터 수요일 06:30까지 31시간 20분이라 요일로 보여요.
+            assertThat(state.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.WEDNESDAY))
             assertThat(state.shownOn(state.alarms.first())).isFalse()
             assertThat(state.restOffers).isEmpty()
             assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 18))

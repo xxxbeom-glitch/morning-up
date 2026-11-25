@@ -60,6 +60,12 @@ interface WakeCheckGate {
     /** 실험실 여러 번 묻기의 남은 확인 수. 여러 번 묻기가 아니면 null이에요(띠 글이 '한 번 더 확인이 2번 남았어요'). */
     val recheckLeft: Flow<Int?> get() = flowOf(null)
 
+    /**
+     * [alarmId]가 지금 울리는 중이거나 울린 뒤 남은 확인(W2, W3)을 기다리는 중인지.
+     * 이때 끈 알람의 '이번만 쉬기'는 오늘 것을 쉰 걸로 쳐요(결정 154).
+     */
+    fun isActive(alarmId: Long): Boolean = false
+
     /** [alarmId]의 남은 확인을 모두 멈춰요. 멈춘 것이 있으면 true예요. */
     suspend fun cancelFor(alarmId: Long): Boolean
 

@@ -29,6 +29,8 @@ class RingWakeCheckGate @Inject constructor(
         .map { session -> session?.takeIf { it.canFinishEarly }?.checksLeft }
         .distinctUntilChanged()
 
+    override fun isActive(alarmId: Long): Boolean = controller.session.value?.plan?.alarmId == alarmId
+
     override suspend fun cancelFor(alarmId: Long): Boolean {
         val before = controller.session.value
         if (before?.plan?.alarmId != alarmId || !before.phase.isCheck) return false
