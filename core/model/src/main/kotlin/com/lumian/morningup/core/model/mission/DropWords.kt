@@ -62,6 +62,8 @@ sealed interface DropInput {
  * - 정답마다 키패드를 새로 만들어요(그 순간 떠 있는 단어 음절 + 가짜 음절). 치는 도중에는 키패드를 바꾸지 않고,
  *   입력이 비어 있을 때 새 단어 음절이 빠져 있으면 그 음절만 제자리에 끼워 넣어요.
  * - 맞힌 단어가 [target]개가 되면 끝나요.
+ * - 최근 사흘 동안 낸 단어([avoid], 오래된 것부터)는 처음 섞을 때 맨 뒤로 보내요. 새 단어가 모자랄 때만 오래된 것부터
+ *   다시 나와요(TSK-205). 단어를 내릴 때마다 [onDrawn]으로 알려 기록하게 해요.
  */
 class DropWordsGame(
     level: Int,
@@ -69,6 +71,8 @@ class DropWordsGame(
     target: Int,
     words: List<String>,
     private val random: Random,
+    avoid: List<String> = emptyList(),
+    private val onDrawn: (String) -> Unit = {},
 ) {
     private val range = MissionSetting.rangeOf(MissionType.DropWords)
     private val level = level.coerceIn(range.levels)
@@ -79,7 +83,7 @@ class DropWordsGame(
     private val fallMillis = DropWordsSpeed.fallMillis(speed)
     private val maxWords = DropWordsSpeed.maxWords(speed)
     private val bank = words.filter(Hangul::isHangulWord).distinct().ifEmpty { error("단어가 없어요") }
-    private var deck = ArrayDeque<String>()
+    private var deck = firstDeck(avoid)
 
     /** 바로 전에 내린 단어. 다시 섞을 때 맨 앞에 오면 뒤로 보내 연달아 같은 단어가 나오지 않게 해요(11-19 사용자 지시 7). */
     private var lastDrawn: String? = null
@@ -166,9 +170,22 @@ class DropWordsGame(
         repeat(bank.size * 2) {
             if (deck.isEmpty()) deck = reshuffled()
             val next = deck.removeFirst()
-            if (next !in onScreen) return next.also { lastDrawn = it }
+            if (next !in onScreen) return drawn(next)
         }
-        return bank.random(random).also { lastDrawn = it }
+        return drawn(bank.random(random))
+    }
+
+    private fun drawn(word: String): String {
+        lastDrawn = word
+        onDrawn(word)
+        return word
+    }
+
+    /** 처음 덱: 최근에 안 낸 단어를 섞어 앞에, 최근에 낸 단어는 오래된 것부터 뒤에 둬요. */
+    private fun firstDeck(avoid: List<String>): ArrayDeque<String> {
+        val recent = avoid.filter { it in bank }.distinct()
+        val fresh = bank.filterNot { it in recent.toSet() }
+        return ArrayDeque(fresh.shuffled(random) + recent)
     }
 
     private fun reshuffled(): ArrayDeque<String> {

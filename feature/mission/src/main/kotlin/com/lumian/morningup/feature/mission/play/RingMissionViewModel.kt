@@ -6,6 +6,7 @@ import com.lumian.morningup.core.alarm.ring.RingLink
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
+import com.lumian.morningup.core.model.mission.DropWordHistory
 import com.lumian.morningup.feature.mission.InteractionSignal
 import com.lumian.morningup.feature.mission.MissionRandom
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,8 @@ class RingMissionViewModel @Inject constructor(
     now: NowProvider,
     @MissionRandom random: Random,
     contentSource: MissionContentSource,
-) : MissionHostViewModel(now, random, contentSource) {
+    history: DropWordHistory,
+) : MissionHostViewModel(now, random, contentSource, history) {
     private val signal = InteractionSignal(viewModelScope) { link.send(RingEvent.MissionInteraction) }
 
     /** 지금 판이 어느 미션(울림, 몇 번째)의 것인지. */

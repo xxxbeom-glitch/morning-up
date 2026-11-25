@@ -3,6 +3,7 @@ package com.lumian.morningup.feature.mission.play
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.mission.DropInput
+import com.lumian.morningup.core.model.mission.DropWordHistory
 import com.lumian.morningup.core.model.mission.DropWordsGame
 import com.lumian.morningup.core.model.mission.DropWordsState
 import com.lumian.morningup.core.model.mission.FallingWord
@@ -93,7 +94,13 @@ enum class Outcome { Ignored, Interacted, Finished }
  * 미션 한 판을 돌려요(울림과 미리보기가 같이 써요). 규칙은 :core:model의 순수 게임이 정하고,
  * 여기서는 조작을 게임에 넘기고 화면 상태([play])와 피드백 번호만 관리해요.
  */
-class MissionRunner(setting: MissionSetting, content: MissionContent, random: Random, nowMillis: Long) {
+class MissionRunner(
+    setting: MissionSetting,
+    content: MissionContent,
+    random: Random,
+    nowMillis: Long,
+    history: DropWordHistory = DropWordHistory.None,
+) {
     private val normalized = setting.normalized()
     private var feedbackId = 0
 
@@ -116,7 +123,16 @@ class MissionRunner(setting: MissionSetting, content: MissionContent, random: Ra
         }
     private val drop: DropWordsGame? =
         if (normalized.type == MissionType.DropWords) {
-            DropWordsGame(normalized.level, normalized.speed, normalized.count, content.words(normalized.level), random)
+            DropWordsGame(
+                level = normalized.level,
+                speed = normalized.speed,
+                target = normalized.count,
+                words = content.words(normalized.level),
+                random = random,
+                // 최근 사흘 동안 낸 단어는 뒤로 미루고, 낸 단어는 기록해요(TSK-205).
+                avoid = history.recent(normalized.level),
+                onDrawn = { history.record(normalized.level, it) },
+            )
         } else {
             null
         }

@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.engine.RingStateMachine
+import com.lumian.morningup.core.model.mission.DropWordHistory
 import com.lumian.morningup.core.model.mission.MathKey
 import kotlin.random.Random
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,6 +39,7 @@ abstract class MissionHostViewModel(
     protected val now: NowProvider,
     private val random: Random,
     private val contentSource: MissionContentSource,
+    private val history: DropWordHistory = DropWordHistory.None,
 ) : ViewModel() {
     protected val state = MutableStateFlow(MissionUiState())
     val uiState: StateFlow<MissionUiState> = state.asStateFlow()
@@ -48,7 +50,7 @@ abstract class MissionHostViewModel(
 
     /** [index]번째 미션을 바로 열어요. */
     protected fun open(setting: MissionSetting, index: Int, total: Int, timerEndsAt: Long) {
-        val next = MissionRunner(setting, contentSource.load(), random, now.millis())
+        val next = MissionRunner(setting, contentSource.load(), random, now.millis(), history)
         runner = next
         pending = null
         state.update {

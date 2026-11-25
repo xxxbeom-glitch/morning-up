@@ -1,6 +1,8 @@
 package com.lumian.morningup.feature.mission
 
+import com.lumian.morningup.core.model.mission.DropWordHistory
 import com.lumian.morningup.feature.mission.play.MissionContentSource
+import com.lumian.morningup.feature.mission.play.PrefsDropWordHistory
 import com.lumian.morningup.feature.mission.play.RawMissionContentSource
 import dagger.Binds
 import dagger.Module
@@ -28,4 +30,7 @@ object MissionModule {
 interface MissionBindings {
     @Binds
     fun content(impl: RawMissionContentSource): MissionContentSource
+
+    @Binds
+    fun dropWordHistory(impl: PrefsDropWordHistory): DropWordHistory
 }

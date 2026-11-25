@@ -6,6 +6,7 @@ import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingStateMachine
+import com.lumian.morningup.core.model.mission.DropWordHistory
 import com.lumian.morningup.core.model.mission.MathKey
 import com.lumian.morningup.core.testing.FakeRingLink
 import com.lumian.morningup.core.testing.MainDispatcherRule
@@ -37,6 +38,7 @@ class RingMissionViewModelTest {
         clock.provider,
         Random(SEED),
         testContentSource,
+        DropWordHistory.None,
     )
 
     private fun session(vararg missions: MissionSetting, done: Int = 0, endsAt: Long = 1_059_000L) =
