@@ -91,9 +91,12 @@ fun RingingScreen(
     trick: ButtonTrick? = null,
     trickKey: Any? = null,
     trickListener: TrickListener = TrickListener.None,
+    trickRun: TrickRun? = null,
 ) {
-    // 화면이 새로 뜨면(다시 울림) [trickKey]가 바뀌어 처음부터 다시 걸려요.
-    val run = remember(trickKey, trick) { trick?.let { TrickRun(it) } }
+    // 울림 화면은 뷰모델이 울림 한 번 동안 들고 있는 [trickRun]을 줘요(화면을 껐다 켜도 이어져요, ISS-048).
+    // 미리 해보기는 [trick]만 주고, [trickKey]가 바뀌면 처음부터 다시 걸려요.
+    val local = remember(trickKey, trick) { trick?.let { TrickRun(it) } }
+    val run = trickRun ?: local
     ChosenBackground(background, dayPart, modifier) {
         RingingContent(date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener)
     }

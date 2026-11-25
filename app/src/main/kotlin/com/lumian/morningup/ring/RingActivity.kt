@@ -32,6 +32,7 @@ import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.feature.mission.RingMissionRoute
 import com.lumian.morningup.feature.ring.RingRoute
+import com.lumian.morningup.ui.SystemBarIcons
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 import kotlinx.coroutines.delay
@@ -127,6 +128,8 @@ class RingActivity : ComponentActivity() {
                             LightSystemBarIcons()
                             RingMissionRoute()
                         },
+                        // 다크 울림 화면에서 상태 표시줄 아이콘이 검게 남아 안 보였어요(ISS-047).
+                        systemBars = { dark -> SystemBarIcons(dark) },
                     )
                   }
                 }

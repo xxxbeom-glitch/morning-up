@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.model.Alarm
-import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.alarm.ring.RingScreen
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -45,6 +44,8 @@ private const val COUNTDOWN_FRAME_MILLIS = 200L
  * - D0에서 미션으로 넘어갈 때 버튼 자리에서 원형으로 퍼지며 열려요. '애니메이션 줄이기'면 페이드예요.
  * - 보여 줄 화면이 없어지면 [onClose]를 불러요. [canClose]가 false면(저장된 울림을 읽는 중) 기다려요.
  * - W1 '확인'은 [onWakeUpConfirmed]로 알려요(잠겨 있었으면 닫고, 풀려 있었으면 홈으로 가는 일은 액티비티 몫).
+ * - [systemBars]는 상태 표시줄, 내비게이션 줄 아이콘 색을 맞추는 자리예요. 바탕이 어두우면(밤, 다크 화면 모드, 미션) true로
+ *   불러 흰 아이콘이 되게 해요(ISS-047).
  */
 @Composable
 fun RingRoute(
@@ -53,6 +54,7 @@ fun RingRoute(
     onWakeUpConfirmed: () -> Unit,
     missionContent: @Composable (index: Int) -> Unit,
     viewModel: RingViewModel = hiltViewModel(),
+    systemBars: @Composable (dark: Boolean) -> Unit = {},
 ) {
     val ringState by viewModel.uiState.collectAsStateWithLifecycle()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
@@ -61,8 +63,8 @@ fun RingRoute(
     var confirmedOn by remember { mutableStateOf<RingScreen?>(null) }
     var doneNextAsk by remember { mutableStateOf<Int?>(null) }
     var doneMulti by remember { mutableStateOf<MultiDone?>(null) }
-    // 버튼 속이기: 화면이 새로 뜰 때(trickKey) 한 번만 접근성을 보고 기록해요.
-    val trick = remember(state.trickKey, state.trick) { viewModel.trickFor(state) }
+    // 버튼 속이기: 울림 한 번(trickKey)에 한 번만 접근성을 보고 기록해요. 화면이 다시 그려져도 같은 것을 받아요.
+    val trickRun = remember(state.trickKey, state.trick) { viewModel.trickFor(state) }
     val trickListener = remember(state.trickKey, state.alarmId) { viewModel.trickListener(state) }
     // 닫히는 동안(W1 확인 뒤, W2, W3 체크 뒤)에도 마지막 화면을 그대로 그려요.
     val last = remember { LastScreen() }
@@ -94,6 +96,7 @@ fun RingRoute(
         ThemeMode.Dark -> DayPart.Night
     }
     val night = dayPart == DayPart.Night
+    systemBars(night || lastShown is RingScreen.Mission)
     MorningTheme(darkTheme = night, reduceMotion = MorningTheme.reduceMotion) {
         RingContent(
             state = state.copy(dayPart = dayPart),
@@ -101,7 +104,7 @@ fun RingRoute(
             confirmedOn = confirmedOn,
             doneNextAsk = doneNextAsk,
             doneMulti = doneMulti,
-            trick = trick,
+            trickRun = trickRun,
             trickListener = trickListener,
             nowMillis = viewModel::nowMillis,
             onMainButton = viewModel::onMainButton,
@@ -133,7 +136,7 @@ private fun RingContent(
     confirmedOn: RingScreen?,
     doneNextAsk: Int?,
     doneMulti: MultiDone?,
-    trick: ButtonTrick?,
+    trickRun: TrickRun?,
     trickListener: TrickListener,
     nowMillis: () -> Long,
     onMainButton: () -> Unit,
@@ -153,8 +156,7 @@ private fun RingContent(
             onMainButton = onMainButton,
             onButtonCenter = { buttonCenter = it },
             // 미션 화면이 퍼지는 동안 아래 깔린 울림 화면에는 걸지 않아요.
-            trick = trick.takeIf { live },
-            trickKey = state.trickKey,
+            trickRun = trickRun.takeIf { live },
             trickListener = trickListener,
         )
     }

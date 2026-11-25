@@ -9,12 +9,9 @@
     <string name="ring_wake_up_title_night">잘 일어났어요</string>
     <string name="ring_wake_up_message_morning">물 한 잔 마시고\n천천히 하루를 시작해요</string>
     <string name="ring_wake_up_message_night">물 한 잔 마시고\n천천히 몸을 깨워 보세요</string>
-    <string name="ring_wake_up_weather_rain">밖에 비가 와요
-나갈 때 우산 챙기세요</string>
-    <string name="ring_wake_up_weather_snow">밖에 눈이 와요
-길이 미끄러우니 천천히 걸어요</string>
-    <string name="ring_wake_up_weather_clear">오늘은 하늘이 맑아요
-창문을 열고 바깥 공기를 느껴 봐요</string>
+    <string name="ring_wake_up_weather_rain">밖에 비가 와요\n나갈 때 우산 챙기세요</string>
+    <string name="ring_wake_up_weather_snow">밖에 눈이 와요\n길이 미끄러우니 천천히 걸어요</string>
+    <string name="ring_wake_up_weather_clear">오늘은 하늘이 맑아요\n창문을 열고 바깥 공기를 느껴 봐요</string>
     <string name="ring_wake_up_ok">확인</string>
 
     <!-- W2 깨어 있나요 -->

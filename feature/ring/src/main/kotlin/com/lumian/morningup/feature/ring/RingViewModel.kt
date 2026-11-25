@@ -65,6 +65,7 @@ class RingViewModel @Inject constructor(
     ticker: MinuteTicker,
     weatherSource: WeatherSource,
     private val trickRecorder: TrickRecorder,
+    private val trickRuns: TrickRuns,
 ) : ViewModel() {
     /** W1 날씨 한마디. 위치 동의가 없거나 못 불러왔으면 null이라 짧은 인사만 보여요. */
     val weather: StateFlow<WeatherKind?> = weatherSource.weather
@@ -98,21 +99,25 @@ class RingViewModel @Inject constructor(
     fun onWakeUpClosed() = link.closeWakeUp()
 
     /**
-     * 화면이 뜰 때 한 번: 버튼 속이기를 지금 걸 수 있는지 봐요. 접근성 때문에 끄면 그 까닭을 진단 기록에 남기고 null을 줘요.
-     * 화면에는 꺼진 까닭을 알리지 않아요(결정 146 2-4).
+     * 울림 한 번에 한 번: 버튼 속이기를 지금 걸 수 있는지 봐요. 접근성 때문에 끄면 그 까닭을 진단 기록에 남기고 null을 줘요.
+     * 화면에는 꺼진 까닭을 알리지 않아요(결정 146 2-4). 같은 울림에서 화면이 다시 그려지면(화면 껐다 켜기 등)
+     * 지난번 [TrickRun]을 그대로 주고 기록도 다시 남기지 않아요(ISS-048).
      */
-    fun trickFor(state: RingUiState): ButtonTrick? {
+    fun trickFor(state: RingUiState): TrickRun? {
         // 울리는 단계(D0)에서만 걸어요. 미션, W1, W2로 넘어가면 trickKey가 비면서 다시 불리는데,
         // 이때 trick_shown이 또 찍혀 W2에도 걸린 것처럼 보였어요(기록만 겹침, 화면에는 안 걸림).
-        if (state.trickKey == null) return null
+        val key = state.trickKey ?: return null
         val trick = state.trick ?: return null
-        val reason = trickRecorder.offReason()
-        if (reason != null) {
-            trickRecorder.record(LabLog.TRICK_AUTO_OFF, state.alarmId, "reason=$reason", kept = true)
-            return null
+        return trickRuns.get(key) {
+            val reason = trickRecorder.offReason()
+            if (reason != null) {
+                trickRecorder.record(LabLog.TRICK_AUTO_OFF, state.alarmId, "reason=$reason", kept = true)
+                null
+            } else {
+                trickRecorder.record(LabLog.TRICK_SHOWN, state.alarmId, trick.detail())
+                TrickRun(trick)
+            }
         }
-        trickRecorder.record(LabLog.TRICK_SHOWN, state.alarmId, trick.detail())
-        return trick
     }
 
     /** 버튼 속이기 기록(결정 146 4절). trick_end만 출시 빌드 진단 기록에도 남겨요. */

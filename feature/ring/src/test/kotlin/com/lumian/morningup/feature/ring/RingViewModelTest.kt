@@ -39,8 +39,9 @@ class RingViewModelTest {
     private val ticker = MinuteTicker { ticks }
     private val math = MissionSetting(MissionType.QuickMath)
     private val recorder = FakeTrickRecorder()
+    private val trickRuns = TrickRuns()
 
-    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather, recorder)
+    private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather, recorder, trickRuns)
 
     @Test
     fun ringing_showsDateTimeAndMorning() = runTest {
@@ -150,6 +151,29 @@ class RingViewModelTest {
         assertThat(state.alarmId).isEqualTo(4)
         assertThat(vm.trickFor(state)).isNotNull()
         assertThat(recorder.events.single().event).isEqualTo(LabLog.TRICK_SHOWN)
+    }
+
+    @Test
+    fun trick_sameRing_keepsRun_andRecordsShownOnce() = runTest {
+        // ISS-048: 울림 중 화면을 껐다 켜면 화면이 다시 그려지고 뷰모델도 새로 생길 수 있어요.
+        // 같은 울림이면 같은 TrickRun(처음 만진 때, 자리)을 받고 trick_shown은 한 번만 찍혀요.
+        val link = FakeRingLink(trickSession(), RingScreen.Ringing)
+        val first = viewModel(link).trickFor(viewModel(link).uiState.value)
+        val again = viewModel(link).trickFor(viewModel(link).uiState.value)
+        assertThat(again).isSameInstanceAs(first)
+        assertThat(recorder.events.map { it.event }).containsExactly(LabLog.TRICK_SHOWN)
+        // 다시 울려 trickKey가 바뀌면 새로 걸고 다시 기록해요.
+        val next = viewModel(FakeRingLink(trickSession(phaseEndsAt = 9_000L), RingScreen.Ringing))
+        assertThat(next.trickFor(next.uiState.value)).isNotSameInstanceAs(first)
+        assertThat(recorder.events.map { it.event }).containsExactly(LabLog.TRICK_SHOWN, LabLog.TRICK_SHOWN)
+    }
+
+    @Test
+    fun trick_autoOff_sameRing_recordsOnce() = runTest {
+        recorder.reason = TrickAccessibility.TALKBACK
+        val link = FakeRingLink(trickSession(), RingScreen.Ringing)
+        repeat(2) { assertThat(viewModel(link).trickFor(viewModel(link).uiState.value)).isNull() }
+        assertThat(recorder.events.map { it.event }).containsExactly(LabLog.TRICK_AUTO_OFF)
     }
 
     @Test
