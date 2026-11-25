@@ -132,11 +132,12 @@ object RingStateMachine {
     private val RingPhase.isAlarmPhase get() = this == RingPhase.Ringing || this == RingPhase.Resting
 
     /**
-     * 알람 시각. 다른 알람이 울리거나 미션 중이면 뒤 알람은 '지나감'이에요. 다만 앞 알람이 W2, W3를 기다리거나
-     * 묻는 중이면 앞 알람의 남은 확인을 멈추고 새 알람이 울려요(결정 145 7번).
+     * 알람 시각. 다른 알람이 울리거나 미션 중이면 사람이 깨어 있어서 뒤 알람은 '지나감'이에요. 다만 앞 알람이
+     * W2, W3를 기다리거나 묻는 중이면 앞 알람의 남은 확인을 멈추고 새 알람이 울려요(결정 145 7번).
+     * 앞 알람이 쉬는 중(다시 울림 사이)이어도 새 알람이 울리고 앞 알람의 남은 울림은 끝내요(결정 166).
      */
     private fun alarmFired(session: RingSession?, plan: RingPlan, now: Long): Transition {
-        if (session != null && !session.phase.isCheck) {
+        if (session != null && !session.phase.isCheck && session.phase != RingPhase.Resting) {
             return Transition(session, listOf(MarkPassed(plan.alarmId), RescheduleAlarm(plan.alarmId)))
         }
         val ringing = RingSession(

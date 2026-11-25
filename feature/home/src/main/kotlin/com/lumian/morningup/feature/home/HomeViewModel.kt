@@ -44,6 +44,9 @@ sealed interface HomeMessage {
 
     /** 편집 저장, 홈 토글 끄기, 지우기로 그 알람의 남은 확인(W2, W3)을 멈췄어요(결정 145, 153). */
     data object ChecksStopped : HomeMessage
+
+    /** 울리는 중, 쉬는 중, 미션 중인 알람이라 끄기, 쉬기, 지우기를 막았어요(결정 165). */
+    data object Ringing : HomeMessage
 }
 
 /**
@@ -120,12 +123,37 @@ class HomeViewModel @Inject constructor(
     val recheckPending: StateFlow<Boolean> = checks.recheckPending
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), false)
 
-    /** 실험실 여러 번 묻기의 남은 확인 수. 아니면 null이에요(결정 146). */
-    val recheckLeft: StateFlow<Int?> = checks.recheckLeft
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
+    /**
+     * 홈 위쪽 띠(결정 145, 165, 168). W3 대기면 '한 번 더 확인', 쉬는 중이면 '오전 6:40에 다시 울려요',
+     * W2 대기면 '곧 깼는지 물어볼게요'예요. 울림 단계는 한 번에 하나라 띠도 하나예요.
+     */
+    val status: StateFlow<HomeStatus?> = combine(
+        checks.recheckPending,
+        checks.recheckLeft,
+        checks.restingUntil,
+        checks.wakeCheckWaiting,
+    ) { recheck, left, restUntil, waiting ->
+        when {
+            recheck -> HomeStatus.Recheck(left)
+            restUntil != null -> HomeStatus.Resting(
+                java.time.Instant.ofEpochMilli(restUntil).atZone(now.now().zone).toLocalTime()
+                    .withSecond(0).withNano(0),
+            )
+            waiting -> HomeStatus.WakeCheckSoon
+            else -> null
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
 
     /** 홈 띠 '확인하기'. W3를 지금 열어요. */
     fun openRecheck() = checks.openRecheck()
+
+    /** 쉬는 중 띠를 눌렀어요. 쉬는 중 알림과 같이 울림 화면을 열어요(결정 165). */
+    fun openRest() = checks.openRest()
+
+    /** 울리는 중, 쉬는 중, 미션 중이라 막을 알람인지(결정 165). */
+    private fun ringing(alarm: Alarm): Boolean = checks.isRinging(alarm.id)
+
+    private fun showRinging() = overlay.update { it.copy(message = HomeMessage.Ringing) }
 
     private data class Overlay(
         val message: HomeMessage? = null,
@@ -257,6 +285,11 @@ class HomeViewModel @Inject constructor(
 
     /** 카드 토글. 반복 알람을 끄면 '이번만 쉬기'를 달고, 쉬는 중인 알람을 켜면 쉬기를 풀어요. */
     fun setEnabled(alarm: Alarm, enabled: Boolean) {
+        // 결정 165: 울리는 중인 알람은 토글을 막고 울림 화면에서 끄라고 알려요. 카드는 그대로 켜진 모양이에요.
+        if (ringing(alarm)) {
+            showRinging()
+            return
+        }
         val resting = alarm.id in uiState.value.resting
         val offer = !enabled && alarm.isRepeating
         // 끄기 직전에 울리는 중이거나 남은 확인을 기다렸는지 봐요. 끄면 확인이 멈춰서 나중엔 알 수 없어요(결정 154).
@@ -319,7 +352,7 @@ class HomeViewModel @Inject constructor(
 
     private fun turnOff(alarms: List<Alarm>) {
         val state = uiState.value
-        val targets = alarms.filter { state.shownOn(it) }
+        val (blocked, targets) = alarms.filter { state.shownOn(it) }.partition { ringing(it) }
         val repeating = targets.filter { it.isRepeating }.map { it.id }.toSet()
         val today = repeating.filter { checks.isActive(it) }.toSet()
         overlay.update { o ->
@@ -328,7 +361,13 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val stopped = stopChecks(targets.map { it.id })
             targets.forEach { book.setEnabled(it.id, false) }
-            if (stopped) showChecksStopped()
+            // 울리는 알람은 빼고 껐어요(결정 165). 그 토스트를 먼저, 확인을 멈췄으면 이어서 띄워요.
+            when {
+                blocked.isNotEmpty() -> overlay.update {
+                    it.copy(message = HomeMessage.Ringing, queued = HomeMessage.ChecksStopped.takeIf { stopped })
+                }
+                stopped -> showChecksStopped()
+            }
         }
     }
 
@@ -390,8 +429,11 @@ class HomeViewModel @Inject constructor(
      */
     fun restSelected() {
         val state = uiState.value
-        val chosen = selectedAlarms().filter { it.id in state.restable }
+        val picked = selectedAlarms()
+        val chosen = picked.filter { it.id in state.restable }
         endSelection()
+        // 울리는 알람은 쉴 수 없어서 빠져요(결정 165). 그때만 알려요.
+        if (picked.any { ringing(it) }) showRinging()
         if (chosen.isEmpty()) return
         val ids = chosen.map { it.id }.toSet()
         overlay.update { o -> o.copy(restOffers = o.restOffers - ids, restToday = o.restToday - ids) }
@@ -420,16 +462,24 @@ class HomeViewModel @Inject constructor(
      * 스낵바가 떠 있는 중에 또 지우면 앞 삭제는 확정되고 새 스낵바로 바뀌어요. 줄 서 있던 토스트는 합쳐 한 번만이에요.
      */
     fun deleteSelected() {
-        val alarms = selectedAlarms()
+        val (blocked, alarms) = selectedAlarms().partition { ringing(it) }
         endSelection()
-        if (alarms.isEmpty()) return
+        // 울리는 알람은 지우지 않아요(결정 165). 지운 것이 없으면 바로, 있으면 스낵바 뒤에 알려요.
+        if (alarms.isEmpty()) {
+            if (blocked.isNotEmpty()) showRinging()
+            return
+        }
         viewModelScope.launch {
             val stopped = stopChecks(alarms.map { it.id })
             val deleted = alarms.mapNotNull { book.delete(it.id) }
             overlay.update {
                 // 앞 스낵바가 아직 떠 있으면 그 뒤에 줄 선 토스트를 이어받아요.
                 val waiting = it.queued.takeIf { _ -> it.message is HomeMessage.Deleted }
-                val after = if (stopped) HomeMessage.ChecksStopped else waiting
+                val after = when {
+                    blocked.isNotEmpty() -> HomeMessage.Ringing
+                    stopped -> HomeMessage.ChecksStopped
+                    else -> waiting
+                }
                 when {
                     // '되돌리기'가 먼저 보이게 스낵바를 띄우고, 닫히면 토스트를 이어서 띄워요.
                     deleted.isNotEmpty() -> it.copy(message = HomeMessage.Deleted(deleted), queued = after)

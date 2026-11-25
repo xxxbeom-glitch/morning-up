@@ -66,6 +66,21 @@ interface WakeCheckGate {
      */
     fun isActive(alarmId: Long): Boolean = false
 
+    /**
+     * [alarmId]가 지금 울리는 중, 쉬는 중(다시 울림 사이), 미션 중인지. 이때는 홈과 편집에서 그 알람을 끄거나 쉬거나
+     * 지우거나 저장하지 못하게 막아요(결정 165). W2, W3 대기는 들지 않아요(결정 153대로 끄면 확인을 멈춰요).
+     */
+    fun isRinging(alarmId: Long): Boolean = false
+
+    /** 쉬는 중이면 다시 울릴 시각(epoch 밀리초), 아니면 null. 홈 띠 '오전 6:40에 다시 울려요'가 봐요(결정 165). */
+    val restingUntil: Flow<Long?> get() = flowOf(null)
+
+    /** 미션 끝 뒤 W2를 기다리는 중인지. 홈 띠 '곧 깼는지 물어볼게요'가 봐요(결정 168). */
+    val wakeCheckWaiting: Flow<Boolean> get() = flowOf(false)
+
+    /** 쉬는 중 홈 띠를 눌렀어요. 쉬는 중 알림을 누른 것과 같이 울림 화면을 열어요(결정 70, 165). */
+    fun openRest() = Unit
+
     /** [alarmId]의 남은 확인을 모두 멈춰요. 멈춘 것이 있으면 true예요. */
     suspend fun cancelFor(alarmId: Long): Boolean
 

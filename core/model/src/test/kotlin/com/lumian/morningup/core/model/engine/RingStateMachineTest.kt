@@ -323,9 +323,28 @@ class RingStateMachineTest {
     }
 
     @Test
-    fun otherAlarmWhileResting_isMarkedPassed() {
+    fun otherAlarmWhileResting_ringsNewAlarm_andEndsRestingOne() {
+        // 결정 166: 앞 알람이 쉬는 중이면 사람이 자고 있어서 뒤 알람이 울리고, 앞 알람의 남은 울림은 끝나요.
         val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session
-        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), t0 + ring + min)
+        val at = t0 + ring + min
+        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), at)
+        assertThat(t.session!!.plan.alarmId).isEqualTo(3)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
+        assertThat(t.effects).containsAtLeast(
+            SessionEnded(1, RingOutcome.Cancelled),
+            PlaySound(1f),
+            ShowRingScreen,
+            ScheduleTimer(at + ring, TimerKind.RingTimeout),
+            RescheduleAlarm(3),
+        ).inOrder()
+        assertThat(t.effects).doesNotContain(PostMissedNotification(1))
+        assertThat(t.effects).doesNotContain(MarkPassed(3))
+    }
+
+    @Test
+    fun otherAlarmWhileRinging_isMarkedPassed() {
+        val s = fire().session
+        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), t0 + 30 * sec)
         assertThat(t.session).isEqualTo(s)
         assertThat(t.effects).containsExactly(MarkPassed(3), RescheduleAlarm(3))
     }

@@ -39,6 +39,7 @@
     <string name="edit_background">알람 화면 배경</string>
 
     <string name="edit_save">저장</string>
+    <string name="edit_ringing_blocked">지금 울리는 알람이에요. 울림 화면에서 꺼 주세요</string>
 
     <!-- S1-2 미션 고르기 -->
     <string name="edit_mission_desc_drop_words">떨어지는 단어를 입력해요</string>
@@ -130,7 +131,7 @@
     <string name="edit_gentle_none">안 함</string>
     <string name="edit_seconds">%1$d초</string>
     <string name="edit_done">완료</string>
-    <string name="edit_ring_again_sheet_desc">미션을 못 끝내면 다시 울려요</string>
+    <string name="edit_ring_again_sheet_desc">못 들으면 쉬었다 다시 울려요</string>
     <string name="edit_ring_again_count_sheet">%1$d회</string>
     <string name="edit_ring_again_unlimited">무제한</string>
     <string name="edit_volume_percent">%1$d%%</string>

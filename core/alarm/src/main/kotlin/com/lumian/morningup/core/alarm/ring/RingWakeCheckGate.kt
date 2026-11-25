@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.core.model.engine.RingPhase
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -31,6 +32,27 @@ class RingWakeCheckGate @Inject constructor(
 
     override fun isActive(alarmId: Long): Boolean = controller.session.value?.plan?.alarmId == alarmId
 
+    override fun isRinging(alarmId: Long): Boolean {
+        val session = controller.session.value ?: return false
+        return session.plan.alarmId == alarmId && session.phase in RINGING_PHASES
+    }
+
+    override val restingUntil: Flow<Long?> = controller.session
+        .map { session -> session?.takeIf { it.phase == RingPhase.Resting }?.phaseEndsAt }
+        .distinctUntilChanged()
+
+    override val wakeCheckWaiting: Flow<Boolean> = controller.session
+        .map { it?.phase == RingPhase.AwaitingWakeCheck }
+        .distinctUntilChanged()
+
+    override fun openRest() {
+        if (controller.session.value?.phase != RingPhase.Resting) return
+        val intent = screenIntent.create(context)
+            .putExtra(RingNotifications.EXTRA_FROM_REST, true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
     override suspend fun cancelFor(alarmId: Long): Boolean {
         val before = controller.session.value
         if (before?.plan?.alarmId != alarmId || !before.phase.isCheck) return false
@@ -46,5 +68,10 @@ class RingWakeCheckGate @Inject constructor(
             .putExtra(RingNotifications.EXTRA_OPEN_RECHECK, true)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
+    }
+
+    private companion object {
+        /** 그 알람 카드를 막는 단계(결정 165): 울리는 중, 쉬는 중, 미션 중. */
+        val RINGING_PHASES = setOf(RingPhase.Ringing, RingPhase.Resting, RingPhase.InMission)
     }
 }

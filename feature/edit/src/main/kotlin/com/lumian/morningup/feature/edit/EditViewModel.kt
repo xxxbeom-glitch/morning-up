@@ -71,6 +71,8 @@ data class EditUiState(
     val missionSheet: MissionSheet? = null,
     /** 흔들기 센서가 있어야 Shake Shake를 고를 수 있어요. */
     val shakeAvailable: Boolean = true,
+    /** 지금 울리는 알람이라 저장을 막았어요(결정 165). 토스트가 떠요. */
+    val ringingBlocked: Boolean = false,
 ) {
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
@@ -132,6 +134,7 @@ class EditViewModel @Inject constructor(
         val remembered: Map<MissionType, MissionSetting> = emptyMap(),
         /** 배경 토글을 다시 켤 때 되살릴 배경(null은 시간대 하늘). */
         val lastBackground: String? = null,
+        val ringingBlocked: Boolean = false,
     )
 
     private val shakeAvailable = shakeSupport.available()
@@ -155,6 +158,7 @@ class EditViewModel @Inject constructor(
             detail = e.detail,
             missionSheet = e.sheet,
             shakeAvailable = shakeAvailable,
+            ringingBlocked = e.ringingBlocked,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), EditUiState())
 
@@ -336,6 +340,11 @@ class EditViewModel @Inject constructor(
     fun save() {
         val current = editor.value
         if (current.loading || current.saving || current.exit != null) return
+        // 결정 165: 울리는 중, 쉬는 중, 미션 중인 알람은 저장하지 않고 울림 화면에서 끄라고 알려요. 편집 화면은 그대로예요.
+        if (current.original.id != EditRoute.NEW_ALARM && checks?.isRinging(current.original.id) == true) {
+            editor.update { it.copy(ringingBlocked = true) }
+            return
+        }
         editor.update { it.copy(saving = true) }
         val released = restingAt(current.original, now.now()) && timingChanged(current.original, current.draft)
         viewModelScope.launch {
@@ -345,6 +354,9 @@ class EditViewModel @Inject constructor(
             editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped, released)) }
         }
     }
+
+    /** 저장 막음 토스트가 닫혔어요. */
+    fun ringingNoticeShown() = editor.update { it.copy(ringingBlocked = false) }
 
     /** 결정 159: 언제 울리는지(시각, 요일, 공휴일 쉬기)를 바꿨으면 '이번만 쉬기'를 풀어요. 처음 값으로 되돌렸으면 안 바꾼 거예요. */
     private fun toSave(original: Alarm, draft: Alarm): Alarm =
@@ -384,9 +396,10 @@ class EditViewModel @Inject constructor(
         )
 
         /**
-         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(5분, 켜면 3번), 다시 잠들기 방지 꺼짐(간격과 시간은 전체 설정, 결정 145),
+         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 켬(5분, 3번, 결정 163. 옛 알람은 저장된 값 그대로),
+         * 다시 잠들기 방지 꺼짐(간격과 시간은 전체 설정, 결정 145),
          * 알람음 기본, 진동 켬, 배경 시간대 하늘. 시각은 오전 7:00.
          */
-        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = 0))
+        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = DEFAULT_RING_AGAIN_COUNT))
     }
 }

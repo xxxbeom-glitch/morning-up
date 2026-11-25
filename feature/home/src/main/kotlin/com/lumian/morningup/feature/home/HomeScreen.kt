@@ -129,8 +129,7 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    val recheckPending by viewModel.recheckPending.collectAsStateWithLifecycle()
-    val recheckLeft by viewModel.recheckLeft.collectAsStateWithLifecycle()
+    val status by viewModel.status.collectAsStateWithLifecycle()
     LifecycleResumeEffect(Unit) {
         viewModel.refreshWeather()
         onPauseOrDispose {}
@@ -152,7 +151,7 @@ fun HomeRoute(
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
-        banner = withRecheckBanner(recheckPending, viewModel::openRecheck, banner, recheckLeft),
+        banner = withStatusBanner(status, viewModel::openRecheck, viewModel::openRest, banner),
         extra = HomeExtraActions(
             onRestOnce = viewModel::restOnce,
             onAllOff = viewModel::turnAllOff,
@@ -845,6 +844,7 @@ private fun Messages(
                 },
             )
             HomeMessage.ChecksStopped -> MorningToast(text = stringResource(R.string.home_checks_stopped))
+            HomeMessage.Ringing -> MorningToast(text = stringResource(R.string.home_ringing_blocked))
             is HomeMessage.Deleted -> MorningSnackbar(
                 text = if (shown.alarms.size == 1) {
                     stringResource(R.string.home_deleted)

@@ -78,8 +78,8 @@ class EditViewModelTest {
             assertThat(state.changed).isFalse()
             assertThat(state.hasMissions).isFalse()
             assertThat(state.draft.time).isEqualTo(LocalTime.of(7, 0))
-            // 다시 울림은 꺼진 채 시작해요(켜면 5분 3번).
-            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 0))
+            // 다시 울림은 켜진 채 시작해요(5분 3번, 결정 163).
+            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 3))
             // 다시 잠들기 방지는 꺼진 채 시작해요. 간격과 시간은 설정 탭 전체 설정이에요(결정 145).
             assertThat(state.draft.wakeCheck).isEqualTo(WakeCheck(enabled = false))
             // 23:10에 내일 07:00 → 7시간 50분 후.
@@ -204,10 +204,10 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.setRingAgain(true)
-            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(3)
             vm.setRingAgain(false)
             assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
+            vm.setRingAgain(true)
+            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(3)
             vm.setWakeCheck(true)
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
             vm.setSoundId("aube_paisible")
@@ -236,6 +236,36 @@ class EditViewModelTest {
             while (state.exit == null) state = awaitItem()
             assertThat(state.exit).isEqualTo(EditExit.Saved(4, checksStopped = true))
             assertThat(checks.calls).containsExactly("cancel:4")
+        }
+    }
+
+    @Test
+    fun save_ringingAlarm_isBlocked_withToast_andStaysOpen() = runTest {
+        val book = FakeAlarmBook(listOf(withMission))
+        val checks = FakeWakeCheckGate(ringingFor = setOf(4))
+        val vm = viewModel(book, id = 4, checks = checks)
+        vm.uiState.test {
+            loaded()
+            vm.setTime(8, 0)
+            awaitItem()
+            vm.save()
+            val state = awaitItem()
+            // 결정 165: 울리는 중, 쉬는 중, 미션 중이면 저장하지 않고 토스트만 띄워요.
+            assertThat(state.ringingBlocked).isTrue()
+            assertThat(state.exit).isNull()
+            assertThat(book.get(4)!!.time).isEqualTo(LocalTime.of(6, 30))
+            assertThat(checks.calls).isEmpty()
+            vm.ringingNoticeShown()
+            assertThat(awaitItem().ringingBlocked).isFalse()
+        }
+    }
+
+    @Test
+    fun existingAlarm_keepsItsRingAgain() = runTest {
+        val old = withMission.copy(ringAgain = RingAgain(intervalMinutes = 5, count = 0))
+        viewModel(FakeAlarmBook(listOf(old)), id = 4).uiState.test {
+            // 결정 163: 처음 값이 바뀌어도 옛 알람은 저장된 값 그대로예요.
+            assertThat(loaded().draft.ringAgain.count).isEqualTo(0)
         }
     }
 

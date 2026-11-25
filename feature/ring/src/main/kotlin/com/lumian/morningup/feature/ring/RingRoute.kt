@@ -63,6 +63,8 @@ fun RingRoute(
     var confirmedOn by remember { mutableStateOf<RingScreen?>(null) }
     var doneNextAsk by remember { mutableStateOf<Int?>(null) }
     var doneMulti by remember { mutableStateOf<MultiDone?>(null) }
+    // 여러 번 묻기 W3를 마쳤고 남은 확인이 있는지는 엔진이 정해요(1시간 상한으로 끝날 수 있어서, 2-1).
+    var multiPending by remember { mutableStateOf(false) }
     // 버튼 속이기: 울림 한 번(trickKey)에 한 번만 접근성을 보고 기록해요. 화면이 다시 그려져도 같은 것을 받아요.
     val trickRun = remember(state.trickKey, state.trick) { viewModel.trickFor(state) }
     val trickListener = remember(state.trickKey, state.alarmId) { viewModel.trickListener(state) }
@@ -72,6 +74,13 @@ fun RingRoute(
     val lastShown = last.screen
     LaunchedEffect(state.screen) {
         if (!state.screen.isCheck && state.screen != RingScreen.None) confirmedOn = null
+    }
+    // 엔진이 답을 받아 화면을 닫으면 세션이 끝났는지(ask가 사라짐) 보고 끝 글을 정해요.
+    LaunchedEffect(state.screen, state.ask, multiPending) {
+        if (multiPending && state.screen == RingScreen.None) {
+            doneMulti = multiDoneAfterEngine(state.ask)
+            multiPending = false
+        }
     }
 
     val confirmWakeUp = {
@@ -111,7 +120,8 @@ fun RingRoute(
             onWakeUpConfirmed = confirmWakeUp,
             onAwake = {
                 confirmedOn = lastShown
-                doneMulti = state.ask?.let { if (it.isLast) MultiDone.Last else MultiDone.More }
+                multiPending = waitsForEngine(state.ask, lastShown)
+                doneMulti = if (multiPending) null else multiDoneNow(state.ask)
                 if (lastShown == RingScreen.Recheck) {
                     doneNextAsk = null
                     viewModel.onRecheckDone()
@@ -126,6 +136,16 @@ fun RingRoute(
 }
 
 private class LastScreen(var screen: RingScreen = RingScreen.None)
+
+/** 여러 번 묻기 W3에서 마지막 차례가 아니면, 1시간 상한으로 끝날 수 있어 엔진 결과를 기다려요(2-1). */
+private fun waitsForEngine(ask: AskCount?, shown: RingScreen): Boolean =
+    ask != null && !ask.isLast && shown == RingScreen.Recheck
+
+/** 엔진이 답을 받은 뒤 끝 글. 세션이 끝나 [ask]가 사라졌으면 '오늘 확인을 다 마쳤어요'예요. */
+private fun multiDoneAfterEngine(ask: AskCount?): MultiDone = if (ask == null) MultiDone.Last else MultiDone.More
+
+/** 바로 정할 수 있는 끝 글. 여러 번 묻기가 아니면 null이에요. */
+private fun multiDoneNow(ask: AskCount?): MultiDone? = ask?.let { if (it.isLast) MultiDone.Last else MultiDone.More }
 
 private val RingScreen.isCheck get() = this == RingScreen.WakeCheck || this == RingScreen.Recheck
 

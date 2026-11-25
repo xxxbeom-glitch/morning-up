@@ -339,9 +339,10 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun restOnce_whileRinging_restsToday() = runTest {
+    fun restOnce_whileChecksPending_restsToday() = runTest {
+        // 울리는 중에는 끄기를 막아서(결정 165), 오늘 것을 쉰 걸로 치는 것은 W2, W3를 기다리다 끈 경우예요(결정 154).
         clock = ZonedDateTime.of(2026, 11, 18, 6, 31, 0, 0, seoul)
-        checks.ringingFor = setOf(1L)
+        checks.pendingFor = setOf(1L)
         val book = FakeAlarmBook(listOf(a630))
         val vm = viewModel(book)
         vm.uiState.test {
@@ -538,13 +539,72 @@ class HomeViewModelTest {
     @Test
     fun recheckBanner_followsGate_andOpensW3() = runTest {
         val vm = viewModel(FakeAlarmBook(listOf(a630)))
-        vm.recheckPending.test {
-            assertThat(awaitItem()).isFalse()
+        vm.status.test {
+            assertThat(awaitItem()).isNull()
             checks.recheckPending.value = true
-            assertThat(awaitItem()).isTrue()
+            assertThat(awaitItem()).isEqualTo(HomeStatus.Recheck())
         }
         vm.openRecheck()
         assertThat(checks.calls).containsExactly("open")
+    }
+
+    @Test
+    fun restingBand_showsRingAgainTime_andOpensRingScreen() = runTest {
+        val vm = viewModel(FakeAlarmBook(listOf(a630)))
+        vm.status.test {
+            assertThat(awaitItem()).isNull()
+            // 결정 165: 쉬는 중이면 다시 울릴 시각을 띠에 보여요(23:15).
+            checks.restingUntil.value = clock.plusMinutes(5).toInstant().toEpochMilli()
+            assertThat(awaitItem()).isEqualTo(HomeStatus.Resting(LocalTime.of(23, 15)))
+            checks.restingUntil.value = null
+            assertThat(awaitItem()).isNull()
+            // 결정 168: W2를 기다리는 동안은 글만 있는 띠예요.
+            checks.wakeCheckWaiting.value = true
+            assertThat(awaitItem()).isEqualTo(HomeStatus.WakeCheckSoon)
+        }
+        vm.openRest()
+        assertThat(checks.calls).containsExactly("open_rest")
+    }
+
+    @Test
+    fun ringingAlarm_toggleIsBlocked_withToast() = runTest {
+        checks.ringingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            val state = awaitItem()
+            // 결정 165: 끄지 않고 '울림 화면에서 꺼 주세요' 토스트만 떠요. '이번만 쉬기'도 달지 않아요.
+            assertThat(state.message).isEqualTo(HomeMessage.Ringing)
+            assertThat(state.restOffers).isEmpty()
+            assertThat(book.get(1)!!.enabled).isTrue()
+            assertThat(checks.calls).isEmpty()
+        }
+    }
+
+    @Test
+    fun ringingAlarm_isLeftOut_ofAllOffAndDelete() = runTest {
+        checks.ringingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630, a710))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.turnAllOff()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.Ringing)
+            assertThat(book.get(1)!!.enabled).isTrue()
+            assertThat(book.get(2)!!.enabled).isFalse()
+            vm.dismissMessage(HomeMessage.Ringing)
+            while (state.message != null) state = awaitItem()
+            vm.startSelection(a630)
+            awaitItem()
+            vm.deleteSelected()
+            while (state.message != HomeMessage.Ringing) state = awaitItem()
+            assertThat(book.get(1)).isNotNull()
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 
     @Test

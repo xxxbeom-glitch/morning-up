@@ -39,9 +39,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningDayChip
 import com.lumian.morningup.core.designsystem.component.MorningDialog
+import com.lumian.morningup.core.designsystem.component.MorningMessageHost
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
+import com.lumian.morningup.core.designsystem.component.MorningToast
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.MorningWheelPicker
 import com.lumian.morningup.core.designsystem.component.SettingRowState
@@ -57,6 +59,7 @@ import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
+import kotlinx.coroutines.delay
 
 /** 편집 화면의 하위 화면. */
 enum class EditDetail { Mission, Preview, RingAgain, PowerOff, Sound, Vibration, Gentle, Background }
@@ -137,6 +140,7 @@ fun AlarmEditRoute(
                 onDeselectMission = viewModel::deselectMission,
                 onRemoveMission = viewModel::removeMission,
                 onPreview = { preview(it) },
+                onRingingNoticeShown = viewModel::ringingNoticeShown,
             )
         },
         onOpenDetail = { detail ->
@@ -178,6 +182,8 @@ data class EditActions(
     val onDeselectMission: () -> Unit = {},
     val onRemoveMission: (MissionType) -> Unit = {},
     val onPreview: (List<MissionSetting>) -> Unit = {},
+    /** 저장 막음 토스트(결정 165)가 닫혔어요. */
+    val onRingingNoticeShown: () -> Unit = {},
 )
 
 /** 편집 화면 안에서 페이지로 여는 하위 화면. */
@@ -321,8 +327,33 @@ fun EditScreen(
         ) {
             lastMissionSheet?.let { MissionSheetContent(sheet = it, actions = actions) }
         }
+        RingingNotice(
+            shown = state.ringingBlocked,
+            onDismiss = actions.onRingingNoticeShown,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = MorningDimens.space16)
+                .padding(horizontal = MorningDimens.layoutScreenMargin),
+        )
     }
 }
+
+/** 지금 울리는 알람이라 저장을 막았다는 토스트(결정 165). 홈 토스트와 같은 모양, 같은 시간이에요. */
+@Composable
+private fun RingingNotice(shown: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    LaunchedEffect(shown) {
+        if (shown) {
+            delay(RINGING_NOTICE_MILLIS)
+            onDismiss()
+        }
+    }
+    MorningMessageHost(message = Unit.takeIf { shown }, modifier = modifier) {
+        MorningToast(text = stringResource(R.string.edit_ringing_blocked))
+    }
+}
+
+private const val RINGING_NOTICE_MILLIS = 2_500L
 
 const val EDIT_SHEET_TAG = "editSheet"
 const val MISSION_SHEET_TAG = "missionSheet"

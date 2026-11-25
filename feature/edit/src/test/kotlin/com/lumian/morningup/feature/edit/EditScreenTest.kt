@@ -21,6 +21,7 @@ import com.lumian.morningup.core.designsystem.component.VALUE_INC_SUFFIX
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.RingAgain
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -45,7 +46,9 @@ class EditScreenTest {
     @Test
     fun noMission_showsFourEmptySlots_noPreview_noPowerOffRow() {
         var opened: EditDetail? = null
-        show(EditUiState(loading = false), onDetail = { opened = it })
+        // 새 알람은 다시 울림이 켜져 있어서(결정 163) 꺼진 줄을 보려고 꺼 둬요.
+        val draft = EditViewModel.newAlarm().copy(ringAgain = RingAgain(count = 0))
+        show(EditUiState(loading = false, draft = draft), onDetail = { opened = it })
         // 꺼진 줄은 값이 모두 '사용 안 함'이에요. 전원 종료 방지 줄은 설정 탭으로 옮겨서 없어요(결정 101).
         compose.onAllNodesWithText("사용 안 함").onFirst().assertExists()
         // 결정 87, 95: '미션 선택' 줄과 '미리 해보기' 대신 빈 칸 4개.
@@ -68,7 +71,7 @@ class EditScreenTest {
         // 다시 울림은 페이지 대신 S3 시트가 열려요(결정 78).
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
         assertThat(opened).isNull()
-        compose.onNodeWithText("미션을 못 끝내면 다시 울려요").assertExists()
+        compose.onNodeWithText("못 들으면 쉬었다 다시 울려요").assertExists()
     }
 
     @Test

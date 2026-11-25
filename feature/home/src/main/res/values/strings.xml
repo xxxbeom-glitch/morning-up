@@ -54,4 +54,7 @@
     <string name="home_recheck_title_count">한 번 더 확인이 %1$d번 남았어요</string>
     <string name="home_recheck_desc_one">눌러서 지금 하나 끝낼 수 있어요</string>
     <string name="home_recheck_action">확인하기</string>
+    <string name="home_resting_band">%1$s에 다시 울려요</string>
+    <string name="home_wake_check_soon_band">곧 깼는지 물어볼게요</string>
+    <string name="home_ringing_blocked">지금 울리는 알람이에요. 울림 화면에서 꺼 주세요</string>
 </resources>
