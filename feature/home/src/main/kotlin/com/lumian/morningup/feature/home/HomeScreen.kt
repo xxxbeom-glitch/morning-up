@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
@@ -67,6 +68,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.AlarmClock
+import com.composables.icons.lucide.AlarmClockMinus
 import com.composables.icons.lucide.AlarmClockOff
 import com.composables.icons.lucide.Copy
 import com.composables.icons.lucide.EllipsisVertical
@@ -161,6 +163,7 @@ fun HomeRoute(
             onEndSelection = viewModel::endSelection,
             onTurnOnSelected = viewModel::turnOnSelected,
             onTurnOffSelected = viewModel::turnOffSelected,
+            onRestSelected = viewModel::restSelected,
             onCopySelected = viewModel::copySelected,
             onDeleteSelected = viewModel::deleteSelected,
         ),
@@ -178,6 +181,7 @@ data class HomeExtraActions(
     val onEndSelection: () -> Unit = {},
     val onTurnOnSelected: () -> Unit = {},
     val onTurnOffSelected: () -> Unit = {},
+    val onRestSelected: () -> Unit = {},
     val onCopySelected: () -> Unit = {},
     val onDeleteSelected: () -> Unit = {},
 )
@@ -389,7 +393,8 @@ private fun AlarmList(
                 look = CardLook(
                     shownOn = state.shownOn(alarm),
                     restOffer = selection == null && state.showsRestOffer(alarm),
-                    resting = state.resting[alarm.id].takeIf { selection == null },
+                    // 선택 모드에서도 쉬는 중 글을 그대로 보여요(H3-3, Resting+Select).
+                    resting = state.resting[alarm.id],
                     selected = selection?.contains(alarm.id),
                     ringsToday = state.time?.let { alarm.time > it } ?: true,
                 ),
@@ -668,7 +673,8 @@ private val ActionItemHeight = 48.dp
 private const val DISABLED_ALPHA = 0.4f
 
 /**
- * H3-1 하단 바: 하단 메뉴와 같은 떠 있는 알약에 켜기, 끄기, 복제, 삭제(칸 56x48, 사이 4, 안 여백 8).
+ * H3-1 하단 바: 하단 메뉴와 같은 떠 있는 알약에 켜기, 끄기, 이번만 쉬기, 복제, 삭제(칸 56x48, 사이 4, 안 여백 8).
+ * '이번만 쉬기'는 고른 것 중 쉴 울림이 있는 켜진 반복 알람이 있을 때만 보여요(결정 158).
  * 켜진 것과 꺼진 것이 섞이면 켜기와 끄기 둘 다, 모두 꺼져 있으면 켜기만, 모두 켜져 있으면 끄기만.
  */
 @Composable
@@ -690,6 +696,9 @@ private fun SelectionBar(state: HomeUiState, extra: HomeExtraActions, modifier: 
         if (chosen.any { state.shownOn(it) }) {
             ActionItem(Lucide.AlarmClockOff, stringResource(R.string.home_action_off), true, extra.onTurnOffSelected)
         }
+        if (chosen.any { it.id in state.restable }) {
+            ActionItem(Lucide.AlarmClockMinus, stringResource(R.string.home_action_rest), true, extra.onRestSelected)
+        }
         ActionItem(Lucide.Copy, stringResource(R.string.home_action_copy), any, extra.onCopySelected)
         ActionItem(Lucide.Trash2, stringResource(R.string.home_action_delete), any, extra.onDeleteSelected)
     }
@@ -701,7 +710,10 @@ private fun ActionItem(icon: ImageVector, label: String, enabled: Boolean, onCli
     val colors = MorningTheme.colors
     Column(
         modifier = Modifier
-            .size(ActionItemWidth, ActionItemHeight)
+            // '이번만 쉬기'처럼 긴 글은 칸이 글만큼 넓어져요(H3-3 다섯 칸).
+            .widthIn(min = ActionItemWidth)
+            .height(ActionItemHeight)
+            .padding(horizontal = MorningDimens.space4)
             .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .morningClickable(haptic = MorningHaptic.Tick, role = Role.Button, enabled = enabled, onClick = onClick),
         horizontalAlignment = Alignment.CenterHorizontally,

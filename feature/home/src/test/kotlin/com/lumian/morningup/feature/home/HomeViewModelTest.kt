@@ -88,6 +88,49 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun restSelected_restsOnlyRestable_keepsOthersOn_andClosesSelection() = runTest {
+        // 월 23:10: 평일 06:30은 오늘 이미 울려 쉴 것이 없고, 토 07:10은 다음 토요일을 쉬어요. 꺼진 8:00은 빠져요(결정 158).
+        val book = FakeAlarmBook(listOf(a630, a710, a800))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection()
+            awaitItem()
+            vm.toggleSelectAll()
+            assertThat(awaitItem().restable).containsExactly(2L)
+            vm.restSelected()
+            var state = awaitItem()
+            while (2L !in state.resting) state = awaitItem()
+            assertThat(state.selection).isNull()
+            assertThat(state.message).isNull()
+            assertThat(book.get(2)!!.skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 21))
+            assertThat(book.get(2)!!.enabled).isTrue()
+            assertThat(book.get(1)!!.skipOnceDate).isNull()
+        }
+    }
+
+    @Test
+    fun restable_beforeTodaysRing_restsToday_butNotWhileChecksPendingOrResting() = runTest {
+        clock = ZonedDateTime.of(2026, 11, 16, 5, 0, 0, 0, seoul)
+        val resting = a710.copy(id = 4, skipOnceDate = LocalDate.of(2026, 11, 21))
+        checks.pendingFor = setOf(2L)
+        val book = FakeAlarmBook(listOf(a630, a710, resting))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection()
+            awaitItem()
+            vm.toggleSelectAll()
+            // 쉬는 중인 4는 '켜기'로 풀고, 확인을 기다리는 2는 쉴 것이 없어요.
+            assertThat(awaitItem().restable).containsExactly(1L)
+            vm.restSelected()
+            var state = awaitItem()
+            while (1L !in state.resting) state = awaitItem()
+            assertThat(book.get(1)!!.skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 16))
+        }
+    }
+
+    @Test
     fun noEnabledAlarm_hasNoNext() = runTest {
         val vm = viewModel(FakeAlarmBook(listOf(a800)))
         vm.uiState.test {

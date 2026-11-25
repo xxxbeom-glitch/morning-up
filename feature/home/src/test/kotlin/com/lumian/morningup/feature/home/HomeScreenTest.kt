@@ -94,6 +94,21 @@ class HomeScreenTest {
     }
 
     @Test
+    fun selectionBar_showsRest_onlyWhenRestable() {
+        val on = alarm.copy(repeatDays = setOf(DayOfWeek.SATURDAY))
+        val state = HomeUiState(loading = false, alarms = listOf(on), today = today, selection = setOf(1L))
+        show(state.copy(restable = setOf(1L)))
+        compose.onNodeWithText("이번만 쉬기").assertExists()
+    }
+
+    @Test
+    fun selectionBar_hidesRest_whenNothingToRest() {
+        val on = alarm.copy(repeatDays = setOf(DayOfWeek.SATURDAY))
+        show(HomeUiState(loading = false, alarms = listOf(on), today = today, selection = setOf(1L)))
+        compose.onNodeWithText("이번만 쉬기").assertDoesNotExist()
+    }
+
+    @Test
     fun header_withoutNext_doesNothing() {
         var opened: Alarm? = null
         show(

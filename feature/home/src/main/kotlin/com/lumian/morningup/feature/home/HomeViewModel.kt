@@ -77,6 +77,8 @@ data class HomeUiState(
     val restOffers: Set<Long> = emptySet(),
     /** H8 Resting: '이번만 쉬기' 중인 알람과 다시 울릴 때까지의 글. 토글은 꺼진 모양으로 보여요. */
     val resting: Map<Long, RestLabel> = emptyMap(),
+    /** 선택 모드 '이번만 쉬기'로 쉴 수 있는 알람(결정 158). 켜진 반복 알람이고 쉬면 다음 울림이 바뀌는 것만이에요. */
+    val restable: Set<Long> = emptySet(),
     /** H3-1 선택 모드에서 고른 알람. null이면 선택 모드가 아니에요. */
     val selection: Set<Long>? = null,
 ) {
@@ -131,6 +133,7 @@ class HomeViewModel @Inject constructor(
             weather,
         ->
         val ids = alarms.mapTo(HashSet()) { it.id }
+        val resting = alarms.mapNotNull { a -> restingLabel(a, at)?.let { a.id to it } }.toMap()
         HomeUiState(
             loading = false,
             alarms = sortForHome(alarms, at),
@@ -140,7 +143,8 @@ class HomeViewModel @Inject constructor(
             weather = weather,
             message = o.message,
             restOffers = o.restOffers,
-            resting = alarms.mapNotNull { a -> restingLabel(a, at)?.let { a.id to it } }.toMap(),
+            resting = resting,
+            restable = if (o.selection == null) emptySet() else restable(alarms, resting.keys, at),
             selection = o.selection?.filterTo(LinkedHashSet()) { it in ids },
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), HomeUiState())
@@ -167,6 +171,28 @@ class HomeViewModel @Inject constructor(
         if (rang.toLocalDate() != skip || rang.isAfter(at)) return false
         return NextRingCalculator.next(plain, rang, holidays) == upcoming
     }
+
+    /**
+     * 결정 158: 켜져 있고 쉬는 중이 아닌 반복 알람 가운데, 쉬면 다음 울림이 바뀌는 것. 오늘 이미 울렸거나
+     * 남은 확인을 기다리는 알람은 결정 156으로 쉴 것이 없어서 빠져요.
+     */
+    private fun restable(alarms: List<Alarm>, resting: Set<Long>, at: ZonedDateTime): Set<Long> = alarms
+        .filter { it.enabled && it.isRepeating && it.id !in resting && !checks.isActive(it.id) }
+        .filter { alarm ->
+            val plain = alarm.copy(skipOnceDate = null)
+            val skip = restDay(plain, at)
+            skip != null && NextRingCalculator.next(plain.copy(skipOnceDate = skip), at, holidays) !=
+                NextRingCalculator.next(plain, at, holidays)
+        }
+        .mapTo(HashSet()) { it.id }
+
+    /** 결정 156 2, 3번: 오늘이 울리는 날이면 오늘, 아니면 다음 울림의 날. */
+    private fun restDay(on: Alarm, at: ZonedDateTime): LocalDate? =
+        if (ringsOn(on, at.toLocalDate(), at)) {
+            at.toLocalDate()
+        } else {
+            NextRingCalculator.next(on, at, holidays)?.toLocalDate()
+        }
 
     /** [now]까지 마지막으로 울릴 차례였던 날. 자정을 넘겨 확인 중이어도 울린 그날이에요. */
     private fun lastRingDate(alarm: Alarm, now: ZonedDateTime): LocalDate? {
@@ -258,11 +284,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val on = alarm.copy(enabled = true, skipOnceDate = null)
             val at = now.now()
-            val skip = when {
-                today -> lastRingDate(on, at)
-                ringsOn(on, at.toLocalDate(), at) -> at.toLocalDate()
-                else -> NextRingCalculator.next(on, at, holidays)?.toLocalDate()
-            }
+            val skip = if (today) lastRingDate(on, at) else restDay(on, at)
             book.save(on.copy(skipOnceDate = skip))
         }
     }
@@ -344,6 +366,26 @@ class HomeViewModel @Inject constructor(
         val chosen = selectedAlarms()
         endSelection()
         turnOff(chosen)
+    }
+
+    /**
+     * 선택 모드 '이번만 쉬기'(결정 158): 고른 것 중 쉴 수 있는 알람만 켜진 채로 쉬어요. 기준은 결정 156 그대로예요.
+     * 선택 모드는 닫히고 알림은 띄우지 않아요(카드가 쉬는 중 모양으로 바뀌어요).
+     */
+    fun restSelected() {
+        val state = uiState.value
+        val chosen = selectedAlarms().filter { it.id in state.restable }
+        endSelection()
+        if (chosen.isEmpty()) return
+        val ids = chosen.map { it.id }.toSet()
+        overlay.update { o -> o.copy(restOffers = o.restOffers - ids, restToday = o.restToday - ids) }
+        viewModelScope.launch {
+            val at = now.now()
+            chosen.forEach { alarm ->
+                val on = alarm.copy(skipOnceDate = null)
+                book.save(on.copy(skipOnceDate = restDay(on, at)))
+            }
+        }
     }
 
     /** '복제'(결정 161): 고른 알람을 같은 설정으로 하나씩 더 만들어요. 쉬기 날짜와 남은 확인은 따라가지 않아요. */
