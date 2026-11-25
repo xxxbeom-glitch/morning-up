@@ -417,8 +417,8 @@ private fun AlarmCard(
                 look.resting?.let { label ->
                     Text(
                         text = when (label) {
-                            is RestLabel.InMinutes -> stringResource(R.string.home_resting_minutes, label.minutes)
-                            is RestLabel.InHours -> stringResource(R.string.home_resting_hours, label.hours)
+                            is RestLabel.Within ->
+                                stringResource(R.string.home_resting_within, AlarmText.until(res, label.until))
                             is RestLabel.OnDay ->
                                 stringResource(R.string.home_resting, AlarmText.dayShort(res, label.day))
                         },

@@ -287,9 +287,10 @@ class HomeViewModelTest {
             vm.restOnce(state.alarms.first())
             while (1L !in state.resting) state = awaitItem()
             assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 18))
-            // 목요일 06:30까지 23시간 30분이라 '23시간 뒤'예요.
+            // 목요일 06:30까지 23시간 30분이에요. 홈 위쪽 문구와 같은 값이에요.
             assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
-            assertThat(state.resting[1L]).isEqualTo(RestLabel.InHours(23))
+            assertThat(state.resting[1L]).isEqualTo(RestLabel.Within(TimeUntil(0, 23, 30)))
+            assertThat(state.next!!.until).isEqualTo(TimeUntil(0, 23, 30))
             assertThat(state.shownOn(state.alarms.first())).isFalse()
             cancelAndIgnoreRemainingEvents()
         }
@@ -352,16 +353,15 @@ class HomeViewModelTest {
         // 24시간 넘으면 요일, 딱 24시간도 요일이에요.
         assertThat(RestLabel.between(at(24 * 60 + 1), ring)).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
         assertThat(RestLabel.between(at(24 * 60), ring)).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
-        // 23시간 59분은 내림해 23시간이에요.
-        assertThat(RestLabel.between(at(24 * 60 - 1), ring)).isEqualTo(RestLabel.InHours(23))
-        // 딱 1시간은 '1시간 뒤', 59분은 '59분 뒤'예요.
-        assertThat(RestLabel.between(at(60), ring)).isEqualTo(RestLabel.InHours(1))
-        assertThat(RestLabel.between(at(59), ring)).isEqualTo(RestLabel.InMinutes(59))
-        // 분은 올림이에요. 58분 30초 남으면 59분, 1분 30초 남으면 2분이에요.
-        assertThat(RestLabel.between(at(59, 30), ring)).isEqualTo(RestLabel.InMinutes(59))
-        assertThat(RestLabel.between(at(2, 30), ring)).isEqualTo(RestLabel.InMinutes(2))
-        // 30초 남아도 0분이 아니라 1분이에요.
-        assertThat(RestLabel.between(ring.minusSeconds(30), ring)).isEqualTo(RestLabel.InMinutes(1))
+        // 24시간 안은 시간과 분을 같이 보여요.
+        assertThat(RestLabel.between(at(24 * 60 - 1), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 23, 59)))
+        assertThat(RestLabel.between(at(19 * 60 + 43), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 19, 43)))
+        // 분이 0이면 'N시간 뒤', 1시간 안이면 'N분 뒤'(글은 AlarmText.until이 0인 칸을 빼요).
+        assertThat(RestLabel.between(at(60), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 1, 0)))
+        assertThat(RestLabel.between(at(59), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 0, 59)))
+        // 분은 홈 위쪽 문구처럼 올림이에요. 30초 남아도 1분이에요.
+        assertThat(RestLabel.between(at(2, 30), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 0, 2)))
+        assertThat(RestLabel.between(ring.minusSeconds(30), ring)).isEqualTo(RestLabel.Within(TimeUntil(0, 0, 1)))
     }
 
     @Test

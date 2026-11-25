@@ -110,6 +110,25 @@ class HomeScreenTest {
     }
 
     @Test
+    fun resting_withinADay_showsHoursAndMinutes() {
+        val a = Alarm(id = 4, time = LocalTime.of(6, 30), repeatDays = setOf(DayOfWeek.THURSDAY))
+        val b = Alarm(id = 5, time = LocalTime.of(7, 0), repeatDays = setOf(DayOfWeek.THURSDAY))
+        show(
+            HomeUiState(
+                loading = false,
+                alarms = listOf(a, b),
+                today = today,
+                resting = mapOf(
+                    4L to RestLabel.Within(TimeUntil(0, 19, 43)),
+                    5L to RestLabel.Within(TimeUntil(0, 0, 12)),
+                ),
+            ),
+        )
+        compose.onNodeWithText("19시간 43분 뒤 다시 울려요").assertExists()
+        compose.onNodeWithText("12분 뒤 다시 울려요").assertExists()
+    }
+
+    @Test
     fun selectionMode_showsCountAndBar() {
         show(HomeUiState(loading = false, alarms = listOf(alarm), today = today, selection = setOf(1L)))
         compose.onNodeWithText("1개 선택됨").assertExists()

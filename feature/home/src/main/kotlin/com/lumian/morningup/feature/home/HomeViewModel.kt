@@ -15,11 +15,9 @@ import com.lumian.morningup.core.model.engine.NextRingCalculator
 import com.lumian.morningup.core.model.engine.TimeUntil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
-import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
-import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -48,28 +46,18 @@ sealed interface HomeMessage {
 }
 
 /**
- * 쉬는 중 카드 글(결정 154). 다음 울림까지 1시간 안이면 [InMinutes](올림, 최소 1분),
- * 24시간 안이면 [InHours](내림), 넘으면 [OnDay]예요.
+ * 쉬는 중 카드 글(결정 154). 다음 울림까지 24시간 안이면 [Within]('N시간 N분 뒤'), 넘으면 [OnDay]예요.
+ * 남은 시간은 홈 위쪽 문구와 같은 [TimeUntil]로 세서 두 곳 값이 같아요.
  */
 sealed interface RestLabel {
-    data class InMinutes(val minutes: Long) : RestLabel
-
-    data class InHours(val hours: Long) : RestLabel
+    data class Within(val until: TimeUntil) : RestLabel
 
     data class OnDay(val day: DayOfWeek) : RestLabel
 
     companion object {
-        private const val MINUTES_PER_HOUR = 60L
-        private const val HOURS_PER_DAY = 24L
-
-        /** [now]부터 [ring]까지. 초는 버린 지금 시각으로 세서 남은 분이 올림이 돼요. */
         fun between(now: ZonedDateTime, ring: ZonedDateTime): RestLabel {
-            val minutes = Duration.between(now.truncatedTo(ChronoUnit.MINUTES), ring).toMinutes()
-            return when {
-                minutes < MINUTES_PER_HOUR -> InMinutes(minutes.coerceAtLeast(1))
-                minutes < MINUTES_PER_HOUR * HOURS_PER_DAY -> InHours(minutes / MINUTES_PER_HOUR)
-                else -> OnDay(ring.dayOfWeek)
-            }
+            val until = TimeUntil.between(now, ring)
+            return if (until.days == 0) Within(until) else OnDay(ring.dayOfWeek)
         }
     }
 }
