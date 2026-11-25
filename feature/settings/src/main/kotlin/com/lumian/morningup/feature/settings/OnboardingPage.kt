@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -27,9 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,7 +45,8 @@ import com.lumian.morningup.core.model.AlarmPermission
 import kotlinx.coroutines.delay
 
 /** 스플래시를 보여 주는 시간. */
-private const val SPLASH_MILLIS = 1_200L
+/** 움직임 줄이기를 켠 폰의 스플래시 시간(다 쓴 글자만 보여 줘요). */
+private const val SPLASH_REDUCED_MILLIS = 1_200L
 
 /**
  * 그림 칸(280)과 글 묶음을 한 덩어리로 상태 바와 아래 버튼 묶음 사이 세로 가운데에 놓아요(11-20 사용자 지시).
@@ -60,7 +63,6 @@ private val GlowBlue = Color(0xFF0B6CF0)
 private const val GLOW_ALPHA_LIGHT = 0.24f
 private const val GLOW_ALPHA_DARK = 0.16f
 private const val GLOW_END = 0.6f
-private const val DARK_LUMINANCE = 0.5f
 
 /** 한 장의 문구. */
 private data class StepCopy(
@@ -142,9 +144,15 @@ fun OnboardingRoute(
         }
     }
 
+    // 손글씨를 다 쓰고 0.5초 멈춘 뒤 넘어가요(결정 170). 움직임 줄이기면 전처럼 짧게요.
+    val splashMillis = if (MorningTheme.reduceMotion) {
+        SPLASH_REDUCED_MILLIS
+    } else {
+        SplashHandwriting.TOTAL_MILLIS.toLong()
+    }
     LaunchedEffect(Unit) {
         if (!splashDone) {
-            delay(SPLASH_MILLIS)
+            delay(splashMillis)
             viewModel.refresh()
             goTo(OnboardingStep.after(null, viewModel.report.value, showAll))
             splashDone = true
@@ -195,29 +203,29 @@ fun OnboardingRoute(
     }
 }
 
-/** 스플래시(결정 131, O1 자리). 낮엔 한낮 하늘, 밤(다크)엔 밤하늘 위에 워드마크만 있어요. */
+/**
+ * 스플래시(결정 131, O1 자리). 아이콘과 같은 어두운 바탕에 아이콘 손글씨 '일어나'를 한 획씩 졸린 속도로 써요(결정 170).
+ * 라이트, 다크 모두 아이콘 색 그대로예요.
+ */
 @Composable
 fun OnboardingSplash(modifier: Modifier = Modifier) {
-    val colors = MorningTheme.colors
-    val night = colors.backgroundBase.luminance() < DARK_LUMINANCE
-    val sky = if (night) {
-        listOf(colors.skyNightTop, colors.skyNightBottom)
-    } else {
-        listOf(colors.skyNoonTop, colors.skyNoonBottom)
-    }
+    val name = stringResource(R.string.onboarding_splash_desc)
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(sky)),
+            .background(SplashBackground),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = stringResource(R.string.onboarding_wordmark),
-            style = MorningTheme.typography.displayMedium,
-            color = colors.textOnSky,
+        SplashHandwritingLogo(
+            Modifier
+                .size(SplashLogoSize)
+                .semantics { contentDescription = name },
         )
     }
 }
+
+/** 손글씨 칸. 아이콘 viewport 540을 이 크기에 맞춰서 글자 폭은 약 170dp예요. */
+private val SplashLogoSize = 320.dp
 
 /**
  * 온보딩 권한 한 장(O2-1~O2-4, O3). 그림 칸(328x280)에 피그마 그림과 움직임을 그리고, 그 아래 제목과 설명을 둬요.

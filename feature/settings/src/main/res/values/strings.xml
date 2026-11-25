@@ -122,7 +122,7 @@
     <string name="faq_q7">미션 중에 전원을 꺼 버리면요?</string>
     <string name="faq_a7">설정에서 \'전원 종료 방지\'를 켜면 미션을 하는 동안 전원 메뉴가 열려도 바로 닫혀요. 처음 켤 때 접근성 권한을 켜는 방법을 안내해 드려요.</string>
     <!-- 온보딩(결정 129, 131). 문구는 피그마 온보딩 (O) 구역 11-20 최신본 -->
-    <string name="onboarding_wordmark" translatable="false">morning up</string>
+    <string name="onboarding_splash_desc" translatable="false">일어나</string>
     <string name="onboarding_later">나중에 하기</string>
     <string name="onboarding_skip">건너뛰기</string>
     <string name="onboarding_notifications_title">알림을 허용해 주세요</string>
