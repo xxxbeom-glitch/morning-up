@@ -118,7 +118,7 @@ td.them{border-left:3px solid var(--rival)} td.us{border-left:3px solid var(--sk
     <div class="stats">
       <div class="stat"><b>112</b><span>기록한 알라미 화면</span></div>
       <div class="stat"><b id="c-take">0</b><span>가져온 흐름</span></div>
-      <div class="stat"><b id="c-same">0</b><span>이미 같은 것</span></div>
+      <div class="stat"><b id="c-same">0</b><span>동일한 것</span></div>
       <div class="stat"><b id="c-ours">0</b><span>우리만 있는 것</span></div>
       <div class="stat"><b id="c-theirs">0</b><span>알라미만 있는 것</span></div>
     </div>
@@ -177,8 +177,8 @@ td.them{border-left:3px solid var(--rival)} td.us{border-left:3px solid var(--sk
     <div class="filters" role="group" aria-label="대조표 거르기">
       <button class="chip" id="f-all" data-f="all" aria-pressed="true">전체<span class="n"></span></button>
       <button class="chip" id="f-take" data-f="take" aria-pressed="false">가져옴<span class="n"></span></button>
-      <button class="chip" id="f-same" data-f="same" aria-pressed="false">같음<span class="n"></span></button>
-      <button class="chip" id="f-diff" data-f="diff" aria-pressed="false">일부러 다름<span class="n"></span></button>
+      <button class="chip" id="f-same" data-f="same" aria-pressed="false">동일함<span class="n"></span></button>
+      <button class="chip" id="f-diff" data-f="diff" aria-pressed="false">상이함<span class="n"></span></button>
       <button class="chip" id="f-ours" data-f="ours" aria-pressed="false">우리만<span class="n"></span></button>
       <button class="chip" id="f-theirs" data-f="theirs" aria-pressed="false">알라미만<span class="n"></span></button>
     </div>
@@ -255,7 +255,7 @@ const ROWS = [
   ["앱 종료 확인", "재미 문구 확인 창", "없음", "theirs"]
  ]]
 ];
-const LABEL = {take:"가져옴", same:"같음", diff:"일부러 다름", ours:"우리만", theirs:"알라미만"};
+const LABEL = {take:"가져옴", same:"동일함", diff:"상이함", ours:"우리만", theirs:"알라미만"};
 const BOARD = [
  ["1", "홈 문구 누르면 편집", "결정 157", "하늘 위 문구를 누르면 다음에 울릴 알람 편집이 열려요.", 3],
  ["2", "켜진 채 이번만 쉬기", "결정 158", "선택 모드 아래 바에 '이번만 쉬기'. 바는 켜기, 끄기, 이번만 쉬기, 복제, 삭제 다섯 칸.", 2],
