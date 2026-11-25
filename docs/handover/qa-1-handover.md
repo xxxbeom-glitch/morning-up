@@ -28,6 +28,11 @@
   8) TSK-205 Drop Words가 최근 3일 단어를 빼고 냄(날짜 바꾸기 어려우면 단위 시험과 로그로 확인)
   + 기존 흐름 회귀(울림, 미션, W1~W3). 결함은 add-issue, 끝나면 approve/reject, Leader에 결과 표
 - 새 패키지 정보([개발 19], 3444bb7 16:25:20 빌드는 TSK-204만): com.lumian.wakeup.debug, 디버그 입구 `-n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver`(action 그대로), 실행 액티비티도 새 패키지로 바뀌었을 수 있음(`cmd package resolve-activity --brief com.lumian.wakeup.debug`로 확인). docs/qa/README.md, tools/read-diag.py 새 주소. 202/203까지 든 판을 기다렸다가 한 번에 시험.
+- 합친 판 나옴([개발 19], 11-25 17시 직전): 커밋 e7c10e8(202), 122f288(203 문서만, 폰 확인 불필요), 8cee221(205). APK 16:50 빌드, 패키지 com.lumian.wakeup.debug, 아직 아무도 폰에 안 깖. 11-26에 이 판으로 위 1~8 확인(설치 전 APK 시각이 16:50 이후인지 확인).
+  - 막힘 토스트 글: '지금 울리는 알람이에요. 울림 화면에서 꺼 주세요'. 같이 고른 다른 알람은 처리, 복제는 허용. W2, W3 대기 중 끄기는 전처럼 확인 멈춤(결정 153)
+  - 쉬는 중 띠 '오전 H:mm에 다시 울려요' → 울림 화면. W2 대기 띠 '곧 깼는지 물어볼게요' → 아무 일 없음
+  - S3 시트 설명 '못 들으면 쉬었다 다시 울려요'. 옛 알람은 다시 울림 값 그대로
+  - Drop Words 단계마다 60단어, 미리보기는 기록 안 함. 띠, 토스트 모양 다듬기는 TSK-201 몫
 - 주의: 설치 전 APK 빌드 시각이 개발 방이 말한 시각 이후인지 꼭 확인(11-25에 한 번 옛 판을 깔아 헛시험함). 새 패키지면 디버그 명령 패키지 이름도 바뀌었는지 확인.
 
 ## 기기 규칙
