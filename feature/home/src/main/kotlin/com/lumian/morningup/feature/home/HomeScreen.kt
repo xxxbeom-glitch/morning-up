@@ -77,7 +77,6 @@ import com.lumian.morningup.core.designsystem.component.MorningBottomNavAlertRis
 import com.lumian.morningup.core.designsystem.component.MorningBottomNavHeight
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
-import com.lumian.morningup.core.designsystem.component.MorningDialog
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
 import com.lumian.morningup.core.designsystem.component.MorningMessageHost
 import com.lumian.morningup.core.designsystem.component.MorningSelectMark
@@ -148,8 +147,6 @@ fun HomeRoute(
         onOpen = { onOpenEdit(it.id) },
         onToggle = viewModel::setEnabled,
         onLongPress = { viewModel.startSelection(it) },
-        onCancelDelete = viewModel::cancelDelete,
-        onConfirmDelete = viewModel::confirmDelete,
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
@@ -193,8 +190,6 @@ fun HomeScreen(
     onOpen: (Alarm) -> Unit,
     onToggle: (Alarm, Boolean) -> Unit,
     onLongPress: (Alarm) -> Unit,
-    onCancelDelete: () -> Unit,
-    onConfirmDelete: () -> Unit,
     onUndo: () -> Unit,
     onDismissMessage: (HomeMessage) -> Unit,
     modifier: Modifier = Modifier,
@@ -247,9 +242,6 @@ fun HomeScreen(
                     .navigationBarsPadding()
                     .padding(bottom = MorningDimens.space16),
             )
-        }
-        if (state.pendingDelete.isNotEmpty()) {
-            DeleteDialog(alarms = state.pendingDelete, onCancel = onCancelDelete, onConfirm = onConfirmDelete)
         }
     }
 }
@@ -830,37 +822,15 @@ private fun Messages(
             is HomeMessage.Copied -> MorningToast(text = stringResource(R.string.home_copied, shown.count))
             HomeMessage.ChecksStopped -> MorningToast(text = stringResource(R.string.home_checks_stopped))
             is HomeMessage.Deleted -> MorningSnackbar(
-                text = stringResource(R.string.home_deleted),
+                text = if (shown.alarms.size == 1) {
+                    stringResource(R.string.home_deleted)
+                } else {
+                    stringResource(R.string.home_deleted_many, shown.alarms.size)
+                },
                 actionLabel = stringResource(R.string.home_undo),
                 onAction = onUndo,
                 onSwipeDismiss = { onDismiss(shown) },
             )
         }
     }
-}
-
-@Composable
-private fun DeleteDialog(alarms: List<Alarm>, onCancel: () -> Unit, onConfirm: () -> Unit) {
-    val res = alarmResources()
-    val alarm = alarms.first()
-    val time = AlarmText.time(res, alarm.time)
-    val repeat = AlarmText.repeat(res, alarm.repeatDays)
-    val single = alarms.size == 1
-    MorningDialog(
-        title = if (single) {
-            stringResource(R.string.home_delete_title)
-        } else {
-            stringResource(R.string.home_delete_many_title, alarms.size)
-        },
-        message = when {
-            !single -> stringResource(R.string.home_delete_many_message)
-            alarm.missions.isEmpty() -> stringResource(R.string.home_delete_message, time, repeat)
-            else -> stringResource(R.string.home_delete_message_missions, time, repeat)
-        },
-        dismissLabel = stringResource(R.string.home_delete_cancel),
-        confirmLabel = stringResource(R.string.home_delete_confirm),
-        onDismiss = onCancel,
-        onConfirm = onConfirm,
-        danger = true,
-    )
 }

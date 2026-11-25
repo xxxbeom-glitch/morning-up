@@ -115,7 +115,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun delete_asksFirst_thenDeletes_andUndoRestores() = runTest {
+    fun delete_deletesRightAway_andUndoRestores() = runTest {
         val book = FakeAlarmBook(listOf(a630, a800))
         val vm = viewModel(book)
         vm.uiState.test {
@@ -123,13 +123,8 @@ class HomeViewModelTest {
             vm.startSelection(a800)
             awaitItem()
             vm.deleteSelected()
-            assertThat(awaitItem().pendingDelete).containsExactly(a800)
-            assertThat(book.calls).isEmpty()
-
-            vm.confirmDelete()
             var state = awaitItem()
             while (state.message == null) state = awaitItem()
-            assertThat(state.pendingDelete).isEmpty()
             assertThat(state.selection).isNull()
             assertThat(state.alarms.map { it.id }).containsExactly(1L)
             assertThat(state.message).isEqualTo(HomeMessage.Deleted(listOf(a800)))
@@ -143,18 +138,26 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun cancelDelete_keepsAlarm() = runTest {
-        val book = FakeAlarmBook(listOf(a630))
+    fun delete_again_whileSnackbar_replacesIt_andKeepsQueuedToastOnce() = runTest {
+        // 결정 160 5번: 앞 스낵바 뒤에 줄 선 '남은 확인을 멈췄어요'는 새 스낵바 뒤로 한 번만 넘어가요.
+        checks.pendingFor = setOf(3L)
+        val book = FakeAlarmBook(listOf(a630, a800))
         val vm = viewModel(book)
         vm.uiState.test {
             awaitItem().let { if (it.loading) awaitItem() else it }
-            vm.startSelection(a630)
+            vm.startSelection(a800)
             awaitItem()
             vm.deleteSelected()
-            awaitItem()
-            vm.cancelDelete()
-            assertThat(awaitItem().pendingDelete).isEmpty()
-            assertThat(book.calls).isEmpty()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            vm.startSelection(a630)
+            vm.deleteSelected()
+            while (state.message != HomeMessage.Deleted(listOf(a630))) state = awaitItem()
+            vm.dismissMessage(state.message!!)
+            assertThat(awaitItem().message).isEqualTo(HomeMessage.ChecksStopped)
+            vm.dismissMessage(HomeMessage.ChecksStopped)
+            assertThat(awaitItem().message).isNull()
+            assertThat(book.calls).containsExactly("delete:3", "delete:1").inOrder()
         }
     }
 
@@ -234,8 +237,6 @@ class HomeViewModelTest {
             vm.startSelection(a800)
             awaitItem()
             vm.deleteSelected()
-            awaitItem()
-            vm.confirmDelete()
             var state = awaitItem()
             while (state.message == null) state = awaitItem()
             val deleted = state.message
@@ -259,8 +260,6 @@ class HomeViewModelTest {
             vm.startSelection(a800)
             awaitItem()
             vm.deleteSelected()
-            awaitItem()
-            vm.confirmDelete()
             var state = awaitItem()
             while (state.message == null) state = awaitItem()
             vm.undoDelete()

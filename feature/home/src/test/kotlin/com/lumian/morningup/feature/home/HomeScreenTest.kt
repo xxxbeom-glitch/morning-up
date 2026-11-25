@@ -43,8 +43,6 @@ class HomeScreenTest {
                     onOpen = onOpen,
                     onToggle = { _, _ -> },
                     onLongPress = onLongPress,
-                    onCancelDelete = {},
-                    onConfirmDelete = {},
                     onUndo = {},
                     onDismissMessage = {},
                 )
@@ -126,10 +124,10 @@ class HomeScreenTest {
     }
 
     @Test
-    fun pendingDelete_showsDialogText() {
-        show(HomeUiState(loading = false, alarms = listOf(alarm), today = today, pendingDelete = listOf(alarm)))
-        compose.onNodeWithText("이 알람을 삭제할까요?").assertExists()
-        compose.onNodeWithText("오전 6:30 한 번 알람이에요.").assertExists()
+    fun deletedMany_showsCount() {
+        val two = listOf(alarm, alarm.copy(id = 2))
+        show(HomeUiState(loading = false, today = today, message = HomeMessage.Deleted(two)))
+        compose.onNodeWithText("알람 2개를 지웠어요").assertExists()
     }
 
     @Test

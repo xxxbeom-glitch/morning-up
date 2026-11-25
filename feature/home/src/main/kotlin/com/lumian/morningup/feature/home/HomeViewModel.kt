@@ -72,8 +72,6 @@ data class HomeUiState(
     val time: LocalTime? = null,
     /** H0 하늘 날씨. null이면 시간대만 따르는 맑은 하늘이에요. */
     val weather: WeatherKind? = null,
-    /** H5 삭제 확인 중인 알람. 비어 있으면 확인 창이 없어요. */
-    val pendingDelete: List<Alarm> = emptyList(),
     val message: HomeMessage? = null,
     /** H8 Rest Offer: 이 화면에서 방금 끈 반복 알람. 카드 아래 '이번만 쉬기'가 붙어요. */
     val restOffers: Set<Long> = emptySet(),
@@ -112,7 +110,6 @@ class HomeViewModel @Inject constructor(
     fun openRecheck() = checks.openRecheck()
 
     private data class Overlay(
-        val pendingDelete: List<Alarm> = emptyList(),
         val message: HomeMessage? = null,
         val restOffers: Set<Long> = emptySet(),
         val selection: Set<Long>? = null,
@@ -141,7 +138,6 @@ class HomeViewModel @Inject constructor(
             today = at.toLocalDate(),
             time = at.toLocalTime().withSecond(0).withNano(0),
             weather = weather,
-            pendingDelete = o.pendingDelete,
             message = o.message,
             restOffers = o.restOffers,
             resting = alarms.mapNotNull { a -> restingLabel(a, at)?.let { a.id to it } }.toMap(),
@@ -361,28 +357,27 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    /** '삭제': 확인 창(H5)을 먼저 띄워요. */
+    /**
+     * '삭제': 묻지 않고 바로 지우고 되돌리기 스낵바(H7)를 띄워요(결정 160, H5 확인 창 없앰).
+     * 스낵바가 떠 있는 중에 또 지우면 앞 삭제는 확정되고 새 스낵바로 바뀌어요. 줄 서 있던 토스트는 합쳐 한 번만이에요.
+     */
     fun deleteSelected() {
-        val chosen = selectedAlarms()
-        if (chosen.isNotEmpty()) overlay.update { it.copy(pendingDelete = chosen) }
-    }
-
-    fun cancelDelete() = overlay.update { it.copy(pendingDelete = emptyList()) }
-
-    fun confirmDelete() {
-        val alarms = overlay.value.pendingDelete
+        val alarms = selectedAlarms()
+        endSelection()
         if (alarms.isEmpty()) return
-        overlay.update { it.copy(pendingDelete = emptyList(), selection = null) }
         viewModelScope.launch {
             val stopped = stopChecks(alarms.map { it.id })
             val deleted = alarms.mapNotNull { book.delete(it.id) }
-            val after = if (stopped) HomeMessage.ChecksStopped else null
-            when {
-                // '되돌리기'가 먼저 보이게 스낵바를 띄우고, 닫히면 토스트를 이어서 띄워요.
-                deleted.isNotEmpty() -> overlay.update {
-                    it.copy(message = HomeMessage.Deleted(deleted), queued = after)
+            overlay.update {
+                // 앞 스낵바가 아직 떠 있으면 그 뒤에 줄 선 토스트를 이어받아요.
+                val waiting = it.queued.takeIf { _ -> it.message is HomeMessage.Deleted }
+                val after = if (stopped) HomeMessage.ChecksStopped else waiting
+                when {
+                    // '되돌리기'가 먼저 보이게 스낵바를 띄우고, 닫히면 토스트를 이어서 띄워요.
+                    deleted.isNotEmpty() -> it.copy(message = HomeMessage.Deleted(deleted), queued = after)
+                    stopped -> it.copy(message = HomeMessage.ChecksStopped)
+                    else -> it
                 }
-                stopped -> showChecksStopped()
             }
         }
     }
