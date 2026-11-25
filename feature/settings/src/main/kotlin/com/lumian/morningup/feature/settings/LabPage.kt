@@ -44,7 +44,6 @@ import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
@@ -76,13 +75,9 @@ class LabViewModel @Inject constructor(
         val lab = updateLab { it.copy(trickEnabled = on) }
         labLog.record(
             if (on) LabLog.TRICK_ON else LabLog.TRICK_OFF,
-            detail = "level=${lab.trickLevel.key} speed=${lab.trickSpeed.key}",
+            detail = "speed=${lab.trickSpeed.key}",
             kept = true,
         )
-    }
-
-    fun setTrickLevel(level: TrickLevel) {
-        updateLab { it.copy(trickLevel = level) }
     }
 
     fun setTrickSpeed(speed: TrickSpeed) {
@@ -161,7 +156,6 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         lab = settings.lab,
         onBack = onBack,
         onTrick = viewModel::setTrick,
-        onTrickLevel = viewModel::setTrickLevel,
         onTrickSpeed = viewModel::setTrickSpeed,
         onMultiAsk = viewModel::setMultiAsk,
         onMultiAskCount = viewModel::setMultiAskCount,
@@ -181,7 +175,6 @@ fun LabScreen(
     lab: LabSettings,
     onBack: () -> Unit,
     onTrick: (Boolean) -> Unit,
-    onTrickLevel: (TrickLevel) -> Unit,
     onTrickSpeed: (TrickSpeed) -> Unit,
     onMultiAsk: (Boolean) -> Unit,
     onMultiAskCount: (Int) -> Unit,
@@ -272,7 +265,6 @@ fun LabScreen(
                 when (open) {
                     LabSheet.Trick -> TrickSheet(
                         lab = lab,
-                        onLevel = onTrickLevel,
                         onSpeed = onTrickSpeed,
                         onPreview = {
                             sheet = null
@@ -365,12 +357,11 @@ private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit
     }
 }
 
-/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '보통, 속도 보통, 20초 동안'. */
+/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 보통, 20초 동안'. */
 @Composable
 private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(
         R.string.settings_lab_trick_on,
-        stringResource(lab.trickLevel.labelRes()),
         stringResource(lab.trickSpeed.labelRes()),
         LabSettings.TRICK_SECONDS,
     )
@@ -378,11 +369,10 @@ private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(R.string.settings_lab_trick_off)
 }
 
-/** T3-1: 강도 칩과 고른 단계 설명, 속도 칩과 설명, '미리 해보기', '완료'. */
+/** T3-1: 속도 칩과 설명, '미리 해보기', '완료'(결정 155로 강도 칩은 없앰). */
 @Composable
 private fun ColumnScope.TrickSheet(
     lab: LabSettings,
-    onLevel: (TrickLevel) -> Unit,
     onSpeed: (TrickSpeed) -> Unit,
     onPreview: () -> Unit,
     onDone: () -> Unit,
@@ -392,15 +382,6 @@ private fun ColumnScope.TrickSheet(
         description = stringResource(R.string.settings_lab_trick_desc, LabSettings.TRICK_SECONDS),
         onDone = onDone,
     ) {
-        FullChipGroup(
-            label = stringResource(R.string.settings_lab_level),
-            options = TrickLevel.entries,
-            selected = lab.trickLevel,
-            optionLabel = { stringResource(it.labelRes()) },
-            onSelect = onLevel,
-            note = stringResource(lab.trickLevel.descRes()),
-        )
-        Spacer(Modifier.height(MorningDimens.space16))
         FullChipGroup(
             label = stringResource(R.string.settings_lab_speed),
             options = TrickSpeed.entries,
@@ -474,18 +455,6 @@ private fun <T> FullChipGroup(
             modifier = Modifier.padding(top = MorningDimens.space4),
         )
     }
-}
-
-private fun TrickLevel.labelRes(): Int = when (this) {
-    TrickLevel.Weak -> R.string.settings_lab_level_weak
-    TrickLevel.Normal -> R.string.settings_lab_level_normal
-    TrickLevel.Strong -> R.string.settings_lab_level_strong
-}
-
-private fun TrickLevel.descRes(): Int = when (this) {
-    TrickLevel.Weak -> R.string.settings_lab_level_weak_desc
-    TrickLevel.Normal -> R.string.settings_lab_level_normal_desc
-    TrickLevel.Strong -> R.string.settings_lab_level_strong_desc
 }
 
 private fun TrickSpeed.labelRes(): Int = when (this) {

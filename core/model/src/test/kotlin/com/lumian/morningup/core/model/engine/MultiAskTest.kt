@@ -4,7 +4,6 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.MissionType
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.engine.RingEffect.MultiAskRecorded
@@ -195,7 +194,6 @@ class MultiAskTest {
         assertThat(off.recheckEnabled).isFalse()
         val lab = LabSettings(
             trickEnabled = true,
-            trickLevel = TrickLevel.Strong,
             trickSpeed = TrickSpeed.Fast,
             multiAskEnabled = true,
             multiAskCount = 4,
@@ -204,7 +202,6 @@ class MultiAskTest {
         assertThat(on.askTotal).isEqualTo(4)
         // 여러 번 묻기를 켜면 '한 번 더 확인'이 꺼져 있어도 W3를 물어요.
         assertThat(on.recheckEnabled).isTrue()
-        assertThat(on.trick!!.level).isEqualTo(TrickLevel.Strong)
         assertThat(on.trick!!.speed).isEqualTo(TrickSpeed.Fast)
     }
 }

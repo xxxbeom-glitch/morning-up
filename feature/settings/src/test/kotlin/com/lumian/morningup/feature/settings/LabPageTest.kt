@@ -11,7 +11,6 @@ import androidx.compose.ui.test.performScrollTo
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.testing.MainDispatcherRule
@@ -37,7 +36,6 @@ class LabPageTest {
                 lab = lab,
                 onBack = { calls += "back" },
                 onTrick = { calls += "trick:$it" },
-                onTrickLevel = { calls += "level:${it.key}" },
                 onTrickSpeed = { calls += "speed:${it.key}" },
                 onMultiAsk = { calls += "multi:$it" },
                 onMultiAskCount = { calls += "count:$it" },
@@ -73,22 +71,23 @@ class LabPageTest {
     }
 
     @Test
-    fun t3_on_showsLevelSpeedAndSeconds() {
+    fun t3_on_showsSpeedAndSeconds() {
         showPage(LabSettings(trickEnabled = true, multiAskEnabled = true, multiAskCount = 5))
-        compose.onNodeWithText("보통, 속도 보통, 20초 동안").assertExists()
+        compose.onNodeWithText("속도 보통, 20초 동안").assertExists()
         compose.onNodeWithText("깼는지 5번 물어요").assertExists()
     }
 
     @Test
-    fun trickSheet_picksLevelSpeed_andOpensPreview() {
-        showPage(LabSettings(trickEnabled = true, trickLevel = TrickLevel.Strong, trickSpeed = TrickSpeed.Fast))
+    fun trickSheet_picksSpeed_andOpensPreview() {
+        showPage(LabSettings(trickEnabled = true, trickSpeed = TrickSpeed.Fast))
         compose.onNodeWithText("버튼 속이기").performClick()
         compose.onNodeWithTag(LAB_TRICK_SHEET_TAG).assertExists()
-        compose.onNodeWithText("똑같은 가짜 버튼이 섞여요").assertExists()
-        compose.onNodeWithText("약하게").performClick()
+        // 결정 155로 강도 칩은 없어졌어요.
+        compose.onNodeWithText("똑같은 가짜 버튼이 섞여요").assertDoesNotExist()
+        compose.onNodeWithText("약하게").assertDoesNotExist()
         compose.onNodeWithText("느리게").performClick()
         compose.onNodeWithText("미리 해보기").performClick()
-        assertThat(calls).containsExactly("level:weak", "speed:slow", "preview").inOrder()
+        assertThat(calls).containsExactly("speed:slow", "preview").inOrder()
     }
 
     @Test

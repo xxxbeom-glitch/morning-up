@@ -35,7 +35,6 @@
     <string name="ring_hold_action">10초 동안 누르기</string>
     <string name="ring_hold_seconds_left">%1$d초 남았어요</string>
     <!-- 실험실 버튼 속이기(결정 146 2절): 가짜 버튼을 누르면 시각 아래 1초 -->
-    <string name="ring_trick_fake">이건 가짜예요</string>
     <!-- 실험실 여러 번 묻기(결정 146 3절): W3 제목 위, 끝 화면 -->
     <string name="ring_multi_count">%1$d번 중 %2$d번째</string>
     <string name="ring_multi_last">마지막이에요</string>

@@ -152,11 +152,7 @@ private fun BoxScope.RingingContent(
         modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            // 버튼이 가지 않는 곳(날짜와 시각 둘레).
-            modifier = Modifier.onGloballyPositioned { trickRun?.avoid = it.boundsInRoot() },
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(text = AlarmText.dateLong(resources, date), style = typography.bodySmall, color = colors.textBody)
             Spacer(Modifier.height(MorningDimens.space4))
             FixedFontScale {
@@ -168,16 +164,7 @@ private fun BoxScope.RingingContent(
                 )
             }
         }
-        // 가짜 버튼을 누르면 시각 아래 이 칸에 '이건 가짜예요'를 1초 보여 줘요(날짜와 같은 색).
-        Box(Modifier.height(MorningDimens.space40), contentAlignment = Alignment.Center) {
-            if (trickRun?.showFakeNotice == true) {
-                Text(
-                    text = stringResource(R.string.ring_trick_fake),
-                    style = typography.bodyMediumStrong,
-                    color = colors.textBody,
-                )
-            }
-        }
+        Spacer(Modifier.height(MorningDimens.space40))
         if (tricking) {
             Spacer(
                 Modifier

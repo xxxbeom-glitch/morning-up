@@ -46,10 +46,10 @@ import kotlinx.coroutines.delay
 /** '잘했어요'를 보여 주고 설정으로 돌아가기까지. */
 private const val PREVIEW_DONE_MILLIS = 1_500L
 
-/** T3-3에서 지금 고른 강도와 속도를 읽어요. 끈 채로 열어도 고른 값으로 해 봐요. */
+/** T3-3에서 지금 고른 속도를 읽어요. 끈 채로 열어도 고른 값으로 해 봐요. */
 @HiltViewModel
 class TrickPreviewViewModel @Inject constructor(store: WakeCheckSettingsStore) : ViewModel() {
-    val trick: ButtonTrick = store.settings.value.lab.let { ButtonTrick(it.trickLevel, it.trickSpeed) }
+    val trick: ButtonTrick = store.settings.value.lab.let { ButtonTrick(it.trickSpeed) }
 }
 
 /**

@@ -2,9 +2,7 @@ package com.lumian.morningup.feature.ring
 
 import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -21,11 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -49,148 +46,128 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
+import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.random.Random
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/** 버튼 크기 무작위 범위(11-24 사용자 추가): 손톱만 한 40dp부터 지금 크기 112dp까지. */
+/** 버튼 크기 무작위 범위(11-24 사용자 추가): 손톱만 한 40dp부터 지금 크기 112dp까지. 울릴 때마다 한 번 정해요. */
 private val TrickMinSize = 40.dp
 
 /** 보이는 버튼이 작아도 누르는 영역은 이 크기 이상이에요. */
 private val TrickTouchMin = 48.dp
 
-/** 날짜와 시각 글자 둘레로 비워 두는 폭. */
-private val TrickAvoidPad = 16.dp
-
-/** 세게에서 버튼끼리 띄우는 폭. */
-private val TrickGap = 8.dp
-
-/** 옮기기 전 제자리 흔들림 폭. */
-private val ShakeAmplitude = 4.dp
-
-/** 약하게: 이 간격마다 옮겨요(흔들림과 옮기기 포함). */
-private const val MOVE_EVERY_MILLIS = 2_000
-
-/** 옮겨 가는 시간, 그 전 흔들림 시간. */
-private const val MOVE_MILLIS = 300
-private const val SHAKE_MILLIS = 300
-
-/** 보통, 세게: 보였다가(1.5초) 숨는(0.8초) 시간. */
-private const val SEEN_MILLIS = 1_500
-private const val HIDDEN_MILLIS = 800
-
-/** 사라질 때 흐려지는 시간. 이 동안 누른 것은 인정해요(사라지기 직전 0.15초까지, 2-2). 속도와 상관없이 같아요. */
-private const val FADE_MILLIS = 150
-
 /** 20초가 지나 원래 자리로 돌아가는 시간. */
 private const val RETURN_MILLIS = 300
 
-/** '이건 가짜예요'를 보여 주는 시간. */
-private const val FAKE_NOTICE_MILLIS = 1_000L
+/** 한 프레임에 셀 시간 상한(초). 화면이 잠깐 멈췄다 돌아와도 버튼이 벽을 뚫고 튀지 않게 해요. */
+private const val MAX_FRAME_SECONDS = 0.1f
 
-/** 세게의 가짜 버튼 수. */
-private const val FAKE_COUNT = 2
-
-private const val PLACE_TRIES = 60
-private const val SHAKE_STEPS = 4
-private const val VISIBLE_ALPHA = 0.01f
 private const val MILLIS_PER_SECOND = 1_000L
+private const val NANOS_PER_SECOND = 1_000_000_000f
 
 /** 버튼 속이기 한 번 동안 일어난 일. 울림 화면은 기록을 남기고, 미리 해보기는 아무것도 하지 않아요. */
 interface TrickListener {
     /** 화면을 처음 만졌어요. 여기서부터 20초를 세요. */
     fun onStart() {}
 
-    /** 가짜 버튼을 [count]번째 눌렀어요. */
-    fun onFakeTap(count: Int) {}
-
-    /** 진짜 버튼을 눌렀어요. [expired]면 20초가 다 지나 멈춘 뒤 누른 거예요. */
-    fun onEnd(seconds: Int, fakes: Int, expired: Boolean) {}
+    /** 버튼을 눌렀어요. [expired]면 20초가 다 지나 멈춘 뒤 누른 거예요. */
+    fun onEnd(seconds: Int, expired: Boolean) {}
 
     companion object {
         val None = object : TrickListener {}
     }
 }
 
-/** 버튼 하나가 보이는 자리(가운데), 크기(px). */
-data class TrickSpot(val center: Offset, val size: Float)
+/** 튕기는 버튼의 가운데(px)와 속도(px/초). */
+data class Bounce(val center: Offset, val velocity: Offset)
 
 /**
- * 무작위 자리 고르기(11-24 사용자 추가: 화면 어디든, 크기 40~112dp). 모든 값은 움직이는 영역 안의 px예요.
- * 누르는 영역([touchMin] 이상)이 영역 밖으로 나가지 않고, [avoid](날짜와 시각 글자 둘레)와 겹치지 않고,
- * 버튼끼리 [gap] 이상 떨어지게 골라요. 끝까지 못 찾으면 겹침만 허용해요.
+ * 공처럼 튕기기(결정 155). 버튼은 같은 빠르기로 곧게 가다가 벽에 닿으면 반사해요.
+ * 반사할 때 방향을 ±[JITTER_DEGREES]도 무작위로 틀고, 수평이나 수직에서 [AXIS_GAP_DEGREES]도 안쪽이면 그만큼 밀어
+ * 벽을 따라 미끄러지지 않게 해요. 모든 값은 통(울림 화면 안쪽) 기준 px예요.
  */
-object TrickPlacer {
-    @Suppress("LongParameterList")
-    fun place(
-        count: Int,
-        area: Size,
-        avoid: Rect?,
-        minSize: Float,
-        maxSize: Float,
-        touchMin: Float,
-        gap: Float,
-        random: Random,
-    ): List<TrickSpot> {
-        val spots = mutableListOf<TrickSpot>()
-        repeat(count) {
-            var pick: TrickSpot? = null
-            for (attempt in 0 until PLACE_TRIES) {
-                val candidate = randomSpot(area, minSize, maxSize, touchMin, random)
-                val touch = max(candidate.size, touchMin) / 2
-                val clearOfText = avoid == null || !circleHitsRect(candidate.center, touch, avoid)
-                val clearOfOthers = spots.all { other ->
-                    val needed = touch + max(other.size, touchMin) / 2 + gap
-                    distance(candidate.center, other.center) >= needed
-                }
-                if (clearOfText && clearOfOthers) {
-                    pick = candidate
-                    break
-                }
-                if (attempt == PLACE_TRIES - 1 && clearOfText) pick = candidate
-            }
-            spots += pick ?: randomSpot(area, minSize, maxSize, touchMin, random)
+object TrickBounce {
+    const val JITTER_DEGREES = 15.0
+    const val AXIS_GAP_DEGREES = 15.0
+    private const val RIGHT_ANGLE = 90.0
+    private const val FULL_TURN = 360.0
+
+    /** 처음 방향: 무작위인데 수평이나 수직에서 15도 안쪽이면 고쳐요. */
+    fun start(center: Offset, speed: Float, random: Random): Bounce {
+        val degrees = random.nextDouble() * FULL_TURN
+        val radians = Math.toRadians(degrees)
+        val raw = Offset((cos(radians) * speed).toFloat(), (sin(radians) * speed).toFloat())
+        return Bounce(center, aim(raw, speed, 0.0))
+    }
+
+    /** [seconds]만큼 움직여요. 벽([half]만큼 안쪽)에 닿으면 반사하고 방향을 조금 틀어요. */
+    fun step(state: Bounce, seconds: Float, area: Size, half: Float, random: Random): Bounce {
+        var x = state.center.x + state.velocity.x * seconds
+        var y = state.center.y + state.velocity.y * seconds
+        var vx = state.velocity.x
+        var vy = state.velocity.y
+        var bounced = false
+        val (minX, maxX) = range(half, area.width)
+        val (minY, maxY) = range(half, area.height)
+        if (x < minX) {
+            x = minX + (minX - x)
+            vx = abs(vx)
+            bounced = true
+        } else if (x > maxX) {
+            x = maxX - (x - maxX)
+            vx = -abs(vx)
+            bounced = true
         }
-        return spots
+        if (y < minY) {
+            y = minY + (minY - y)
+            vy = abs(vy)
+            bounced = true
+        } else if (y > maxY) {
+            y = maxY - (y - maxY)
+            vy = -abs(vy)
+            bounced = true
+        }
+        val center = Offset(x.coerceIn(minX, maxX), y.coerceIn(minY, maxY))
+        val velocity = Offset(vx, vy)
+        if (!bounced) return Bounce(center, velocity)
+        val speed = hypot(vx, vy)
+        val turn = (random.nextDouble() * 2 - 1) * JITTER_DEGREES
+        return Bounce(center, aim(velocity, speed, turn))
     }
 
-    private fun randomSpot(area: Size, minSize: Float, maxSize: Float, touchMin: Float, random: Random): TrickSpot {
-        val size = minSize + random.nextFloat() * (maxSize - minSize)
-        val half = max(size, touchMin) / 2
-        val x = between(half, area.width - half, random)
-        val y = between(half, area.height - half, random)
-        return TrickSpot(Offset(x, y), size)
+    /** [velocity]가 가는 사분면은 그대로 두고, 각도를 [turn]만큼 튼 뒤 축에서 15도 이상 떨어지게 해요. */
+    private fun aim(velocity: Offset, speed: Float, turn: Double): Offset {
+        val sx = if (velocity.x < 0) -1f else 1f
+        val sy = if (velocity.y < 0) -1f else 1f
+        val degrees = (Math.toDegrees(atan2(abs(velocity.y), abs(velocity.x)).toDouble()) + turn)
+            .coerceIn(AXIS_GAP_DEGREES, RIGHT_ANGLE - AXIS_GAP_DEGREES)
+        val radians = Math.toRadians(degrees)
+        return Offset(sx * (cos(radians) * speed).toFloat(), sy * (sin(radians) * speed).toFloat())
     }
 
-    private fun between(from: Float, until: Float, random: Random): Float =
-        if (until <= from) (from + until) / 2 else from + random.nextFloat() * (until - from)
+    private fun range(half: Float, length: Float): Pair<Float, Float> =
+        if (length - half < half) length / 2 to length / 2 else half to length - half
 
-    private fun distance(a: Offset, b: Offset) = hypot(a.x - b.x, a.y - b.y)
-
-    /** 원(가운데 [c], 반지름 [r])이 [rect]에 닿는지. */
-    fun circleHitsRect(c: Offset, r: Float, rect: Rect): Boolean {
-        val nearestX = c.x.coerceIn(rect.left, rect.right)
-        val nearestY = c.y.coerceIn(rect.top, rect.bottom)
-        return distance(c, Offset(nearestX, nearestY)) < r
+    /** 통 안 무작위 자리(누르는 영역이 밖으로 나가지 않게). */
+    fun randomCenter(area: Size, half: Float, random: Random): Offset {
+        val (minX, maxX) = range(half, area.width)
+        val (minY, maxY) = range(half, area.height)
+        return Offset(minX + random.nextFloat() * (maxX - minX), minY + random.nextFloat() * (maxY - minY))
     }
-}
-
-/** 움직이는 버튼 하나. 가운데 자리, 보이는 크기(px), 투명도, 흔들림(px)을 따로 움직여요. */
-internal class TrickButton {
-    val center = Animatable(Offset.Zero, Offset.VectorConverter)
-    val size = Animatable(0f)
-    val alpha = Animatable(1f)
-    val shake = Animatable(0f)
 }
 
 /**
- * 울림 화면이 한 번 뜰 동안의 버튼 속이기(결정 146 2절). 화면이 새로 뜨면 새로 만들어 처음부터 다시 걸려요.
+ * 울림 화면이 한 번 뜰 동안의 버튼 속이기(결정 146, 155). 화면이 새로 뜨면 새로 만들어 처음부터 다시 걸려요.
  * - [firstTouchAt]: 화면을 처음 만진 때. 여기서부터 [LabSettings.TRICK_SECONDS]초가 지나면 [expired].
  * - [done]: 원래 자리로 돌아가 멈췄어요. 그 뒤는 원래 버튼이 그대로 있어요.
  */
@@ -200,44 +177,24 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
     internal var expired by mutableStateOf(false)
     var done by mutableStateOf(false)
         internal set
-    internal var fakes by mutableIntStateOf(0)
-    internal var realIndex by mutableIntStateOf(0)
-    internal var cycle by mutableIntStateOf(0)
-    internal var noticeTick by mutableIntStateOf(0)
-    var showFakeNotice by mutableStateOf(false)
-        internal set
     private var ended = false
+
+    /** 버튼 가운데(통 기준 px), 보이는 크기(px). 크기는 처음 자리 잡을 때 한 번 정해요. */
+    internal val center = Animatable(Offset.Zero, Offset.VectorConverter)
+    internal val size = Animatable(0f)
+    internal var velocity = Offset.Zero
     internal var placed = false
 
-    /** 움직이는 영역, 날짜와 시각 묶음, 원래 버튼 자리(모두 화면 기준 px). */
+    /** 통(울림 화면에서 상태 표시줄과 내비게이션 바 안쪽), 원래 버튼 자리(모두 화면 기준 px). */
     internal var area by mutableStateOf<Rect?>(null)
-    var avoid by mutableStateOf<Rect?>(null)
     var home by mutableStateOf<Rect?>(null)
 
-    internal val buttons = List(if (trick.level == TrickLevel.Strong) 1 + FAKE_COUNT else 1) { TrickButton() }
-
-    /** 버튼 [index]에 손가락이 닿았어요. 사라진 뒤(흐려지는 0.15초 지남)면 무시해요. */
-    internal fun tap(index: Int, listener: TrickListener, onFake: () -> Unit, onReal: (Offset) -> Unit) {
-        val button = buttons[index]
-        val box = area
-        if (button.alpha.value <= VISIBLE_ALPHA || box == null) return
-        if (index == realIndex) {
-            finish(listener)
-            onReal(button.center.value + box.topLeft)
-        } else {
-            fakes += 1
-            listener.onFakeTap(fakes)
-            onFake()
-            if (!expired) cycle += 1
-        }
-    }
-
-    /** '이건 가짜예요'를 1초 보여 줘요. 그 사이 또 누르면 새로 1초예요. */
-    internal suspend fun flashFakeNotice() {
-        val tick = ++noticeTick
-        showFakeNotice = true
-        delay(FAKE_NOTICE_MILLIS)
-        if (noticeTick == tick) showFakeNotice = false
+    /** 버튼에 손가락이 닿았어요. 움직이는 중이어도 인정해요. */
+    internal fun tap(listener: TrickListener, onReal: (Offset) -> Unit) {
+        val box = area ?: return
+        if (!placed) return
+        finish(listener)
+        onReal(center.value + box.topLeft)
     }
 
     internal fun touched(listener: TrickListener) {
@@ -246,47 +203,29 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
         listener.onStart()
     }
 
-    /** 진짜 버튼을 눌렀어요. 한 번만 알려요. 20초가 지나 원래 버튼을 누른 경우도 여기로 와요. */
+    /** 버튼을 눌렀어요. 한 번만 알려요. 20초가 지나 원래 버튼을 누른 경우도 여기로 와요. */
     fun finish(listener: TrickListener) {
         if (ended) return
         ended = true
         val seconds = firstTouchAt?.let { ((SystemClock.elapsedRealtime() - it) / MILLIS_PER_SECOND).toInt() } ?: 0
-        listener.onEnd(seconds, fakes, expired)
+        listener.onEnd(seconds, expired)
     }
 }
 
 /**
- * 버튼 속이기 층. 울림 화면 위에 꽉 차게 덮고 버튼을 그려요. 원래 버튼 자리는 비워 두고([TrickRun.home]만 재요),
- * 20초가 지나면 진짜 버튼이 그 자리로 0.3초에 걸쳐 돌아가 [TrickRun.done]이 돼요.
- * - 약하게: 2초마다 0.3초 흔들려 예고하고 0.3초에 걸쳐 새 자리와 크기로 옮겨요.
- * - 보통: 옮기기와 숨바꼭질(1.5초 보였다가 0.8초 숨고 다른 자리에 나타남)을 번갈아 해요.
- * - 세게: 보통 + 똑같은 가짜 버튼 2개. 숨었다 나타날 때마다 진짜가 바뀌어요.
- * - 가짜를 누르면 짧은 진동(햅틱, 울림 진동을 끊지 않아요)과 '이건 가짜예요' 1초, 그리고 자리를 다시 섞어요.
- * - 누르는 순간(손가락이 닿을 때) 인정해요. 사라지는 중(0.15초)에 닿은 것도 인정해요.
+ * 버튼 속이기 층. 울림 화면 위에 꽉 차게 덮고 버튼 하나를 맨 위에 그려요(하늘, 날짜, 시각 위로도 지나가요).
+ * 원래 버튼 자리는 비워 두고([TrickRun.home]만 재요), 20초가 지나면 그 자리로 0.3초에 걸쳐 돌아가 [TrickRun.done]이
+ * 돼요. 움직임은 프레임마다(애니메이션 시계) 계산해요. 빠르기는 1초에 통 너비의 [ButtonTrick.speed] 배예요.
  */
 @Composable
 fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (center: Offset) -> Unit) {
     val density = LocalDensity.current
     val view = LocalView.current
-    val scope = rememberCoroutineScope()
     val currentListener by rememberUpdatedState(listener)
     val currentOnReal by rememberUpdatedState(onReal)
     val minSize = with(density) { TrickMinSize.toPx() }
     val maxSize = with(density) { MorningDimens.sizeButtonCircle.toPx() }
     val touchMin = with(density) { TrickTouchMin.toPx() }
-    val gap = with(density) { TrickGap.toPx() }
-    val shakePx = with(density) { ShakeAmplitude.toPx() }
-    val avoidPad = with(density) { TrickAvoidPad.toPx() }
-
-    val onTap: (Int) -> Unit = { index ->
-        run.tap(index, currentListener, onFake = {
-            view.perform(MorningHaptic.Reject)
-            scope.launch { run.flashFakeNotice() }
-        }) { center ->
-            view.perform(MorningHaptic.Confirm)
-            currentOnReal(center)
-        }
-    }
 
     Box(
         Modifier
@@ -302,11 +241,13 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
             Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                .padding(MorningDimens.space16)
                 .onGloballyPositioned { run.area = it.boundsInRoot() },
         ) {
-            run.buttons.forEachIndexed { index, button ->
-                TrickFace(button, label, touchMin, maxSize) { onTap(index) }
+            TrickFace(run, label, touchMin, maxSize) {
+                run.tap(currentListener) { center ->
+                    view.perform(MorningHaptic.Confirm)
+                    currentOnReal(center)
+                }
             }
         }
     }
@@ -320,122 +261,67 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
     }
 
     val area = run.area
-    LaunchedEffect(run, area?.size, run.cycle, run.expired) {
+    LaunchedEffect(run, area?.size, run.expired) {
         if (area == null) return@LaunchedEffect
-        val avoid = run.avoid?.translate(-area.topLeft)?.inflate(avoidPad)
-        val places = {
-            TrickPlacer.place(run.buttons.size, area.size, avoid, minSize, maxSize, touchMin, gap, run.random)
-        }
         if (run.expired) {
             run.returnHome(run.home?.center?.minus(area.topLeft), maxSize)
             run.done = true
         } else {
-            run.play(places, shakePx)
+            run.bounce(area.size, minSize, maxSize, touchMin)
         }
     }
 }
 
-/** 자리 잡기(처음) 또는 다시 섞기(가짜를 누른 뒤), 그다음 강도대로 옮기기와 숨바꼭질을 되풀이해요. */
-private suspend fun TrickRun.play(places: () -> List<TrickSpot>, shakePx: Float) = coroutineScope {
-    val factor = trick.speed.factor
+/** 처음이면 크기와 자리, 방향을 정하고, 그 뒤로는 프레임마다 움직여요. */
+private suspend fun TrickRun.bounce(area: Size, minSize: Float, maxSize: Float, touchMin: Float) {
+    val speed = trick.speed.widthsPerSecond * area.width
     if (!placed) {
-        snapTo(places())
+        val visible = minSize + random.nextFloat() * (maxSize - minSize)
+        size.snapTo(visible)
+        val start = TrickBounce.start(TrickBounce.randomCenter(area, max(visible, touchMin) / 2, random), speed, random)
+        center.snapTo(start.center)
+        velocity = start.velocity
         placed = true
-    } else {
-        moveTo(places(), (MOVE_MILLIS * factor).roundToInt())
     }
-    var hideNext = false
-    while (isActive) {
-        if (trick.level != TrickLevel.Weak && hideNext) {
-            delay((SEEN_MILLIS * factor).toLong())
-            fade(0f)
-            delay(((HIDDEN_MILLIS * factor) - 2 * FADE_MILLIS).toLong().coerceAtLeast(0))
-            snapTo(places())
-            if (buttons.size > 1) realIndex = random.nextInt(buttons.size)
-            fade(1f)
-        } else {
-            val shake = (SHAKE_MILLIS * factor).roundToInt()
-            val move = (MOVE_MILLIS * factor).roundToInt()
-            delay(((MOVE_EVERY_MILLIS * factor) - shake - move).toLong().coerceAtLeast(0))
-            shake(shakePx, shake)
-            moveTo(places(), move)
-        }
-        hideNext = !hideNext
+    val half = max(size.value, touchMin) / 2
+    var last = withFrameNanos { it }
+    while (currentCoroutineContext().isActive) {
+        val now = withFrameNanos { it }
+        val seconds = ((now - last) / NANOS_PER_SECOND).coerceIn(0f, MAX_FRAME_SECONDS)
+        last = now
+        val next = TrickBounce.step(Bounce(center.value, velocity), seconds, area, half, random)
+        velocity = next.velocity
+        center.snapTo(next.center)
     }
 }
 
-private suspend fun TrickRun.snapTo(spots: List<TrickSpot>) = coroutineScope {
-    buttons.zip(spots).forEach { (button, spot) ->
-        launch { button.center.snapTo(spot.center) }
-        launch { button.size.snapTo(spot.size) }
-    }
-}
-
-private suspend fun TrickRun.moveTo(spots: List<TrickSpot>, millis: Int) = coroutineScope {
-    buttons.zip(spots).forEach { (button, spot) ->
-        launch { button.center.animateTo(spot.center, tween(millis)) }
-        launch { button.size.animateTo(spot.size, tween(millis)) }
-        launch { button.alpha.animateTo(1f, tween(FADE_MILLIS)) }
-    }
-}
-
-private suspend fun TrickRun.fade(to: Float) = coroutineScope {
-    buttons.forEach { button -> launch { button.alpha.animateTo(to, tween(FADE_MILLIS, easing = LinearEasing)) } }
-}
-
-private suspend fun TrickRun.shake(amplitude: Float, millis: Int) = coroutineScope {
-    val step = millis / SHAKE_STEPS
-    buttons.forEach { button ->
-        launch {
-            button.shake.animateTo(
-                0f,
-                keyframes {
-                    durationMillis = millis
-                    amplitude at step
-                    -amplitude at step * 2
-                    amplitude at step * (SHAKE_STEPS - 1)
-                },
-            )
-        }
-    }
-}
-
-/** 20초가 지나면 진짜 버튼은 원래 자리와 크기로 돌아가고, 가짜는 사라져요. */
+/** 20초가 지나면 버튼은 원래 자리와 크기로 돌아가요. */
 private suspend fun TrickRun.returnHome(home: Offset?, fullSize: Float) = coroutineScope {
-    buttons.forEachIndexed { index, button ->
-        launch { button.shake.snapTo(0f) }
-        if (index == realIndex) {
-            if (home != null) launch { button.center.animateTo(home, tween(RETURN_MILLIS)) }
-            launch { button.size.animateTo(fullSize, tween(RETURN_MILLIS)) }
-            launch { button.alpha.animateTo(1f, tween(RETURN_MILLIS)) }
-        } else {
-            launch { button.alpha.animateTo(0f, tween(RETURN_MILLIS)) }
-        }
-    }
+    if (home != null) launch { center.animateTo(home, tween(RETURN_MILLIS)) }
+    launch { size.animateTo(fullSize, tween(RETURN_MILLIS)) }
 }
 
 /**
  * 버튼 하나. 피그마 Button Circle(112)을 비율 그대로 줄여 그려요(글자도 같이 줄어요).
- * 누르는 영역은 보이는 크기와 [touchMin] 중 큰 쪽이에요.
+ * 누르는 영역은 보이는 크기와 [touchMin] 중 큰 쪽이에요. 누르는 순간(손가락이 닿을 때) 인정해요.
  */
 @Composable
-private fun TrickFace(button: TrickButton, label: String, touchMin: Float, fullSize: Float, onTap: () -> Unit) {
+private fun TrickFace(run: TrickRun, label: String, touchMin: Float, fullSize: Float, onTap: () -> Unit) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val currentOnTap by rememberUpdatedState(onTap)
     Box(
         modifier = Modifier
             .offset {
-                val touch = max(button.size.value, touchMin)
-                val c = button.center.value
-                IntOffset((c.x + button.shake.value - touch / 2).roundToInt(), (c.y - touch / 2).roundToInt())
+                val touch = max(run.size.value, touchMin)
+                val c = run.center.value
+                IntOffset((c.x - touch / 2).roundToInt(), (c.y - touch / 2).roundToInt())
             }
             .layout { measurable, _ ->
-                val touch = max(button.size.value, touchMin).roundToInt()
+                val touch = max(run.size.value, touchMin).roundToInt()
                 val placeable = measurable.measure(Constraints.fixed(touch, touch))
                 layout(touch, touch) { placeable.place(0, 0) }
             }
-            .graphicsLayer { alpha = button.alpha.value }
             .pointerInput(Unit) {
                 awaitEachGesture {
                     awaitFirstDown()
@@ -448,7 +334,7 @@ private fun TrickFace(button: TrickButton, label: String, touchMin: Float, fullS
             modifier = Modifier
                 .requiredSize(MorningDimens.sizeButtonCircle)
                 .graphicsLayer {
-                    val scale = button.size.value / fullSize
+                    val scale = run.size.value / fullSize
                     scaleX = scale
                     scaleY = scale
                 }

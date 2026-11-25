@@ -120,17 +120,15 @@ class RingViewModel @Inject constructor(
         override fun onStart() =
             trickRecorder.record(LabLog.TRICK_START, state.alarmId, state.trick?.detail().orEmpty())
 
-        override fun onFakeTap(count: Int) = trickRecorder.record(LabLog.TRICK_FAKE_TAP, state.alarmId, "n=$count")
-
-        override fun onEnd(seconds: Int, fakes: Int, expired: Boolean) = trickRecorder.record(
+        override fun onEnd(seconds: Int, expired: Boolean) = trickRecorder.record(
             LabLog.TRICK_END,
             state.alarmId,
-            "seconds=$seconds fakes=$fakes expired=$expired",
+            "seconds=$seconds expired=$expired",
             kept = true,
         )
     }
 
-    private fun ButtonTrick.detail() = "level=${level.key} speed=${speed.key}"
+    private fun ButtonTrick.detail() = "speed=${speed.key}"
 
     companion object {
         /**

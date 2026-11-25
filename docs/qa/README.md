@@ -19,7 +19,7 @@
 | N분 뒤에 걸기 (1~60) | 위 명령 끝에 `--ei in_minutes 5` |
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
 | 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
-| 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `level`은 weak, normal, strong, `speed`는 slow, normal, fast, `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
+| 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `speed`는 slow, normal, fast(결정 155로 강도를 없애서 `level`은 넣어도 무시해요), `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
 | 미션 포기 숨기기 켜고 끄기 (TSK-182) | 위 `LAB` 명령에 `--ez escape_hidden true` (끄려면 `false`) |
 | 미션 포기 바로 답장 대신 보내기 (TSK-182) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ESCAPE --es answer ok` (`ok`는 지금 예문 그대로, `wrong`은 끝에 마침표를 하나 더한 글, 그 밖의 글은 그대로 보내요. 알림 답장과 같은 길이에요. 결과는 `data="escape Correct"`, `Wrong`, `Ignored`(알림이 없는 때)) |
 | 미션 포기 알림이 떠 있는지 보기 | `adb shell dumpsys notification --noredact` 에서 `id=5`(미션 포기), `id=6`(알람을 껐어요) |
@@ -67,13 +67,13 @@ adb logcat -s MorningFlow:I > flow.log
 | `resumed` | 앱이나 서비스가 다시 살아나 울림을 이어가요 |
 | `missed_after_long_off` | 폰이 오래 꺼져 있어 이어가지 않고 놓친 알람으로 끝냈어요 |
 | `debug_lab` | adb로 실험실 값을 바꿨어요 |
-| `lab_trick_on`, `lab_trick_off` * | 설정 T3에서 버튼 속이기를 켜거나 껐어요(`level=`, `speed=`) |
+| `lab_trick_on`, `lab_trick_off` * | 설정 T3에서 버튼 속이기를 켜거나 껐어요(`speed=`) |
 | `lab_recheck_on`, `lab_recheck_off` * | 설정 T3에서 여러 번 묻기를 켜거나 껐어요(`count=`) |
-| `trick_shown` | 버튼 속이기를 건 울림 화면이 떴어요(`level=`, `speed=`) |
+| `trick_shown` | 버튼 속이기를 건 울림 화면이 떴어요(`speed=`) |
 | `trick_auto_off` * | 접근성 때문에 이번 울림은 버튼 속이기를 껐어요(`reason=talkback`, `a11y_service`, `no_animation`) |
 | `trick_start` | 화면을 처음 만졌어요. 여기서부터 20초예요 |
 | `trick_fake_tap` | 가짜 버튼을 눌렀어요(`n=` 몇 번째) |
-| `trick_end` * | 진짜 버튼을 눌렀어요(`seconds=` 첫 터치부터, `fakes=` 가짜 누른 수, `expired=` 20초가 지나 멈춘 뒤인지) |
+| `trick_end` * | 진짜 버튼을 눌렀어요(`seconds=` 첫 터치부터, `expired=` 20초가 지나 멈춘 뒤인지) |
 | `recheck_ask` | 여러 번 묻기 다음 확인을 예약했어요(몇 번째/전체, 고른 간격 분) |
 | `recheck_pass`, `recheck_miss` * | 여러 번 묻기 확인을 통과했거나 놓쳤어요(몇 번째/전체) |
 | `recheck_cap_60` * | 미션 끝에서 1시간을 넘겨 남은 확인을 없앴어요(남은 수) |

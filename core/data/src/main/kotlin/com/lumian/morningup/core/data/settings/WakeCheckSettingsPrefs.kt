@@ -6,7 +6,6 @@ import androidx.core.content.edit
 import com.lumian.morningup.core.data.db.AlarmDao
 import com.lumian.morningup.core.data.db.AlarmEntity
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
@@ -78,7 +77,6 @@ class WakeCheckSettingsPrefs internal constructor(
         recheckMinutes = prefs.getInt(KEY_RECHECK_MINUTES, WakeCheckSettings.DEFAULT_RECHECK_MINUTES),
         lab = LabSettings(
             trickEnabled = prefs.getBoolean(KEY_TRICK, false),
-            trickLevel = TrickLevel.of(prefs.getString(KEY_TRICK_LEVEL, null)),
             trickSpeed = TrickSpeed.of(prefs.getString(KEY_TRICK_SPEED, null)),
             multiAskEnabled = prefs.getBoolean(KEY_MULTI, false),
             multiAskCount = prefs.getInt(KEY_MULTI_COUNT, LabSettings.DEFAULT_ASK_COUNT)
@@ -94,7 +92,6 @@ class WakeCheckSettingsPrefs internal constructor(
         putBoolean(KEY_RECHECK, settings.recheckEnabled)
         putInt(KEY_RECHECK_MINUTES, settings.recheckMinutes)
         putBoolean(KEY_TRICK, settings.lab.trickEnabled)
-        putString(KEY_TRICK_LEVEL, settings.lab.trickLevel.key)
         putString(KEY_TRICK_SPEED, settings.lab.trickSpeed.key)
         putBoolean(KEY_MULTI, settings.lab.multiAskEnabled)
         putInt(KEY_MULTI_COUNT, settings.lab.multiAskCount)
@@ -112,7 +109,6 @@ class WakeCheckSettingsPrefs internal constructor(
 
         // 실험실 '확실히 잠깨기'(결정 146)
         private const val KEY_TRICK = "lab_trick"
-        private const val KEY_TRICK_LEVEL = "lab_trick_level"
         private const val KEY_TRICK_SPEED = "lab_trick_speed"
         private const val KEY_MULTI = "lab_multi_ask"
         private const val KEY_MULTI_COUNT = "lab_multi_ask_count"

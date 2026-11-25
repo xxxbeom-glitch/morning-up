@@ -10,7 +10,6 @@ import com.lumian.morningup.core.data.db.toEntity
 import com.lumian.morningup.core.data.settings.WakeCheckSettingsPrefs
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
@@ -84,7 +83,6 @@ class WakeCheckSettingsPrefsTest {
         assertThat(store.current().lab).isEqualTo(LabSettings())
         val lab = LabSettings(
             trickEnabled = true,
-            trickLevel = TrickLevel.Weak,
             trickSpeed = TrickSpeed.Slow,
             multiAskEnabled = true,
             multiAskCount = 5,

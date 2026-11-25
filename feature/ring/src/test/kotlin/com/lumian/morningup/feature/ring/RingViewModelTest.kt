@@ -10,7 +10,6 @@ import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.DayPart
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WeatherKind
 import com.lumian.morningup.core.model.WeatherSource
@@ -139,14 +138,14 @@ class RingViewModelTest {
     }
 
     private fun trickSession(phaseEndsAt: Long = 5_000L) = testRingSession(phaseEndsAt = phaseEndsAt, alarmId = 4).let {
-        it.copy(plan = it.plan.copy(trick = ButtonTrick(TrickLevel.Strong, TrickSpeed.Fast)))
+        it.copy(plan = it.plan.copy(trick = ButtonTrick(TrickSpeed.Fast)))
     }
 
     @Test
     fun trick_isPassedWhileRinging_withKeyFromThisRing() = runTest {
         val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
         val state = vm.uiState.value
-        assertThat(state.trick).isEqualTo(ButtonTrick(TrickLevel.Strong, TrickSpeed.Fast))
+        assertThat(state.trick).isEqualTo(ButtonTrick(TrickSpeed.Fast))
         assertThat(state.trickKey).isEqualTo(5_000L)
         assertThat(state.alarmId).isEqualTo(4)
         assertThat(vm.trickFor(state)).isNotNull()
@@ -176,14 +175,12 @@ class RingViewModelTest {
         val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
         val listener = vm.trickListener(vm.uiState.value)
         listener.onStart()
-        listener.onFakeTap(1)
-        listener.onEnd(seconds = 7, fakes = 1, expired = false)
+        listener.onEnd(seconds = 7, expired = false)
         assertThat(recorder.events.map { it.event to it.kept }).containsExactly(
             LabLog.TRICK_START to false,
-            LabLog.TRICK_FAKE_TAP to false,
             LabLog.TRICK_END to true,
         ).inOrder()
-        assertThat(recorder.events.last().detail).isEqualTo("seconds=7 fakes=1 expired=false")
+        assertThat(recorder.events.last().detail).isEqualTo("seconds=7 expired=false")
     }
 
     @Test

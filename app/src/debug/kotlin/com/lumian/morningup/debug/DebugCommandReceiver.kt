@@ -11,7 +11,6 @@ import com.lumian.morningup.core.alarm.ring.MissionEscapeAnswers
 import com.lumian.morningup.core.alarm.ring.MissionEscapeNotifier
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.LabSettings
-import com.lumian.morningup.core.model.TrickLevel
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -110,7 +109,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
 
     /**
      * '확실히 잠깨기' 실험실 값을 바꿔요(결정 146, TSK-172). 빠진 값은 그대로 둬요.
-     * 예: `--ez trick true --es level strong --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6`
+     * 예: `--ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6`
      * `--ez escape_hidden true`는 미션 비상구 알림 숨기기예요(결정 151, TSK-182).
      * `minute_seconds`는 여러 번 묻기의 1분을 몇 초로 셀지(시험 배율, 1~60)예요. 60이면 실제 시간이에요.
      */
@@ -125,7 +124,6 @@ class DebugCommandReceiver : BroadcastReceiver() {
             old.copy(
                 lab = lab.copy(
                     trickEnabled = intent.boolOr(EXTRA_TRICK, lab.trickEnabled),
-                    trickLevel = intent.getStringExtra(EXTRA_LEVEL)?.let { TrickLevel.of(it) } ?: lab.trickLevel,
                     trickSpeed = intent.getStringExtra(EXTRA_SPEED)?.let { TrickSpeed.of(it) } ?: lab.trickSpeed,
                     multiAskEnabled = intent.boolOr(EXTRA_MULTI, lab.multiAskEnabled),
                     multiAskCount = intent.getIntExtra(EXTRA_COUNT, lab.multiAskCount)
@@ -183,7 +181,6 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_RECHECK_MINUTES = "recheck_minutes"
         const val ACTION_LAB = "com.lumian.morningup.debug.LAB"
         const val EXTRA_TRICK = "trick"
-        const val EXTRA_LEVEL = "level"
         const val EXTRA_SPEED = "speed"
         const val EXTRA_MULTI = "multi"
         const val EXTRA_COUNT = "count"
