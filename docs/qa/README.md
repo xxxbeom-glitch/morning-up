@@ -17,6 +17,7 @@
 |---|---|
 | 시험 알람 A~G 걸기 (다음 분 정각) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ALARM_CASE --es case A` |
 | N분 뒤에 걸기 (1~60) | 위 명령 끝에 `--ei in_minutes 5` |
+| 알람음 없이 걸기 (TSK-194) | 위 명령 끝에 `--ez silent true` (A~G 모두 볼륨 0으로 걸어요. 벨소리, 진동, 미션 같은 나머지는 경우 설정 그대로예요. 결과 `data="case A alarm N at HH:MM silent"`, 울릴 때 로그 `sound_play ... volume=0%`) |
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
 | 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
 | 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `speed`는 slow, normal, fast(결정 155로 강도를 없애서 `level`은 넣어도 무시해요), `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |

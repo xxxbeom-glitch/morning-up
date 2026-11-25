@@ -68,4 +68,16 @@ class AlarmTestCaseTest {
         assertEquals(3, g.ringAgain.intervalMinutes)
         assertNull(g.ringAgain.count)
     }
+
+    @Test
+    fun silent_mutesEveryCase_andKeepsTheRest() {
+        // 소리 없음(TSK-194)은 볼륨만 0이고, 벨소리, 진동, 미션 같은 나머지는 경우 설정 그대로예요.
+        AlarmTestCase.entries.forEach { case ->
+            val loud = alarm(case)
+            val silent = AlarmTestCases.alarmFor(case, time, silent = true)
+            assertEquals(0, silent.volumePercent)
+            assertEquals(loud.copy(volumePercent = 0), silent)
+            assertEquals(100, loud.volumePercent)
+        }
+    }
 }

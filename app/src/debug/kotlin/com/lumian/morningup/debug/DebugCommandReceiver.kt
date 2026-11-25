@@ -69,14 +69,16 @@ class DebugCommandReceiver : BroadcastReceiver() {
             return
         }
         val minutes = intent.getIntExtra(EXTRA_IN_MINUTES, 1).coerceIn(1, MAX_MINUTES)
+        // `--ez silent true`면 알람음 없이 걸어요(TSK-194, Z플립5 시험은 소리 없이).
+        val silent = intent.getBooleanExtra(EXTRA_SILENT, false)
         val pending = goAsync()
         scope.launch {
             try {
                 val current = now.now()
                 val time = current.toLocalTime().plusMinutes(minutes.toLong()).truncatedTo(ChronoUnit.MINUTES)
-                val alarm = repository.insert(AlarmTestCases.alarmFor(case, time))
+                val alarm = repository.insert(AlarmTestCases.alarmFor(case, time, silent))
                 rescheduler.reschedule(alarm, current)
-                val result = "case ${case.name} alarm ${alarm.id} at $time"
+                val result = "case ${case.name} alarm ${alarm.id} at $time" + if (silent) " silent" else ""
                 FlowLog.event("debug_case_scheduled", alarmId = alarm.id, detail = result)
                 pending.resultData = result
             } finally {
@@ -174,6 +176,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val ACTION_BATTERY_REMINDER = "com.lumian.morningup.debug.BATTERY_REMINDER"
         const val EXTRA_CASE = "case"
         const val EXTRA_IN_MINUTES = "in_minutes"
+        const val EXTRA_SILENT = "silent"
         const val ACTION_WAKE_CHECK = "com.lumian.morningup.debug.WAKE_CHECK"
         const val EXTRA_ASK_MINUTES = "ask_minutes"
         const val EXTRA_ANSWER_SECONDS = "answer_seconds"

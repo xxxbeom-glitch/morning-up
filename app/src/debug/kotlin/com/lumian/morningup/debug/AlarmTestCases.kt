@@ -51,7 +51,16 @@ object AlarmTestCases {
         listOf(MissionSetting(MissionType.DropWords, count = DROP_WORDS_TEST_COUNT, forTest = true))
     private val ONE_QUICK_MISSION = listOf(MissionSetting(MissionType.QuickMath, level = 1, count = 1))
 
-    fun alarmFor(case: AlarmTestCase, time: LocalTime): Alarm {
+    /**
+     * [silent]이면 알람음 없이 걸어요(TSK-194). 볼륨만 0으로 두고 벨소리와 진동은 경우 설정 그대로라
+     * 로그(`sound_play ... volume=0%`)와 진동 흐름은 소리 있을 때와 같아요.
+     */
+    fun alarmFor(case: AlarmTestCase, time: LocalTime, silent: Boolean = false): Alarm {
+        val alarm = caseAlarm(case, time)
+        return if (silent) alarm.copy(volumePercent = 0) else alarm
+    }
+
+    private fun caseAlarm(case: AlarmTestCase, time: LocalTime): Alarm {
         val base = Alarm(time = time, soundId = TEST_SOUND_ID, ringAgain = RingAgain(count = 0))
         return when (case) {
             AlarmTestCase.A -> base
