@@ -668,7 +668,7 @@ private val ActionItemHeight = 48.dp
 private const val DISABLED_ALPHA = 0.4f
 
 /**
- * H3-1 하단 바: 하단 메뉴와 같은 떠 있는 알약에 켜기, 끄기, 복사, 삭제(칸 56x48, 사이 4, 안 여백 8).
+ * H3-1 하단 바: 하단 메뉴와 같은 떠 있는 알약에 켜기, 끄기, 복제, 삭제(칸 56x48, 사이 4, 안 여백 8).
  * 켜진 것과 꺼진 것이 섞이면 켜기와 끄기 둘 다, 모두 꺼져 있으면 켜기만, 모두 켜져 있으면 끄기만.
  */
 @Composable
@@ -819,7 +819,13 @@ private fun Messages(
                     }
                     ?: stringResource(R.string.home_saved_off),
             )
-            is HomeMessage.Copied -> MorningToast(text = stringResource(R.string.home_copied, shown.count))
+            is HomeMessage.Copied -> MorningToast(
+                text = if (shown.count == 1) {
+                    stringResource(R.string.home_copied_one)
+                } else {
+                    stringResource(R.string.home_copied, shown.count)
+                },
+            )
             HomeMessage.ChecksStopped -> MorningToast(text = stringResource(R.string.home_checks_stopped))
             is HomeMessage.Deleted -> MorningSnackbar(
                 text = if (shown.alarms.size == 1) {

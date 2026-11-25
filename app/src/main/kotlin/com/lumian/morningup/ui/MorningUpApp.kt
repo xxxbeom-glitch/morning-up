@@ -84,7 +84,7 @@ private fun AppFrame(
             .background(MorningTheme.colors.backgroundBase),
     ) {
         content()
-        // 홈 선택 모드(H3-1)에서는 하단 메뉴 자리에 홈의 켜기, 끄기, 복사, 삭제 바가 떠요.
+        // 홈 선택 모드(H3-1)에서는 하단 메뉴 자리에 홈의 켜기, 끄기, 복제, 삭제 바가 떠요.
         if (!hideNav) {
             MorningBottomNav(
                 items = tabs.map { navItem(it) },

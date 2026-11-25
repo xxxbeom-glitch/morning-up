@@ -39,9 +39,10 @@
     <string name="home_select_cancel">취소</string>
     <string name="home_action_on">켜기</string>
     <string name="home_action_off">끄기</string>
-    <string name="home_action_copy">복사</string>
+    <string name="home_action_copy">복제</string>
     <string name="home_action_delete">삭제</string>
-    <string name="home_copied">알람 %1$d개를 복사했어요</string>
+    <string name="home_copied_one">알람을 복제했어요</string>
+    <string name="home_copied">알람 %1$d개를 복제했어요</string>
     <!-- 편집에서 저장해 남은 확인(W2, W3)을 멈춘 토스트(결정 145) -->
     <string name="home_checks_stopped">남은 확인을 멈췄어요</string>
     <!-- H0 위쪽 띠: 한 번 더 확인(W3)이 남았을 때(결정 145) -->

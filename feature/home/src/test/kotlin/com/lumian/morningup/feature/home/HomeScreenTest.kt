@@ -180,7 +180,7 @@ class HomeScreenTest {
         compose.onNodeWithText("1개 선택됨").assertExists()
         compose.onNodeWithText("전체 선택").assertExists()
         compose.onNodeWithText("끄기").assertExists()
-        compose.onNodeWithText("복사").assertExists()
+        compose.onNodeWithText("복제").assertExists()
         compose.onNodeWithText("삭제").assertExists()
     }
 }

@@ -38,7 +38,7 @@ sealed interface HomeMessage {
     /** H7 삭제 스낵바. '되돌리기'로 [alarms]를 되살려요(선택 모드에서는 여러 개). */
     data class Deleted(val alarms: List<Alarm>) : HomeMessage
 
-    /** 선택 모드 '복사' 뒤 토스트. */
+    /** 선택 모드 '복제' 뒤 토스트(결정 161). */
     data class Copied(val count: Int) : HomeMessage
 
     /** 편집 저장, 홈 토글 끄기, 지우기로 그 알람의 남은 확인(W2, W3)을 멈췄어요(결정 145, 153). */
@@ -346,7 +346,7 @@ class HomeViewModel @Inject constructor(
         turnOff(chosen)
     }
 
-    /** '복사': 고른 알람을 같은 설정으로 하나씩 더 만들어요. */
+    /** '복제'(결정 161): 고른 알람을 같은 설정으로 하나씩 더 만들어요. 쉬기 날짜와 남은 확인은 따라가지 않아요. */
     fun copySelected() {
         val chosen = selectedAlarms()
         endSelection()
