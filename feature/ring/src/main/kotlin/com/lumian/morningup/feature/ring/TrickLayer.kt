@@ -60,10 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
-/** 버튼 크기 무작위 범위(11-24 사용자 추가): 손톱만 한 40dp부터 지금 크기 112dp까지. 울릴 때마다 한 번 정해요. */
-private val TrickMinSize = 40.dp
-
-/** 보이는 버튼이 작아도 누르는 영역은 이 크기 이상이에요. */
+/** 누르는 영역은 이 크기 이상이에요(버튼은 결정 155 고침으로 112dp 고정이라 지금은 늘 넘어요). */
 private val TrickTouchMin = 48.dp
 
 /** 20초가 지나 원래 자리로 돌아가는 시간. */
@@ -223,7 +220,6 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
     val view = LocalView.current
     val currentListener by rememberUpdatedState(listener)
     val currentOnReal by rememberUpdatedState(onReal)
-    val minSize = with(density) { TrickMinSize.toPx() }
     val maxSize = with(density) { MorningDimens.sizeButtonCircle.toPx() }
     val touchMin = with(density) { TrickTouchMin.toPx() }
 
@@ -267,16 +263,15 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
             run.returnHome(run.home?.center?.minus(area.topLeft), maxSize)
             run.done = true
         } else {
-            run.bounce(area.size, minSize, maxSize, touchMin)
+            run.bounce(area.size, maxSize, touchMin)
         }
     }
 }
 
-/** 처음이면 크기와 자리, 방향을 정하고, 그 뒤로는 프레임마다 움직여요. */
-private suspend fun TrickRun.bounce(area: Size, minSize: Float, maxSize: Float, touchMin: Float) {
+/** 처음이면 자리와 방향을 정하고, 그 뒤로는 프레임마다 움직여요. 크기는 지금 버튼 크기(112dp) 그대로예요(결정 155). */
+private suspend fun TrickRun.bounce(area: Size, visible: Float, touchMin: Float) {
     val speed = trick.speed.widthsPerSecond * area.width
     if (!placed) {
-        val visible = minSize + random.nextFloat() * (maxSize - minSize)
         size.snapTo(visible)
         val start = TrickBounce.start(TrickBounce.randomCenter(area, max(visible, touchMin) / 2, random), speed, random)
         center.snapTo(start.center)
@@ -295,7 +290,7 @@ private suspend fun TrickRun.bounce(area: Size, minSize: Float, maxSize: Float, 
     }
 }
 
-/** 20초가 지나면 버튼은 원래 자리와 크기로 돌아가요. */
+/** 20초가 지나면 버튼은 원래 자리로 돌아가요. */
 private suspend fun TrickRun.returnHome(home: Offset?, fullSize: Float) = coroutineScope {
     if (home != null) launch { center.animateTo(home, tween(RETURN_MILLIS)) }
     launch { size.animateTo(fullSize, tween(RETURN_MILLIS)) }
