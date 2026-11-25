@@ -50,12 +50,14 @@ private val RowChipWidth = 60.dp
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요(편집 시트와 같음). */
 internal val FooterBleed = 8.dp
 
-/** '알람' 카드 아래 '깼는지 묻기', '한 번 더 확인' 카드와 아래 작은 글(결정 145, 시안 t1). */
+/** '알람' 카드 아래 '다시 잠들기 방지' 카드('묻는 때', '한 번 더 확인')와 아래 작은 글(결정 145, 164, 시안 t1). */
 @Composable
 fun WakeCheckCard(viewModel: WakeCheckSettingsViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val noGuarded by viewModel.noGuardedAlarm.collectAsStateWithLifecycle()
     WakeCheckCardContent(
         settings = settings,
+        noGuardedAlarm = noGuarded,
         onAskAfter = viewModel::setAskAfter,
         onAnswer = viewModel::setAnswer,
         onRecheck = viewModel::setRecheck,
@@ -71,10 +73,11 @@ fun WakeCheckCardContent(
     onAnswer: (Int) -> Unit,
     onRecheck: (Boolean) -> Unit,
     onRecheckMinutes: (Int) -> Unit,
+    noGuardedAlarm: Boolean = false,
 ) {
     var sheet by rememberSaveable { mutableStateOf<WakeCheckSheet?>(null) }
     Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space12)) {
-        MorningSettingsCard(title = null) {
+        MorningSettingsCard(title = stringResource(R.string.settings_wake_check_card)) {
             NavRows {
                 NavRow(
                     label = stringResource(R.string.settings_wake_check),
@@ -100,7 +103,10 @@ fun WakeCheckCardContent(
             )
         }
         Text(
-            text = stringResource(R.string.settings_wake_check_note),
+            // 다시 잠들기 방지를 켠 알람이 없으면 왜 안 묻는지 알려 줘요(결정 164).
+            text = stringResource(
+                if (noGuardedAlarm) R.string.settings_wake_check_none else R.string.settings_wake_check_note,
+            ),
             style = MorningTheme.typography.captionMedium,
             color = MorningTheme.colors.textSecondary,
             modifier = Modifier.padding(horizontal = MorningDimens.layoutCardPadding),
@@ -123,7 +129,7 @@ fun WakeCheckCardContent(
     }
 }
 
-/** '깼는지 묻기' 줄 값: '3분 후, 1분'. */
+/** '묻는 때' 줄 값: '3분 후, 1분'. */
 @Composable
 internal fun wakeCheckValue(settings: WakeCheckSettings): String =
     stringResource(R.string.settings_wake_check_value, settings.askAfterMinutes, answerLabel(settings.answerSeconds))

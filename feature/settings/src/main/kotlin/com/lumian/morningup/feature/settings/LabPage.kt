@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.ring.LabLog
 import com.lumian.morningup.core.alarm.ring.TrickAccessibility
 import com.lumian.morningup.core.designsystem.component.MorningButton
@@ -43,6 +44,7 @@ import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
@@ -68,8 +70,12 @@ private val ChipGap = 6.dp
 class LabViewModel @Inject constructor(
     private val store: WakeCheckSettingsStore,
     private val labLog: LabLog,
+    book: AlarmBook,
 ) : ViewModel() {
     val settings: StateFlow<WakeCheckSettings> = store.settings
+
+    /** 켜진 알람 가운데 다시 잠들기 방지를 켠 알람이 없으면 참(결정 164). */
+    val noGuardedAlarm: StateFlow<Boolean> = book.noGuardedAlarm(viewModelScope)
 
     fun setTrick(on: Boolean) {
         val lab = updateLab { it.copy(trickEnabled = on) }
@@ -150,6 +156,7 @@ private fun labValue(lab: LabSettings): String {
 @Composable
 fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
+    val noGuarded by viewModel.noGuardedAlarm.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val trickOff = remember { TrickAccessibility.offReason(context) != null }
     LabScreen(
@@ -162,6 +169,7 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         onPreview = onPreview,
         onEscapeHidden = viewModel::setEscapeHidden,
         trickOff = trickOff,
+        noGuardedAlarm = noGuarded,
     )
 }
 
@@ -182,6 +190,7 @@ fun LabScreen(
     modifier: Modifier = Modifier,
     onEscapeHidden: (Boolean) -> Unit = {},
     trickOff: Boolean = false,
+    noGuardedAlarm: Boolean = false,
 ) {
     var sheet by rememberSaveable { mutableStateOf<LabSheet?>(null) }
     val colors = MorningTheme.colors
@@ -227,7 +236,12 @@ fun LabScreen(
                 )
                 MorningSettingRow(
                     label = stringResource(R.string.settings_lab_multi),
-                    value = stringResource(R.string.settings_lab_multi_value, lab.multiAskCount),
+                    // 다시 잠들기 방지를 켠 알람이 없으면 둘째 줄에 안내(결정 164).
+                    value = if (noGuardedAlarm) {
+                        stringResource(R.string.settings_wake_check_none)
+                    } else {
+                        stringResource(R.string.settings_lab_multi_value, lab.multiAskCount)
+                    },
                     state = if (lab.multiAskEnabled) SettingRowState.On else SettingRowState.Off,
                     onCheckedChange = { on ->
                         onMultiAsk(on)

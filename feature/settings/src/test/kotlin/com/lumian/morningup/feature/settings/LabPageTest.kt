@@ -29,6 +29,7 @@ class LabPageTest {
     val main = MainDispatcherRule()
 
     private val calls = mutableListOf<String>()
+    private var noGuarded = false
 
     private fun showPage(lab: LabSettings = LabSettings(), trickOff: Boolean = false) = compose.setContent {
         MorningTheme(darkTheme = false, reduceMotion = true) {
@@ -42,6 +43,7 @@ class LabPageTest {
                 onPreview = { calls += "preview" },
                 onEscapeHidden = { calls += "escape:$it" },
                 trickOff = trickOff,
+                noGuardedAlarm = noGuarded,
             )
         }
     }
@@ -159,5 +161,13 @@ class LabPageTest {
     fun trickRow_a11yOff_showsNotice() {
         showPage(LabSettings(trickEnabled = true), trickOff = true)
         compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
+    }
+
+    @Test
+    fun multiAskRow_showsNotice_whenNoGuardedAlarm() {
+        noGuarded = true
+        showPage()
+        compose.onNodeWithText("켜 둔 알람이 없어요. 알람 편집에서 '다시 잠들기 방지'를 켜야 물어요").assertExists()
+        compose.onNodeWithText("깼는지 3번 물어요").assertDoesNotExist()
     }
 }

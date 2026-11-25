@@ -9,16 +9,20 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.InMemoryWakeCheckSettingsStore
+import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
+import com.lumian.morningup.core.testing.FakeAlarmBook
 import com.lumian.morningup.core.testing.FakeWakeCheckGate
 import com.lumian.morningup.core.testing.MainDispatcherRule
+import java.time.LocalTime
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** T1 '깼는지 묻기', '한 번 더 확인' 카드와 시트(결정 145). */
+/** T1 '다시 잠들기 방지' 카드('묻는 때', '한 번 더 확인')와 시트(결정 145, 164). */
 @RunWith(RobolectricTestRunner::class)
 class WakeCheckCardTest {
     @get:Rule
@@ -32,6 +36,8 @@ class WakeCheckCardTest {
     private val recheck = mutableListOf<Boolean>()
     private val recheckMinutes = mutableListOf<Int>()
 
+    private var noGuarded = false
+
     private fun show(settings: WakeCheckSettings = WakeCheckSettings()) = compose.setContent {
         MorningTheme(darkTheme = false, reduceMotion = true) {
             WakeCheckCardContent(
@@ -40,6 +46,7 @@ class WakeCheckCardTest {
                 onAnswer = { answered += it },
                 onRecheck = { recheck += it },
                 onRecheckMinutes = { recheckMinutes += it },
+                noGuardedAlarm = noGuarded,
             )
         }
     }
@@ -47,7 +54,8 @@ class WakeCheckCardTest {
     @Test
     fun card_showsValues_andNote() {
         show()
-        compose.onNodeWithText("깼는지 묻기").assertExists()
+        compose.onNodeWithText("다시 잠들기 방지").assertExists()
+        compose.onNodeWithText("묻는 때").assertExists()
         compose.onNodeWithText("3분 후, 1분").assertExists()
         compose.onNodeWithText("한 번 더 확인").assertExists()
         compose.onNodeWithText("10초 동안 눌러야 완전히 꺼져요").assertExists()
@@ -85,7 +93,7 @@ class WakeCheckCardTest {
     fun viewModel_savesValues_ignoresOthers_andTurningOffStopsW3() {
         val store = InMemoryWakeCheckSettingsStore()
         val gate = FakeWakeCheckGate()
-        val vm = WakeCheckSettingsViewModel(store, gate)
+        val vm = WakeCheckSettingsViewModel(store, gate, FakeAlarmBook())
         vm.setAskAfter(10)
         vm.setAskAfter(7)
         vm.setAnswer(30)
@@ -97,5 +105,22 @@ class WakeCheckCardTest {
         assertThat(gate.calls).containsExactly("recheck_off")
         vm.setRecheck(true)
         assertThat(gate.calls).containsExactly("recheck_off")
+    }
+
+    @Test
+    fun noGuardedAlarm_showsNotice_insteadOfNote() {
+        noGuarded = true
+        show()
+        compose.onNodeWithText("켜 둔 알람이 없어요. 알람 편집에서 '다시 잠들기 방지'를 켜야 물어요").assertExists()
+        compose.onNodeWithText("알람마다 켜고 끄기는 알람 편집에서 해요").assertDoesNotExist()
+    }
+
+    @Test
+    fun noGuardedAlarm_onlyCountsEnabledAlarmsWithWakeCheck() {
+        val guarded = Alarm(id = 1, time = LocalTime.of(6, 30), wakeCheck = WakeCheck(enabled = true))
+        assertThat(noGuardedAlarm(emptyList())).isTrue()
+        assertThat(noGuardedAlarm(listOf(guarded.copy(enabled = false)))).isTrue()
+        assertThat(noGuardedAlarm(listOf(guarded.copy(wakeCheck = WakeCheck())))).isTrue()
+        assertThat(noGuardedAlarm(listOf(guarded))).isFalse()
     }
 }
