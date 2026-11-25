@@ -41,7 +41,7 @@ sealed interface HomeMessage {
     /** 선택 모드 '복사' 뒤 토스트. */
     data class Copied(val count: Int) : HomeMessage
 
-    /** 편집에서 저장해 그 알람의 남은 확인(W2, W3)을 멈췄어요(결정 145). */
+    /** 편집 저장, 홈 토글 끄기, 지우기로 그 알람의 남은 확인(W2, W3)을 멈췄어요(결정 145, 153). */
     data object ChecksStopped : HomeMessage
 }
 
@@ -99,6 +99,8 @@ class HomeViewModel @Inject constructor(
         val message: HomeMessage? = null,
         val restOffers: Set<Long> = emptySet(),
         val selection: Set<Long>? = null,
+        /** 지금 알림이 닫히면 이어서 띄울 것. 삭제 스낵바 뒤 '남은 확인을 멈췄어요' 토스트예요(결정 153). */
+        val queued: HomeMessage? = null,
     )
 
     private val overlay = MutableStateFlow(Overlay())
@@ -183,10 +185,22 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             when {
                 enabled && resting -> book.save(alarm.copy(skipOnceDate = null))
-                else -> book.setEnabled(alarm.id, enabled)
+                enabled -> book.setEnabled(alarm.id, true)
+                else -> {
+                    // 끄기 전에 남은 확인을 먼저 멈춰서 있었는지 알아내요. 장부도 다시 부르지만 그땐 멈출 것이 없어요.
+                    val stopped = stopChecks(listOf(alarm.id))
+                    book.setEnabled(alarm.id, false)
+                    if (stopped) showChecksStopped()
+                }
             }
         }
     }
+
+    /** [ids]의 남은 확인을 모두 멈춰요. 하나라도 멈춘 것이 있으면 true예요(결정 153). */
+    private suspend fun stopChecks(ids: List<Long>): Boolean =
+        ids.fold(false) { stopped, id -> checks.cancelFor(id) || stopped }
+
+    private fun showChecksStopped() = overlay.update { it.copy(message = HomeMessage.ChecksStopped) }
 
     /** H8 '이번만 쉬기': 다시 켜되 바로 다음 한 번만 쉬어요. */
     fun restOnce(alarm: Alarm) {
@@ -208,7 +222,11 @@ class HomeViewModel @Inject constructor(
         val state = uiState.value
         val targets = alarms.filter { state.shownOn(it) }
         overlay.update { o -> o.copy(restOffers = o.restOffers + targets.filter { it.isRepeating }.map { it.id }) }
-        viewModelScope.launch { targets.forEach { book.setEnabled(it.id, false) } }
+        viewModelScope.launch {
+            val stopped = stopChecks(targets.map { it.id })
+            targets.forEach { book.setEnabled(it.id, false) }
+            if (stopped) showChecksStopped()
+        }
     }
 
     private fun turnOn(alarms: List<Alarm>) {
@@ -286,20 +304,29 @@ class HomeViewModel @Inject constructor(
         if (alarms.isEmpty()) return
         overlay.update { it.copy(pendingDelete = emptyList(), selection = null) }
         viewModelScope.launch {
+            val stopped = stopChecks(alarms.map { it.id })
             val deleted = alarms.mapNotNull { book.delete(it.id) }
-            if (deleted.isNotEmpty()) overlay.update { it.copy(message = HomeMessage.Deleted(deleted)) }
+            val after = if (stopped) HomeMessage.ChecksStopped else null
+            when {
+                // '되돌리기'가 먼저 보이게 스낵바를 띄우고, 닫히면 토스트를 이어서 띄워요.
+                deleted.isNotEmpty() -> overlay.update {
+                    it.copy(message = HomeMessage.Deleted(deleted), queued = after)
+                }
+                stopped -> showChecksStopped()
+            }
         }
     }
 
     fun undoDelete() {
         val message = overlay.value.message as? HomeMessage.Deleted ?: return
-        overlay.update { it.copy(message = null) }
+        // 되살려도 멈춘 확인은 돌아오지 않아서, 이어서 띄울 토스트는 그대로 띄워요.
+        overlay.update { it.copy(message = it.queued, queued = null) }
         viewModelScope.launch { message.alarms.forEach { book.restore(it) } }
     }
 
     /** 토스트나 스낵바가 시간이 다 되었거나 밀어서 닫혔어요. */
     fun dismissMessage(message: HomeMessage) =
-        overlay.update { if (it.message == message) it.copy(message = null) else it }
+        overlay.update { if (it.message == message) it.copy(message = it.queued, queued = null) else it }
 
     private companion object {
         const val STOP_TIMEOUT_MILLIS = 5_000L

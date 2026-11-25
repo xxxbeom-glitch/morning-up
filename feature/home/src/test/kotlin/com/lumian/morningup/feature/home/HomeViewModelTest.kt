@@ -182,6 +182,95 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun toggleOff_withPendingChecks_showsChecksStoppedToast() = runTest {
+        checks.pendingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.ChecksStopped)
+            assertThat(checks.calls).contains("cancel:1")
+            assertThat(state.alarms.single().enabled).isFalse()
+        }
+    }
+
+    @Test
+    fun toggleOff_withoutPendingChecks_showsNoToast() = runTest {
+        val book = FakeAlarmBook(listOf(a630))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.setEnabled(a630, false)
+            var state = awaitItem()
+            while (state.alarms.single().enabled) state = awaitItem()
+            assertThat(state.message).isNull()
+            expectNoEvents()
+        }
+    }
+
+    @Test
+    fun turnAllOff_withPendingChecks_showsChecksStoppedToast() = runTest {
+        checks.pendingFor = setOf(2L)
+        val vm = viewModel(FakeAlarmBook(listOf(a630, a710)))
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.turnAllOff()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.ChecksStopped)
+        }
+    }
+
+    @Test
+    fun delete_withPendingChecks_showsSnackbarThenChecksStoppedToast() = runTest {
+        checks.pendingFor = setOf(3L)
+        val book = FakeAlarmBook(listOf(a630, a800))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection(a800)
+            awaitItem()
+            vm.deleteSelected()
+            awaitItem()
+            vm.confirmDelete()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            val deleted = state.message
+            assertThat(deleted).isEqualTo(HomeMessage.Deleted(listOf(a800)))
+            assertThat(checks.calls).contains("cancel:3")
+
+            vm.dismissMessage(deleted!!)
+            assertThat(awaitItem().message).isEqualTo(HomeMessage.ChecksStopped)
+            vm.dismissMessage(HomeMessage.ChecksStopped)
+            assertThat(awaitItem().message).isNull()
+        }
+    }
+
+    @Test
+    fun delete_withPendingChecks_thenUndo_stillShowsChecksStoppedToast() = runTest {
+        checks.pendingFor = setOf(3L)
+        val book = FakeAlarmBook(listOf(a630, a800))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection(a800)
+            awaitItem()
+            vm.deleteSelected()
+            awaitItem()
+            vm.confirmDelete()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            vm.undoDelete()
+            state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.ChecksStopped)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun recheckBanner_followsGate_andOpensW3() = runTest {
         val vm = viewModel(FakeAlarmBook(listOf(a630)))
         vm.recheckPending.test {
