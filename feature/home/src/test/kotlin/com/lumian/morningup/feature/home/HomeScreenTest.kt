@@ -29,13 +29,18 @@ class HomeScreenTest {
     private val today = LocalDate.of(2026, 11, 16)
     private val alarm = Alarm(id = 1, time = LocalTime.of(6, 30))
 
-    private fun show(state: HomeUiState, onAdd: () -> Unit = {}, onLongPress: (Alarm) -> Unit = {}) {
+    private fun show(
+        state: HomeUiState,
+        onAdd: () -> Unit = {},
+        onLongPress: (Alarm) -> Unit = {},
+        onOpen: (Alarm) -> Unit = {},
+    ) {
         compose.setContent {
             MorningTheme(darkTheme = false, reduceMotion = true) {
                 HomeScreen(
                     state = state,
                     onAdd = onAdd,
-                    onOpen = {},
+                    onOpen = onOpen,
                     onToggle = { _, _ -> },
                     onLongPress = onLongPress,
                     onCancelDelete = {},
@@ -56,6 +61,36 @@ class HomeScreenTest {
         compose.onNodeWithText("11월 16일 (월)").assertExists()
         compose.onNodeWithText("알람 만들기").performClick()
         assertThat(added).isTrue()
+    }
+
+    @Test
+    fun header_click_opensNextAlarm() {
+        // 결정 157: 위 문구를 누르면 다음에 울릴 알람(목록 첫 카드가 아니어도)의 편집이 열려요.
+        val other = Alarm(id = 2, time = LocalTime.of(5, 0))
+        var opened: Alarm? = null
+        val at = ZonedDateTime.of(2026, 11, 17, 6, 30, 0, 0, ZoneId.of("Asia/Seoul"))
+        show(
+            HomeUiState(
+                loading = false,
+                alarms = listOf(other, alarm),
+                next = NextAlarm(alarm, at, TimeUntil(0, 7, 20)),
+                today = today,
+            ),
+            onOpen = { opened = it },
+        )
+        compose.onNodeWithText("11월 17일 (화) 오전 6:30").performClick()
+        assertThat(opened).isEqualTo(alarm)
+    }
+
+    @Test
+    fun header_withoutNext_doesNothing() {
+        var opened: Alarm? = null
+        show(
+            HomeUiState(loading = false, alarms = listOf(alarm.copy(enabled = false)), today = today),
+            onOpen = { opened = it },
+        )
+        compose.onNodeWithText("11월 16일 (월)").performClick()
+        assertThat(opened).isNull()
     }
 
     @Test

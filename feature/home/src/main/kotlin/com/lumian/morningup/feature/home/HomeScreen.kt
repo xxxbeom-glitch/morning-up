@@ -58,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -283,6 +284,7 @@ private fun Header(
     subline: String,
     modifier: Modifier = Modifier,
     banner: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
 ) {
     val colors = MorningTheme.colors
     if (banner != null) {
@@ -308,9 +310,22 @@ private fun Header(
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        RollingText(text = headline, style = MorningTheme.typography.headlineLarge, color = colors.textPrimary)
-        Spacer(Modifier.height(MorningDimens.space8))
-        Text(text = subline, style = MorningTheme.typography.bodySmall, color = colors.textSecondary)
+        // 결정 157: 다음 알람이 있으면 문구와 날짜 줄을 한 덩어리로 눌러 그 알람 편집(S0)을 열어요. 표시는 눌림 효과만.
+        val editLabel = stringResource(R.string.home_next_edit)
+        Column(
+            modifier = if (onClick == null) {
+                Modifier
+            } else {
+                Modifier
+                    .morningClickable(onClick = onClick)
+                    .semantics { onClick(label = editLabel) { onClick(); true } }
+            },
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            RollingText(text = headline, style = MorningTheme.typography.headlineLarge, color = colors.textPrimary)
+            Spacer(Modifier.height(MorningDimens.space8))
+            Text(text = subline, style = MorningTheme.typography.bodySmall, color = colors.textSecondary)
+        }
     }
 }
 
@@ -358,7 +373,10 @@ private fun AlarmList(
     ) {
         val selection = state.selection
         if (selection == null) {
-            item(key = "header") { Column { Header(headline, subline, banner = banner) } }
+            val next = state.next
+            item(key = "header") {
+                Column { Header(headline, subline, banner = banner, onClick = next?.let { { onOpen(it.alarm) } }) }
+            }
             item(key = "actions") {
                 ListActions(onAdd = onAdd, extra = extra, allOff = state.alarms.none { state.shownOn(it) })
             }

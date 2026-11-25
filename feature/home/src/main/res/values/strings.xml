@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- H0 상단: 7시간 20분 후,(줄바꿈)알림이 울립니다 -->
+    <string name="home_next_edit">다음 알람 편집</string>
     <string name="home_next_headline">%1$s 후,\n알림이 울립니다</string>
     <!-- 11월 16일 (월) 오전 6:30 -->
     <string name="home_next_subline">%1$s %2$s</string>
