@@ -4,25 +4,25 @@
 
 ## 먼저 알아 둘 것
 
-- 대상 앱은 디버그 빌드 `com.lumian.morningup.debug`예요.
+- 대상 앱은 디버그 빌드 `com.lumian.wakeup.debug`예요(11-25 결정 169로 앱 주소가 바뀜. 코드 속 클래스와 action 이름은 옛 com.lumian.morningup 그대로).
 - 시험 알람은 **사용자의 알람 목록에 새 알람으로 들어가요.** 사용자가 시키지 않으면 걸지 않아요. 시험이 끝나면 홈에서 지워요.
 - 폰 작업 규칙(회전 값 전후 확인, `am start`로 실행, `install --user 0`)은 메모리와 프로젝트 CLAUDE.md를 따라요.
 - 폰이 여러 대 붙어 있으면 `adb -s <기기>`를 붙여요. 기기 이름은 `adb devices -l`로 봐요.
 
 ## 명령
 
-입구는 `com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver` 하나예요. adb(shell)만 보낼 수 있어요(`DUMP` 권한으로 막음). 결과는 `am broadcast` 출력의 `data="..."`에 나와요.
+입구는 `com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver` 하나예요. adb(shell)만 보낼 수 있어요(`DUMP` 권한으로 막음). 결과는 `am broadcast` 출력의 `data="..."`에 나와요.
 
 | 할 일 | 명령 |
 |---|---|
-| 시험 알람 A~G 걸기 (다음 분 정각) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ALARM_CASE --es case A` |
+| 시험 알람 A~G 걸기 (다음 분 정각) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ALARM_CASE --es case A` |
 | N분 뒤에 걸기 (1~60) | 위 명령 끝에 `--ei in_minutes 5` |
 | 알람음 없이 걸기 (TSK-194) | 위 명령 끝에 `--ez silent true` (A~G 모두 볼륨 0으로 걸어요. 벨소리, 진동, 미션 같은 나머지는 경우 설정 그대로예요. 결과 `data="case A alarm N at HH:MM silent"`, 울릴 때 로그 `sound_play ... volume=0%`) |
-| 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
-| 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
-| 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `speed`는 slow, normal, fast(결정 155로 강도를 없애서 `level`은 넣어도 무시해요), `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
+| 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
+| 깼는지 묻기 전체 설정 바꾸기 (TSK-088) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1` (값은 빼도 되고, 넣은 것만 바뀌어요) |
+| 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `speed`는 slow, normal, fast(결정 155로 강도를 없애서 `level`은 넣어도 무시해요), `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
 | 미션 포기 숨기기 켜고 끄기 (TSK-182) | 위 `LAB` 명령에 `--ez escape_hidden true` (끄려면 `false`) |
-| 미션 포기 바로 답장 대신 보내기 (TSK-182) | `adb shell am broadcast -n com.lumian.morningup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ESCAPE --es answer ok` (`ok`는 지금 예문 그대로, `wrong`은 끝에 마침표를 하나 더한 글, 그 밖의 글은 그대로 보내요. 알림 답장과 같은 길이에요. 결과는 `data="escape Correct"`, `Wrong`, `Ignored`(알림이 없는 때)) |
+| 미션 포기 바로 답장 대신 보내기 (TSK-182) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.ESCAPE --es answer ok` (`ok`는 지금 예문 그대로, `wrong`은 끝에 마침표를 하나 더한 글, 그 밖의 글은 그대로 보내요. 알림 답장과 같은 길이에요. 결과는 `data="escape Correct"`, `Wrong`, `Ignored`(알림이 없는 때)) |
 | 미션 포기 알림이 떠 있는지 보기 | `adb shell dumpsys notification --noredact` 에서 `id=5`(미션 포기), `id=6`(알람을 껐어요) |
 
 - `case`는 `A`~`G`예요. 틀리면 `data="case must be one of A,B,..."`가 나와요.

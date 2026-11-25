@@ -76,7 +76,7 @@ class OnboardingPageTest {
         // O2-4: 앱 이름 카드. 끝 장면은 켜진 스위치와 '함'이에요.
         step = OnboardingStep.Overlay
         compose.onNodeWithTag(PICTURE_TAG_PREFIX + "Overlay").assertExists()
-        compose.onNodeWithText("morning-up").assertExists()
+        compose.onNodeWithText("일어나").assertExists()
         compose.onNodeWithText("다른 앱 위에 표시 함").assertExists()
         compose.onNodeWithText("다른 앱 위에 표시 안 함").assertDoesNotExist()
         compose.onNodeWithText("미션 시작").assertDoesNotExist()

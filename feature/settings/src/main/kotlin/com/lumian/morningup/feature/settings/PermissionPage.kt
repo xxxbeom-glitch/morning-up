@@ -222,7 +222,7 @@ internal fun rememberPermissionOpener(viewModel: SettingsViewModel): (AlarmPermi
 }
 
 /**
- * 그 권한의 폰 설정을 열어요. 앱 목록으로 열리는 화면이면 떠날 때 '목록에서 morning-up을 찾아 켜 주세요'를 띄워요.
+ * 그 권한의 폰 설정을 열어요. 앱 목록으로 열리는 화면이면 떠날 때 '목록에서 일어나를 찾아 켜 주세요'를 띄워요.
  * 열지 못하면 false예요.
  */
 internal fun openSettings(context: Context, permission: AlarmPermission): Boolean {

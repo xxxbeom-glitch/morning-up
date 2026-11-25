@@ -18,7 +18,7 @@
     <string name="settings_info_card">앱 정보</string>
     <string name="settings_version">버전</string>
     <string name="settings_needs_attention">확인이 필요해요</string>
-    <string name="settings_feedback_subject">모닝업 의견</string>
+    <string name="settings_feedback_subject">일어나 의견</string>
     <string name="settings_feedback_body">\n\n\n기기: %1$s\n안드로이드: %2$s\n앱 버전: %3$s\n꺼진 권한: %4$s</string>
     <string name="settings_feedback_none">없음</string>
 
@@ -29,7 +29,7 @@
     <string name="permission_other">기타</string>
     <string name="permission_location">위치</string>
     <string name="permission_location_desc">날씨에 맞춰 하늘을 바꿔요</string>
-    <string name="permission_find_in_list">목록에서 morning-up을 찾아 켜 주세요</string>
+    <string name="permission_find_in_list">목록에서 \'일어나\'를 찾아 켜 주세요</string>
     <string name="permission_granted">허용됨</string>
     <string name="permission_status_partial">일부 허용됨</string>
     <string name="permission_status_none">허용 안 됨</string>
@@ -94,7 +94,7 @@
     <string name="permission_power_desc">미션 중 전원 메뉴를 막아요</string>
     <!-- P6 전원 종료 방지 바텀시트(결정 134) -->
     <string name="power_sheet_title">미션 중 전원 메뉴를 막으려면\n접근성 권한이 필요해요</string>
-    <string name="power_sheet_msg">화면 내용은 읽거나 저장하지 않아요.\n\'설치된 앱\'에서 morning-up을 켜 주세요.</string>
+    <string name="power_sheet_msg">화면 내용은 읽거나 저장하지 않아요.\n\'설치된 앱\'에서 \'일어나\'를 켜 주세요.</string>
     <string name="power_sheet_agree">동의하고 설정 열기</string>
     <!-- T5 오픈소스 라이선스, 자주 묻는 질문(손님이 보는 글: 가운뎃점과 긴 줄표를 쓰지 않아요) -->
     <string name="settings_faq">자주 묻는 질문</string>
@@ -105,7 +105,7 @@
     <string name="settings_theme_mode_light">라이트</string>
     <string name="settings_theme_mode_dark">다크</string>
     <string name="licenses_card">사용한 오픈소스</string>
-    <string name="licenses_desc">morning-up은 아래 오픈소스의 도움을 받았어요</string>
+    <string name="licenses_desc">\'일어나\'는 아래 오픈소스의 도움을 받았어요</string>
     <string name="faq_card">질문을 눌러 답을 보세요</string>
     <string name="faq_q1">알람이 울리지 않았어요</string>
     <string name="faq_a1">설정의 \'권한\'에서 필수 권한이 모두 켜져 있는지 확인해 주세요. 삼성 폰은 \'절전 예외 앱에 추가\'도 해 두면 좋아요. \'알람 미리 울려 보기\'로 1분 뒤에 울려 볼 수 있어요.</string>
@@ -147,10 +147,10 @@
     <string name="onboarding_motion_time" translatable="false">7:00</string>
     <string name="onboarding_motion_mission_start">미션 시작</string>
     <string name="onboarding_motion_dialog_title">배터리 최적화를 해제할까요?</string>
-    <string name="onboarding_motion_dialog_body">morning-up은 백그라운드에서\n실행될 수 있으며, 배터리를\n제한 없이 사용할 수 있습니다.</string>
+    <string name="onboarding_motion_dialog_body">\'일어나\'는 백그라운드에서\n실행될 수 있으며, 배터리를\n제한 없이 사용할 수 있습니다.</string>
     <string name="onboarding_motion_dialog_deny">거부</string>
     <string name="onboarding_motion_dialog_allow">허용</string>
-    <string name="onboarding_motion_app_name" translatable="false">morning-up</string>
+    <string name="onboarding_motion_app_name" translatable="false">일어나</string>
     <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
     <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
     <!-- T1 깼는지 묻기, 한 번 더 확인(결정 145) -->

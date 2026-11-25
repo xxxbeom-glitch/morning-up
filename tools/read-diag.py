@@ -14,7 +14,7 @@ import subprocess
 import sys
 import tempfile
 
-PKG = 'com.lumian.morningup.debug'
+PKG = 'com.lumian.wakeup.debug'
 DB = f'/data/user_de/0/{PKG}/databases/morningup.db'
 
 

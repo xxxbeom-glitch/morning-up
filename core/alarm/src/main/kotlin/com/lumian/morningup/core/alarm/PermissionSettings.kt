@@ -46,7 +46,7 @@ object PermissionSettings {
         Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, "package:${context.packageName}".toUri())
 
     /**
-     * 앱 하나가 아니라 앱 목록으로 열리는 화면인지. 떠날 때 '목록에서 morning-up을 찾아 켜 주세요'를 띄워요(결정 126).
+     * 앱 하나가 아니라 앱 목록으로 열리는 화면인지. 떠날 때 '목록에서 일어나를 찾아 켜 주세요'를 띄워요(결정 126).
      * 다른 앱 위에 표시는 안드로이드 11부터 목록으로 열려요.
      */
     fun opensList(permission: AlarmPermission): Boolean = when (permission) {
