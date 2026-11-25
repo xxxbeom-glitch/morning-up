@@ -250,8 +250,11 @@ class HomeViewModel @Inject constructor(
     private fun showChecksStopped() = overlay.update { it.copy(message = HomeMessage.ChecksStopped) }
 
     /**
-     * H8 '이번만 쉬기': 다시 켜되 한 번만 쉬어요(결정 154). 울리는 중이거나 남은 확인을 기다리다 끈 알람이면
-     * 오늘 울린 것을 쉰 걸로 치고 다음 정상 울림은 그대로 둬요. 그 밖에는 바로 다음 한 번을 건너뛰어요.
+     * H8 '이번만 쉬기': 다시 켜되 오늘 것만 쉬어요(결정 156, '이번만' = '오늘만').
+     * 1. 울리는 중이거나 남은 확인을 기다리다 끈 알람은 그 울림의 날을 쉰 걸로 쳐요(자정을 넘겨도 울린 날, 결정 154).
+     * 2. 그 밖에 오늘이 울리는 날이면 오늘을 쉬어요. 이미 울렸으면 다음 울림 그대로, 아직이면 오늘 울림만 건너뛰어요.
+     * 3. 오늘이 울리지 않는 날이면 다음 울림 하나를 건너뛰어요.
+     * 하나 끄기, '모든 알람 끄기', 선택 끄기 모두 이 함수를 거쳐요.
      */
     fun restOnce(alarm: Alarm) {
         val today = alarm.id in overlay.value.restToday
@@ -259,13 +262,19 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val on = alarm.copy(enabled = true, skipOnceDate = null)
             val at = now.now()
-            val skip = if (today) {
-                lastRingDate(on, at)
-            } else {
-                NextRingCalculator.next(on, at, holidays)?.toLocalDate()
+            val skip = when {
+                today -> lastRingDate(on, at)
+                ringsOn(on, at.toLocalDate(), at) -> at.toLocalDate()
+                else -> NextRingCalculator.next(on, at, holidays)?.toLocalDate()
             }
             book.save(on.copy(skipOnceDate = skip))
         }
+    }
+
+    /** [day]가 [plain]이 울리는 날인지(반복 요일과 공휴일 규칙). 울림 시각이 지났는지는 보지 않아요. */
+    private fun ringsOn(plain: Alarm, day: LocalDate, at: ZonedDateTime): Boolean {
+        val dayStart = day.atStartOfDay(at.zone).minusSeconds(1)
+        return NextRingCalculator.next(plain, dayStart, holidays)?.toLocalDate() == day
     }
 
     /** 더보기 '모든 알람 끄기'. 켜져 있던 반복 알람마다 '이번만 쉬기'를 달아요(H8-4). */
