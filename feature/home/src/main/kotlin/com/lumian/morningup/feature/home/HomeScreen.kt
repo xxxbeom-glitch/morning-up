@@ -477,6 +477,12 @@ private fun AlarmCard(
                                 stringResource(R.string.home_resting_within, AlarmText.until(res, label.until))
                             is RestLabel.OnDay ->
                                 stringResource(R.string.home_resting, AlarmText.dayShort(res, label.day))
+                            is RestLabel.OnDate -> stringResource(
+                                R.string.home_resting_date,
+                                label.date.monthValue,
+                                label.date.dayOfMonth,
+                                AlarmText.dayShort(res, label.date.dayOfWeek),
+                            )
                         },
                         style = MorningTheme.typography.captionStrong,
                         color = colors.statusError,

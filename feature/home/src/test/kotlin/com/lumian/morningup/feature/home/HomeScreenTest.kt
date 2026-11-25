@@ -171,6 +171,20 @@ class HomeScreenTest {
     }
 
     @Test
+    fun restingCard_farAway_showsDate() {
+        val resting = Alarm(id = 3, time = LocalTime.of(8, 0), repeatDays = setOf(DayOfWeek.THURSDAY))
+        show(
+            HomeUiState(
+                loading = false,
+                alarms = listOf(resting),
+                today = today,
+                resting = mapOf(3L to RestLabel.OnDate(LocalDate.of(2026, 12, 3))),
+            ),
+        )
+        compose.onNodeWithText("12월 3일(목)에 다시 울려요").assertExists()
+    }
+
+    @Test
     fun resting_withinADay_showsHoursAndMinutes() {
         val a = Alarm(id = 4, time = LocalTime.of(6, 30), repeatDays = setOf(DayOfWeek.THURSDAY))
         val b = Alarm(id = 5, time = LocalTime.of(7, 0), repeatDays = setOf(DayOfWeek.THURSDAY))

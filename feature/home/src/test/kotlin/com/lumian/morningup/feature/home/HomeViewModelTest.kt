@@ -503,6 +503,19 @@ class HomeViewModelTest {
     }
 
     @Test
+    fun restLabel_moreThanSevenDays_showsDate() {
+        // 결정 162: 수 11-25에 목 알람을 쉬면 다음 울림은 12-3(8일 뒤)이라 날짜로, 7일째까지는 요일 그대로예요.
+        val now = ZonedDateTime.of(2026, 11, 25, 15, 33, 0, 0, seoul)
+        val eightDays = ZonedDateTime.of(2026, 12, 3, 16, 17, 0, 0, seoul)
+        val sevenDays = ZonedDateTime.of(2026, 12, 2, 16, 17, 0, 0, seoul)
+        assertThat(RestLabel.between(now, eightDays)).isEqualTo(RestLabel.OnDate(LocalDate.of(2026, 12, 3)))
+        assertThat(RestLabel.between(now, sevenDays)).isEqualTo(RestLabel.OnDay(DayOfWeek.WEDNESDAY))
+        // 7일 넘음은 시각이 아니라 날로 세요. 8일째 이른 아침(7일 15시간 뒤)도 날짜예요.
+        val earlyEighth = ZonedDateTime.of(2026, 12, 3, 6, 30, 0, 0, seoul)
+        assertThat(RestLabel.between(now, earlyEighth)).isEqualTo(RestLabel.OnDate(LocalDate.of(2026, 12, 3)))
+    }
+
+    @Test
     fun restLabel_boundaries() {
         val ring = ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul)
         fun at(minutesBefore: Long, seconds: Long = 0) = ring.minusMinutes(minutesBefore).plusSeconds(seconds)

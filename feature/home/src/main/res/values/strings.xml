@@ -25,6 +25,8 @@
     <!-- H8 이번만 쉬기 -->
     <string name="home_rest_offer">이번만 쉬기</string>
     <string name="home_resting">%1$s요일에 다시 울려요</string>
+    <!-- 쉬는 중 7일 넘게 남음(결정 162): 12월 3일(목)에 다시 울려요 -->
+    <string name="home_resting_date">%1$d월 %2$d일(%3$s)에 다시 울려요</string>
     <!-- 쉬는 중 24시간 안: 19시간 43분 뒤 다시 울려요 (홈 위 문구와 같은 계산) -->
     <string name="home_resting_within">%1$s 뒤 다시 울려요</string>
 

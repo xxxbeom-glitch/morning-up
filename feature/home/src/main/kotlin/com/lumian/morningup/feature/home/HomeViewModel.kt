@@ -18,6 +18,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZonedDateTime
+import java.time.temporal.ChronoUnit
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -46,7 +47,8 @@ sealed interface HomeMessage {
 }
 
 /**
- * 쉬는 중 카드 글(결정 154). 다음 울림까지 24시간 안이면 [Within]('N시간 N분 뒤'), 넘으면 [OnDay]예요.
+ * 쉬는 중 카드 글(결정 154, 162). 다음 울림까지 24시간 안이면 [Within]('N시간 N분 뒤'), 넘으면 [OnDay],
+ * 7일 넘게 남으면 [OnDate]예요.
  * 남은 시간은 홈 위쪽 문구와 같은 [TimeUntil]로 세서 두 곳 값이 같아요.
  */
 sealed interface RestLabel {
@@ -54,10 +56,24 @@ sealed interface RestLabel {
 
     data class OnDay(val day: DayOfWeek) : RestLabel
 
+    /** 결정 162: 다음 울림이 멀면 요일만으로는 이번 주로 읽혀서 날짜를 붙여요('12월 3일(목)에'). */
+    data class OnDate(val date: LocalDate) : RestLabel
+
     companion object {
+        /**
+         * 오늘부터 다음 울림 날까지 이 날 수 이상이면 날짜로 보여요. 지금은 '7일 넘음'이라 8이에요.
+         * 딱 7일째(오늘과 같은 요일)도 날짜로 하기로 하면 이 값만 7로 바꿔요(결정 162 사용자 확인 중).
+         */
+        const val DATE_FROM_DAYS = 8L
+
         fun between(now: ZonedDateTime, ring: ZonedDateTime): RestLabel {
             val until = TimeUntil.between(now, ring)
-            return if (until.days == 0) Within(until) else OnDay(ring.dayOfWeek)
+            val days = ChronoUnit.DAYS.between(now.toLocalDate(), ring.withZoneSameInstant(now.zone).toLocalDate())
+            return when {
+                until.days == 0 -> Within(until)
+                days >= DATE_FROM_DAYS -> OnDate(ring.toLocalDate())
+                else -> OnDay(ring.dayOfWeek)
+            }
         }
     }
 }
