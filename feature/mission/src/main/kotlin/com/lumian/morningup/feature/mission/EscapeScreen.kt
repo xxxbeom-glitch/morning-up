@@ -28,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -66,6 +67,7 @@ import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.engine.MissionEscape
+import java.util.UUID
 import kotlinx.coroutines.delay
 
 const val ESCAPE_INPUT_TAG = "escapeInput"
@@ -88,9 +90,16 @@ private const val SHAKE_STEPS = 6
 /** 맞음 글자색(`status/success` #00C281). 미션 화면은 모드와 상관없이 어두워서 값으로 둬요. */
 private val SuccessText = Color(0xFF00C281)
 
-/** 울림 화면(:app)이 M5 자리에 꽂는 진짜 화면. */
+/**
+ * M5를 열 때마다 바뀌는 열기 번호. 울림 화면(Activity)이 살아 있는 동안 뷰모델이 남아서, 한 울림에서 두 번째로 열면
+ * 첫 열기 때 1분이 이어져 바로 미션으로 돌아갔어요(ISS-056). 화면을 떠나면 잊고, 접기나 회전 같은 다시 그리기에는 남아요.
+ */
 @Composable
-fun RingEscapeRoute(viewModel: EscapeViewModel = hiltViewModel()) {
+internal fun rememberEscapeOpenKey(): String = rememberSaveable { "escape_${UUID.randomUUID()}" }
+
+/** 울림 화면(:app)이 M5 자리에 꽂는 진짜 화면. 열 때마다 새 뷰모델이라 1분과 쓴 글이 처음부터예요. */
+@Composable
+fun RingEscapeRoute(viewModel: EscapeViewModel = hiltViewModel(key = rememberEscapeOpenKey())) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var remaining by remember { mutableLongStateOf(MissionEscape.IDLE_MILLIS) }
     LaunchedEffect(state.lastTypedAt, state.result) {

@@ -1,9 +1,11 @@
 package com.lumian.morningup.feature.mission
 
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -25,6 +27,31 @@ class EscapeScreenTest {
 
     private val typed = mutableListOf<String>()
     private var backs = 0
+
+    @Test
+    fun openKey_changesOnEachOpen_andSurvivesRecreation() {
+        // ISS-056: 한 울림에서 M5를 다시 열면 새 열기 번호라 뷰모델이 새로 만들어져요.
+        var shown by mutableStateOf(true)
+        val keys = mutableListOf<String>()
+        val restore = StateRestorationTester(compose)
+        restore.setContent {
+            if (shown) {
+                val key = rememberEscapeOpenKey()
+                SideEffect { if (keys.lastOrNull() != key) keys += key }
+            }
+        }
+        compose.waitForIdle()
+        // 접기, 회전처럼 다시 그려도 같은 번호예요.
+        restore.emulateSavedInstanceStateRestore()
+        compose.waitForIdle()
+        assertThat(keys).hasSize(1)
+        shown = false
+        compose.waitForIdle()
+        shown = true
+        compose.waitForIdle()
+        assertThat(keys).hasSize(2)
+        assertThat(keys[1]).isNotEqualTo(keys[0])
+    }
 
     private fun show(initial: EscapeUiState, remaining: Long = 48_000L) {
         compose.setContent {
