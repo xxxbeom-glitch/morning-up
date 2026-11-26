@@ -16,13 +16,14 @@ import javax.inject.Singleton
 
 /**
  * W2, W3가 뜰 때 짧은 알림음과 진동 2번(결정 145 3번). 알람 소리 통로(USAGE_ALARM)로 알람 볼륨의 30% 크기로
- * 한 번만 울려요. 무음 모드에서도 들리지만, 폰 알람 볼륨이 0이면 들리지 않아서 진단 기록만 남겨요.
- * (결정 143의 방해 금지, 볼륨 0 대책 도우미가 생기면 여기서 같이 써요. 지금은 코드에 없어요.)
+ * 한 번만 울려요. 무음 모드에서도 들려요. 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가
+ * 최소 크기로 올리고 끝나면 돌려요(결정 143 대책을 W3에도).
  */
 @Singleton
 class ChimePlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val diagnostics: AlarmDiagnostics,
+    private val volumeGuard: AlarmVolumeGuard,
 ) {
     private val attributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -30,6 +31,7 @@ class ChimePlayer @Inject constructor(
         .build()
 
     private var player: MediaPlayer? = null
+    private var volumeHeld = false
 
     @Synchronized
     fun play(alarmId: Long?) {
@@ -37,7 +39,9 @@ class ChimePlayer @Inject constructor(
         if (audio?.getStreamVolume(AudioManager.STREAM_ALARM) == 0) diagnostics.record("chime_volume_zero", alarmId)
         vibrateTwice()
         release()
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: return
+        volumeHeld = true
+        volumeGuard.hold(alarmId)
+        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: return release()
         val mp = MediaPlayer()
         player = try {
             mp.setAudioAttributes(attributes)
@@ -52,6 +56,7 @@ class ChimePlayer @Inject constructor(
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             diagnostics.record("chime_failed", alarmId, e.javaClass.simpleName)
             mp.release()
+            release()
             null
         }
     }
@@ -60,6 +65,10 @@ class ChimePlayer @Inject constructor(
     fun release() {
         player?.release()
         player = null
+        if (volumeHeld) {
+            volumeHeld = false
+            volumeGuard.release()
+        }
     }
 
     private fun vibrateTwice() {

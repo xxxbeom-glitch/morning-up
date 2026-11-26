@@ -34,14 +34,17 @@ import javax.inject.Singleton
  * 고른 소리를 못 열면 앱 기본음, 그것도 못 열면 폰 기본 알람음으로 대신 울리고 기록을 남겨요.
  * 소리는 알람 소리 통로(USAGE_ALARM)로 내서 무음 모드와 미디어 볼륨에 상관없이 들려요.
  * 통화 중이면 [CallPolicy]대로 작은 소리와 진동으로 울리고, 통화가 끝나면 원래 크기로 돌아가요.
+ * 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가 최소 크기로 올려요(결정 143).
  */
 @Singleton
 class AlarmSoundPlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val diagnostics: AlarmDiagnostics,
     private val calls: CallMonitor,
+    private val volumeGuard: AlarmVolumeGuard,
 ) {
     private var requested: SoundOutput? = null
+    private var volumeHeld = false
 
     private var player: MediaPlayer? = null
     private var vibrating = false
@@ -81,6 +84,10 @@ class AlarmSoundPlayer @Inject constructor(
         gentleSeconds: Int = 0,
     ) {
         if (player == null && tone == null) {
+            if (!volumeHeld) {
+                volumeHeld = true
+                volumeGuard.hold(null)
+            }
             this.soundId = soundId
             this.pattern = pattern
             rampStartedAt = SystemClock.elapsedRealtime()
@@ -131,6 +138,10 @@ class AlarmSoundPlayer @Inject constructor(
         }
         tone = null
         stopVibration()
+        if (volumeHeld) {
+            volumeHeld = false
+            volumeGuard.release()
+        }
     }
 
     /** 마지막 수단: 어떤 소리 파일도 못 열면 알람 소리 통로로 신호음을 내요. */
