@@ -95,4 +95,15 @@ class PermissionPromptTest {
         assertThat(report().stepAfterRequired()).isNull()
         assertThat(report(AlarmPermission.Location).stepAfterRequired()).isEqualTo(PermissionStep.Optional)
     }
+
+    @Test
+    fun saveWarning_silencedFirst_thenCannotDismiss_onlyWhenBothOff() {
+        assertThat(report().saveWarning).isNull()
+        assertThat(report(AlarmPermission.Notifications).saveWarning).isNull()
+        assertThat(report(AlarmPermission.Overlay, AlarmPermission.FullScreen).saveWarning).isNull()
+        assertThat(report(AlarmPermission.Notifications, AlarmPermission.Overlay).saveWarning)
+            .isEqualTo(SaveWarning.CannotDismiss)
+        val both = report(AlarmPermission.Notifications, AlarmPermission.Overlay).copy(alarmsSilenced = true)
+        assertThat(both.saveWarning).isEqualTo(SaveWarning.AlarmsSilenced)
+    }
 }

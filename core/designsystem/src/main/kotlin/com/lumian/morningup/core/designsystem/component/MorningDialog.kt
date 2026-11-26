@@ -50,6 +50,7 @@ private const val DIALOG_START_SCALE = 0.94f
  * 공용 Dialog(`137:709`). 가운데 정렬 제목과 본문, 버튼 두 개(왼쪽 보조, 오른쪽 확인). 아이콘은 넣지 않아요.
  * 뒤 막은 `#14202E` 40%, 나타날 때 0.94배에서 커지며 페이드 인(`spatialFast`).
  * [danger]가 true면 확인 버튼이 빨강(Button Alt Danger)이에요.
+ * [onDismissRequest]는 막을 누르거나 뒤로 갈 때예요. 안 주면 [onDismiss]와 같아요(보조 버튼이 '닫기'가 아닐 때 따로 줘요).
  */
 @Composable
 fun MorningDialog(
@@ -61,28 +62,35 @@ fun MorningDialog(
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
     danger: Boolean = false,
+    onDismissRequest: () -> Unit = onDismiss,
 ) {
     // 다이얼로그는 따로 뜨는 창이라 기기 원래 밀도로 돌아가요. 시안 폭 맞춤과 글꼴 상한이 적용된 밀도를 그대로 넘겨요.
     val density = LocalDensity.current
     Dialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
         CompositionLocalProvider(LocalDensity provides density) {
-            DialogBody(title, message, dismissLabel, confirmLabel, onDismiss, onConfirm, modifier, danger)
+            DialogBody(
+                DialogTexts(title, message, dismissLabel, confirmLabel),
+                onDismiss,
+                onConfirm,
+                onDismissRequest,
+                modifier,
+                danger,
+            )
         }
     }
 }
 
+private data class DialogTexts(val title: String, val message: String, val dismiss: String, val confirm: String)
+
 @Composable
-@Suppress("LongParameterList")
 private fun DialogBody(
-    title: String,
-    message: String,
-    dismissLabel: String,
-    confirmLabel: String,
+    texts: DialogTexts,
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
+    onDismissRequest: () -> Unit,
     modifier: Modifier,
     danger: Boolean,
 ) {
@@ -100,15 +108,15 @@ private fun DialogBody(
                 .graphicsLayer { alpha = progress.value.coerceIn(0f, 1f) }
                 .background(MorningFixedColors.Scrim)
                 .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {
-                    onDismiss()
+                    onDismissRequest()
                 },
             contentAlignment = Alignment.Center,
         ) {
             DialogCard(
-                title = title,
-                message = message,
-                dismissLabel = dismissLabel,
-                confirmLabel = confirmLabel,
+                title = texts.title,
+                message = texts.message,
+                dismissLabel = texts.dismiss,
+                confirmLabel = texts.confirm,
                 onDismiss = onDismiss,
                 onConfirm = onConfirm,
                 danger = danger,

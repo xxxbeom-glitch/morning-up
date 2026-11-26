@@ -55,6 +55,7 @@ import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.Ringtones
+import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
@@ -83,12 +84,13 @@ private val ColonWidth = 24.dp
 
 /**
  * 알람 편집 S0. [onSaved]는 저장한 알람 id를, [onClose]는 저장 없이 닫을 때 불러요.
+ * [onSaved]의 `fix`가 있으면 저장 경고 창에서 '권한 켜기', '설정 열기'를 눌렀어요(앱이 고칠 곳을 열어요).
  * [onOpenDetail]은 아직 없는 하위 화면을 열 자리예요(지금은 아무 일 없음).
  * [onPreview]는 '미리 해보기'(S0, 고른 미션 전부)와 시트 '미리보기'(그 미션 하나)에서 불러요.
  */
 @Composable
 fun AlarmEditRoute(
-    onSaved: (alarmId: Long, checksStopped: Boolean, restReleased: Boolean) -> Unit,
+    onSaved: (alarmId: Long, checksStopped: Boolean, restReleased: Boolean, fix: SaveWarning?) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenDetail: (EditDetail) -> Unit = {},
@@ -101,7 +103,7 @@ fun AlarmEditRoute(
     val preview by rememberUpdatedState(onPreview)
     LaunchedEffect(state.exit) {
         when (val exit = state.exit) {
-            is EditExit.Saved -> saved(exit.alarmId, exit.checksStopped, exit.restReleased)
+            is EditExit.Saved -> saved(exit.alarmId, exit.checksStopped, exit.restReleased, exit.fix)
             EditExit.Discarded -> close()
             null -> Unit
         }
@@ -141,6 +143,8 @@ fun AlarmEditRoute(
                 onRemoveMission = viewModel::removeMission,
                 onPreview = { preview(it) },
                 onRingingNoticeShown = viewModel::ringingNoticeShown,
+                onSaveAnyway = viewModel::saveAnyway,
+                onCloseSaveWarning = viewModel::closeSaveWarning,
             )
         },
         onOpenDetail = { detail ->
@@ -184,6 +188,10 @@ data class EditActions(
     val onPreview: (List<MissionSetting>) -> Unit = {},
     /** 저장 막음 토스트(결정 165)가 닫혔어요. */
     val onRingingNoticeShown: () -> Unit = {},
+    /** 저장 경고 창 버튼. true면 '권한 켜기', '설정 열기'(저장하고 고칠 곳을 열어요), false면 '그래도 저장', '괜찮아요'. */
+    val onSaveAnyway: (fix: Boolean) -> Unit = {},
+    /** 저장 경고 창 밖을 누르거나 뒤로 갔어요. 저장하지 않아요. */
+    val onCloseSaveWarning: () -> Unit = {},
 )
 
 /** 편집 화면 안에서 페이지로 여는 하위 화면. */
@@ -266,6 +274,7 @@ fun EditScreen(
                 danger = true,
             )
         }
+        state.saveWarning?.let { SaveWarningDialog(it, actions) }
         when (state.detail) {
             EditDetail.Mission -> MissionPickPage(state = state, actions = actions)
             EditDetail.Sound -> SoundPage(
@@ -593,3 +602,32 @@ private fun SoundCard(alarm: Alarm, onOpenDetail: (EditDetail) -> Unit, onOpenSh
 private fun offValue(): String = stringResource(R.string.edit_off_value)
 
 private fun onOff(on: Boolean) = if (on) SettingRowState.On else SettingRowState.Off
+
+/** 저장 경고 창 S0-2, S0-3(TSK-220). 왼쪽은 그냥 저장, 오른쪽(파란 기본 버튼)은 저장하고 고칠 곳 열기예요. */
+@Composable
+private fun SaveWarningDialog(warning: SaveWarning, actions: EditActions) {
+    val ids = when (warning) {
+        SaveWarning.AlarmsSilenced -> listOf(
+            R.string.edit_warn_silenced_title,
+            R.string.edit_warn_silenced_message,
+            R.string.edit_warn_silenced_save,
+            R.string.edit_warn_silenced_fix,
+        )
+        SaveWarning.CannotDismiss -> listOf(
+            R.string.edit_warn_dismiss_title,
+            R.string.edit_warn_dismiss_message,
+            R.string.edit_warn_dismiss_save,
+            R.string.edit_warn_dismiss_fix,
+        )
+    }
+    val texts = ids.map { stringResource(it) }
+    MorningDialog(
+        title = texts[0],
+        message = texts[1],
+        dismissLabel = texts[2],
+        confirmLabel = texts[3],
+        onDismiss = { actions.onSaveAnyway(false) },
+        onConfirm = { actions.onSaveAnyway(true) },
+        onDismissRequest = actions.onCloseSaveWarning,
+    )
+}

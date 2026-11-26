@@ -89,3 +89,23 @@ fun PermissionReport.openingStep(requested: PermissionStep): PermissionStep? = w
 /** 1단계 '다음'을 누른 뒤. 선택 둘이 이미 다 켜져 있으면 2단계를 보여 주지 않고 닫아요(null). */
 fun PermissionReport.stepAfterRequired(): PermissionStep? =
     if (allGranted(PermissionStep.Optional)) null else PermissionStep.Optional
+
+/**
+ * 알람을 저장할 때 띄우는 경고 창(TSK-177 답 1, 2, 시안 S0-2, S0-3). 저장은 막지 않고, 창의 두 버튼 모두 저장해요.
+ * 둘 다 걸리면 배너 순서(TSK-177 답 7)대로 [AlarmsSilenced]를 먼저 보여요. 나머지는 홈 배너가 이어서 알려요.
+ */
+enum class SaveWarning {
+    /** S0-3 방해 금지가 알람 소리를 막는 중. '괜찮아요', '설정 열기'(T2-1 안내). */
+    AlarmsSilenced,
+
+    /** S0-2 알림과 '다른 앱 위에 표시'가 둘 다 꺼져 울려도 끌 화면이 안 떠요. '그래도 저장', '권한 켜기'(PL2 1단계). */
+    CannotDismiss,
+}
+
+/** 지금 저장하면 띄울 경고. 없으면 null. */
+val PermissionReport.saveWarning: SaveWarning?
+    get() = when {
+        alarmsSilenced -> SaveWarning.AlarmsSilenced
+        !isGranted(AlarmPermission.Notifications) && !isGranted(AlarmPermission.Overlay) -> SaveWarning.CannotDismiss
+        else -> null
+    }

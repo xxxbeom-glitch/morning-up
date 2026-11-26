@@ -28,7 +28,9 @@ import com.lumian.morningup.BuildConfig
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
 import com.lumian.morningup.core.model.AlarmPermission
+import com.lumian.morningup.core.model.PermissionBanner as BannerKind
 import com.lumian.morningup.core.model.PermissionStep
+import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.banner
 import com.lumian.morningup.core.model.bannerMore
 import com.lumian.morningup.feature.edit.AlarmEditRoute
@@ -93,6 +95,9 @@ private const val SAVED_ALARM_KEY = "savedAlarmId"
 /** 저장하면서 그 알람의 남은 확인(W2, W3)을 멈췄는지(결정 145). 홈 토스트가 달라져요. */
 private const val CHECKS_STOPPED_KEY = "checksStopped"
 private const val REST_RELEASED_KEY = "restReleased"
+
+/** 저장 경고 창에서 고치기를 눌렀을 때 홈이 열 곳([SaveWarning] 이름). */
+private const val SAVE_FIX_KEY = "saveFix"
 
 /**
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
@@ -160,6 +165,18 @@ fun MorningNavHost(
                 permissionSheet = step
                 showAlarmTab = true
                 onPermissionRequestHandled()
+            }
+            // 저장 경고 창(TSK-177 답 1, 2)에서 고치기를 눌렀으면 저장 뒤 홈에서 고칠 곳을 열어요.
+            val saveFix by entry.savedStateHandle.getStateFlow<String?>(SAVE_FIX_KEY, null)
+                .collectAsStateWithLifecycle()
+            val fixContext = LocalContext.current
+            LaunchedEffect(saveFix) {
+                when (saveFix?.let(SaveWarning::valueOf)) {
+                    SaveWarning.CannotDismiss -> permissionSheet = PermissionStep.Required
+                    SaveWarning.AlarmsSilenced -> openBannerTarget(fixContext, BannerKind.AlarmsSilenced)
+                    null -> return@LaunchedEffect
+                }
+                entry.savedStateHandle[SAVE_FIX_KEY] = null
             }
             // 첫 알람을 저장해도 권한 창은 띄우지 않아요(결정 128). 꺼진 필수 권한은 H2 배너로 알려요.
             MorningUpApp(
@@ -270,7 +287,8 @@ fun MorningNavHost(
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
         composable<EditRoute> {
             AlarmEditRoute(
-                onSaved = { id, checksStopped, restReleased ->
+                onSaved = { id, checksStopped, restReleased, fix ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(SAVE_FIX_KEY, fix?.name)
                     navController.previousBackStackEntry?.savedStateHandle?.set(CHECKS_STOPPED_KEY, checksStopped)
                     navController.previousBackStackEntry?.savedStateHandle?.set(REST_RELEASED_KEY, restReleased)
                     navController.previousBackStackEntry?.savedStateHandle?.set(SAVED_ALARM_KEY, id)

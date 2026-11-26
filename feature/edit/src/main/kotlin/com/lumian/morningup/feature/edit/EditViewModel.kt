@@ -11,6 +11,9 @@ import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.PermissionChecker
+import com.lumian.morningup.core.model.SaveWarning
+import com.lumian.morningup.core.model.saveWarning
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.model.VibrationPattern
@@ -47,9 +50,16 @@ data class EditRoute(val alarmId: Long = NEW_ALARM) {
 sealed interface EditExit {
     data object Discarded : EditExit
 
-    /** [restReleased]면 쉬는 알람의 시각, 요일, 공휴일 쉬기를 바꿔 '이번만 쉬기'를 풀었어요(결정 159). */
-    data class Saved(val alarmId: Long, val checksStopped: Boolean = false, val restReleased: Boolean = false) :
-        EditExit
+    /**
+     * [restReleased]면 쉬는 알람의 시각, 요일, 공휴일 쉬기를 바꿔 '이번만 쉬기'를 풀었어요(결정 159).
+     * [fix]가 있으면 저장 경고 창에서 '설정 열기', '권한 켜기'를 눌렀어요. 앱이 그 경고를 고칠 곳을 열어요.
+     */
+    data class Saved(
+        val alarmId: Long,
+        val checksStopped: Boolean = false,
+        val restReleased: Boolean = false,
+        val fix: SaveWarning? = null,
+    ) : EditExit
 }
 
 data class EditUiState(
@@ -73,6 +83,8 @@ data class EditUiState(
     val shakeAvailable: Boolean = true,
     /** 지금 울리는 알람이라 저장을 막았어요(결정 165). 토스트가 떠요. */
     val ringingBlocked: Boolean = false,
+    /** 저장 전에 띄운 경고 창 S0-2, S0-3(TSK-177 답 1, 2). 두 버튼 모두 저장해요. */
+    val saveWarning: SaveWarning? = null,
 ) {
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
@@ -120,6 +132,7 @@ class EditViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     shakeSupport: ShakeSupport,
     private val checks: WakeCheckGate? = null,
+    private val permissions: PermissionChecker? = null,
 ) : ViewModel() {
     private data class Editor(
         val loading: Boolean = true,
@@ -135,7 +148,11 @@ class EditViewModel @Inject constructor(
         /** 배경 토글을 다시 켤 때 되살릴 배경(null은 시간대 하늘). */
         val lastBackground: String? = null,
         val ringingBlocked: Boolean = false,
-    )
+        val saveWarning: SaveWarning? = null,
+    ) {
+        /** 불러오는 중, 저장 중, 닫는 중이거나 경고 창이 떠 있으면 저장을 다시 받지 않아요. */
+        val busy: Boolean get() = loading || saving || exit != null || saveWarning != null
+    }
 
     private val shakeAvailable = shakeSupport.available()
 
@@ -159,6 +176,7 @@ class EditViewModel @Inject constructor(
             missionSheet = e.sheet,
             shakeAvailable = shakeAvailable,
             ringingBlocked = e.ringingBlocked,
+            saveWarning = e.saveWarning,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), EditUiState())
 
@@ -327,6 +345,7 @@ class EditViewModel @Inject constructor(
             it.sheet != null -> it.copy(sheet = null)
             it.detail != null -> it.copy(detail = null)
             it.saving || it.exit != null -> it
+            it.saveWarning != null -> it.copy(saveWarning = null)
             it.draft != it.original -> it.copy(confirmExit = true)
             else -> it.copy(exit = EditExit.Discarded)
         }
@@ -339,19 +358,43 @@ class EditViewModel @Inject constructor(
     /** 저장하면 알람이 켜지고 예약이 따라와요. 두 번 눌러도 한 번만 저장해요. */
     fun save() {
         val current = editor.value
-        if (current.loading || current.saving || current.exit != null) return
+        if (current.busy) return
         // 결정 165: 울리는 중, 쉬는 중, 미션 중인 알람은 저장하지 않고 울림 화면에서 끄라고 알려요. 편집 화면은 그대로예요.
         if (current.original.id != EditRoute.NEW_ALARM && checks?.isRinging(current.original.id) == true) {
             editor.update { it.copy(ringingBlocked = true) }
             return
         }
+        // TSK-177 답 1, 2: 경고할 것이 있으면 저장 전에 창부터 띄워요. 창의 두 버튼이 모두 저장해요.
+        val warning = permissions?.let {
+            it.refresh()
+            it.report.value.saveWarning
+        }
+        if (warning != null) {
+            editor.update { it.copy(saveWarning = warning) }
+            return
+        }
+        write(fix = null)
+    }
+
+    /** 경고 창에서 저장. [fix]면 '설정 열기', '권한 켜기'를 눌러 저장 뒤 고칠 곳을 열어요. */
+    fun saveAnyway(fix: Boolean) {
+        val warning = editor.value.saveWarning ?: return
+        editor.update { it.copy(saveWarning = null) }
+        write(fix = warning.takeIf { fix })
+    }
+
+    /** 창 밖을 누르거나 뒤로 가면 저장하지 않고 편집으로 돌아가요. */
+    fun closeSaveWarning() = editor.update { it.copy(saveWarning = null) }
+
+    private fun write(fix: SaveWarning?) {
+        val current = editor.value
         editor.update { it.copy(saving = true) }
         val released = restingAt(current.original, now.now()) && timingChanged(current.original, current.draft)
         viewModelScope.launch {
             val saved = book.save(toSave(current.original, current.draft).copy(enabled = true))
             // 울린 뒤 남은 확인(W2, W3)이 있던 알람을 저장하면 그 확인을 멈춰요(결정 145, 홈 토스트).
             val stopped = current.draft.id != 0L && checks?.cancelFor(saved.id) == true
-            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped, released)) }
+            editor.update { it.copy(saving = false, exit = EditExit.Saved(saved.id, stopped, released, fix)) }
         }
     }
 
