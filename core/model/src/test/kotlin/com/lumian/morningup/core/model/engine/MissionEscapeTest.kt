@@ -29,7 +29,7 @@ class MissionEscapeTest {
         missions: List<MissionType> = listOf(MissionType.QuickMath, MissionType.PopQuiz),
         wakeCheck: Boolean = true,
         hidden: Boolean = false,
-        askTotal: Int? = null,
+        recheckCount: Int = 1,
     ) = RingPlan(
         alarmId = 3,
         missions = missions,
@@ -39,7 +39,7 @@ class MissionEscapeTest {
         wakeCheckAskAfterMinutes = 3,
         wakeCheckAnswerSeconds = 60,
         recheckEnabled = true,
-        askTotal = askTotal,
+        recheckCount = recheckCount,
         escapeHidden = hidden,
     )
 
@@ -233,11 +233,11 @@ class MissionEscapeTest {
     }
 
     @Test
-    fun escaped_multiAsk_keepsFullCount() {
-        val s = started(plan(askTotal = 4)).session!!
+    fun escaped_recheckCount_keepsFullCount() {
+        val s = started(plan(recheckCount = 3)).session!!
         val t = reduce(s, RingEvent.MissionEscaped, t0 + 40 * sec)
         assertThat(t.session!!.checksDone).isEqualTo(0)
-        assertThat(t.session!!.checksLeft).isEqualTo(4)
+        assertThat(t.session!!.checksLeft).isEqualTo(3)
     }
 
     // 다시 잠들기 방지로 처음부터 다시 울린 바퀴 (2절) ----------------------------------

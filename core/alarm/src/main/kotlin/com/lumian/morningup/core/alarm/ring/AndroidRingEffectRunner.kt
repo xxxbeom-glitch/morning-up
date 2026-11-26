@@ -67,19 +67,14 @@ class AndroidRingEffectRunner @Inject constructor(
             is RingEffect.RecheckScheduled -> {
                 diagnostics.record("recheck_scheduled", session?.plan?.alarmId, "at=${clock(effect.askAt)}")
                 if (effect.number != null) {
-                    // 여러 번 묻기: 몇 번째/전체와 고른 간격은 디버그 흐름 로그에만 남겨요(결정 146 4절).
+                    // W3를 여러 번 물으면 몇 번째/전체를 디버그 흐름 로그에 남겨요(결정 176).
                     labLog.record(
                         LabLog.RECHECK_ASK,
                         session?.plan?.alarmId,
-                        "n=${effect.number}/${effect.total} gap=${effect.gapMinutes}m at=${clock(effect.askAt)}",
+                        "n=${effect.number}/${effect.total} at=${clock(effect.askAt)}",
                     )
                 }
                 notifications.showRinging(session?.phase, effect.askAt, session?.recheckNotice())
-            }
-            is RingEffect.MultiAskRecorded -> {
-                val left = effect.left?.let { " left=$it" }.orEmpty()
-                val detail = "n=${effect.number}/${effect.total}$left"
-                labLog.record(effect.kind.event, effect.alarmId, detail, effect.kind.kept)
             }
             is RingEffect.WakeResultRecorded -> {
                 val detail = "result=${effect.result.name} rounds=${effect.rounds}"

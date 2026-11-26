@@ -24,17 +24,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.ring.LabLog
 import com.lumian.morningup.core.alarm.ring.TrickAccessibility
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
 import com.lumian.morningup.core.designsystem.component.MorningButtonStyle
-import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
 import com.lumian.morningup.core.designsystem.component.MorningModalSheet
 import com.lumian.morningup.core.designsystem.component.MorningOverlay
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
@@ -44,7 +41,6 @@ import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
-import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettings
@@ -54,28 +50,21 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
 
 /** T3에서 여는 시트(결정 146 1절). */
-enum class LabSheet { Trick, MultiAsk, HideEscape }
+enum class LabSheet { Trick, HideEscape }
 
 const val LAB_TRICK_SHEET_TAG = "lab_trick_sheet"
-const val LAB_MULTI_SHEET_TAG = "lab_multi_sheet"
 const val LAB_ESCAPE_SHEET_TAG = "lab_escape_sheet"
-
-private val ChipGap = 6.dp
 
 /**
  * '확실히 잠깨기' 실험실(결정 146). 값은 앱 전체에 하나이고 다음 알람부터 새 값으로 울려요.
- * 켜고 끌 때 폰 안 진단 기록에 남겨요(4절 `lab_trick_on/off`, `lab_recheck_on/off`).
+ * 켜고 끌 때 폰 안 진단 기록에 남겨요(4절 `lab_trick_on/off`). 여러 번 묻기는 없앴어요(결정 177).
  */
 @HiltViewModel
 class LabViewModel @Inject constructor(
     private val store: WakeCheckSettingsStore,
     private val labLog: LabLog,
-    book: AlarmBook,
 ) : ViewModel() {
     val settings: StateFlow<WakeCheckSettings> = store.settings
-
-    /** 켜진 알람 가운데 다시 잠들기 방지를 켠 알람이 없으면 참(결정 164). */
-    val noGuardedAlarm: StateFlow<Boolean> = book.noGuardedAlarm(viewModelScope)
 
     fun setTrick(on: Boolean) {
         val lab = updateLab { it.copy(trickEnabled = on) }
@@ -90,23 +79,10 @@ class LabViewModel @Inject constructor(
         updateLab { it.copy(trickSpeed = speed) }
     }
 
-    fun setMultiAsk(on: Boolean) {
-        val lab = updateLab { it.copy(multiAskEnabled = on) }
-        labLog.record(
-            if (on) LabLog.RECHECK_ON else LabLog.RECHECK_OFF,
-            detail = "count=${lab.multiAskCount}",
-            kept = true,
-        )
-    }
-
     /** 미션 포기 알림 숨기기(결정 151). 켤 때는 T3-4에서 '숨기기'를 누른 뒤에만 불려요. */
     fun setEscapeHidden(hidden: Boolean) {
         updateLab { it.copy(escapeHidden = hidden) }
         labLog.record(if (hidden) LabLog.ESCAPE_HIDE_ON else LabLog.ESCAPE_HIDE_OFF, kept = true)
-    }
-
-    fun setMultiAskCount(count: Int) {
-        if (count in LabSettings.ASK_COUNTS) updateLab { it.copy(multiAskCount = count) }
     }
 
     private fun updateLab(transform: (LabSettings) -> LabSettings): LabSettings {
@@ -139,24 +115,15 @@ fun LabCardContent(lab: LabSettings, onOpen: () -> Unit) {
     }
 }
 
-/** T1 줄 값: '꺼짐', '버튼 속이기', '여러 번 묻기', 둘 다면 '버튼 속이기, 여러 번 묻기'. */
+/** T1 줄 값: '꺼짐' 또는 '버튼 속이기'(결정 177). */
 @Composable
-private fun labValue(lab: LabSettings): String {
-    val trick = stringResource(R.string.settings_lab_trick)
-    val multi = stringResource(R.string.settings_lab_multi)
-    return when {
-        lab.trickEnabled && lab.multiAskEnabled -> stringResource(R.string.settings_lab_both, trick, multi)
-        lab.trickEnabled -> trick
-        lab.multiAskEnabled -> multi
-        else -> stringResource(R.string.settings_lab_off)
-    }
-}
+private fun labValue(lab: LabSettings): String =
+    stringResource(if (lab.trickEnabled) R.string.settings_lab_trick else R.string.settings_lab_off)
 
 /** T3 '확실히 잠깨기' 페이지. [onPreview]는 T3-3 미리 해보기를 열어요. */
 @Composable
 fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
-    val noGuarded by viewModel.noGuardedAlarm.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val trickOff = remember { TrickAccessibility.offReason(context) != null }
     LabScreen(
@@ -164,12 +131,9 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         onBack = onBack,
         onTrick = viewModel::setTrick,
         onTrickSpeed = viewModel::setTrickSpeed,
-        onMultiAsk = viewModel::setMultiAsk,
-        onMultiAskCount = viewModel::setMultiAskCount,
         onPreview = onPreview,
         onEscapeHidden = viewModel::setEscapeHidden,
         trickOff = trickOff,
-        noGuardedAlarm = noGuarded,
     )
 }
 
@@ -184,13 +148,10 @@ fun LabScreen(
     onBack: () -> Unit,
     onTrick: (Boolean) -> Unit,
     onTrickSpeed: (TrickSpeed) -> Unit,
-    onMultiAsk: (Boolean) -> Unit,
-    onMultiAskCount: (Int) -> Unit,
     onPreview: () -> Unit,
     modifier: Modifier = Modifier,
     onEscapeHidden: (Boolean) -> Unit = {},
     trickOff: Boolean = false,
-    noGuardedAlarm: Boolean = false,
 ) {
     var sheet by rememberSaveable { mutableStateOf<LabSheet?>(null) }
     val colors = MorningTheme.colors
@@ -234,22 +195,6 @@ fun LabScreen(
                     onClick = { sheet = LabSheet.Trick },
                     modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
                 )
-                MorningSettingRow(
-                    label = stringResource(R.string.settings_lab_multi),
-                    // 다시 잠들기 방지를 켠 알람이 없으면 둘째 줄에 안내(결정 164).
-                    value = if (noGuardedAlarm) {
-                        stringResource(R.string.settings_wake_check_none)
-                    } else {
-                        stringResource(R.string.settings_lab_multi_value, lab.multiAskCount)
-                    },
-                    state = if (lab.multiAskEnabled) SettingRowState.On else SettingRowState.Off,
-                    onCheckedChange = { on ->
-                        onMultiAsk(on)
-                        if (on) sheet = LabSheet.MultiAsk
-                    },
-                    onClick = { sheet = LabSheet.MultiAsk },
-                    modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
-                )
             }
             Text(
                 text = stringResource(R.string.settings_lab_note),
@@ -272,7 +217,6 @@ fun LabScreen(
                 onDismiss = { sheet = null },
                 tag = when (open) {
                     LabSheet.Trick -> LAB_TRICK_SHEET_TAG
-                    LabSheet.MultiAsk -> LAB_MULTI_SHEET_TAG
                     LabSheet.HideEscape -> LAB_ESCAPE_SHEET_TAG
                 },
             ) {
@@ -286,7 +230,6 @@ fun LabScreen(
                         },
                         onDone = { sheet = null },
                     )
-                    LabSheet.MultiAsk -> MultiAskSheet(lab, onMultiAskCount) { sheet = null }
                     LabSheet.HideEscape -> HideEscapeSheet(
                         onCancel = { sheet = null },
                         onHide = {
@@ -403,63 +346,6 @@ private fun ColumnScope.TrickSheet(
             onClick = onPreview,
             size = MorningButtonSize.Medium,
             style = MorningButtonStyle.Soft,
-        )
-    }
-}
-
-/** T3-2: 3번, 4번, 5번 칩과 아래 작은 글, '완료'. */
-@Composable
-private fun ColumnScope.MultiAskSheet(lab: LabSettings, onCount: (Int) -> Unit, onDone: () -> Unit) {
-    SheetFrame(
-        title = stringResource(R.string.settings_lab_multi),
-        description = stringResource(R.string.settings_lab_multi_desc),
-        onDone = onDone,
-    ) {
-        FullChipGroup(
-            label = null,
-            options = LabSettings.ASK_COUNTS,
-            selected = lab.multiAskCount,
-            optionLabel = { stringResource(R.string.settings_lab_multi_count, it) },
-            onSelect = onCount,
-            note = stringResource(R.string.settings_lab_multi_note),
-            noteSmall = true,
-        )
-    }
-}
-
-/** 위에 이름, 줄 너비에 꽉 차는 Choice Chip(칠로만 선택, 테두리 없음), 아래 설명 한 줄. */
-@Suppress("LongParameterList")
-@Composable
-private fun <T> FullChipGroup(
-    label: String?,
-    options: List<T>,
-    selected: T,
-    optionLabel: @Composable (T) -> String,
-    onSelect: (T) -> Unit,
-    note: String,
-    noteSmall: Boolean = false,
-) {
-    val colors = MorningTheme.colors
-    val typography = MorningTheme.typography
-    Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
-        if (label != null) {
-            Text(text = label, style = typography.bodyMediumStrong, color = colors.textPrimary)
-        }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(ChipGap)) {
-            options.forEach { option ->
-                MorningChoiceChip(
-                    label = optionLabel(option),
-                    selected = option == selected,
-                    onClick = { onSelect(option) },
-                    modifier = Modifier.weight(1f),
-                )
-            }
-        }
-        Text(
-            text = note,
-            style = if (noteSmall) typography.captionMedium else typography.bodyMedium,
-            color = if (noteSmall) colors.textSecondary else colors.textBody,
-            modifier = Modifier.padding(top = MorningDimens.space4),
         )
     }
 }

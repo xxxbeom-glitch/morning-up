@@ -74,27 +74,34 @@ class WakeCheckSettingsPrefs internal constructor(
         askAfterMinutes = prefs.getInt(KEY_ASK, WakeCheckSettings.DEFAULT_ASK_MINUTES),
         answerSeconds = prefs.getInt(KEY_ANSWER, WakeCheckSettings.DEFAULT_ANSWER_SECONDS),
         recheckEnabled = prefs.getBoolean(KEY_RECHECK, true),
-        recheckMinutes = prefs.getInt(KEY_RECHECK_MINUTES, WakeCheckSettings.DEFAULT_RECHECK_MINUTES),
+        recheckWaitMinutes = prefs.getInt(KEY_RECHECK_WAIT, legacyRecheckWait())
+            .takeIf { it in WakeCheckSettings.RECHECK_WAIT_MINUTES } ?: WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+        recheckCount = prefs.getInt(KEY_RECHECK_COUNT, WakeCheckSettings.DEFAULT_RECHECK_COUNT)
+            .takeIf { it in WakeCheckSettings.RECHECK_COUNTS } ?: WakeCheckSettings.DEFAULT_RECHECK_COUNT,
         lab = LabSettings(
             trickEnabled = prefs.getBoolean(KEY_TRICK, false),
             trickSpeed = TrickSpeed.of(prefs.getString(KEY_TRICK_SPEED, null)),
-            multiAskEnabled = prefs.getBoolean(KEY_MULTI, false),
-            multiAskCount = prefs.getInt(KEY_MULTI_COUNT, LabSettings.DEFAULT_ASK_COUNT)
-                .takeIf { it in LabSettings.ASK_COUNTS } ?: LabSettings.DEFAULT_ASK_COUNT,
             escapeHidden = prefs.getBoolean(KEY_ESCAPE_HIDDEN, false),
             debugMinuteMillis = prefs.getLong(KEY_DEBUG_MINUTE, LabSettings.MINUTE_MILLIS),
         ),
     )
 
+    /**
+     * 결정 176 전에는 W3까지 기다리는 시간이 W2 '다시 물어보기'와 같았어요. 새 값이 없으면 그 값을 옮기고,
+     * 고를 수 없는 값(10분)은 처음 값 3분이에요.
+     */
+    private fun legacyRecheckWait(): Int = prefs.getInt(KEY_ASK, WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES)
+
     private fun write(settings: WakeCheckSettings) = prefs.edit {
         putInt(KEY_ASK, settings.askAfterMinutes)
         putInt(KEY_ANSWER, settings.answerSeconds)
         putBoolean(KEY_RECHECK, settings.recheckEnabled)
-        putInt(KEY_RECHECK_MINUTES, settings.recheckMinutes)
+        putInt(KEY_RECHECK_WAIT, settings.recheckWaitMinutes)
+        putInt(KEY_RECHECK_COUNT, settings.recheckCount)
         putBoolean(KEY_TRICK, settings.lab.trickEnabled)
         putString(KEY_TRICK_SPEED, settings.lab.trickSpeed.key)
-        putBoolean(KEY_MULTI, settings.lab.multiAskEnabled)
-        putInt(KEY_MULTI_COUNT, settings.lab.multiAskCount)
+        // 없앤 값(W3 확인할 시간, 실험실 여러 번 묻기)은 옮기지 않고 지워요(결정 176, 177).
+        OBSOLETE_KEYS.forEach { remove(it) }
         putBoolean(KEY_ESCAPE_HIDDEN, settings.lab.escapeHidden)
         putLong(KEY_DEBUG_MINUTE, settings.lab.debugMinuteMillis)
     }
@@ -104,14 +111,16 @@ class WakeCheckSettingsPrefs internal constructor(
         private const val KEY_ASK = "ask_after_minutes"
         private const val KEY_ANSWER = "answer_seconds"
         private const val KEY_RECHECK = "recheck_enabled"
-        private const val KEY_RECHECK_MINUTES = "recheck_minutes"
+        private const val KEY_RECHECK_WAIT = "recheck_wait_minutes"
+        private const val KEY_RECHECK_COUNT = "recheck_count"
         private const val KEY_MIGRATED = "migrated_from_alarms"
 
         // 실험실 '확실히 잠깨기'(결정 146)
         private const val KEY_TRICK = "lab_trick"
         private const val KEY_TRICK_SPEED = "lab_trick_speed"
-        private const val KEY_MULTI = "lab_multi_ask"
-        private const val KEY_MULTI_COUNT = "lab_multi_ask_count"
+
+        /** 예전 저장 이름. 읽지 않고 쓸 때 지워요. */
+        private val OBSOLETE_KEYS = listOf("recheck_minutes", "lab_multi_ask", "lab_multi_ask_count")
 
         /** 미션 비상구 알림 숨기기(결정 151). */
         private const val KEY_ESCAPE_HIDDEN = "lab_escape_hidden"

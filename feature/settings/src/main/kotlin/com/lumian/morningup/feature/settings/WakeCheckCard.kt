@@ -61,7 +61,8 @@ fun WakeCheckCard(viewModel: WakeCheckSettingsViewModel = hiltViewModel()) {
         onAskAfter = viewModel::setAskAfter,
         onAnswer = viewModel::setAnswer,
         onRecheck = viewModel::setRecheck,
-        onRecheckMinutes = viewModel::setRecheckMinutes,
+        onRecheckWait = viewModel::setRecheckWait,
+        onRecheckCount = viewModel::setRecheckCount,
     )
 }
 
@@ -72,7 +73,8 @@ fun WakeCheckCardContent(
     onAskAfter: (Int) -> Unit,
     onAnswer: (Int) -> Unit,
     onRecheck: (Boolean) -> Unit,
-    onRecheckMinutes: (Int) -> Unit,
+    onRecheckWait: (Int) -> Unit,
+    onRecheckCount: (Int) -> Unit,
     noGuardedAlarm: Boolean = false,
 ) {
     var sheet by rememberSaveable { mutableStateOf<WakeCheckSheet?>(null) }
@@ -86,20 +88,13 @@ fun WakeCheckCardContent(
                 )
             }
             // 스위치는 켜고 끄기, 글자 쪽은 T1-2 시트를 열어요.
-            // 실험실 여러 번 묻기를 켜면 켜진 채 잠겨요(결정 146 3절).
-            val multi = settings.lab.multiAskEnabled
             MorningSettingRow(
                 label = stringResource(R.string.settings_recheck),
-                value = if (multi) {
-                    stringResource(R.string.settings_recheck_lab, settings.lab.multiAskCount)
-                } else {
-                    stringResource(R.string.settings_recheck_desc)
-                },
-                state = if (settings.recheckOn) SettingRowState.On else SettingRowState.Off,
+                value = stringResource(R.string.settings_recheck_desc),
+                state = if (settings.recheckEnabled) SettingRowState.On else SettingRowState.Off,
                 onCheckedChange = onRecheck,
                 onClick = { sheet = WakeCheckSheet.Recheck },
                 modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
-                toggleLocked = multi,
             )
         }
         Text(
@@ -122,7 +117,7 @@ fun WakeCheckCardContent(
             ) {
                 when (open) {
                     WakeCheckSheet.Ask -> AskSheet(settings, onAskAfter, onAnswer) { sheet = null }
-                    WakeCheckSheet.Recheck -> RecheckSheet(settings, onRecheckMinutes) { sheet = null }
+                    WakeCheckSheet.Recheck -> RecheckSheet(settings, onRecheckWait, onRecheckCount) { sheet = null }
                 }
             }
         }
@@ -171,20 +166,32 @@ private fun ColumnScope.AskSheet(
     }
 }
 
-/** T1-2: 확인할 시간 3/5/10분. */
+/** T1-2: 다시 물어보기 1/3/5분 후, 묻는 횟수 1/2/3번. 대답할 시간은 1분 고정이에요(결정 176, 시안 TSK-219). */
 @Composable
-private fun ColumnScope.RecheckSheet(settings: WakeCheckSettings, onMinutes: (Int) -> Unit, onDone: () -> Unit) {
+private fun ColumnScope.RecheckSheet(
+    settings: WakeCheckSettings,
+    onWait: (Int) -> Unit,
+    onCount: (Int) -> Unit,
+    onDone: () -> Unit,
+) {
     SheetFrame(
         title = stringResource(R.string.settings_recheck),
-        description = stringResource(R.string.settings_recheck_sheet_desc),
+        description = stringResource(R.string.settings_recheck_sheet_desc, WakeCheckSettings.RECHECK_ANSWER_MINUTES),
         onDone = onDone,
     ) {
         ChipRow(
-            label = stringResource(R.string.settings_recheck_minutes),
-            options = WakeCheckSettings.RECHECK_MINUTES,
-            selected = settings.recheckMinutes,
-            optionLabel = { stringResource(R.string.settings_minutes, it) },
-            onSelect = onMinutes,
+            label = stringResource(R.string.settings_wake_check_ask),
+            options = WakeCheckSettings.RECHECK_WAIT_MINUTES,
+            selected = settings.recheckWaitMinutes,
+            optionLabel = { stringResource(R.string.settings_minutes_after, it) },
+            onSelect = onWait,
+        )
+        ChipRow(
+            label = stringResource(R.string.settings_recheck_count),
+            options = WakeCheckSettings.RECHECK_COUNTS,
+            selected = settings.recheckCount,
+            optionLabel = { stringResource(R.string.settings_times, it) },
+            onSelect = onCount,
         )
     }
 }

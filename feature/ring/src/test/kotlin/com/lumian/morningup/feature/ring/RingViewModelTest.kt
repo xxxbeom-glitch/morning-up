@@ -208,13 +208,27 @@ class RingViewModelTest {
     }
 
     @Test
-    fun ask_countsFromChecksDone_onlyWhenMultiAsk() = runTest {
+    fun ask_countsFromChecksDone_onlyWhenRecheckCountOverOne() = runTest {
         val base = testRingSession(RingPhase.RecheckAsking, recheckEnabled = true)
         assertThat(viewModel(FakeRingLink(base, RingScreen.Recheck)).uiState.value.ask).isNull()
-        val multi = base.copy(plan = base.plan.copy(askTotal = 3), checksDone = 1)
+        val multi = testRingSession(RingPhase.RecheckAsking, recheckEnabled = true, recheckCount = 3, checksDone = 1)
         assertThat(viewModel(FakeRingLink(multi, RingScreen.Recheck)).uiState.value.ask).isEqualTo(AskCount(2, 3))
         val last = multi.copy(checksDone = 2)
         assertThat(viewModel(FakeRingLink(last, RingScreen.Recheck)).uiState.value.ask!!.isLast).isTrue()
+        // W2를 묻는 동안은 W3 번호를 보이지 않아요.
+        val w2 = testRingSession(RingPhase.WakeCheckAsking, recheckEnabled = true, recheckCount = 3)
+        assertThat(viewModel(FakeRingLink(w2, RingScreen.WakeCheck)).uiState.value.ask).isNull()
+    }
+
+    @Test
+    fun w2Done_nextAskMinutes_isRecheckWait() = runTest {
+        val s = testRingSession(
+            RingPhase.WakeCheckAsking,
+            recheckEnabled = true,
+            wakeCheckAskAfterMinutes = 10,
+            recheckWaitMinutes = 1,
+        )
+        assertThat(viewModel(FakeRingLink(s, RingScreen.WakeCheck)).uiState.value.nextAskMinutes).isEqualTo(1)
     }
 }
 

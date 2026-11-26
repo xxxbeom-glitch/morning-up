@@ -19,8 +19,6 @@ class LabLog @Inject constructor(private val diagnostics: AlarmDiagnostics) {
     companion object {
         const val TRICK_ON = "lab_trick_on"
         const val TRICK_OFF = "lab_trick_off"
-        const val RECHECK_ON = "lab_recheck_on"
-        const val RECHECK_OFF = "lab_recheck_off"
         const val TRICK_SHOWN = "trick_shown"
         const val TRICK_START = "trick_start"
         const val TRICK_AUTO_OFF = "trick_auto_off"

@@ -30,14 +30,13 @@ data class RingPlan(
     val background: String? = null,
     /** W2 '깼어요' 뒤 한 번 더 확인(W3)을 할지(결정 145). 울리기 시작할 때의 전체 설정 값이에요. */
     val recheckEnabled: Boolean = false,
-    /** W3 '확인할 시간'(분). */
-    val recheckAnswerMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_MINUTES,
-    /**
-     * 실험실 여러 번 묻기(결정 146)의 묻는 횟수 전체(W2 1번 + W3 나머지). null이면 꺼짐이라 결정 145대로
-     * W2 뒤 W3를 한 번만 물어요.
-     */
-    val askTotal: Int? = null,
-    /** 여러 번 묻기의 무작위 간격과 1시간 상한에 쓰는 1분의 길이. 디버그 시험 배율이 아니면 60초예요. */
+    /** W3 대답할 시간(분). 1분 고정이에요(결정 176). */
+    val recheckAnswerMinutes: Int = WakeCheckSettings.RECHECK_ANSWER_MINUTES,
+    /** W2 '깼어요' 뒤 W3까지, W3와 다음 W3 사이 기다리는 시간(분, 결정 176). */
+    val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+    /** W3를 몇 번 물을지(결정 176). 1이면 결정 145대로 한 번만 물어요. */
+    val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+    /** W3 기다리는 시간과 대답할 시간에 쓰는 1분의 길이. 디버그 시험 배율이 아니면 60초예요. */
     val minuteMillis: Long = LabSettings.MINUTE_MILLIS,
     /** 실험실 버튼 속이기. null이면 꺼짐이에요. 울림 화면(D0)이 이 값을 봐요. */
     val trick: ButtonTrick? = null,
@@ -74,9 +73,9 @@ data class RingPlan(
             wakeCheckAnswerSeconds = settings.answerSeconds,
             powerOffGuard = alarm.powerOffGuard && alarm.missions.isNotEmpty(),
             background = alarm.background,
-            recheckEnabled = settings.recheckOn,
-            recheckAnswerMinutes = settings.recheckMinutes,
-            askTotal = settings.lab.multiAskCount.takeIf { settings.lab.multiAskEnabled },
+            recheckEnabled = settings.recheckEnabled,
+            recheckWaitMinutes = settings.recheckWaitMinutes,
+            recheckCount = settings.recheckCount,
             minuteMillis = settings.lab.debugMinuteMillis,
             trick = settings.lab.trick,
             escapeHidden = settings.lab.escapeHidden &&
@@ -121,12 +120,10 @@ data class RingSession(
     val rounds: Int = 0,
     /** 통화 중이라 W2, W3를 멈춰 둔 동안 남은 시간(밀리초). null이면 멈추지 않았어요. */
     val pausedLeftMillis: Long? = null,
-    /** 여러 번 묻기에서 지금까지 마친 확인 수(W2 포함). 다시 울려도 이어서 세요(남은 확인만 다시 물음). */
+    /** 이 바퀴에서 마친 W3 수. 못 해서 처음부터 다시 울리면 0부터 다시 세요(결정 136, 176). */
     val checksDone: Int = 0,
-    /** 이 바퀴의 미션을 끝낸 시각. 여러 번 묻기 1시간 상한을 여기서부터 세요. */
-    val roundStartedAt: Long? = null,
     /**
-     * 여러 번 묻기에서 지금 기다리는 W3를 알림이나 홈 띠로 이미 하나 미리 끝냈는지. 그러면 다음 W3가 실제로
+     * W3를 여러 번 물을 때, 지금 기다리는 W3를 알림이나 홈 띠로 이미 하나 미리 끝냈는지. 그러면 다음 W3가 실제로
      * 물을 때까지는 또 미리 끝낼 수 없어요(한 번에 하나만).
      */
     val earlyUsed: Boolean = false,
@@ -136,10 +133,11 @@ data class RingSession(
      */
     val escapeShown: Boolean = false,
 ) {
-    /** 여러 번 묻기의 남은 확인 수. 꺼져 있으면 null. */
-    val checksLeft: Int? get() = plan.askTotal?.let { (it - checksDone).coerceAtLeast(0) }
+    /** W3를 여러 번 물을 때 남은 수. 한 번만 물으면 null. */
+    val checksLeft: Int?
+        get() = plan.recheckCount.takeIf { it > 1 }?.let { (it - checksDone).coerceAtLeast(0) }
 
-    /** W3를 지금 미리 열어 끝낼 수 있는지(기다리는 중이고, 여러 번 묻기면 이번 기다림에 아직 안 썼을 때). */
+    /** W3를 지금 미리 열어 끝낼 수 있는지(기다리는 중이고, 이번 기다림에 아직 안 썼을 때). */
     val canFinishEarly: Boolean get() = phase == RingPhase.AwaitingRecheck && !earlyUsed
 }
 
@@ -176,9 +174,6 @@ enum class WakeResult {
 
     /** 남은 확인을 멈춤. */
     Cancelled,
-
-    /** 여러 번 묻기에서 미션 끝 1시간이 지나 남은 확인을 없앰(결정 146). */
-    EndedByTimeCap,
 }
 
 sealed interface RingEvent {
@@ -294,25 +289,12 @@ sealed interface RingEffect {
 
     /**
      * W2를 통과해 [askAt]에 W3를 물어요. 화면을 닫고 안내 알림('오전 6:43에 한 번 더 물어볼게요')을 띄워요.
-     * 여러 번 묻기면 [number]번째/[total] 확인이고 [gapMinutes]는 고른 무작위 간격이에요. 알림에 시각을 적지 않아요.
+     * W3를 여러 번 물으면 [number]번째/[total]이에요(결정 176).
      */
     data class RecheckScheduled(
         val askAt: Long,
         val number: Int? = null,
         val total: Int? = null,
-        val gapMinutes: Int? = null,
-    ) : RingEffect
-
-    /**
-     * 여러 번 묻기 사건(결정 146 4절). [kind]가 [MultiAskKind.kept]면 출시 빌드 진단 기록에도 남겨요.
-     * [number]는 몇 번째, [total]은 전체, [left]는 상한으로 없앤 남은 수예요.
-     */
-    data class MultiAskRecorded(
-        val alarmId: Long,
-        val kind: MultiAskKind,
-        val number: Int,
-        val total: Int,
-        val left: Int? = null,
     ) : RingEffect
 
     /** 다시 잠들기 방지 결과를 진단 기록에 남겨요. [rounds]는 다시 울린 바퀴 수예요. */
@@ -332,13 +314,6 @@ sealed interface RingEffect {
     data class MarkPassed(val alarmId: Long) : RingEffect
 
     data class SessionEnded(val alarmId: Long, val outcome: RingOutcome) : RingEffect
-}
-
-/** 여러 번 묻기 기록 이름. [kept]는 출시 빌드 진단 기록에도 남는 사건(결정 146 4절 * 표시)이에요. */
-enum class MultiAskKind(val event: String, val kept: Boolean) {
-    Pass("recheck_pass", true),
-    Miss("recheck_miss", true),
-    Cap("recheck_cap_60", true),
 }
 
 data class Transition(val session: RingSession?, val effects: List<RingEffect>)

@@ -22,7 +22,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** T1 '다시 잠들기 방지' 카드('묻는 때', '한 번 더 확인')와 시트(결정 145, 164). */
+/** T1 '다시 잠들기 방지' 카드('묻는 때', '한 번 더 확인')와 시트(결정 145, 164, 176). */
 @RunWith(RobolectricTestRunner::class)
 class WakeCheckCardTest {
     @get:Rule
@@ -34,7 +34,8 @@ class WakeCheckCardTest {
     private val asked = mutableListOf<Int>()
     private val answered = mutableListOf<Int>()
     private val recheck = mutableListOf<Boolean>()
-    private val recheckMinutes = mutableListOf<Int>()
+    private val recheckWait = mutableListOf<Int>()
+    private val recheckCount = mutableListOf<Int>()
 
     private var noGuarded = false
 
@@ -45,7 +46,8 @@ class WakeCheckCardTest {
                 onAskAfter = { asked += it },
                 onAnswer = { answered += it },
                 onRecheck = { recheck += it },
-                onRecheckMinutes = { recheckMinutes += it },
+                onRecheckWait = { recheckWait += it },
+                onRecheckCount = { recheckCount += it },
                 noGuardedAlarm = noGuarded,
             )
         }
@@ -84,9 +86,15 @@ class WakeCheckCardTest {
         assertThat(recheck).containsExactly(false)
         compose.onNodeWithText("한 번 더 확인").performSemanticsAction(SemanticsActions.OnClick)
         compose.onNodeWithTag(WAKE_CHECK_RECHECK_SHEET_TAG).assertExists()
-        compose.onNodeWithText("확인할 시간").assertExists()
-        compose.onNodeWithText("5분").performClick()
-        assertThat(recheckMinutes).containsExactly(5)
+        // 대답할 시간은 1분 고정이라 줄 없이 머리 설명에만 적어요(결정 176, 시안 TSK-219).
+        compose.onNodeWithText("'깼어요'를 누른 뒤 정말 깼는지 1분 동안 물어요").assertExists()
+        compose.onNodeWithText("확인할 시간").assertDoesNotExist()
+        compose.onNodeWithText("다시 물어보기").assertExists()
+        compose.onNodeWithText("묻는 횟수").assertExists()
+        compose.onNodeWithText("5분 후").performClick()
+        compose.onNodeWithText("2번").performClick()
+        assertThat(recheckWait).containsExactly(5)
+        assertThat(recheckCount).containsExactly(2)
     }
 
     @Test
@@ -97,10 +105,18 @@ class WakeCheckCardTest {
         vm.setAskAfter(10)
         vm.setAskAfter(7)
         vm.setAnswer(30)
-        vm.setRecheckMinutes(3)
+        vm.setRecheckWait(1)
+        vm.setRecheckWait(10)
+        vm.setRecheckCount(3)
+        vm.setRecheckCount(5)
         vm.setRecheck(false)
-        val expected =
-            WakeCheckSettings(askAfterMinutes = 10, answerSeconds = 30, recheckEnabled = false, recheckMinutes = 3)
+        val expected = WakeCheckSettings(
+            askAfterMinutes = 10,
+            answerSeconds = 30,
+            recheckEnabled = false,
+            recheckWaitMinutes = 1,
+            recheckCount = 3,
+        )
         assertThat(vm.settings.value).isEqualTo(expected)
         assertThat(gate.calls).containsExactly("recheck_off")
         vm.setRecheck(true)

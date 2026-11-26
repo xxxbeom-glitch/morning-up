@@ -39,8 +39,14 @@ class WakeCheckSettingsViewModel @Inject constructor(
         if (seconds in WakeCheckSettings.ANSWER_SECONDS) store.update { it.copy(answerSeconds = seconds) }
     }
 
-    fun setRecheckMinutes(minutes: Int) {
-        if (minutes in WakeCheckSettings.RECHECK_MINUTES) store.update { it.copy(recheckMinutes = minutes) }
+    /** W3까지 기다리는 시간(1, 3, 5분, 결정 176). */
+    fun setRecheckWait(minutes: Int) {
+        if (minutes in WakeCheckSettings.RECHECK_WAIT_MINUTES) store.update { it.copy(recheckWaitMinutes = minutes) }
+    }
+
+    /** W3를 묻는 횟수(1, 2, 3번, 결정 176). */
+    fun setRecheckCount(count: Int) {
+        if (count in WakeCheckSettings.RECHECK_COUNTS) store.update { it.copy(recheckCount = count) }
     }
 
     fun setRecheck(on: Boolean) {

@@ -166,17 +166,17 @@
     <string name="settings_seconds">%1$d초</string>
     <string name="settings_recheck">한 번 더 확인</string>
     <string name="settings_recheck_desc">10초 동안 눌러야 완전히 꺼져요</string>
-    <string name="settings_recheck_sheet_desc">\'깼어요\'를 누른 뒤 정말 깼는지 다시 물어요</string>
-    <string name="settings_recheck_minutes">확인할 시간</string>
+    <!-- 대답할 시간은 1분 고정(결정 176, 시안 TSK-219) -->
+    <string name="settings_recheck_sheet_desc">\'깼어요\'를 누른 뒤 정말 깼는지 %1$d분 동안 물어요</string>
+    <string name="settings_recheck_count">묻는 횟수</string>
+    <string name="settings_times">%1$d번</string>
     <string name="settings_wake_check_note">알람마다 켜고 끄기는 알람 편집에서 해요</string>
     <!-- 켜진 알람 중 다시 잠들기 방지를 켠 알람이 없을 때(결정 164) -->
     <string name="settings_wake_check_none">켜 둔 알람이 없어요. 알람 편집에서 \'다시 잠들기 방지\'를 켜야 물어요</string>
     <!-- 실험실 '확실히 잠깨기'(결정 146 1절, 시안 TSK-171) -->
-    <string name="settings_recheck_lab">실험실에서 %1$d번 묻는 중이에요</string>
     <string name="settings_lab">실험실</string>
     <string name="settings_lab_title">확실히 잠깨기</string>
     <string name="settings_lab_off">꺼짐</string>
-    <string name="settings_lab_both">%1$s, %2$s</string>
     <string name="settings_lab_intro">잘 못 일어나는 분을 위한 실험 기능이에요. 아직 다듬는 중이라, 써 보고 \'의견 보내기\'로 알려 주세요.</string>
     <string name="settings_lab_note">톡백 같은 접근성 기능을 쓰는 중에는 버튼 속이기가 자동으로 꺼져요.</string>
     <string name="settings_lab_trick">버튼 속이기</string>
@@ -189,9 +189,4 @@
     <string name="settings_lab_speed_fast">빠르게</string>
     <string name="settings_lab_speed_desc">버튼이 튕겨 다니는 빠르기예요</string>
     <string name="settings_lab_preview">미리 해보기</string>
-    <string name="settings_lab_multi">여러 번 묻기</string>
-    <string name="settings_lab_multi_value">깼는지 %1$d번 물어요</string>
-    <string name="settings_lab_multi_desc">\'깼어요\'를 누른 뒤에도 몇 분씩 간격을 두고 다시 물어요. 언제 물을지는 그때그때 달라요.</string>
-    <string name="settings_lab_multi_count">%1$d번</string>
-    <string name="settings_lab_multi_note">알람을 끈 뒤 1시간이 지나면 더 묻지 않아요. 알람마다 켜고 끄기는 알람 편집의 \'다시 잠들기 방지\'에서 해요.</string>
 </resources>

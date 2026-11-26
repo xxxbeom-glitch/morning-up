@@ -7,26 +7,30 @@ import kotlinx.coroutines.flow.flowOf
 
 /**
  * 다시 잠들기 방지 전체 설정(결정 145). 알람마다는 켜고 끄기([WakeCheck])만 두고, 값은 앱 전체에 한 번만 둬요.
- * - [askAfterMinutes]: '다시 물어보기'. 알람을 끈 뒤 W2까지, W2 '깼어요' 뒤 W3까지 같은 간격이에요.
+ * - [askAfterMinutes]: '다시 물어보기'. 미션을 끝낸 뒤 W2까지예요(W3까지는 [recheckWaitMinutes], 결정 176).
  * - [answerSeconds]: W2 '대답할 시간'.
  * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.
- * - [recheckMinutes]: W3 '확인할 시간'. 처음 10분.
- * - [lab]: '확실히 잠깨기' 실험실(결정 146). 여러 번 묻기를 켜면 [recheckEnabled]와 관계없이 W3를 물어요.
+ * - [recheckWaitMinutes]: W2 '깼어요' 뒤 W3까지, 그리고 W3와 다음 W3 사이 기다리는 시간. 처음 3분(결정 176).
+ * - [recheckCount]: W3를 몇 번 물을지. 처음 1번(결정 176, 실험실 여러 번 묻기를 대신함, 결정 177).
+ * - W3 대답할 시간은 [RECHECK_ANSWER_MINUTES] 1분 고정이에요(결정 176).
+ * - [lab]: '확실히 잠깨기' 실험실(결정 146). 버튼 속이기와 미션 포기 알림 숨기기만 남았어요.
  */
 data class WakeCheckSettings(
     val askAfterMinutes: Int = DEFAULT_ASK_MINUTES,
     val answerSeconds: Int = DEFAULT_ANSWER_SECONDS,
     val recheckEnabled: Boolean = true,
-    val recheckMinutes: Int = DEFAULT_RECHECK_MINUTES,
+    val recheckWaitMinutes: Int = DEFAULT_RECHECK_WAIT_MINUTES,
+    val recheckCount: Int = DEFAULT_RECHECK_COUNT,
     val lab: LabSettings = LabSettings(),
 ) {
-    /** 실제로 W3를 묻는지. 실험실 여러 번 묻기를 켜면 '한 번 더 확인'은 켜진 채 잠겨요. */
-    val recheckOn: Boolean get() = recheckEnabled || lab.multiAskEnabled
-
     companion object {
         const val DEFAULT_ASK_MINUTES = 3
         const val DEFAULT_ANSWER_SECONDS = 60
-        const val DEFAULT_RECHECK_MINUTES = 10
+        const val DEFAULT_RECHECK_WAIT_MINUTES = 3
+        const val DEFAULT_RECHECK_COUNT = 1
+
+        /** W3 대답할 시간(분). 고르기 없이 1분이에요(결정 176). */
+        const val RECHECK_ANSWER_MINUTES = 1
 
         /** T1-1 '다시 물어보기' 3분 후, 5분 후, 10분 후. */
         val ASK_MINUTES = listOf(3, 5, 10)
@@ -34,8 +38,11 @@ data class WakeCheckSettings(
         /** T1-1 '대답할 시간' 30초, 1분, 3분. */
         val ANSWER_SECONDS = listOf(30, 60, 180)
 
-        /** T1-2 '확인할 시간' 3분, 5분, 10분. */
-        val RECHECK_MINUTES = listOf(3, 5, 10)
+        /** T1-2 'W3까지 기다리는 시간' 1분 후, 3분 후, 5분 후(결정 176). */
+        val RECHECK_WAIT_MINUTES = listOf(1, 3, 5)
+
+        /** T1-2 '묻는 횟수' 1번, 2번, 3번(결정 176). */
+        val RECHECK_COUNTS = listOf(1, 2, 3)
     }
 }
 
@@ -57,7 +64,7 @@ interface WakeCheckGate {
     /** 한 번 더 확인(W3)을 기다리는 중이고 지금 미리 끝낼 수 있는지. 홈 위쪽 띠가 봐요. */
     val recheckPending: Flow<Boolean>
 
-    /** 실험실 여러 번 묻기의 남은 확인 수. 여러 번 묻기가 아니면 null이에요(띠 글이 '한 번 더 확인이 2번 남았어요'). */
+    /** W3를 여러 번 물을 때 남은 수. 한 번만 물으면 null이에요(띠 글이 '한 번 더 확인이 2번 남았어요'). */
     val recheckLeft: Flow<Int?> get() = flowOf(null)
 
     /**

@@ -84,14 +84,47 @@ class WakeCheckSettingsPrefsTest {
         val lab = LabSettings(
             trickEnabled = true,
             trickSpeed = TrickSpeed.Slow,
-            multiAskEnabled = true,
-            multiAskCount = 5,
             escapeHidden = true,
             debugMinuteMillis = 6_000L,
         )
         store.update { it.copy(lab = lab) }
         val again = WakeCheckSettingsPrefs(prefs, db.alarmDao())
         assertThat(again.current().lab).isEqualTo(lab)
-        assertThat(again.current().recheckOn).isTrue()
+    }
+
+    @Test
+    fun recheckWaitAndCount_keepAfterReopen() = runTest {
+        val store = WakeCheckSettingsPrefs(prefs, db.alarmDao())
+        assertThat(store.current().recheckWaitMinutes).isEqualTo(3)
+        assertThat(store.current().recheckCount).isEqualTo(1)
+        store.update { it.copy(recheckWaitMinutes = 1, recheckCount = 3) }
+        val again = WakeCheckSettingsPrefs(prefs, db.alarmDao()).current()
+        assertThat(again.recheckWaitMinutes).isEqualTo(1)
+        assertThat(again.recheckCount).isEqualTo(3)
+    }
+
+    @Test
+    fun oldValues_moveWaitFromAskAfter_andDropMultiAsk() = runTest {
+        // 결정 176 전 저장: W3까지 = 다시 물어보기 5분, 확인할 시간 10분, 실험실 여러 번 묻기 5번.
+        prefs.edit()
+            .putInt("ask_after_minutes", 5)
+            .putInt("recheck_minutes", 10)
+            .putBoolean("lab_multi_ask", true)
+            .putInt("lab_multi_ask_count", 5)
+            .commit()
+        val store = WakeCheckSettingsPrefs(prefs, db.alarmDao())
+        val s = store.current()
+        assertThat(s.recheckWaitMinutes).isEqualTo(5)
+        assertThat(s.recheckCount).isEqualTo(1)
+        assertThat(prefs.contains("lab_multi_ask")).isFalse()
+        assertThat(prefs.contains("recheck_minutes")).isFalse()
+    }
+
+    @Test
+    fun oldAskAfter10_becomesWait3() = runTest {
+        prefs.edit().putInt("ask_after_minutes", 10).commit()
+        val s = WakeCheckSettingsPrefs(prefs, db.alarmDao()).current()
+        assertThat(s.askAfterMinutes).isEqualTo(10)
+        assertThat(s.recheckWaitMinutes).isEqualTo(3)
     }
 }

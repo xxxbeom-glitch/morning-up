@@ -27,11 +27,13 @@ class RepeatPatternTest {
         val alarm = Alarm(time = java.time.LocalTime.of(7, 0))
         assertThat(alarm.missions).isEmpty()
         assertThat(alarm.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 3))
-        // 결정 145: 간격과 대답할 시간은 전체 설정(처음 3분, 1분)이고, 한 번 더 확인은 처음 켜짐, 10분이에요.
+        // 결정 145, 176: 간격과 대답할 시간은 전체 설정(처음 3분, 1분). 한 번 더 확인은 처음 켜짐, 3분 뒤 1번, 대답 1분.
         val settings = WakeCheckSettings()
         assertThat(settings.askAfterMinutes).isEqualTo(3)
         assertThat(settings.answerSeconds).isEqualTo(60)
         assertThat(settings.recheckEnabled).isTrue()
-        assertThat(settings.recheckMinutes).isEqualTo(10)
+        assertThat(settings.recheckWaitMinutes).isEqualTo(3)
+        assertThat(settings.recheckCount).isEqualTo(1)
+        assertThat(WakeCheckSettings.RECHECK_ANSWER_MINUTES).isEqualTo(1)
     }
 }

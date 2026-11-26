@@ -163,7 +163,7 @@ class RingViewModel @Inject constructor(
             dayPart = DayPart.of(at.toLocalTime()),
             hasMissions = session?.plan?.missions?.isNotEmpty() == true,
             checkEndsAt = session?.takeIf { it.phase.isAsking && it.pausedLeftMillis == null }?.phaseEndsAt,
-            nextAskMinutes = session?.plan?.takeIf { it.recheckEnabled }?.wakeCheckAskAfterMinutes,
+            nextAskMinutes = session?.plan?.takeIf { it.recheckEnabled }?.recheckWaitMinutes,
             background = session?.plan?.background,
             alarmId = session?.plan?.alarmId,
             trick = session?.plan?.trick,
@@ -171,9 +171,10 @@ class RingViewModel @Inject constructor(
             ask = session?.let { askOf(it) },
         )
 
-        /** 여러 번 묻기에서 지금 묻는 확인 번호(마친 수 + 1). */
+        /** W3를 여러 번 물을 때 지금 묻는 W3 번호(마친 수 + 1, 결정 176). W2 때와 한 번만 물을 때는 null이에요. */
         private fun askOf(session: RingSession): AskCount? {
-            val total = session.plan.askTotal ?: return null
+            val recheck = session.phase == RingPhase.AwaitingRecheck || session.phase == RingPhase.RecheckAsking
+            val total = session.plan.recheckCount.takeIf { it > 1 && recheck } ?: return null
             return AskCount(number = (session.checksDone + 1).coerceAtMost(total), total = total)
         }
     }

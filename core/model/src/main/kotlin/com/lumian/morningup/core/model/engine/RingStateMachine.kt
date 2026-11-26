@@ -4,7 +4,6 @@ import com.lumian.morningup.core.model.engine.RingEffect.CancelTimer
 import com.lumian.morningup.core.model.engine.RingEffect.ClearEscape
 import com.lumian.morningup.core.model.engine.RingEffect.EscapeUsed
 import com.lumian.morningup.core.model.engine.RingEffect.MarkPassed
-import com.lumian.morningup.core.model.engine.RingEffect.MultiAskRecorded
 import com.lumian.morningup.core.model.engine.RingEffect.PausedForCall
 import com.lumian.morningup.core.model.engine.RingEffect.PlayChime
 import com.lumian.morningup.core.model.engine.RingEffect.PlaySound
@@ -22,7 +21,6 @@ import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeCheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeUp
 import com.lumian.morningup.core.model.engine.RingEffect.StopSound
 import com.lumian.morningup.core.model.engine.RingEffect.WakeResultRecorded
-import kotlin.random.Random
 
 /**
  * 울림 상태표(ADR 0002). 같은 입력이면 늘 같은 결과를 내는 순수 함수예요.
@@ -39,13 +37,6 @@ object RingStateMachine {
     private const val MINUTE = 60_000L
     private const val SECOND = 1_000L
 
-    /** 여러 번 묻기: 둘째부터는 앞 확인 뒤 5~15분 사이 무작위(결정 146). */
-    const val MULTI_GAP_MIN_MINUTES = 5
-    const val MULTI_GAP_MAX_MINUTES = 15
-
-    /** 여러 번 묻기: 한 바퀴는 그 바퀴의 미션 끝에서 60분 안에서만 물어요. */
-    const val MULTI_CAP_MINUTES = 60
-
     /** AlarmManager가 몇 밀리초 일찍 깨워도 받아들이는 여유. */
     private const val TIMER_SLACK_MILLIS = 2_000L
 
@@ -53,18 +44,11 @@ object RingStateMachine {
 
     /**
      * [inCall]은 지금 통화 중인지예요. 통화 중이면 W2, W3를 띄우지 않고 멈춰 둬요.
-     * [random]은 여러 번 묻기의 무작위 간격을 고를 때만 써요(시험에서는 씨앗을 정해 넣어요).
      */
-    fun reduce(
-        session: RingSession?,
-        event: RingEvent,
-        now: Long,
-        inCall: Boolean = false,
-        random: Random = Random.Default,
-    ): Transition {
+    fun reduce(session: RingSession?, event: RingEvent, now: Long, inCall: Boolean = false): Transition {
         if (event is RingEvent.AlarmFired) return withEscapeCleared(session, alarmFired(session, event.plan, now))
         if (session == null) return NoChange(null)
-        return withEscapeCleared(session, route(session, event, now, inCall, random))
+        return withEscapeCleared(session, route(session, event, now, inCall))
     }
 
     /**
@@ -79,13 +63,7 @@ object RingStateMachine {
         return t.copy(effects = t.effects.take(end) + ClearEscape + t.effects.drop(end))
     }
 
-    private fun route(
-        session: RingSession,
-        event: RingEvent,
-        now: Long,
-        inCall: Boolean,
-        random: Random,
-    ): Transition {
+    private fun route(session: RingSession, event: RingEvent, now: Long, inCall: Boolean): Transition {
         return when (event) {
             is RingEvent.TimerFired -> timerFired(session, event.kind, now, inCall)
             RingEvent.MissionStarted -> missionStarted(session, now)
@@ -96,11 +74,11 @@ object RingStateMachine {
             RingEvent.EscapeOpened -> escapeOpened(session, now)
             RingEvent.WakeCheckConfirmed ->
                 if (session.phase == RingPhase.WakeCheckAsking) {
-                    wakeCheckPassed(session, now, random)
+                    wakeCheckPassed(session, now)
                 } else {
                     NoChange(session)
                 }
-            RingEvent.RecheckConfirmed -> recheckConfirmed(session, now, random)
+            RingEvent.RecheckConfirmed -> recheckConfirmed(session, now)
             is RingEvent.CallChanged -> callChanged(session, event.inCall, now)
             is RingEvent.CancelChecks -> cancelChecks(session, event.alarmId)
             RingEvent.RecheckTurnedOff -> recheckTurnedOff(session)
@@ -183,23 +161,16 @@ object RingStateMachine {
             TimerKind.RecheckAsk -> ask(
                 session.copy(earlyUsed = false),
                 RingPhase.RecheckAsking,
-                session.plan.recheckAnswerMinutes * MINUTE,
+                session.plan.recheckAnswerMinutes * session.plan.minuteMillis,
                 now,
                 inCall,
             )
             // 시간 안에 못 하면 처음부터 다시 울리고, 미션과 다시 울림 횟수도 처음 값이에요(결정 136). 바퀴를 하나 세요.
-            // 여러 번 묻기면 마친 확인 수는 그대로 두고, 다시 미션을 끝낸 뒤 남은 확인만 물어요(결정 146).
-            TimerKind.WakeCheckTimeout, TimerKind.RecheckTimeout -> {
-                val again = ring(session.copy(earlyUsed = false), now, reset = true)
-                again.copy(effects = multiRecord(session, MultiAskKind.Miss, session.checksDone + 1) + again.effects)
-            }
+            // W3를 여러 번 물어도 마친 W3 수는 0부터 다시 세요(결정 176).
+            TimerKind.WakeCheckTimeout, TimerKind.RecheckTimeout ->
+                ring(session.copy(earlyUsed = false, checksDone = 0), now, reset = true)
         }
     }
-
-    /** 여러 번 묻기 기록 하나. 꺼져 있으면 빈 목록이에요. */
-    private fun multiRecord(session: RingSession, kind: MultiAskKind, number: Int, left: Int? = null) =
-        session.plan.askTotal?.let { listOf(MultiAskRecorded(session.plan.alarmId, kind, number, it, left)) }
-            .orEmpty()
 
     /** W2나 W3를 띄워요. 통화 중이면 띄우지 않고 시간째로 멈춰 둬요(결정 145 '통화 중'). */
     private fun ask(
@@ -356,80 +327,51 @@ object RingStateMachine {
         val waiting = session.copy(
             phase = RingPhase.AwaitingWakeCheck,
             phaseEndsAt = now + session.plan.wakeCheckAskAfterMinutes * MINUTE,
-            roundStartedAt = now,
             escapeShown = false,
         )
         val ask = ScheduleTimer(waiting.phaseEndsAt, TimerKind.WakeCheckAsk)
         return Transition(waiting, listOf(StopSound, ShowWakeUp, ask))
     }
 
-    /** W2 '깼어요'. 한 번 더 확인이 켜져 있으면 같은 간격 뒤 W3를 물어요(결정 145). */
-    private fun wakeCheckPassed(session: RingSession, now: Long, random: Random): Transition {
+    /** W2 '깼어요'. 한 번 더 확인이 켜져 있으면 W3 기다리는 시간 뒤 W3를 물어요(결정 145, 176). */
+    private fun wakeCheckPassed(session: RingSession, now: Long): Transition {
         if (session.pausedLeftMillis != null) return NoChange(session)
-        if (session.plan.askTotal != null) return multiPassed(session, now, random, WakeResult.WakeCheckPassed)
         if (!session.plan.recheckEnabled) return dismissed(session, WakeResult.WakeCheckPassed)
-        val waiting = session.copy(
-            phase = RingPhase.AwaitingRecheck,
-            phaseEndsAt = now + session.plan.wakeCheckAskAfterMinutes * MINUTE,
-        )
-        return Transition(
-            waiting,
-            listOf(RecheckScheduled(waiting.phaseEndsAt), ScheduleTimer(waiting.phaseEndsAt, TimerKind.RecheckAsk)),
-        )
+        return awaitRecheck(session.copy(checksDone = 0), now, emptyList())
     }
 
-    /** W3 10초 길게 누르기를 마쳤어요. 기다리는 중에 알림이나 홈 띠로 연 경우는 미리 끝낸 거예요. */
-    private fun recheckConfirmed(session: RingSession, now: Long, random: Random): Transition {
-        val early = session.phase == RingPhase.AwaitingRecheck
-        val asking = session.phase == RingPhase.RecheckAsking && session.pausedLeftMillis == null
-        val result = if (early) WakeResult.RecheckPassedEarly else WakeResult.RecheckPassed
-        return when {
-            session.plan.askTotal != null && (asking || (early && !session.earlyUsed)) ->
-                multiPassed(session.copy(earlyUsed = early), now, random, result)
-            session.plan.askTotal != null -> NoChange(session)
-            early || asking -> dismissed(session, result)
-            else -> NoChange(session)
+    /** [session.checksDone]번째까지 마친 뒤 다음 W3를 W3 기다리는 시간 뒤에 물어요. */
+    private fun awaitRecheck(session: RingSession, now: Long, before: List<RingEffect>): Transition {
+        val askAt = now + session.plan.recheckWaitMinutes * session.plan.minuteMillis
+        val waiting = session.copy(phase = RingPhase.AwaitingRecheck, phaseEndsAt = askAt)
+        val total = session.plan.recheckCount
+        val scheduled = if (total > 1) {
+            RecheckScheduled(askAt, number = session.checksDone + 1, total = total)
+        } else {
+            RecheckScheduled(askAt)
         }
+        return Transition(waiting, before + listOf(scheduled, ScheduleTimer(askAt, TimerKind.RecheckAsk)))
     }
 
     /**
-     * 여러 번 묻기에서 확인 하나를 마쳤어요(결정 146 3절). 다 마쳤으면 끝, 아니면 5~15분 무작위 뒤 다음 W3를 물어요.
-     * 다음 물을 때가 이 바퀴의 미션 끝에서 60분을 넘으면 남은 확인을 없애고 끝나요.
+     * W3 10초 길게 누르기를 마쳤어요. 기다리는 중에 알림이나 홈 띠로 연 경우는 미리 끝낸 거예요.
+     * 묻는 횟수를 다 채우면 끝나고, 아니면 W3 기다리는 시간 뒤 다음 W3를 물어요(결정 176).
+     * 미리 끝내기는 기다림 한 번에 하나만이에요.
      */
-    private fun multiPassed(session: RingSession, now: Long, random: Random, result: WakeResult): Transition {
-        val total = session.plan.askTotal ?: return dismissed(session, result)
-        val done = session.copy(checksDone = session.checksDone + 1)
-        val passed = multiRecord(session, MultiAskKind.Pass, done.checksDone)
-        if (done.checksDone >= total) {
-            val end = dismissed(done, result)
-            return end.copy(effects = passed + end.effects)
-        }
-        val minute = session.plan.minuteMillis
-        val gap = random.nextInt(MULTI_GAP_MIN_MINUTES, MULTI_GAP_MAX_MINUTES + 1)
-        val askAt = now + gap * minute
-        val roundStart = session.roundStartedAt ?: now
-        if (askAt > roundStart + MULTI_CAP_MINUTES * minute) {
-            val left = total - done.checksDone
-            val end = dismissed(done, WakeResult.EndedByTimeCap)
-            return end.copy(effects = passed + multiRecord(done, MultiAskKind.Cap, done.checksDone, left) + end.effects)
-        }
-        val waiting = done.copy(phase = RingPhase.AwaitingRecheck, phaseEndsAt = askAt, roundStartedAt = roundStart)
-        return Transition(
-            waiting,
-            passed + listOf(
-                StopSound,
-                RecheckScheduled(askAt, number = done.checksDone + 1, total = total, gapMinutes = gap),
-                ScheduleTimer(askAt, TimerKind.RecheckAsk),
-            ),
-        )
+    private fun recheckConfirmed(session: RingSession, now: Long): Transition {
+        val early = session.phase == RingPhase.AwaitingRecheck && !session.earlyUsed
+        val asking = session.phase == RingPhase.RecheckAsking && session.pausedLeftMillis == null
+        if (!early && !asking) return NoChange(session)
+        val result = if (early) WakeResult.RecheckPassedEarly else WakeResult.RecheckPassed
+        val done = session.copy(checksDone = session.checksDone + 1, earlyUsed = early)
+        if (done.checksDone >= done.plan.recheckCount) return dismissed(done, result)
+        return awaitRecheck(done, now, listOf(StopSound))
     }
 
     private fun cancelChecks(session: RingSession, alarmId: Long): Transition =
         if (session.plan.alarmId == alarmId && session.phase.isCheck) cancelled(session) else NoChange(session)
 
     private fun recheckTurnedOff(session: RingSession): Transition = when {
-        // 여러 번 묻기를 켜면 '한 번 더 확인'은 잠겨 있어 끌 수 없어요. 이미 시작한 울림은 그대로 가요.
-        session.plan.askTotal != null -> NoChange(session)
         session.phase == RingPhase.AwaitingRecheck || session.phase == RingPhase.RecheckAsking -> cancelled(session)
         session.plan.recheckEnabled -> {
             val plan = session.plan.copy(recheckEnabled = false)

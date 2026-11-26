@@ -14,14 +14,13 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
-import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.testing.MainDispatcherRule
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** 실험실 T1 카드, T3, T3-1, T3-2(결정 146 1절, 시안 TSK-171), T3 미션 포기 숨기기와 T3-4(결정 151, 시안 TSK-181). */
+/** 실험실 T1 카드, T3, T3-1(결정 146 1절, 시안 TSK-171, 여러 번 묻기는 결정 177로 없앰), T3 미션 포기 숨기기와 T3-4(결정 151, 시안 TSK-181). */
 @RunWith(RobolectricTestRunner::class)
 class LabPageTest {
     @get:Rule
@@ -31,7 +30,6 @@ class LabPageTest {
     val main = MainDispatcherRule()
 
     private val calls = mutableListOf<String>()
-    private var noGuarded = false
 
     private fun showPage(lab: LabSettings = LabSettings(), trickOff: Boolean = false) = compose.setContent {
         MorningTheme(darkTheme = false, reduceMotion = true) {
@@ -40,12 +38,9 @@ class LabPageTest {
                 onBack = { calls += "back" },
                 onTrick = { calls += "trick:$it" },
                 onTrickSpeed = { calls += "speed:${it.key}" },
-                onMultiAsk = { calls += "multi:$it" },
-                onMultiAskCount = { calls += "count:$it" },
                 onPreview = { calls += "preview" },
                 onEscapeHidden = { calls += "escape:$it" },
                 trickOff = trickOff,
-                noGuardedAlarm = noGuarded,
             )
         }
     }
@@ -58,10 +53,8 @@ class LabPageTest {
         }
         compose.onNodeWithText("실험실").assertExists()
         compose.onNodeWithText("꺼짐").assertExists()
-        lab = LabSettings(trickEnabled = true, multiAskEnabled = true)
-        compose.onNodeWithText("버튼 속이기, 여러 번 묻기").assertExists()
-        lab = LabSettings(multiAskEnabled = true)
-        compose.onNodeWithText("여러 번 묻기").performClick()
+        lab = LabSettings(trickEnabled = true)
+        compose.onNodeWithText("버튼 속이기").performClick()
         assertThat(calls).containsExactly("open")
     }
 
@@ -70,15 +63,14 @@ class LabPageTest {
         showPage()
         compose.onNodeWithText("확실히 잠깨기").assertExists()
         compose.onNodeWithText("울릴 때 버튼이 움직여요").assertExists()
-        compose.onNodeWithText("깼는지 3번 물어요").assertExists()
+        compose.onNodeWithText("여러 번 묻기").assertDoesNotExist()
         compose.onNodeWithText("톡백 같은 접근성 기능을 쓰는 중에는 버튼 속이기가 자동으로 꺼져요.").assertExists()
     }
 
     @Test
     fun t3_on_showsSpeedAndSeconds() {
-        showPage(LabSettings(trickEnabled = true, multiAskEnabled = true, multiAskCount = 5))
+        showPage(LabSettings(trickEnabled = true))
         compose.onNodeWithText("속도 6단계, 20초 동안").assertExists()
-        compose.onNodeWithText("깼는지 5번 물어요").assertExists()
     }
 
     @Test
@@ -95,32 +87,6 @@ class LabPageTest {
             .performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
         compose.onNodeWithText("미리 해보기").performClick()
         assertThat(calls).containsExactly("speed:3", "preview").inOrder()
-    }
-
-    @Test
-    fun multiSheet_picksCount() {
-        showPage()
-        compose.onNodeWithText("여러 번 묻기").performClick()
-        compose.onNodeWithTag(LAB_MULTI_SHEET_TAG).assertExists()
-        compose.onNodeWithText("4번").performClick()
-        assertThat(calls).containsExactly("count:4")
-    }
-
-    @Test
-    fun t1Recheck_lockedOn_whileMultiAsk() {
-        compose.setContent {
-            MorningTheme(darkTheme = false, reduceMotion = true) {
-                WakeCheckCardContent(
-                    settings = WakeCheckSettings(recheckEnabled = false, lab = LabSettings(multiAskEnabled = true)),
-                    onAskAfter = {},
-                    onAnswer = {},
-                    onRecheck = { calls += "recheck:$it" },
-                    onRecheckMinutes = {},
-                )
-            }
-        }
-        compose.onNodeWithText("실험실에서 3번 묻는 중이에요").assertExists()
-        assertThat(calls).isEmpty()
     }
 
     @Test
@@ -166,13 +132,5 @@ class LabPageTest {
     fun trickRow_a11yOff_showsNotice() {
         showPage(LabSettings(trickEnabled = true), trickOff = true)
         compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
-    }
-
-    @Test
-    fun multiAskRow_showsNotice_whenNoGuardedAlarm() {
-        noGuarded = true
-        showPage()
-        compose.onNodeWithText("켜 둔 알람이 없어요. 알람 편집에서 '다시 잠들기 방지'를 켜야 물어요").assertExists()
-        compose.onNodeWithText("깼는지 3번 물어요").assertDoesNotExist()
     }
 }

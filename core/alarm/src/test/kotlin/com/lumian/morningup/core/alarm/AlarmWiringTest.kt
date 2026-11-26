@@ -309,13 +309,17 @@ class AlarmWiringTest {
     fun fire_usesGlobalWakeCheckSettings() = runTest {
         val sessions = sessionStore(tmp.newFile("g.preferences_pb").also { it.delete() })
         val settings =
-            InMemoryWakeCheckSettingsStore(WakeCheckSettings(5, 30, recheckEnabled = true, recheckMinutes = 3))
+            InMemoryWakeCheckSettingsStore(
+                WakeCheckSettings(5, 30, recheckEnabled = true, recheckWaitMinutes = 1, recheckCount = 2),
+            )
         RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now, settings).fire(3)
         val plan = sessions.load()!!.plan
         assertThat(plan.wakeCheckAskAfterMinutes).isEqualTo(5)
         assertThat(plan.wakeCheckAnswerSeconds).isEqualTo(30)
         assertThat(plan.recheckEnabled).isTrue()
-        assertThat(plan.recheckAnswerMinutes).isEqualTo(3)
+        assertThat(plan.recheckAnswerMinutes).isEqualTo(1)
+        assertThat(plan.recheckWaitMinutes).isEqualTo(1)
+        assertThat(plan.recheckCount).isEqualTo(2)
     }
 
     @Test

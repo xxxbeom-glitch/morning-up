@@ -10,7 +10,6 @@ import com.lumian.morningup.core.alarm.ring.FlowLog
 import com.lumian.morningup.core.alarm.ring.MissionEscapeAnswers
 import com.lumian.morningup.core.alarm.ring.MissionEscapeNotifier
 import com.lumian.morningup.core.data.AlarmRepository
-import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -89,7 +88,8 @@ class DebugCommandReceiver : BroadcastReceiver() {
 
     /**
      * 다시 잠들기 방지 전체 설정을 바꿔요(결정 145). 시험을 빨리 하려고 화면에서 고를 수 없는 값(1분 등)도 받아요.
-     * 빠진 값은 그대로 둬요. 예: `--ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_minutes 1`
+     * 빠진 값은 그대로 둬요. 예: `--ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_wait 1
+     * --ei recheck_count 2`(W3까지 기다리는 시간과 묻는 횟수, 결정 176)
      */
     private fun setWakeCheck(intent: Intent) {
         wakeSettings.update { old ->
@@ -101,7 +101,8 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 } else {
                     old.recheckEnabled
                 },
-                recheckMinutes = intent.intOr(EXTRA_RECHECK_MINUTES, old.recheckMinutes),
+                recheckWaitMinutes = intent.intOr(EXTRA_RECHECK_WAIT, old.recheckWaitMinutes),
+                recheckCount = intent.intOr(EXTRA_RECHECK_COUNT, old.recheckCount),
             )
         }
         val result = "wake check ${wakeSettings.settings.value}"
@@ -111,9 +112,9 @@ class DebugCommandReceiver : BroadcastReceiver() {
 
     /**
      * '확실히 잠깨기' 실험실 값을 바꿔요(결정 146, TSK-172). 빠진 값은 그대로 둬요.
-     * 예: `--ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6`
+     * 예: `--ez trick true --es speed 6 --ei minute_seconds 6`
      * `--ez escape_hidden true`는 미션 비상구 알림 숨기기예요(결정 151, TSK-182).
-     * `minute_seconds`는 여러 번 묻기의 1분을 몇 초로 셀지(시험 배율, 1~60)예요. 60이면 실제 시간이에요.
+     * `minute_seconds`는 W3 기다리는 시간과 대답할 시간의 1분을 몇 초로 셀지(시험 배율, 1~60)예요. 60이면 실제 시간이에요.
      */
     private fun setLab(intent: Intent) {
         wakeSettings.update { old ->
@@ -127,9 +128,6 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 lab = lab.copy(
                     trickEnabled = intent.boolOr(EXTRA_TRICK, lab.trickEnabled),
                     trickSpeed = intent.getStringExtra(EXTRA_SPEED)?.let { TrickSpeed.of(it) } ?: lab.trickSpeed,
-                    multiAskEnabled = intent.boolOr(EXTRA_MULTI, lab.multiAskEnabled),
-                    multiAskCount = intent.getIntExtra(EXTRA_COUNT, lab.multiAskCount)
-                        .takeIf { it in LabSettings.ASK_COUNTS } ?: lab.multiAskCount,
                     escapeHidden = intent.boolOr(EXTRA_ESCAPE_HIDDEN, lab.escapeHidden),
                     debugMinuteMillis = minuteSeconds * MILLIS_PER_SECOND,
                 ),
@@ -181,12 +179,11 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_ASK_MINUTES = "ask_minutes"
         const val EXTRA_ANSWER_SECONDS = "answer_seconds"
         const val EXTRA_RECHECK = "recheck"
-        const val EXTRA_RECHECK_MINUTES = "recheck_minutes"
+        const val EXTRA_RECHECK_WAIT = "recheck_wait"
+        const val EXTRA_RECHECK_COUNT = "recheck_count"
         const val ACTION_LAB = "com.lumian.morningup.debug.LAB"
         const val EXTRA_TRICK = "trick"
         const val EXTRA_SPEED = "speed"
-        const val EXTRA_MULTI = "multi"
-        const val EXTRA_COUNT = "count"
         const val EXTRA_MINUTE_SECONDS = "minute_seconds"
         const val EXTRA_ESCAPE_HIDDEN = "escape_hidden"
         const val ACTION_ESCAPE = "com.lumian.morningup.debug.ESCAPE"
