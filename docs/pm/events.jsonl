@@ -694,3 +694,5 @@
 {"at": "2026-11-26 10:09:17", "by": "[QA 1]", "id": "TSK-206", "action": "comment", "changes": {"comments": [null, ["QA 1 Z플립5 확인 통과: 약 3.5초 한 획씩 쓰고 O2-1로 넘어감. 녹화 docs/exports/tsk-206/splash-flip5.mp4"]]}}
 {"at": "2026-11-26 10:09:46", "by": "Leader", "id": "ISS-050", "action": "resolve", "changes": {"status": ["open", "resolved"], "resolved": [null, "2026-11-26"], "fix": [null, "50a0e0e"]}}
 {"at": "2026-11-26 10:09:47", "by": "Leader", "id": "TSK-206", "action": "comment", "changes": {"comments": [null, ["QA 1 폰 녹화 docs/exports/tsk-206/splash-flip5.mp4. 완료 조건 5(사용자 확인) 남아 승인 보류"]]}}
+{"at": "2026-11-26 10:11:08", "by": "Leader", "id": "TSK-215", "action": "set", "changes": {"owner": ["[리서치 4]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:11:09", "by": "Leader", "id": "TSK-216", "action": "set", "changes": {"owner": ["[리서치 4]", "[리서치 5]"]}}
