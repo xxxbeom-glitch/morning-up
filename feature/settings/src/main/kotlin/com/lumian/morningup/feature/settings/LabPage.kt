@@ -314,19 +314,19 @@ private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit
     }
 }
 
-/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 6단계, 20초 동안'. */
+/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 1250ms, 20초 동안'. */
 @Composable
 private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(
         R.string.settings_lab_trick_on,
-        stringResource(R.string.settings_lab_speed_level, lab.trickSpeed.level),
+        stringResource(R.string.settings_lab_speed_ms, lab.trickSpeed.millis),
         LabSettings.TRICK_SECONDS,
     )
 } else {
     stringResource(R.string.settings_lab_trick_off)
 }
 
-/** T3-1: 속도 1~10단계 슬라이더와 설명(결정 174), '미리 해보기', '완료'. */
+/** T3-1: 빠르기 ms 숫자 칸과 설명(결정 181), '미리 해보기', '완료'. */
 @Composable
 private fun ColumnScope.TrickSheet(
     lab: LabSettings,
@@ -339,7 +339,7 @@ private fun ColumnScope.TrickSheet(
         description = stringResource(R.string.settings_lab_trick_desc, LabSettings.TRICK_SECONDS),
         onDone = onDone,
     ) {
-        TrickSpeedSlider(speed = lab.trickSpeed, onSpeed = onSpeed)
+        TrickSpeedInput(speed = lab.trickSpeed, onSpeed = onSpeed)
         Spacer(Modifier.height(MorningDimens.space20))
         MorningButton(
             text = stringResource(R.string.settings_lab_preview),

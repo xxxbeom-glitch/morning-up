@@ -195,11 +195,10 @@
     <string name="settings_lab_trick_off">울릴 때 버튼이 움직여요</string>
     <string name="settings_lab_trick_on">속도 %1$s, %2$d초 동안</string>
     <string name="settings_lab_trick_desc">알람이 울리면 버튼이 화면 안을 공처럼 튕겨 다녀요. 화면을 만지고 %1$d초가 지나면 제자리에 멈춰요.</string>
-    <string name="settings_lab_speed">속도</string>
-    <string name="settings_lab_speed_slow">느리게</string>
-    <string name="settings_lab_speed_level">%1$d단계</string>
-    <string name="settings_lab_speed_fast">빠르게</string>
-    <string name="settings_lab_speed_desc">버튼이 튕겨 다니는 빠르기예요</string>
+    <string name="settings_lab_speed_ms">%1$dms</string>
+    <string name="settings_lab_speed_label">끝에서 끝까지 걸리는 시간</string>
+    <string name="settings_lab_speed_unit">ms</string>
+    <string name="settings_lab_speed_desc">작을수록 빨라요. %1$d~%2$d 사이로 넣어요</string>
     <string name="settings_lab_preview">미리 해보기</string>
     <string name="dnd_guide_title">방해 금지 중에도 울리게</string>
     <string name="dnd_guide_intro">방해 금지나 수면 모드가 켜지면 알람 화면은 떠도 소리와 진동이 막힐 수 있어요.</string>

@@ -7,53 +7,68 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlin.math.roundToInt
 
 /**
- * 버튼이 튕기는 빠르기 1~10단계(결정 174, 결정 155의 세 칸을 바꿈). [widthsPerSecond]는 1초에 화면 너비의 몇 배를 가는지예요.
- * 한 단계에 0.1배씩, 1단계 0.3배부터 10단계 1.2배까지예요. 옛 '느리게'(0.4)는 2단계, '보통'(0.7)은 5단계,
- * '빠르게'(1.1)는 9단계와 같은 빠르기라 옛 저장값은 그 단계로 옮겨요. 처음 값은 옛 보통보다 한 단계 빠른 6단계이고
- * Z플립5에서 보고 고쳐요.
+ * 버튼이 튕기는 빠르기(결정 181, 결정 174의 1~10단계를 바꿈). [millis]는 버튼이 화면 한쪽 끝에서 다른 끝까지 가는
+ * 시간(ms)이고 작을수록 빨라요. 처음 값은 옛 6단계와 같은 1250ms, 넣을 수 있는 범위는 [MIN_MILLIS]~[MAX_MILLIS]예요.
+ * 옛 단계(1~10, 1초에 화면 너비의 0.2 + 0.1 x 단계 배)와 옛 글자(slow, normal, fast)는 같은 빠르기의 ms로 옮겨요.
  */
 @Serializable(with = TrickSpeedSerializer::class)
-data class TrickSpeed(val level: Int) {
+data class TrickSpeed(val millis: Int) {
     init {
-        require(level in MIN_LEVEL..MAX_LEVEL) { "speed level $level" }
+        require(millis in MIN_MILLIS..MAX_MILLIS) { "speed millis $millis" }
     }
 
-    val widthsPerSecond: Float get() = BASE_WIDTHS + STEP_WIDTHS * level
+    /** 1초에 화면 너비의 몇 배를 가는지. */
+    val widthsPerSecond: Float get() = MILLIS_PER_SECOND / millis
 
-    /** 저장 글자(단계 숫자). */
-    val key: String get() = level.toString()
+    /** 저장 글자(ms 숫자). 옛 단계 숫자(1~10)와 범위가 겹치지 않아요. */
+    val key: String get() = millis.toString()
 
     companion object {
-        const val MIN_LEVEL = 1
-        const val MAX_LEVEL = 10
-        private const val BASE_WIDTHS = 0.2f
-        private const val STEP_WIDTHS = 0.1f
-        private const val SLOW_LEVEL = 2
-        private const val NORMAL_LEVEL = 5
-        private const val DEFAULT_LEVEL = 6
-        private const val FAST_LEVEL = 9
+        const val MIN_MILLIS = 50
+        const val MAX_MILLIS = 5_000
+        const val DEFAULT_MILLIS = 1_250
+        private const val MILLIS_PER_SECOND = 1_000f
+        private const val OLD_MIN_LEVEL = 1
+        private const val OLD_MAX_LEVEL = 10
+        private const val OLD_BASE_WIDTHS = 0.2f
+        private const val OLD_STEP_WIDTHS = 0.1f
 
-        /** 옛 '느리게', '보통', '빠르게'와 같은 빠르기. */
-        val Slow = TrickSpeed(SLOW_LEVEL)
-        val Normal = TrickSpeed(NORMAL_LEVEL)
-        val Fast = TrickSpeed(FAST_LEVEL)
+        /** 처음 값 1250ms(옛 6단계, 결정 181). */
+        val Default = TrickSpeed(DEFAULT_MILLIS)
 
-        /** 처음 값 6단계(옛 보통보다 한 단계 빠름, 결정 174). */
-        val Default = TrickSpeed(DEFAULT_LEVEL)
+        /** 옛 '느리게'(2단계), '보통'(5단계), '빠르게'(9단계)와 같은 빠르기. */
+        val Slow = fromOldLevel(2)
+        val Normal = fromOldLevel(5)
+        val Fast = fromOldLevel(9)
 
-        /** 저장 글자 읽기. 단계 숫자, 옛 글자(slow, normal, fast) 모두 읽고, 모르면 처음 값이에요. */
-        fun of(key: String?): TrickSpeed = when (key) {
-            "slow" -> Slow
-            "normal" -> Normal
-            "fast" -> Fast
-            else -> key?.toIntOrNull()?.coerceIn(MIN_LEVEL, MAX_LEVEL)?.let(::TrickSpeed) ?: Default
+        /** 넣은 ms를 범위 안으로 맞춰요. 범위 밖이면 가까운 끝값이에요. */
+        fun ofMillis(millis: Int): TrickSpeed = TrickSpeed(millis.coerceIn(MIN_MILLIS, MAX_MILLIS))
+
+        /** 옛 1~10단계를 같은 빠르기의 ms로(6단계 = 1250ms). */
+        fun fromOldLevel(level: Int): TrickSpeed {
+            val widths = OLD_BASE_WIDTHS + OLD_STEP_WIDTHS * level.coerceIn(OLD_MIN_LEVEL, OLD_MAX_LEVEL)
+            return ofMillis((MILLIS_PER_SECOND / widths).roundToInt())
+        }
+
+        /** 저장 글자 읽기. ms 숫자, 옛 단계 숫자(1~10), 옛 글자(slow, normal, fast) 모두 읽고, 모르면 처음 값이에요. */
+        fun of(key: String?): TrickSpeed {
+            val number = key?.toIntOrNull()
+            return when {
+                key == "slow" -> Slow
+                key == "normal" -> Normal
+                key == "fast" -> Fast
+                number == null -> Default
+                number in OLD_MIN_LEVEL..OLD_MAX_LEVEL -> fromOldLevel(number)
+                else -> ofMillis(number)
+            }
         }
     }
 }
 
-/** 울림 상태 JSON에는 단계 숫자 글자로 써요. 옛 JSON의 "normal" 같은 글자도 읽어요. */
+/** 울림 상태 JSON에는 ms 숫자 글자로 써요. 옛 JSON의 단계 숫자와 "normal" 같은 글자도 읽어요. */
 internal object TrickSpeedSerializer : KSerializer<TrickSpeed> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TrickSpeed", PrimitiveKind.STRING)
 

@@ -3,13 +3,13 @@ package com.lumian.morningup.feature.settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextReplacement
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
@@ -70,7 +70,7 @@ class LabPageTest {
     @Test
     fun t3_on_showsSpeedAndSeconds() {
         showPage(LabSettings(trickEnabled = true))
-        compose.onNodeWithText("속도 6단계, 20초 동안").assertExists()
+        compose.onNodeWithText("속도 1250ms, 20초 동안").assertExists()
     }
 
     @Test
@@ -81,12 +81,13 @@ class LabPageTest {
         // 결정 155로 강도 칩은 없어졌어요.
         compose.onNodeWithText("똑같은 가짜 버튼이 섞여요").assertDoesNotExist()
         compose.onNodeWithText("약하게").assertDoesNotExist()
-        // 결정 174: 세 칸 대신 1~10단계 슬라이더. 빠르게(9단계)에서 3단계로 옮겨요.
-        compose.onNodeWithText("9단계").assertExists()
-        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG, useUnmergedTree = true)
-            .performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
+        // 결정 181: 슬라이더 대신 ms 숫자 칸. 옛 빠르게(909ms)에서 300ms로, 범위 밖은 끝값으로 맞춰요.
+        compose.onNodeWithText("끝에서 끝까지 걸리는 시간").assertExists()
+        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG).assertTextEquals("909")
+        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG).performTextReplacement("300")
+        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG).performTextReplacement("9000")
         compose.onNodeWithText("미리 해보기").performClick()
-        assertThat(calls).containsExactly("speed:3", "preview").inOrder()
+        assertThat(calls).containsExactly("speed:300", "speed:5000", "preview").inOrder()
     }
 
     @Test
