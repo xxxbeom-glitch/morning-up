@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.lumian.morningup.core.model.WakeCheckSettings
 
 /**
  * 앱 데이터베이스 `morningup.db`. 기기 보호 저장소에 있어서 재부팅 뒤 잠금을 풀기 전에도 읽혀요(ADR 0002).
@@ -22,8 +23,12 @@ abstract class MorningDatabase : RoomDatabase() {
     companion object {
         const val NAME = "morningup.db"
 
-        /** 앱이 여는 모든 구조 옮기기. 빌더에 이것만 넘겨요. */
-        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5)
+        /**
+         * 앱이 여는 모든 구조 옮기기. 빌더에 이것만 넘겨요. [legacyWakeCheck]는 v4 → v5에서 알람에 넣을 옛 전체
+         * 다시 잠들기 방지 값이에요(앱은 설정 저장소에서 읽어요, 결정 180).
+         */
+        fun migrations(legacyWakeCheck: () -> LegacyWakeCheck = { LegacyWakeCheck() }): List<Migration> =
+            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5(legacyWakeCheck))
     }
 }
 
@@ -66,14 +71,39 @@ object Migration3To4 : Migration(3, 4) {
 }
 
 /**
- * v4 → v5: W3 '한 번 더 확인', '확인까지', '묻는 횟수' 칸을 더해요(결정 180, 알람마다). 처음 값(켜짐, 3분, 1번)으로 채우고,
- * 옛 전체 설정 값은 설정 저장소가 한 번 모든 알람에 옮겨요(WakeCheckSettingsPrefs).
+ * v4 → v5에서 모든 알람에 넣을 옛 전체 다시 잠들기 방지 값(결정 180). [askAfterMinutes]와 [answerSeconds]가 null이면
+ * 결정 145 전 판이라 알람마다 칸에 남은 값을 그대로 둬요. 처음 값은 새로 깐 앱과 같아요.
+ */
+data class LegacyWakeCheck(
+    val askAfterMinutes: Int? = null,
+    val answerSeconds: Int? = null,
+    val recheckEnabled: Boolean = true,
+    val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+    val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+)
+
+/**
+ * v4 → v5: W3 '한 번 더 확인', '확인까지', '묻는 횟수' 칸을 더하고(결정 180, 알람마다), 옛 전체 값을 같은 자리에서 모든
+ * 알람에 넣어요. DB가 열리기 전에 끝나서, 앱이 알람을 먼저 읽고 다시 써도 처음 값으로 덮이지 않아요(ISS-055).
  */
 @Suppress("MagicNumber") // 판 번호예요.
-object Migration4To5 : Migration(4, 5) {
+class Migration4To5(private val legacy: () -> LegacyWakeCheck) : Migration(4, 5) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE alarms ADD COLUMN recheckEnabled INTEGER NOT NULL DEFAULT 1")
         db.execSQL("ALTER TABLE alarms ADD COLUMN recheckWaitMinutes INTEGER NOT NULL DEFAULT 3")
         db.execSQL("ALTER TABLE alarms ADD COLUMN recheckCount INTEGER NOT NULL DEFAULT 1")
+        val values = legacy()
+        db.execSQL(
+            "UPDATE alarms SET recheckEnabled = ?, recheckWaitMinutes = ?, recheckCount = ?",
+            arrayOf<Any>(if (values.recheckEnabled) 1 else 0, values.recheckWaitMinutes, values.recheckCount),
+        )
+        val ask = values.askAfterMinutes
+        val answer = values.answerSeconds
+        if (ask != null && answer != null) {
+            db.execSQL(
+                "UPDATE alarms SET wakeCheckAskAfterMinutes = ?, wakeCheckAnswerSeconds = ?",
+                arrayOf<Any>(ask, answer),
+            )
+        }
     }
 }

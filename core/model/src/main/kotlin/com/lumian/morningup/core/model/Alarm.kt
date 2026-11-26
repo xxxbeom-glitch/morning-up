@@ -30,7 +30,7 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
  * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.
  * - [recheckWaitMinutes]: W3 '확인까지'. W2 '깼어요' 뒤 W3까지, W3와 다음 W3 사이(결정 176).
  * - [recheckCount]: W3 '묻는 횟수'(결정 176).
- * 처음 값은 결정 145의 전체 설정 처음 값과 같아요. 옛 전체 설정 값은 한 번 모든 알람에 옮겨요(WakeCheckSettingsPrefs).
+ * 처음 값은 결정 145의 전체 설정 처음 값과 같아요. 옛 전체 설정 값은 한 번 모든 알람에 옮겨요(DB v4 → v5, Migration4To5).
  */
 data class WakeCheck(
     val enabled: Boolean = false,

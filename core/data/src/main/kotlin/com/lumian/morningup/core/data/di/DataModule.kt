@@ -30,7 +30,10 @@ object DataModule {
     @Singleton
     fun database(@ApplicationContext context: Context): MorningDatabase =
         Room.databaseBuilder(context.deviceProtected(), MorningDatabase::class.java, MorningDatabase.NAME)
-            .apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }
+            .apply {
+                val legacy = { WakeCheckSettingsPrefs.legacyWakeCheck(context.deviceProtected()) }
+                MorningDatabase.migrations(legacy).forEach { addMigrations(it) }
+            }
             .build()
 
     @Provides

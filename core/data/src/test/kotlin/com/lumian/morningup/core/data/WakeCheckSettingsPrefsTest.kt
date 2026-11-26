@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.data.db.AlarmEntity
+import com.lumian.morningup.core.data.db.LegacyWakeCheck
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.data.db.toEntity
 import com.lumian.morningup.core.data.settings.WakeCheckSettingsPrefs
@@ -62,6 +63,20 @@ class WakeCheckSettingsPrefsTest {
         assertThat(WakeCheckSettingsPrefs.pickLegacy(listOf(legacy(1, on = true, ask = 1, answer = 120))))
             .isEqualTo(WakeCheckSettings.DEFAULT_ASK_MINUTES to WakeCheckSettings.DEFAULT_ANSWER_SECONDS)
         assertThat(WakeCheckSettingsPrefs.pickLegacy(listOf(legacy(1, on = false, ask = 5, answer = 30)))).isNull()
+    }
+
+    @Test
+    fun legacyWakeCheck_readsOldGlobalValues_forDbV5() {
+        // ISS-055: 옛 판에서 '확인까지' 5분, 2번이었으면 그 값을 DB 옮기기에 넘겨요.
+        prefs.edit().putBoolean("migrated_from_alarms", true).putInt("ask_after_minutes", 5)
+            .putInt("answer_seconds", 30).putInt("recheck_wait_minutes", 5).putInt("recheck_count", 2).commit()
+        assertThat(WakeCheckSettingsPrefs.legacyWakeCheck(prefs))
+            .isEqualTo(LegacyWakeCheck(5, 30, recheckEnabled = true, recheckWaitMinutes = 5, recheckCount = 2))
+    }
+
+    @Test
+    fun legacyWakeCheck_freshPrefs_keepsAlarmAsk_andDefaults() {
+        assertThat(WakeCheckSettingsPrefs.legacyWakeCheck(prefs)).isEqualTo(LegacyWakeCheck())
     }
 
     @Test

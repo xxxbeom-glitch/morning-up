@@ -7,12 +7,15 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.data.db.Migration1To2
 import com.lumian.morningup.core.data.db.Migration2To3
+import com.lumian.morningup.core.data.db.LegacyWakeCheck
 import com.lumian.morningup.core.data.db.Migration3To4
+import com.lumian.morningup.core.data.db.Migration4To5
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.VibrationPattern
+import com.lumian.morningup.core.model.WakeCheck
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
@@ -41,7 +44,7 @@ class MigrationTest {
             ApplicationProvider.getApplicationContext(),
             MorningDatabase::class.java,
             dbName,
-        ).apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+        ).apply { MorningDatabase.migrations().forEach { addMigrations(it) } }.allowMainThreadQueries().build()
         val alarms = AlarmRepository(db.alarmDao()).all().associateBy { it.id }
         db.close()
 
@@ -71,7 +74,7 @@ class MigrationTest {
             ApplicationProvider.getApplicationContext(),
             MorningDatabase::class.java,
             dbName,
-        ).apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+        ).apply { MorningDatabase.migrations().forEach { addMigrations(it) } }.allowMainThreadQueries().build()
         val alarm = AlarmRepository(db.alarmDao()).all().single()
         db.close()
 
@@ -97,13 +100,73 @@ class MigrationTest {
             ApplicationProvider.getApplicationContext(),
             MorningDatabase::class.java,
             dbName,
-        ).apply { MorningDatabase.MIGRATIONS.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+        ).apply { MorningDatabase.migrations().forEach { addMigrations(it) } }.allowMainThreadQueries().build()
         val alarms = AlarmRepository(db.alarmDao()).all().associateBy { it.id }
         db.close()
 
         assertThat(alarms.getValue(1).soundId).isEqualTo(Alarm.RANDOM_SOUND_ID)
         assertThat(alarms.getValue(2).soundId).isEqualTo("douceur")
         assertThat(alarms.getValue(3).soundId).isEqualTo(Alarm.DEFAULT_SOUND_ID)
+    }
+
+    /** v4까지 올린 DB(알람 W2 칸은 1분, 60초). */
+    private fun createV4(vararg ids: Long) {
+        helper.createDatabase(dbName, 1).apply {
+            ids.forEach { execSQL(insertV1(id = it, missions = "")) }
+            close()
+        }
+        helper.runMigrationsAndValidate(dbName, 2, true, Migration1To2).close()
+        helper.runMigrationsAndValidate(dbName, 3, true, Migration2To3).close()
+        helper.runMigrationsAndValidate(dbName, 4, true, Migration3To4).close()
+    }
+
+    private fun openApp(legacy: LegacyWakeCheck) = Room.databaseBuilder(
+        ApplicationProvider.getApplicationContext(),
+        MorningDatabase::class.java,
+        dbName,
+    ).apply { MorningDatabase.migrations { legacy }.forEach { addMigrations(it) } }.allowMainThreadQueries().build()
+
+    @Test
+    fun v4ToV5_putsOldGlobalValuesIntoEveryAlarm_andSurvivesReadThenSave() = runTest {
+        // ISS-055: 옛 판(전체 '확인까지' 5분) 위에 새 판을 깔면 모든 알람에 5분이 들어가야 해요.
+        createV4(1, 2)
+        val legacy = LegacyWakeCheck(5, 30, recheckEnabled = true, recheckWaitMinutes = 5, recheckCount = 2)
+        helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { legacy }).close()
+
+        val db = openApp(LegacyWakeCheck())
+        val repo = AlarmRepository(db.alarmDao())
+        val expected = WakeCheck(true, 5, 30, recheckEnabled = true, recheckWaitMinutes = 5, recheckCount = 2)
+        assertThat(repo.all().map { it.wakeCheck }).containsExactly(expected, expected)
+        // 앱을 열 때 다시 맞추기(rescheduleAll)처럼 읽은 알람을 통째로 다시 써도 값은 그대로예요.
+        repo.all().forEach { repo.save(it.copy(nextTriggerAt = 1L)) }
+        assertThat(repo.all().map { it.wakeCheck }).containsExactly(expected, expected)
+        db.close()
+    }
+
+    @Test
+    fun v4ToV5_throughAppBuilder_migratesBeforeFirstRead() = runTest {
+        // 앱처럼 빌더로 바로 열어도 첫 읽기 전에 옮기기가 끝나요.
+        createV4(3)
+        val db = openApp(LegacyWakeCheck(10, 180, recheckEnabled = false, recheckWaitMinutes = 1, recheckCount = 3))
+        val check = AlarmRepository(db.alarmDao()).all().single().wakeCheck
+        db.close()
+        assertThat(check)
+            .isEqualTo(WakeCheck(true, 10, 180, recheckEnabled = false, recheckWaitMinutes = 1, recheckCount = 3))
+    }
+
+    @Test
+    fun v4ToV5_beforeDecision145_keepsAlarmAskValues() = runTest {
+        // 전체 값으로 모은 적 없는 판이면 W2 칸은 알람 것 그대로 두고 W3 값만 넣어요.
+        createV4(4)
+        val legacy = LegacyWakeCheck(recheckWaitMinutes = 5)
+        val db = helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { legacy })
+        val row = db.query("SELECT wakeCheckAskAfterMinutes, wakeCheckAnswerSeconds, recheckWaitMinutes FROM alarms")
+            .use { c ->
+                c.moveToFirst()
+                listOf(c.getInt(0), c.getInt(1), c.getInt(2))
+            }
+        db.close()
+        assertThat(row).containsExactly(1, 60, 5).inOrder()
     }
 
     private fun insertV1(id: Long, missions: String, sound: String = "default") =
