@@ -32,13 +32,9 @@
     <string name="mission_shake_guide">폰을 세게 흔들어요</string>
     <string name="mission_drop_placeholder">떨어지는 단어를 입력해요</string>
     <!-- M5 미션 포기(결정 171, 172, 시안 1149:15007) -->
-    <string name="escape_screen_title">미션 포기</string>
-    <string name="escape_screen_idle">%1$d초 동안 안 쓰면 미션으로 돌아가요</string>
-    <string name="escape_screen_guide">아래 문장을 그대로 따라 쓰면\n미션 없이 알람이 꺼져요</string>
-    <string name="escape_screen_help">띄어쓰기와 기호까지 똑같이 써 주세요</string>
-    <string name="escape_screen_wrong">조금 달라요. 한 번 더 따라 써 주세요</string>
-    <string name="escape_screen_right">맞아요. 알람을 껐어요</string>
-    <string name="escape_screen_muted">소리를 잠시 껐어요</string>
+    <string name="escape_screen_idle">%1$d초 안에 쓰지 않으면 미션으로 돌아가요</string>
+    <string name="escape_screen_guide">문장을 그대로 따라 쓰면 알람이 꺼져요</string>
+    <string name="escape_screen_seconds">%1$d초</string>
     <string name="escape_screen_back">미션으로 돌아가기</string>
     <string name="escape_screen_input">따라 쓰는 칸</string>
 </resources>

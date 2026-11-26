@@ -17,13 +17,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 
-/** TSK-210, 결정 171, 172: M5 미션 포기 화면. */
+/** TSK-238(시안 TSK-231), 결정 171: M5 미션 포기, 흐린 예문 위에 따라 쓰기. */
 @RunWith(RobolectricTestRunner::class)
 class EscapeScreenTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val calls = mutableListOf<String>()
+    private val typed = mutableListOf<String>()
+    private var backs = 0
 
     private fun show(initial: EscapeUiState, remaining: Long = 48_000L) {
         compose.setContent {
@@ -33,37 +34,36 @@ class EscapeScreenTest {
                     state = state,
                     remainingMillis = remaining,
                     onType = {
-                        calls += "type"
-                        state = state.copy(text = it, result = null)
+                        typed += it
+                        state = state.copy(text = it)
                     },
-                    onSubmit = { calls += "submit:${state.text}" },
-                    onBack = { calls += "back" },
+                    onBack = { backs++ },
                 )
             }
         }
     }
 
     @Test
-    fun typing_showsSentenceIdleTimeAndHelp() {
+    fun typing_showsGuideTimeAndGhostSentence_withoutRemovedParts() {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE))
-        compose.onNodeWithText("미션 포기").assertExists()
-        compose.onNodeWithText(MissionEscape.TEST_SENTENCE).assertExists()
-        compose.onNodeWithText("48초 동안 안 쓰면 미션으로 돌아가요").assertExists()
-        compose.onNodeWithText("띄어쓰기와 기호까지 똑같이 써 주세요").assertExists()
-        compose.onNodeWithText("소리를 잠시 껐어요").assertExists()
+        compose.onNodeWithText("문장을 그대로 따라 쓰면 알람이 꺼져요").assertExists()
+        compose.onNodeWithText("48초").assertExists()
+        compose.onNodeWithText("미션 포기").assertDoesNotExist()
+        compose.onNodeWithText("소리를 잠시 껐어요").assertDoesNotExist()
+        compose.onNodeWithText("빨간 글자를 지우고 다시 써 주세요").assertDoesNotExist()
         compose.onNodeWithTag(ESCAPE_INPUT_TAG).performTextInput("테스트")
-        compose.onNodeWithTag(ESCAPE_SUBMIT_TAG).performClick()
-        assertThat(calls).containsExactly("type", "submit:테스트").inOrder()
+        assertThat(typed).containsExactly("테스트")
     }
 
     @Test
-    fun wrong_showsRedGuide() {
-        show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE, text = "테스트", result = EscapeResult.Wrong))
-        compose.onNodeWithText("조금 달라요. 한 번 더 따라 써 주세요").assertExists()
+    fun lowTime_guideTurnsIntoCountdown() {
+        show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE), remaining = 9_000L)
+        compose.onNodeWithText("9초 안에 쓰지 않으면 미션으로 돌아가요").assertExists()
+        compose.onNodeWithText("9초").assertExists()
     }
 
     @Test
-    fun correct_hidesBottomRowAndLocksInput() {
+    fun correct_hidesPillsAndLocksInput() {
         show(
             EscapeUiState(
                 sentence = MissionEscape.TEST_SENTENCE,
@@ -71,8 +71,9 @@ class EscapeScreenTest {
                 result = EscapeResult.Correct,
             ),
         )
-        compose.onNodeWithText("맞아요. 알람을 껐어요").assertExists()
         compose.onNodeWithText("미션으로 돌아가기").assertDoesNotExist()
+        compose.onNodeWithTag(ESCAPE_TIME_TAG).assertDoesNotExist()
+        compose.onNodeWithText("맞아요. 알람을 껐어요").assertDoesNotExist()
         compose.onNodeWithTag(ESCAPE_INPUT_TAG).assertIsNotEnabled()
     }
 
@@ -80,6 +81,20 @@ class EscapeScreenTest {
     fun backPill_returnsToMission() {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE))
         compose.onNodeWithTag(ESCAPE_BACK_TAG).performClick()
-        assertThat(calls).containsExactly("back")
+        assertThat(backs).isEqualTo(1)
+    }
+
+    @Test
+    fun overlay_appendsGhostRest_andKeepsCursorInTypedPart() {
+        val colors = TraceColors(
+            done = androidx.compose.ui.graphics.Color.White,
+            ghost = androidx.compose.ui.graphics.Color.Gray,
+            wrong = androidx.compose.ui.graphics.Color.Red,
+        )
+        val out = TraceOverlay("테스트 문장", wrongAt = 2, colors = colors)
+            .filter(androidx.compose.ui.text.AnnotatedString("테스ㅌ"))
+        assertThat(out.text.text).isEqualTo("테스ㅌ 문장")
+        assertThat(out.text.spanStyles.first { it.start == 2 }.item.color).isEqualTo(colors.wrong)
+        assertThat(out.offsetMapping.transformedToOriginal(6)).isEqualTo(3)
     }
 }
