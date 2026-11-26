@@ -960,3 +960,4 @@
 {"at": "2026-11-26 15:35:07", "by": "Leader", "id": "TSK-238", "action": "comment", "changes": {"comments": [null, ["사용자 확인 11-26: 내용이 위로 치우침. 시간 바는 그대로, 내용 영역을 세로 가운데로(TSK-242, [개발 24])"]]}}
 {"at": "2026-11-26 15:35:26", "by": "[개발 24]", "id": "TSK-242", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-26"]}}
 {"at": "2026-11-26 15:37:28", "by": "Leader", "id": "TSK-239", "action": "comment", "changes": {"comments": [null, ["사용자 확인 11-26: 이대로 좋음"]]}}
+{"at": "2026-11-26 15:39:46", "by": "Leader", "id": "TSK-225", "action": "comment", "changes": {"comments": [null, ["사용자 확인 11-26: 이대로 유지"]]}}
