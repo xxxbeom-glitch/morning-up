@@ -834,3 +834,11 @@
 {"at": "2026-11-26 11:48:29", "by": "Leader", "id": "TSK-229", "action": "create", "changes": {"id": [null, "TSK-229"], "wbs": [null, "4.75"], "parent": [null, "TSK-004"], "title": [null, "흐름 점검 글 7곳을 앱 화면에 넣기"], "area": [null, "dev"], "owner": [null, "[개발 23]"], "reviewer": [null, "[QA 2]"], "status": [null, "todo"], "start": [null, "2026-11-26"], "due": [null, "2026-11-27"], "decisions": [[], ["164", "165", "167", "168"]], "acceptance": [[], ["TSK-201 승인 글(T1 카드 안내, 홈 다시 울려요 띠, W2 대기 띠, 울리는 알람 토스트, O2-1, H2-2) 그대로", "라이트, 다크", "빌드, 시험, detekt 통과"]]}}
 {"at": "2026-11-26 11:48:29", "by": "Leader", "id": "TSK-225", "action": "set", "changes": {"owner": ["[개발 22]", "[개발 23]"]}}
 {"at": "2026-11-26 11:48:29", "by": "Leader", "id": "TSK-227", "action": "set", "changes": {"owner": ["[개발 22]", "[개발 23]"]}}
+{"at": "2026-11-26 11:50:38", "by": "[개발 22]", "id": "TSK-094", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["7단위 완료: 저장 경고 창(b4b0eec), 10분 전과 울린 뒤 방해 금지 점검(b4f490f), 밤 9시 내일 알람 점검(ead5ead), 강제 종료 흔적 알림과 놓친 알람 문구(9476751), 안드로이드 12만 정확한 알람 줄(fa06084), 울리는 동안 방해 금지 알람만 허용 켠 사람만(63fc56d, 설정 탭 '방해 금지 잠깐 풀기'), T2-1 안내 화면(fc9a72a). 빌드, 단위 시험, detekt 통과. 폰 시험은 [QA 2]에 넘김. 남은 확인: 소리 없이 울림 창과 방해 금지 잠깐 풀기 줄은 시안 없음(추천 문구), 안드로이드 10 이하 강제 종료 판정은 어림, BatteryReminder 알림 id 5가 ESCAPE 알림 id 5와 겹침(원래 있던 문제), 권한 화면 '방해 금지 모드 예외' 줄은 접근 권한 화면으로 두고 T2-1로 바꾸지 않음"]]}}
+{"at": "2026-11-26 11:51:16", "by": "Leader", "id": "TSK-094", "action": "set", "changes": {"reviewer": ["[QA 1]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:16", "by": "Leader", "id": "TSK-210", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:16", "by": "Leader", "id": "TSK-228", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:16", "by": "Leader", "id": "TSK-222", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:17", "by": "Leader", "id": "TSK-225", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:17", "by": "Leader", "id": "TSK-227", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
+{"at": "2026-11-26 11:51:17", "by": "Leader", "id": "TSK-229", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
