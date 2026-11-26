@@ -817,3 +817,5 @@
 {"at": "2026-11-26 11:39:07", "by": "[디자인 21]", "id": "TSK-224", "action": "claim", "changes": {"status": ["todo", "doing"]}}
 {"at": "2026-11-26 11:39:15", "by": "Leader", "id": "TSK-201", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-27", "2026-11-26"]}}
 {"at": "2026-11-26 11:39:16", "by": "Leader", "id": "TSK-201", "action": "comment", "changes": {"comments": [null, ["Leader 확인: 다듬은 글 그대로 써요. T1 카드는 결정 180(알람마다)에 맞춰 TSK-226에서 자리가 바뀔 수 있음"]]}}
+{"at": "2026-11-26 11:40:31", "by": "[디자인 21]", "id": "TSK-224", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["피그마 새 구역 '다음 알람 늘 보이기 (TSK-224)' 1159:16970. 설정 탭 '알람' 카드 맨 아래 토글 줄 '다음 알람 늘 보이기 / 알림 창에 다음 알람을 띄워 둬요'(처음 꺼짐, 켬 상태도), 알림 N3: 보통 '다음 알람 목요일 오전 6:30 / 월 화 수 목 금 반복', 이번만 쉬기 중 '다음 알람 금요일 오전 6:30 / 목요일은 쉬어요. 금요일 오전 6:30에 울려요'(알라미처럼 '(건너뜀)'만 쓰지 않고 실제 울림 날). 조용하고 못 지움, 누르면 앱 홈, 켜진 알람 없으면 사라짐(메모). Light, Dark. 캡처 docs/exports/tsk-224/, 이름표 naming.md 7장."]]}}
+{"at": "2026-11-26 11:40:47", "by": "Leader", "id": "TSK-224", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-27", "2026-11-26"]}}
