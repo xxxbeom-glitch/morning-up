@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -47,7 +48,9 @@ class EscapeScreenTest {
     fun typing_showsGuideTimeAndGhostSentence_withoutRemovedParts() {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE))
         compose.onNodeWithText("문장을 그대로 따라 쓰면 알람이 꺼져요").assertExists()
-        compose.onNodeWithText("48초").assertExists()
+        compose.onNodeWithTag(MISSION_TIMELINE_TAG).assertExists()
+        compose.onNodeWithContentDescription("미션으로 돌아가기").assertExists()
+        compose.onNodeWithText("미션으로 돌아가기").assertDoesNotExist()
         compose.onNodeWithText("미션 포기").assertDoesNotExist()
         compose.onNodeWithText("소리를 잠시 껐어요").assertDoesNotExist()
         compose.onNodeWithText("빨간 글자를 지우고 다시 써 주세요").assertDoesNotExist()
@@ -59,7 +62,6 @@ class EscapeScreenTest {
     fun lowTime_guideTurnsIntoCountdown() {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE), remaining = 9_000L)
         compose.onNodeWithText("9초 안에 쓰지 않으면 미션으로 돌아가요").assertExists()
-        compose.onNodeWithText("9초").assertExists()
     }
 
     @Test
@@ -71,8 +73,7 @@ class EscapeScreenTest {
                 result = EscapeResult.Correct,
             ),
         )
-        compose.onNodeWithText("미션으로 돌아가기").assertDoesNotExist()
-        compose.onNodeWithTag(ESCAPE_TIME_TAG).assertDoesNotExist()
+        compose.onNodeWithTag(ESCAPE_BACK_TAG).assertDoesNotExist()
         compose.onNodeWithText("맞아요. 알람을 껐어요").assertDoesNotExist()
         compose.onNodeWithTag(ESCAPE_INPUT_TAG).assertIsNotEnabled()
     }

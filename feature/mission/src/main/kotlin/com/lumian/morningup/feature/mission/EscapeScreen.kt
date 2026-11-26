@@ -5,6 +5,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.keyframes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,8 +18,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -63,7 +62,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Timer
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.theme.MissionColors
@@ -74,18 +72,15 @@ import kotlinx.coroutines.delay
 
 const val ESCAPE_INPUT_TAG = "escapeInput"
 const val ESCAPE_BACK_TAG = "escapeBack"
-const val ESCAPE_TIME_TAG = "escapeTime"
 
 private val TraceRadius = 20.dp
 private val TracePadding = 24.dp
 private val TraceMinHeight = 100.dp
 private val TraceSize = 24.sp
 private val TraceLineHeight = 34.sp
-private val SmallIcon = 14.dp
-private val PillHeight = 28.dp
+private val BackTouch = 48.dp
 private const val SHAKE_OFFSET = 6f
 private const val GHOST_ALPHA = 0.35f
-private const val LOW_FILL_ALPHA = 0.16f
 private const val LOW_SECONDS = 10
 private const val FRAME_MILLIS = 200L
 private const val MILLIS_PER_SECOND = 1_000L
@@ -121,9 +116,9 @@ fun RingEscapeRoute(viewModel: EscapeViewModel = hiltViewModel()) {
 
 /**
  * M5 미션 포기, 따라 쓰기 모양(TSK-231 시안 `1165:17736`, 결정 171). 미션 화면처럼 늘 어두운 바탕이에요.
- * 왼쪽 위 '미션으로 돌아가기', 오른쪽 위 남은 시간 알약(마지막으로 친 때부터 1분, 10초 아래면 빨강),
- * 안내 한 줄, 흐린 예문 위에 바로 겹쳐 쓰는 칸, 그리고 폰 키보드. 확인 버튼은 없어요.
- * 끝까지 맞게 쓰면 칸이 초록이 되고 위 알약이 사라져요. 뒤로 가기는 미션으로 돌아가기예요.
+ * 위쪽 줄은 다른 미션 화면과 같게 '<'와 남은 시간 바(마지막으로 친 때부터 1분, 칠 때마다 다시 차요).
+ * 10초 아래면 안내 줄이 빨개져요. 안내 한 줄, 흐린 예문 위에 바로 겹쳐 쓰는 칸, 그리고 폰 키보드. 확인 버튼은 없어요.
+ * 끝까지 맞게 쓰면 칸이 초록이 되고 '<'가 사라져요. 뒤로 가기는 미션으로 돌아가기예요.
  */
 @Composable
 fun EscapeScreen(
@@ -139,11 +134,17 @@ fun EscapeScreen(
     BackHandler(enabled = !correct) { onBack() }
     MissionFrame(backdrop = MissionColors.DropWords, status = null, remainingMillis = null, modifier = modifier) {
         Column(Modifier.fillMaxSize().imePadding()) {
-            Spacer(Modifier.height(MorningDimens.space12))
-            Row(Modifier.fillMaxWidth().height(PillHeight), verticalAlignment = Alignment.CenterVertically) {
-                if (!correct) BackPill(onBack)
-                Spacer(Modifier.weight(1f))
-                if (!correct) TimePill(seconds, low)
+            // 다른 미션 화면 위쪽 줄과 같게: 왼쪽 '<' 하나, 오른쪽으로 남은 시간 바(MissionHeader와 같은 자리, 같은 부품).
+            Row(
+                Modifier.fillMaxWidth().padding(top = MorningDimens.space12).height(BackTouch),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                if (!correct) BackButton(onBack)
+                MissionTimeline(
+                    remainingMillis = if (correct) MissionEscape.IDLE_MILLIS else remainingMillis,
+                    totalMillis = MissionEscape.IDLE_MILLIS,
+                    modifier = Modifier.weight(1f),
+                )
             }
             Spacer(Modifier.height(MorningDimens.space24))
             Text(
@@ -163,50 +164,31 @@ fun EscapeScreen(
     }
 }
 
+/** 왼쪽 위 '<'(Lucide chevron-left). 미리보기 닫기와 같은 크기, 누르는 곳 48. 누르면 하던 미션으로 돌아가요. */
 @Composable
-private fun BackPill(onBack: () -> Unit) {
-    Row(
+private fun BackButton(onBack: () -> Unit) {
+    val view = LocalView.current
+    val description = stringResource(R.string.escape_screen_back)
+    Box(
         modifier = Modifier
-            .height(PillHeight)
-            .background(MissionColors.Fill, CircleShape)
-            .clickable(role = Role.Button, onClick = onBack)
+            .size(BackTouch)
             .testTag(ESCAPE_BACK_TAG)
-            .padding(horizontal = MorningDimens.space8),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                role = Role.Button,
+            ) {
+                view.perform(MorningHaptic.Press)
+                onBack()
+            }
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.CenterStart,
     ) {
         Icon(
             imageVector = Lucide.ChevronLeft,
             contentDescription = null,
             tint = MissionColors.Text,
-            modifier = Modifier.size(SmallIcon),
-        )
-        Spacer(Modifier.width(MorningDimens.space4))
-        Text(
-            text = stringResource(R.string.escape_screen_back),
-            style = MorningTheme.typography.captionStrong,
-            color = MissionColors.Text,
-        )
-    }
-}
-
-@Composable
-private fun TimePill(seconds: Int, low: Boolean) {
-    val error = MorningTheme.colors.statusError
-    val color = if (low) error else MissionColors.Text
-    Row(
-        modifier = Modifier
-            .height(PillHeight)
-            .background(if (low) error.copy(alpha = LOW_FILL_ALPHA) else MissionColors.Fill, CircleShape)
-            .testTag(ESCAPE_TIME_TAG)
-            .padding(horizontal = MorningDimens.space8),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(Lucide.Timer, contentDescription = null, tint = color, modifier = Modifier.size(SmallIcon))
-        Spacer(Modifier.width(MorningDimens.space4))
-        Text(
-            text = stringResource(R.string.escape_screen_seconds, seconds),
-            style = MorningTheme.typography.captionStrong,
-            color = color,
+            modifier = Modifier.size(MorningDimens.iconMd),
         )
     }
 }
