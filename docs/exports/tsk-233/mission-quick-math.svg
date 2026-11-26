@@ -5,7 +5,8 @@
 <rect x="86" y="50" width="38" height="10" rx="5" fill="white" fill-opacity="0.7"/>
 <rect x="38.0294" y="114.898" width="38" height="10" rx="5" transform="rotate(-45 38.0294 114.898)" fill="white" fill-opacity="0.7"/>
 <rect x="45.1005" y="88.0312" width="38" height="10" rx="5" transform="rotate(45 45.1005 88.0312)" fill="white" fill-opacity="0.7"/>
-<rect x="86" y="93" width="38" height="10" rx="5" fill="white"/>
-<rect x="86" y="107" width="38" height="10" rx="5" fill="white"/>
+<rect x="86" y="100" width="38" height="10" rx="5" fill="white"/>
+<circle cx="105" cy="91" r="5" fill="white"/>
+<circle cx="105" cy="119" r="5" fill="white"/>
 <defs><linearGradient id="g" x1="40" y1="40" x2="120" y2="120" gradientUnits="userSpaceOnUse"><stop stop-color="#FBC796"/><stop offset="1" stop-color="#F08F52"/></linearGradient></defs>
 </svg>
