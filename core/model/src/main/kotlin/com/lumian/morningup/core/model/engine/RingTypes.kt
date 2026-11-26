@@ -204,6 +204,13 @@ sealed interface RingEvent {
      */
     data object MissionEscaped : RingEvent
 
+    /**
+     * 미션 비상구 알림을 눌러 M5 '미션 포기' 화면을 열었어요(결정 171). 화면에 있는 동안 소리가 꺼져야 해서
+     * 울림, 쉬는 중이면 미션 중으로 넘기고(소리 끔, 미션 시간), 미션 중이면 미션 시간을 다시 채워요.
+     * 화면은 컨트롤러가 이미 M5로 정해서 미션 화면을 띄우는 효과는 내지 않아요.
+     */
+    data object EscapeOpened : RingEvent
+
     /** W2 '깼어요'(10초 길게 누르기, 결정 145 9-1). */
     data object WakeCheckConfirmed : RingEvent
 
@@ -230,6 +237,7 @@ sealed interface RingEvent {
             "mission_completed" to MissionCompleted,
             "dismiss_without_mission" to DismissWithoutMission,
             "mission_escaped" to MissionEscaped,
+            "escape_opened" to EscapeOpened,
             "wake_check_confirmed" to WakeCheckConfirmed,
             "recheck_confirmed" to RecheckConfirmed,
         )

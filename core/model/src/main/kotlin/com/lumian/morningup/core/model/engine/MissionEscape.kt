@@ -8,6 +8,12 @@ import kotlin.random.Random
  * 버튼 글은 '미션 포기'(가칭)이고, 문서와 코드 이름은 `MissionEscape`예요.
  */
 object MissionEscape {
+    /** 시험하는 동안 쓰는 예문 하나(결정 172). 출시 전에 예문 20개로 되돌려요. */
+    const val TEST_SENTENCE = "테스트 문장 12345, @@\$\$"
+
+    /** M5에서 마지막으로 글자를 친 때부터 이만큼 안 쓰면 하던 미션으로 돌아가요(결정 171). */
+    const val IDLE_MILLIS = 60_000L
+
     /** 맞게 보낸 뒤 '알람을 껐어요'를 보여 주는 시간(3절). */
     const val DONE_MILLIS = 3_000L
 

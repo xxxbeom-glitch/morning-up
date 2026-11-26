@@ -293,4 +293,52 @@ class MissionEscapeTest {
         assertThat(RingStateMachine.resume(s)).contains(ShowEscape(fresh = false))
         assertThat(RingStateMachine.resume(ringing()).filterIsInstance<ShowEscape>()).isEmpty()
     }
+
+    // M5 미션 포기 화면 열기 (결정 171) ---------------------------------------
+
+    @Test
+    fun escapeOpened_duringMission_refillsMissionTime_withoutShowingMission() {
+        val s = started().session!!
+        val t = reduce(s, RingEvent.EscapeOpened, t0 + 40 * sec)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.InMission)
+        assertThat(t.session!!.phaseEndsAt).isEqualTo(t0 + 40 * sec + RingStateMachine.MISSION_MILLIS)
+        assertThat(t.effects.none { it is RingEffect.ShowMission }).isTrue()
+    }
+
+    @Test
+    fun escapeOpened_whileRingingAgain_stopsSound_andBecomesMission() {
+        val s = started().session!!
+        val ringingAgain = reduce(s, RingEvent.TimerFired(TimerKind.MissionTimeout), t0 + 3 * min).session!!
+        assertThat(ringingAgain.phase).isEqualTo(RingPhase.Ringing)
+        val t = reduce(ringingAgain, RingEvent.EscapeOpened, t0 + 4 * min)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.InMission)
+        assertThat(t.session!!.escapeShown).isTrue()
+        assertThat(t.effects).contains(StopSound)
+        assertThat(t.effects.none { it is RingEffect.ShowMission }).isTrue()
+        val endsAt = t0 + 4 * min + RingStateMachine.MISSION_MILLIS
+        assertThat(t.effects).contains(ScheduleTimer(endsAt, TimerKind.MissionTimeout))
+    }
+
+    @Test
+    fun escapeOpened_whenEscapeClosed_doesNothing() {
+        val s = ringing()
+        val t = reduce(s, RingEvent.EscapeOpened, t0 + 5 * sec)
+        assertThat(t.session).isEqualTo(s)
+        assertThat(t.effects).isEmpty()
+    }
+
+    @Test
+    fun escapeOpened_thenCorrect_endsLikeMissionDone() {
+        val s = reduce(started().session!!, RingEvent.EscapeOpened, t0 + 40 * sec).session!!
+        val t = reduce(s, RingEvent.MissionEscaped, t0 + 50 * sec)
+        assertThat(t.effects).contains(EscapeUsed(3))
+        assertThat(t.effects).contains(ShowWakeUp)
+    }
+
+    @Test
+    fun testSentence_isTheOnlyOneWhileTesting() {
+        assertThat(MissionEscape.TEST_SENTENCE).isEqualTo("테스트 문장 12345, @@" + "$" + "$")
+        assertThat(MissionEscape.matches("테스트 문장 12345, @@" + "$" + "$", MissionEscape.TEST_SENTENCE)).isTrue()
+        assertThat(MissionEscape.matches("테스트 문장12345, @@" + "$" + "$", MissionEscape.TEST_SENTENCE)).isFalse()
+    }
 }

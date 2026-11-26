@@ -16,7 +16,6 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.app.RemoteInput
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
 import com.lumian.morningup.core.alarm.receiver.MissionEscapeReceiver
@@ -148,29 +147,19 @@ class RingNotifications @Inject constructor(
     }
 
     /**
-     * 미션 비상구(결정 149~151)가 열려 있으면 이 알림에 예문과 '미션 포기' 바로 답장 버튼을 붙여요(ISS-042).
-     * 따로 알림으로 두면 안드로이드(삼성 One UI 포함)가 앱 알림을 그룹 키와 상관없이 하나로 묶어 접어요.
-     * 소리 없는 기본 중요도 통로로 바꿔 알림창 위쪽에 펼쳐 보이게 하고, 밀어서 지우면 받는 곳이 다시 올려요.
+     * 미션 비상구(결정 149~151)가 열려 있으면 이 알림을 '미션을 못 하겠으면' 문으로 바꿔요(ISS-042: 따로 알림으로 두면
+     * 안드로이드가 앱 알림을 하나로 묶어 접어요). 결정 171로 알림 안 바로 답장 칸은 없애고, 누르면 M5 '미션 포기'
+     * 화면이 열려요. 소리 없는 기본 중요도 통로로 바꿔 알림창 위쪽에 펼쳐 보이게 하고, 밀어서 지우면 받는 곳이 다시 올려요.
      */
     private fun NotificationCompat.Builder.withEscape(base: String): NotificationCompat.Builder {
-        val view = escape.current() ?: return this
-        val first = text(if (view.wrong) R.string.escape_wrong else R.string.escape_text)
-        val input = RemoteInput.Builder(MissionEscapeNotifier.KEY_REPLY)
-            .setLabel(text(R.string.escape_hint))
-            .build()
-        val reply = PendingIntent.getBroadcast(
+        if (escape.current() == null) return this
+        val first = text(R.string.escape_text)
+        val open = PendingIntent.getActivity(
             context,
-            REQUEST_ESCAPE_REPLY,
-            escapeIntent(MissionEscapeReceiver.ACTION_REPLY),
-            // 바로 답장 글을 안드로이드가 채워 넣어야 해서 바꿀 수 있는(mutable) Intent예요. 받는 곳은 우리 앱으로 정해져 있어요.
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE,
+            REQUEST_ESCAPE_OPEN,
+            screenIntent.create(context).putExtra(EXTRA_OPEN_ESCAPE, true),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val action = NotificationCompat.Action.Builder(R.drawable.ic_alarm_clock, text(R.string.escape_action), reply)
-            .addRemoteInput(input)
-            .setAllowGeneratedReplies(false)
-            .setSemanticAction(NotificationCompat.Action.SEMANTIC_ACTION_REPLY)
-            .setShowsUserInterface(false)
-            .build()
         // 안드로이드 14부터는 밀어서 지울 수 없는 알림도 지워질 수 있어서, 지워지면 받는 곳이 같은 예문으로 다시 올려요.
         val dismissed = PendingIntent.getBroadcast(
             context,
@@ -178,14 +167,15 @@ class RingNotifications @Inject constructor(
             escapeIntent(MissionEscapeReceiver.ACTION_DISMISSED),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        // 펼친 글: 지금 단계 글, 빈 줄, '미션을 못 하겠으면', 안내(또는 '조금 달라요'), 예문.
-        val body = listOf(base, "", text(R.string.escape_title), first, view.sentence).joinToString("\n")
+        // 제목 '미션을 못 하겠으면', 글 '여기를 누르고 문장을 따라 쓰면…'(시안 1149:15482). 펼치면 지금 단계 글도 보여요.
+        val body = listOf(first, "", base).joinToString("\n")
         return setChannelId(CHANNEL_ESCAPE)
+            .setContentTitle(text(R.string.escape_title))
             .setContentText(first)
             .setStyle(NotificationCompat.BigTextStyle().bigText(body))
             .setOnlyAlertOnce(true)
+            .setContentIntent(open)
             .setDeleteIntent(dismissed)
-            .addAction(action)
     }
 
     private fun escapeIntent(action: String) =
@@ -484,6 +474,9 @@ class RingNotifications @Inject constructor(
 
         /** W3 기다림 알림이나 홈 띠를 눌러 W3를 미리 열었다는 표시(결정 145). */
         const val EXTRA_OPEN_RECHECK = "open_recheck"
+
+        /** 미션 비상구 알림을 눌러 M5 '미션 포기'를 열어요(결정 171). */
+        const val EXTRA_OPEN_ESCAPE = "open_escape"
         const val RING_NOTIFICATION_ID = 1
         const val WAITING_NOTIFICATION_ID = 2
         private const val FALLBACK_NOTIFICATION_ID = 3
@@ -497,7 +490,7 @@ class RingNotifications @Inject constructor(
         private const val MISSED_NOTIFICATION_BASE = 1000
         private const val SCREEN_WAKE_MILLIS = 10_000L
         private const val NOON = 12
-        private const val REQUEST_ESCAPE_REPLY = 50
+        private const val REQUEST_ESCAPE_OPEN = 50
         private const val REQUEST_ESCAPE_DISMISSED = 51
     }
 }

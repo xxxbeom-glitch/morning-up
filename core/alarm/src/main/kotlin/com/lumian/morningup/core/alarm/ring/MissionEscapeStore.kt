@@ -25,7 +25,14 @@ class MissionEscapeStore @Inject constructor(@ApplicationContext private val con
         context.createDeviceProtectedStorageContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     }
 
-    private val sentences: Array<String> get() = context.resources.getStringArray(R.array.escape_sentences)
+    /**
+     * 따라 쓸 예문. 시험하는 동안은 [TEST_SENTENCE] 하나예요(결정 172). 출시 전에 `R.array.escape_sentences`
+     * 40~60자 예문 20개(결정 150)로 되돌려요.
+     */
+    @Suppress("UnusedPrivateProperty")
+    private val releaseSentences: Array<String> get() = context.resources.getStringArray(R.array.escape_sentences)
+
+    private val sentences: Array<String> get() = arrayOf(MissionEscape.TEST_SENTENCE)
 
     /** 지금 알림에 붙일 내용. 비상구가 닫혀 있으면 null이에요. */
     fun current(): EscapeView? {

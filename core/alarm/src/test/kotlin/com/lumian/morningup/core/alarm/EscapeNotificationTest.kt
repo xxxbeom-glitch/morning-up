@@ -51,7 +51,7 @@ class EscapeNotificationTest {
     private fun active(): List<Notification> = shadowOf(manager).allNotifications
 
     @Test
-    fun missionNotification_carriesSentenceAndReply_whenEscapeOpen() {
+    fun missionNotification_becomesEscapeDoor_whenEscapeOpen() {
         store.close()
         notifications.showRinging(RingPhase.InMission)
         assertThat(active().single().actions).isNull()
@@ -61,22 +61,25 @@ class EscapeNotificationTest {
         val posted = active().single()
         assertThat(posted.channelId).isEqualTo(RingNotifications.CHANNEL_ESCAPE)
         assertThat(posted.group).isNull()
-        val action = posted.actions.single()
-        assertThat(action.title.toString()).isEqualTo("미션 포기")
-        assertThat(action.remoteInputs).hasLength(1)
-        val big = posted.extras.getCharSequence(NotificationCompat.EXTRA_BIG_TEXT).toString()
-        assertThat(big).contains(store.current()!!.sentence)
+        // 결정 171: 바로 답장 칸 없이, 누르면 M5 미션 포기 화면이 열려요.
+        assertThat(posted.actions).isNull()
+        assertThat(posted.extras.getCharSequence(NotificationCompat.EXTRA_TITLE).toString())
+            .isEqualTo("미션을 못 하겠으면")
+        assertThat(posted.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString())
+            .isEqualTo("여기를 누르고 문장을 따라 쓰면 미션 없이 알람이 꺼져요")
+        val opened = shadowOf(posted.contentIntent).savedIntent
+        assertThat(opened.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false)).isTrue()
     }
 
     @Test
     fun restingNotification_carriesEscape_andCloseRemovesIt() {
         store.openFresh()
         notifications.showRinging(RingPhase.Resting, phaseEndsAt = System.currentTimeMillis() + 60_000)
-        assertThat(active().single().actions.single().title.toString()).isEqualTo("미션 포기")
+        assertThat(active().single().channelId).isEqualTo(RingNotifications.CHANNEL_ESCAPE)
 
         store.close()
         notifications.refreshEscape()
-        assertThat(active().single().actions).isNull()
+        assertThat(active().single().channelId).isNotEqualTo(RingNotifications.CHANNEL_ESCAPE)
     }
 
     @Test

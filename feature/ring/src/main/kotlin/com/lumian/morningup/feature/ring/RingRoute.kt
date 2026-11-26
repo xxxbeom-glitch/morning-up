@@ -41,6 +41,7 @@ private const val COUNTDOWN_FRAME_MILLIS = 200L
 /**
  * 울림 화면 묶음(D0, M, W1, W2, W3). 잠금 화면 위 액티비티(:app의 RingActivity)가 이것 하나만 그려요.
  * - 미션 화면은 [missionContent] 자리에 :app이 `:feature:mission`을 꽂아요(feature끼리 직접 부르지 않아요).
+ *   M5 미션 포기(결정 171)도 [escapeContent] 자리에 같은 식으로 꽂아요.
  * - D0에서 미션으로 넘어갈 때 버튼 자리에서 원형으로 퍼지며 열려요. '애니메이션 줄이기'면 페이드예요.
  * - 보여 줄 화면이 없어지면 [onClose]를 불러요. [canClose]가 false면(저장된 울림을 읽는 중) 기다려요.
  * - W1 '확인'은 [onWakeUpConfirmed]로 알려요(잠겨 있었으면 닫고, 풀려 있었으면 홈으로 가는 일은 액티비티 몫).
@@ -54,6 +55,7 @@ fun RingRoute(
     onWakeUpConfirmed: () -> Unit,
     missionContent: @Composable (index: Int) -> Unit,
     viewModel: RingViewModel = hiltViewModel(),
+    escapeContent: @Composable () -> Unit = {},
     systemBars: @Composable (dark: Boolean) -> Unit = {},
 ) {
     val ringState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,7 +107,7 @@ fun RingRoute(
         ThemeMode.Dark -> DayPart.Night
     }
     val night = dayPart == DayPart.Night
-    systemBars(night || lastShown is RingScreen.Mission)
+    systemBars(night || lastShown is RingScreen.Mission || lastShown == RingScreen.Escape)
     MorningTheme(darkTheme = night, reduceMotion = MorningTheme.reduceMotion) {
         RingContent(
             state = state.copy(dayPart = dayPart),
@@ -131,6 +133,7 @@ fun RingRoute(
                 }
             },
             missionContent = missionContent,
+            escapeContent = escapeContent,
         )
     }
 }
@@ -163,6 +166,7 @@ private fun RingContent(
     onWakeUpConfirmed: () -> Unit,
     onAwake: () -> Unit,
     missionContent: @Composable (index: Int) -> Unit,
+    escapeContent: @Composable () -> Unit,
 ) {
     var buttonCenter by remember { mutableStateOf<Offset?>(null) }
     val ringing = @Composable { live: Boolean ->
@@ -186,6 +190,7 @@ private fun RingContent(
             // 미션 순서가 바뀌어도 같은 자리를 유지해요(미션 사이 넘어가기는 미션 화면이 그려요).
             missionContent(shown.index)
         }
+        RingScreen.Escape -> escapeContent()
         RingScreen.WakeUp -> WakeUpScreen(
             dayPart = state.dayPart,
             onConfirm = onWakeUpConfirmed,

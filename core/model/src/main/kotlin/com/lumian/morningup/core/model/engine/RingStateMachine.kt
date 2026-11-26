@@ -93,6 +93,7 @@ object RingStateMachine {
             RingEvent.MissionCompleted -> missionCompleted(session, now)
             RingEvent.DismissWithoutMission -> dismissWithoutMission(session, now)
             RingEvent.MissionEscaped -> missionEscaped(session, now)
+            RingEvent.EscapeOpened -> escapeOpened(session, now)
             RingEvent.WakeCheckConfirmed ->
                 if (session.phase == RingPhase.WakeCheckAsking) {
                     wakeCheckPassed(session, now, random)
@@ -302,6 +303,26 @@ object RingStateMachine {
         val done = session.copy(missionsDone = session.plan.missions.size, escapeShown = false)
         val end = finish(done, now)
         return end.copy(effects = listOf(EscapeUsed(session.plan.alarmId)) + end.effects)
+    }
+
+    /**
+     * M5 '미션 포기' 화면을 열었어요(결정 171). 화면에 있는 동안 소리를 꺼요. 울림, 쉬는 중이면 미션 중으로 넘겨
+     * 소리를 끄고 미션 시간(2분)을 걸어요. M5는 1분 동안 안 쓰면 미션 화면으로 돌아가서 그 전에 다시 울리지 않아요.
+     * 미션 화면은 띄우지 않아요(지금 화면은 M5예요). 알림이 닫혀 있으면 받지 않아요.
+     */
+    private fun escapeOpened(session: RingSession, now: Long): Transition {
+        if (!session.escapeShown) return NoChange(session)
+        return when (session.phase) {
+            RingPhase.InMission -> missionInteraction(session, now)
+            RingPhase.Ringing, RingPhase.Resting -> {
+                val mission = session.copy(phase = RingPhase.InMission, phaseEndsAt = now + MISSION_MILLIS)
+                Transition(
+                    mission,
+                    listOf(StopSound, ScheduleTimer(mission.phaseEndsAt, TimerKind.MissionTimeout)),
+                )
+            }
+            else -> NoChange(session)
+        }
     }
 
     private fun missionInteraction(session: RingSession, now: Long): Transition {

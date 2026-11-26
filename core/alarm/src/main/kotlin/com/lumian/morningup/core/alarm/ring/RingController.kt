@@ -32,6 +32,9 @@ sealed interface RingScreen {
 
     data class Mission(val index: Int) : RingScreen
 
+    /** M5 미션 포기. 미션 비상구 알림을 누르면 열려요(결정 171). */
+    data object Escape : RingScreen
+
     /** W1 해제 완료. */
     data object WakeUp : RingScreen
 
@@ -180,6 +183,28 @@ class RingController @Inject constructor(
         if (_screen.value == RingScreen.WakeUp) {
             FlowLog.event("wake_up_closed", _session.value?.plan?.alarmId)
             _screen.value = RingScreen.None
+        }
+    }
+
+    /**
+     * 미션 비상구 알림을 눌렀어요(결정 171). 알림이 떠 있는 때(울림, 쉬는 중, 미션 중)면 M5를 열고 true예요.
+     * 소리 끄기와 미션 시간은 부른 쪽이 [RingEvent.EscapeOpened]를 울림 서비스로 보내서 해요.
+     */
+    fun openEscape(): Boolean {
+        val session = _session.value ?: return false
+        val phase = session.phase
+        val open = session.escapeShown &&
+            (phase == RingPhase.Ringing || phase == RingPhase.Resting || phase == RingPhase.InMission)
+        if (open) _screen.value = RingScreen.Escape
+        return open
+    }
+
+    /** M5에서 1분 동안 안 썼거나 '미션으로 돌아가기'를 눌렀어요. 하던 미션 화면으로 돌아가요. */
+    fun backToMission() {
+        val session = _session.value ?: return
+        if (_screen.value == RingScreen.Escape && session.phase == RingPhase.InMission) {
+            FlowLog.event("escape_back_to_mission", session.plan.alarmId)
+            _screen.value = RingScreen.Mission(session.missionsDone)
         }
     }
 

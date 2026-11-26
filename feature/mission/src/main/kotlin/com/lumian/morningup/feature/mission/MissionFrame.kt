@@ -171,10 +171,14 @@ private fun MissionHeader(status: String?, remainingMillis: Long?, onClose: (() 
  * 조작해서 다시 차면 스프링으로 차오르고, 마지막 5초는 1초마다 약하게 진동해요(원형 타이머와 같은 규칙).
  */
 @Composable
-fun MissionTimeline(remainingMillis: Long, modifier: Modifier = Modifier) {
+fun MissionTimeline(
+    remainingMillis: Long,
+    modifier: Modifier = Modifier,
+    totalMillis: Long = RingStateMachine.MISSION_MILLIS,
+) {
     val reduceMotion = MorningTheme.reduceMotion
     val view = LocalView.current
-    val total = RingStateMachine.MISSION_MILLIS.toFloat()
+    val total = totalMillis.toFloat()
     val target = (remainingMillis / total).coerceIn(0f, 1f)
     val fraction = remember { Animatable(target) }
     val latestTarget by rememberUpdatedState(target)

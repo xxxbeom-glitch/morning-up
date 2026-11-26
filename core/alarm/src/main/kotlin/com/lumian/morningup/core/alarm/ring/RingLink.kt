@@ -21,6 +21,9 @@ interface RingLink {
 
     /** W1 해제 완료를 닫았어요. */
     fun closeWakeUp()
+
+    /** M5 미션 포기에서 하던 미션 화면으로 돌아가요(결정 171). */
+    fun backToMission() = Unit
 }
 
 @Singleton
@@ -34,4 +37,6 @@ class ServiceRingLink @Inject constructor(
     override fun send(event: RingEvent) = RingService.send(context, event)
 
     override fun closeWakeUp() = controller.clearScreen()
+
+    override fun backToMission() = controller.backToMission()
 }

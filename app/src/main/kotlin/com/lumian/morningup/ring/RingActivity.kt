@@ -27,9 +27,12 @@ import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.alarm.ring.RingScreen
+import com.lumian.morningup.core.alarm.ring.RingService
 import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.feature.mission.RingEscapeRoute
 import com.lumian.morningup.feature.mission.RingMissionRoute
 import com.lumian.morningup.feature.ring.RingRoute
 import com.lumian.morningup.ui.SystemBarIcons
@@ -62,10 +65,21 @@ class RingActivity : ComponentActivity() {
     /** W3 기다림 알림이나 홈 띠를 눌러 열었어요(결정 145). 정한 때보다 먼저 W3를 보여 줘요. */
     private var openedForRecheck = false
 
+    /** 미션 비상구 알림을 눌러 열었어요(결정 171). 저장된 울림을 읽은 뒤 M5를 열어요. */
+    private var openedForEscape = false
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false)) controller.openDuringRest()
         if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_RECHECK, false)) controller.openRecheckEarly()
+        if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false)) openEscape()
+    }
+
+    /** 미션 비상구 알림을 눌렀어요. M5를 열고 소리를 끄도록 울림 서비스에 알려요(결정 171). 열었으면 true예요. */
+    private fun openEscape(): Boolean {
+        if (!controller.openEscape()) return false
+        RingService.send(this, RingEvent.EscapeOpened)
+        return true
     }
 
     /** 울림 화면이 떠 있는 동안 옆 볼륨 버튼은 아무 일도 안 해요(11-17 사용자 지시: 소리를 줄여 끄지 못하게). */
@@ -96,6 +110,8 @@ class RingActivity : ComponentActivity() {
         if (openedFromRest) controller.openDuringRest()
         openedForRecheck = intent?.getBooleanExtra(RingNotifications.EXTRA_OPEN_RECHECK, false) == true
         if (openedForRecheck && controller.openRecheckEarly()) openedForRecheck = false
+        openedForEscape = intent?.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false) == true
+        if (openedForEscape && openEscape()) openedForEscape = false
         resumeIfNeeded()
         lifecycleScope.launch {
             // 세션이 보이면 읽기가 끝난 것이에요. 앱이 새로 떠서 늦게 읽혔으면 그때 쉬는 중 화면을 열어요.
@@ -108,6 +124,10 @@ class RingActivity : ComponentActivity() {
                     if (openedForRecheck) {
                         controller.openRecheckEarly()
                         openedForRecheck = false
+                    }
+                    if (openedForEscape) {
+                        openEscape()
+                        openedForEscape = false
                     }
                     loaded.value = true
                 }
@@ -127,6 +147,10 @@ class RingActivity : ComponentActivity() {
                         missionContent = { _ ->
                             LightSystemBarIcons()
                             RingMissionRoute()
+                        },
+                        escapeContent = {
+                            LightSystemBarIcons()
+                            RingEscapeRoute()
                         },
                         // 다크 울림 화면에서 상태 표시줄 아이콘이 검게 남아 안 보였어요(ISS-047).
                         systemBars = { dark -> SystemBarIcons(dark) },

@@ -91,7 +91,8 @@ class LabPageTest {
         compose.onNodeWithText("약하게").assertDoesNotExist()
         // 결정 174: 세 칸 대신 1~10단계 슬라이더. 빠르게(9단계)에서 3단계로 옮겨요.
         compose.onNodeWithText("9단계").assertExists()
-        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG, useUnmergedTree = true).performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
+        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG, useUnmergedTree = true)
+            .performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
         compose.onNodeWithText("미리 해보기").performClick()
         assertThat(calls).containsExactly("speed:3", "preview").inOrder()
     }
