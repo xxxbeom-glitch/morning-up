@@ -373,7 +373,8 @@ class HomeViewModel @Inject constructor(
 
     private fun turnOn(alarms: List<Alarm>) {
         val state = uiState.value
-        val targets = alarms.filterNot { state.shownOn(it) }
+        // 울리는 중(쉬는 중, 미션 중 포함)인 알람은 홈 토글처럼 켜기도 먹지 않아요(결정 165, ISS-050).
+        val (blocked, targets) = alarms.filterNot { state.shownOn(it) }.partition { ringing(it) }
         val ids = targets.map { it.id }.toSet()
         overlay.update { o -> o.copy(restOffers = o.restOffers - ids, restToday = o.restToday - ids) }
         viewModelScope.launch {
@@ -381,6 +382,7 @@ class HomeViewModel @Inject constructor(
                 if (it.id in state.resting) book.save(it.copy(skipOnceDate = null)) else book.setEnabled(it.id, true)
             }
         }
+        if (blocked.isNotEmpty()) showRinging()
     }
 
     // H3 선택 모드

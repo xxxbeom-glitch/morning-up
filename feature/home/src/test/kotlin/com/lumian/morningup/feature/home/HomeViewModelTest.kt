@@ -607,6 +607,29 @@ class HomeViewModelTest {
         }
     }
 
+    /** ISS-050: 꺼진 채 울리는 알람(한 번 알람 등)은 선택 모드 '켜기'도 먹지 않아요(홈 토글과 같음). */
+    @Test
+    fun ringingAlarm_isLeftOut_ofSelectionTurnOn() = runTest {
+        checks.ringingFor = setOf(1L)
+        val book = FakeAlarmBook(listOf(a630.copy(enabled = false), a710.copy(enabled = false)))
+        val vm = viewModel(book)
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            vm.startSelection(a630)
+            awaitItem()
+            vm.toggleSelectAll()
+            awaitItem()
+            vm.turnOnSelected()
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.Ringing)
+            while (state.alarms.none { it.enabled }) state = awaitItem()
+            assertThat(book.get(1)!!.enabled).isFalse()
+            assertThat(book.get(2)!!.enabled).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
     @Test
     fun restOnce_ringDayNight_restsToday_andShowsTimeLeft() = runTest {
         val book = FakeAlarmBook(listOf(a630))
