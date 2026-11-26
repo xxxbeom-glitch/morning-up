@@ -451,6 +451,8 @@ class RingNotifications @Inject constructor(
             .setContentText(body)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
+            .setContentIntent(openHome())
+            .setGroup(GROUP_MISSED)
             .build()
         manager.notify(MISSED_NOTIFICATION_BASE + alarmId.toInt(), notification)
     }
@@ -466,9 +468,25 @@ class RingNotifications @Inject constructor(
             .setContentText(text(R.string.force_stopped_text))
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
+            .setContentIntent(openHome())
+            .setGroup(GROUP_MISSED)
             .build()
         manager.notify(FORCE_STOPPED_NOTIFICATION_ID, notification)
     }
+
+    /**
+     * 놓친 알람, 강제 종료 알림을 누르면 앱 홈을 열어요(TSK-222, research/O-notifications 4절).
+     * 이 알림들은 [GROUP_MISSED]로 따로 묶어, 울리는 중 알림(미션 포기 문)과 안드로이드가 한 묶음으로 접지 않게 해요.
+     */
+    private fun openHome(): PendingIntent? =
+        context.packageManager.getLaunchIntentForPackage(context.packageName)?.let {
+            PendingIntent.getActivity(
+                context,
+                REQUEST_MISSED_OPEN,
+                it,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+        }
 
     private fun phaseText(phase: RingPhase?): Int = when (phase) {
         null, RingPhase.Ringing -> R.string.ring_text_ringing
@@ -515,5 +533,9 @@ class RingNotifications @Inject constructor(
         private const val NOON = 12
         private const val REQUEST_ESCAPE_OPEN = 50
         private const val REQUEST_ESCAPE_DISMISSED = 51
+        private const val REQUEST_MISSED_OPEN = 52
+
+        /** 놓친 알람과 강제 종료 알림 묶음 이름. 울림 알림과 따로 보이게 해요(TSK-222). */
+        private const val GROUP_MISSED = "missed"
     }
 }

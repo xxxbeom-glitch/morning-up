@@ -148,7 +148,8 @@ class BatteryReminder @Inject constructor(
         private const val PREFS = "battery_reminder"
         private const val KEY_LAST = "last_notified"
         private const val CHANNEL = "reminder"
-        private const val NOTIFICATION_ID = 5
+        /** 미션 포기 알림(ESCAPE 5)과 겹치지 않게 8번을 써요(TSK-222). 울림 알림이 끝날 때 5번을 지워서 이 알림도 사라졌어요. */
+        private const val NOTIFICATION_ID = 8
         private const val FULL = 100
 
         /** 알람 ID(1부터), 울림 타이머(-1)와 겹치지 않는 요청 코드. */
