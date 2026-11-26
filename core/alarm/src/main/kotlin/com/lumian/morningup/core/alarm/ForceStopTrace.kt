@@ -38,7 +38,7 @@ class ForceStopTrace @Inject constructor(
         val wiped = enabled.isNotEmpty() && enabled.none { scheduled(it.id) }
         val detected = ForceStopPolicy.detected(enabled.isNotEmpty(), userStop, wiped)
         if (detected) {
-            diagnostics.record(EVENT, detail = if (userStop == null) "schedule_wiped" else "exit_info")
+            diagnostics.record(EVENT, detail = "exit_info=$userStop wiped=$wiped")
             catchUp.appClosed = true
         }
         return detected

@@ -290,7 +290,10 @@ fun MorningNavHost(
             )
         }
         composable<PermissionsRoute> {
-            PermissionRoute(onBack = { navController.popBackStack() })
+            PermissionRoute(
+                onBack = { navController.popBackStack() },
+                onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
+            )
         }
         composable<DndGuideDestination> {
             DndGuideRoute(onBack = { navController.popBackStack() })

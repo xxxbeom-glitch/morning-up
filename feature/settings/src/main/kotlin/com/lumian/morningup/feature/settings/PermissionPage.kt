@@ -175,7 +175,12 @@ internal fun spec(permission: AlarmPermission): RowSpec = when (permission) {
  * 돌아오면 앱이 다시 확인해서(MainActivity.onResume) 토글이 실제 상태로 바뀌어요.
  */
 @Composable
-fun PermissionRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel: SettingsViewModel = hiltViewModel()) {
+fun PermissionRoute(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenDndGuide: (() -> Unit)? = null,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val open = rememberPermissionOpener(viewModel)
@@ -184,7 +189,8 @@ fun PermissionRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel
         showSamsungSleep = PermissionSettings.isSamsung,
         showExactAlarm = exactAlarmRowVisible(Build.VERSION.SDK_INT),
         onBack = onBack,
-        onOpen = { open(it) },
+        // '방해 금지 모드 예외' 줄은 T2-1 안내 화면으로 가요(permission-matrix R2, 결정 표 4번).
+        onOpen = { if (it == AlarmPermission.DoNotDisturb && onOpenDndGuide != null) onOpenDndGuide() else open(it) },
         onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
         modifier = modifier,
     )

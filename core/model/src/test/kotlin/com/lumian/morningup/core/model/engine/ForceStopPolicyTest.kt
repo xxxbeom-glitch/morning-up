@@ -5,9 +5,11 @@ import org.junit.Test
 
 class ForceStopPolicyTest {
     @Test
-    fun exitRecordWins_onAndroid11Up() {
+    fun android11Up_exitRecordOrWipedSchedule() {
         assertThat(ForceStopPolicy.detected(true, userStopSinceLastOpen = true, scheduleWiped = false)).isTrue()
-        assertThat(ForceStopPolicy.detected(true, userStopSinceLastOpen = false, scheduleWiped = true)).isFalse()
+        // ISS-054: 앱이 떠 있지 않을 때 강제 종료하면 닫힘 기록이 없어도 예약은 지워져요.
+        assertThat(ForceStopPolicy.detected(true, userStopSinceLastOpen = false, scheduleWiped = true)).isTrue()
+        assertThat(ForceStopPolicy.detected(true, userStopSinceLastOpen = false, scheduleWiped = false)).isFalse()
     }
 
     @Test
