@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -56,7 +57,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -215,8 +215,11 @@ private fun RetryMissionButton(onBack: () -> Unit, modifier: Modifier = Modifier
 }
 
 /**
- * 흐린 예문 위에 바로 겹쳐 쓰는 칸. 쓴 글자는 예문 같은 자리를 덮어요([TraceOverlay]).
- * 맞게 친 글자는 진하게, 조합 중인 한글은 밑줄(키보드 조합 표시), 틀린 글자는 빨강과 밑줄이고 칸이 살짝 흔들려요.
+ * 흐린 예문 위에 바로 겹쳐 쓰는 칸. 같은 글꼴, 크기, 줄 높이, 시작 자리의 세 겹을 겹쳐요(TSK-246).
+ * 1. 맨 아래 흐린 예문([traceGhost]). 늘 예문 전체로 줄을 짜서, 조합 중 글자(예: 'ㅌ')의 폭이 달라도 뒤 글자가 밀리지 않아요.
+ * 2. 가운데 보이는 쓴 글자([TraceOverlay]). 맞은 글자는 진하게, 틀린 글자는 빨강이에요(밑줄 없음, 칸 흔들림).
+ * 3. 맨 위 진짜 입력 칸. 글자는 모두 투명이라 키보드 조합 밑줄도 투명이 되어 안 보여요. 커서만 보여요.
+ * 2와 3은 같은 글(쓴 글 + 투명한 남은 예문)이라 줄과 자리가 같아서 커서가 쓴 글자 끝에 정확히 붙어요.
  * 틀린 글자를 지우기 전에는 이어 쓰지 못해요. 예문이 길면 칸 안에서 줄을 바꿔요. 줄 바꿈 글자는 넣지 않아요.
  */
 @Composable
@@ -232,7 +235,18 @@ private fun TraceField(state: EscapeUiState, onType: (String) -> Unit) {
         ghost = MissionColors.Text.copy(alpha = GHOST_ALPHA),
         wrong = MorningTheme.colors.statusError,
     )
-    val overlay = remember(state.sentence, wrongAt, colors) { TraceOverlay(state.sentence, wrongAt, colors) }
+    val shown = remember(state.sentence, wrongAt, colors) { TraceOverlay(state.sentence, wrongAt, colors) }
+    val input = remember(state.sentence) { TraceOverlay(state.sentence, wrongAt = null, colors = null) }
+    val composing = if (correct) null else field.composition
+    val ghost = remember(state.sentence, field.text.length, composing, colors.ghost) {
+        traceGhost(state.sentence, field.text.length, composing, colors.ghost)
+    }
+    val textStyle = MorningTheme.typography.headlineLarge.copy(
+        fontSize = TraceSize,
+        lineHeight = TraceLineHeight,
+        fontWeight = FontWeight.Bold,
+        color = colors.done,
+    )
     val description = stringResource(R.string.escape_screen_input)
     Box(
         Modifier
@@ -243,38 +257,55 @@ private fun TraceField(state: EscapeUiState, onType: (String) -> Unit) {
             .padding(TracePadding),
         contentAlignment = Alignment.CenterStart,
     ) {
-        BasicTextField(
-            value = field,
-            onValueChange = { next ->
-                val clean = next.text.replace("\n", "")
-                val value = if (clean == next.text) next else TextFieldValue(clean, TextRange(clean.length))
-                val old = field.text
-                // 틀린 글자 뒤로 이어 쓰면 칸은 그대로 두고, 화면 모델이 막힌 횟수를 세어 흔들어요.
-                if (TraceTyping.accepts(old, clean, state.sentence)) field = value
-                if (clean != old) onType(clean)
-            },
-            enabled = !correct,
-            textStyle = MorningTheme.typography.headlineLarge.copy(
-                fontSize = TraceSize,
-                lineHeight = TraceLineHeight,
-                fontWeight = FontWeight.Bold,
-                color = colors.done,
-            ),
-            visualTransformation = overlay,
-            cursorBrush = SolidColor(MissionColors.Text),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.None,
-                autoCorrectEnabled = false,
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focus)
-                .testTag(ESCAPE_INPUT_TAG)
-                .semantics { contentDescription = description },
-        )
+        // 세 겹은 모두 왼쪽 위에서 시작해야 줄 수가 달라도 같은 자리에 겹쳐요. 묶음째로 칸 세로 가운데에 둬요.
+        Box(Modifier.fillMaxWidth()) {
+            BasicText(text = ghost, style = textStyle, modifier = Modifier.fillMaxWidth())
+            BasicText(
+                text = shown.filter(AnnotatedString(field.text)).text,
+                style = textStyle,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            BasicTextField(
+                value = field,
+                onValueChange = { next ->
+                    val clean = next.text.replace("\n", "")
+                    val value = if (clean == next.text) next else TextFieldValue(clean, TextRange(clean.length))
+                    val old = field.text
+                    // 틀린 글자 뒤로 이어 쓰면 칸은 그대로 두고, 화면 모델이 막힌 횟수를 세어 흔들어요.
+                    if (TraceTyping.accepts(old, clean, state.sentence)) field = value
+                    if (clean != old) onType(clean)
+                },
+                enabled = !correct,
+                textStyle = textStyle.copy(color = Color.Transparent),
+                visualTransformation = input,
+                cursorBrush = SolidColor(MissionColors.Text),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.None,
+                    autoCorrectEnabled = false,
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focus)
+                    .testTag(ESCAPE_INPUT_TAG)
+                    .semantics { contentDescription = description },
+            )
+        }
     }
 }
+
+/**
+ * 맨 아래 흐린 예문 겹. 쓴 글자 아래는 투명으로 비워 두고(자리는 그대로), 조합 중인 글자 아래는 예문을 흐리게 보여요.
+ * 늘 예문 전체 글이라 줄 바꿈과 글자 자리가 쓰는 동안 바뀌지 않아요.
+ */
+internal fun traceGhost(sentence: String, typedLength: Int, composition: TextRange?, ghost: Color): AnnotatedString =
+    buildAnnotatedString {
+        sentence.forEachIndexed { i, c ->
+            val composing = composition != null && i >= composition.min && i < composition.max
+            val color = if (i < typedLength && !composing) Color.Transparent else ghost
+            withStyle(SpanStyle(color = color)) { append(c) }
+        }
+    }
 
 /** 틀린 글자가 새로 나오거나 막힐 때마다 칸을 좌우로 살짝 흔들고 짧게 떨어요. 움직임 줄이기면 떨기만 해요. */
 @Composable
@@ -302,27 +333,28 @@ private fun rememberShake(wrongAt: Int?, rejected: Int): Animatable<Float, *> {
 internal data class TraceColors(val done: Color, val ghost: Color, val wrong: Color)
 
 /**
- * 쓴 글 뒤에 아직 안 쓴 예문을 흐리게 이어 붙여, 쓴 글자가 예문 같은 자리를 덮어 보이게 해요.
- * 커서는 쓴 글 끝을 넘지 않아요. [wrongAt]부터 쓴 글자는 빨강과 밑줄이에요.
+ * 쓴 글 뒤에 아직 안 쓴 예문을 투명하게 이어 붙여요. 그래서 줄 짜기가 예문 전체와 같아 쓴 글자가 예문 같은 자리에 와요.
+ * 남은 예문은 맨 아래 겹([traceGhost])이 흐리게 보여 줘요. 커서는 쓴 글 끝을 넘지 않아요.
+ * [wrongAt]부터 쓴 글자는 빨강이에요(밑줄 없음, TSK-246). [colors]가 null이면 쓴 글자도 투명(진짜 입력 칸 겹)이에요.
  */
 internal class TraceOverlay(
     private val sentence: String,
     private val wrongAt: Int?,
-    private val colors: TraceColors,
+    private val colors: TraceColors?,
 ) : VisualTransformation {
     override fun filter(text: AnnotatedString): TransformedText {
         val typed = text.text
         val shown = buildAnnotatedString {
             typed.forEachIndexed { i, c ->
-                val style = if (wrongAt != null && i >= wrongAt) {
-                    SpanStyle(color = colors.wrong, textDecoration = TextDecoration.Underline)
-                } else {
-                    SpanStyle(color = colors.done)
+                val color = when {
+                    colors == null -> Color.Transparent
+                    wrongAt != null && i >= wrongAt -> colors.wrong
+                    else -> colors.done
                 }
-                withStyle(style) { append(c) }
+                withStyle(SpanStyle(color = color)) { append(c) }
             }
             if (typed.length < sentence.length) {
-                withStyle(SpanStyle(color = colors.ghost)) { append(sentence.substring(typed.length)) }
+                withStyle(SpanStyle(color = Color.Transparent)) { append(sentence.substring(typed.length)) }
             }
         }
         val mapping = object : OffsetMapping {

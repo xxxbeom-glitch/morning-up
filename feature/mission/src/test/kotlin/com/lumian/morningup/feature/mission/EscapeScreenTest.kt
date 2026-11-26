@@ -120,7 +120,34 @@ class EscapeScreenTest {
         val out = TraceOverlay("테스트 문장", wrongAt = 2, colors = colors)
             .filter(androidx.compose.ui.text.AnnotatedString("테스ㅌ"))
         assertThat(out.text.text).isEqualTo("테스ㅌ 문장")
-        assertThat(out.text.spanStyles.first { it.start == 2 }.item.color).isEqualTo(colors.wrong)
+        val wrong = out.text.spanStyles.first { it.start == 2 }.item
+        assertThat(wrong.color).isEqualTo(colors.wrong)
+        // TSK-246: 틀린 글자도 밑줄 없이 빨강만. 남은 예문은 투명(맨 아래 겹이 흐리게 보여 줘요).
+        assertThat(out.text.spanStyles.all { it.item.textDecoration == null }).isTrue()
+        assertThat(out.text.spanStyles.first { it.start == 3 }.item.color)
+            .isEqualTo(androidx.compose.ui.graphics.Color.Transparent)
         assertThat(out.offsetMapping.transformedToOriginal(6)).isEqualTo(3)
+    }
+
+    @Test
+    fun inputLayer_isAllTransparent_soCompositionUnderlineHides() {
+        // 진짜 입력 칸 겹은 글자가 모두 투명이라 키보드 조합 밑줄(글자색을 따라요)도 안 보여요.
+        val out = TraceOverlay("테스트 문장", wrongAt = null, colors = null)
+            .filter(androidx.compose.ui.text.AnnotatedString("테스ㅌ"))
+        assertThat(out.text.text).isEqualTo("테스ㅌ 문장")
+        assertThat(out.text.spanStyles.map { it.item.color }.toSet())
+            .containsExactly(androidx.compose.ui.graphics.Color.Transparent)
+    }
+
+    @Test
+    fun ghostLayer_keepsWholeSentence_hidesTypedButShowsUnderComposing() {
+        val ghost = androidx.compose.ui.graphics.Color.Gray
+        val out = traceGhost("테스트 문장", typedLength = 3, composition = androidx.compose.ui.text.TextRange(2, 3), ghost)
+        // 늘 예문 전체라 조합 중 글자 폭이 달라도 뒤 글자 자리가 그대로예요.
+        assertThat(out.text).isEqualTo("테스트 문장")
+        val colorAt = { i: Int -> out.spanStyles.first { it.start == i }.item.color }
+        assertThat(colorAt(0)).isEqualTo(androidx.compose.ui.graphics.Color.Transparent)
+        assertThat(colorAt(2)).isEqualTo(ghost)
+        assertThat(colorAt(4)).isEqualTo(ghost)
     }
 }
