@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -147,23 +149,37 @@ fun EscapeScreen(
                 totalMillis = MissionEscape.IDLE_MILLIS,
                 modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
             )
-            Spacer(Modifier.height(MorningDimens.space24))
-            Text(
-                text = if (low) {
-                    stringResource(R.string.escape_screen_idle, seconds)
-                } else {
-                    stringResource(R.string.escape_screen_guide)
-                },
-                style = MorningTheme.typography.captionMedium,
-                color = if (low) MorningTheme.colors.statusError else MissionColors.TextStatus,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(MorningDimens.space16))
-            TraceField(state = state, onType = onType)
-            if (!correct) {
-                Spacer(Modifier.height(MorningDimens.space16))
-                RetryMissionButton(onBack, Modifier.align(Alignment.CenterHorizontally))
+            // 시간 바 아래 남은 자리의 세로 가운데에 안내, 칸, 버튼 묶음을 둬요(TSK-242). 키보드가 올라오면
+            // imePadding으로 남은 자리가 줄어 키보드 위에서 다시 가운데에 오고, 그래도 넘치면 스크롤돼요.
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        .padding(vertical = MorningDimens.space16),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = if (low) {
+                            stringResource(R.string.escape_screen_idle, seconds)
+                        } else {
+                            stringResource(R.string.escape_screen_guide)
+                        },
+                        style = MorningTheme.typography.captionMedium,
+                        color = if (low) MorningTheme.colors.statusError else MissionColors.TextStatus,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(Modifier.height(MorningDimens.space16))
+                    TraceField(state = state, onType = onType)
+                    if (!correct) {
+                        Spacer(Modifier.height(MorningDimens.space16))
+                        RetryMissionButton(onBack)
+                    }
+                }
             }
         }
     }
