@@ -57,6 +57,19 @@
     <string name="force_stopped_text">지금 다시 맞췄어요</string>
     <string name="power_guard_service_label">일어나 전원 종료 방지</string>
     <string name="power_guard_service_desc">알람 미션을 하는 동안 전원 메뉴가 열리면 바로 닫아요. 화면 내용은 읽거나 저장하지 않아요.</string>
+    <!-- 다음 알람 늘 보이기 N3(결정 179, 시안 TSK-224) -->
+    <string name="channel_next_alarm">다음 알람</string>
+    <string name="channel_next_alarm_description">다음 알람을 알림 창에 늘 띄워 둬요</string>
+    <!-- 다음 알람 목요일 오전 6:30 -->
+    <string name="next_alarm_title">다음 알람 %1$s</string>
+    <!-- 목요일 오전 6:30 -->
+    <string name="next_alarm_when">%1$s %2$s</string>
+    <string name="next_alarm_date">%1$d월 %2$d일</string>
+    <!-- 월 화 수 목 금 반복 -->
+    <string name="next_alarm_repeat">%1$s 반복</string>
+    <string name="next_alarm_once">한 번 울려요</string>
+    <!-- 목요일은 쉬어요. 금요일 오전 6:30에 울려요 -->
+    <string name="next_alarm_rested">%1$s은 쉬어요. %2$s에 울려요</string>
     <!-- 배터리 전날 밤 알림(결정 113, 119). 채널 이름과 설명은 추천안 -->
     <string name="channel_reminder">알람 점검</string>
     <string name="channel_reminder_description">내일 알람이 제때 울리지 못할 수 있을 때 알려요</string>

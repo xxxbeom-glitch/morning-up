@@ -17,6 +17,7 @@ import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.BatteryReminder
 import com.lumian.morningup.core.alarm.ForceStopTrace
+import com.lumian.morningup.core.alarm.NextAlarmNotice
 import com.lumian.morningup.core.alarm.PreRingCheck
 import com.lumian.morningup.core.alarm.SilencedRingLog
 import com.lumian.morningup.core.alarm.NowProvider
@@ -58,6 +59,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var batteryReminder: BatteryReminder
 
     @Inject lateinit var preRing: PreRingCheck
+
+    @Inject lateinit var nextAlarmNotice: NextAlarmNotice
 
     @Inject lateinit var forceStop: ForceStopTrace
 
@@ -144,6 +147,8 @@ class MainActivity : ComponentActivity() {
             forceStop.finish(forced)
             // 울리기 10분 전 방해 금지 점검을 다음 알람에 맞춰 잡아요(TSK-177 답 2).
             preRing.schedule()
+            // '다음 알람 늘 보이기'를 켰으면 알림을 다음 알람에 맞춰 늘 고쳐요(결정 179).
+            nextAlarmNotice.start()
         }
         // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
         // 온보딩 전용 확인 앱은 배터리 알림을 보내지 않아요(원래 앱과 겹치지 않게).

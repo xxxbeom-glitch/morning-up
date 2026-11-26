@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lumian.morningup.core.alarm.NextAlarmNotice
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.guard.PowerGuardConsent
 import com.lumian.morningup.core.alarm.ring.AlarmDndOverride
@@ -34,7 +35,15 @@ class SettingsViewModel @Inject constructor(
     private val powerConsent: PowerGuardConsent,
     @ApplicationContext context: Context,
     private val dndOverride: AlarmDndOverride? = null,
+    private val nextAlarmNotice: NextAlarmNotice? = null,
 ) : ViewModel() {
+    /** 설정 탭 '다음 알람 늘 보이기' 토글(결정 179). 처음 꺼짐. */
+    val nextAlarmShown: StateFlow<Boolean> = nextAlarmNotice?.enabled ?: MutableStateFlow(false)
+
+    fun setNextAlarmShown(on: Boolean) {
+        nextAlarmNotice?.setEnabled(on)
+    }
+
     /** P6 접근성 권한 동의를 받았는지. */
     val powerGuardAgreed: StateFlow<Boolean> = powerConsent.agreed
 

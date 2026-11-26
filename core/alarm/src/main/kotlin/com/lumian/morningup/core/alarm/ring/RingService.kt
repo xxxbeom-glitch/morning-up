@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
+import com.lumian.morningup.core.alarm.NextAlarmNotice
 import com.lumian.morningup.core.alarm.SilencedRingLog
 import com.lumian.morningup.core.alarm.sleep.SleepPlayer
 import com.lumian.morningup.core.model.engine.RingEvent
@@ -51,6 +52,8 @@ class RingService : LifecycleService() {
     @Inject lateinit var chime: ChimePlayer
 
     @Inject lateinit var silencedRings: SilencedRingLog
+
+    @Inject lateinit var nextAlarmNotice: NextAlarmNotice
 
     @Inject
     @AlarmScope
@@ -94,6 +97,8 @@ class RingService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        // 앱을 열지 않고 울린 경우에도 울린 뒤 다음 알람으로 알림을 고쳐요(결정 179).
+        nextAlarmNotice.start()
         ContextCompat.registerReceiver(
             this,
             screenOffReceiver,

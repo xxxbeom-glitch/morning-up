@@ -35,6 +35,9 @@
     <string name="permission_status_none">허용 안 됨</string>
     <string name="settings_power_guard">전원 종료 방지</string>
     <string name="settings_power_guard_desc">미션 중 전원 메뉴를 막아요</string>
+    <!-- 다음 알람 늘 보이기(결정 179, 시안 TSK-224) -->
+    <string name="settings_next_alarm">다음 알람 늘 보이기</string>
+    <string name="settings_next_alarm_desc">알림 창에 다음 알람을 띄워 둬요</string>
     <string name="settings_dnd_override">방해 금지 잠깐 풀기</string>
     <string name="settings_dnd_override_desc">알람이 울리는 동안만 알람 소리를 허용해요</string>
     <string name="permission_not_granted">허용 필요</string>

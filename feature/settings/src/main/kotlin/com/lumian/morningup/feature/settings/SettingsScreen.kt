@@ -86,6 +86,7 @@ fun SettingsRoute(
     val tryAt by viewModel.tryAlarmAt.collectAsStateWithLifecycle()
     val powerOn by viewModel.powerGuardEnabled.collectAsStateWithLifecycle()
     val dndOn by viewModel.dndOverrideEnabled.collectAsStateWithLifecycle()
+    val nextShown by viewModel.nextAlarmShown.collectAsStateWithLifecycle()
     var askPowerConsent by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     SettingsScreen(
@@ -113,6 +114,8 @@ fun SettingsRoute(
             }
         },
         // 방해 금지 접근 권한이 있을 때만 켜진 모양이에요. 없으면 켤 때 그 권한 화면으로 보내요(TSK-177 답 3).
+        nextAlarmShown = nextShown,
+        onNextAlarmShown = viewModel::setNextAlarmShown,
         dndOverride = dndOn && report.isGranted(AlarmPermission.DoNotDisturb),
         onDndOverride = { on ->
             viewModel.setDndOverrideEnabled(on)
@@ -156,6 +159,8 @@ fun SettingsScreen(
     onPowerGuard: (Boolean) -> Unit = {},
     dndOverride: Boolean = false,
     onDndOverride: (Boolean) -> Unit = {},
+    nextAlarmShown: Boolean = false,
+    onNextAlarmShown: (Boolean) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         Column(
@@ -184,6 +189,14 @@ fun SettingsScreen(
                             onClick = onTryAlarm,
                         )
                     }
+                    // 알람 카드 맨 아래 '다음 알람 늘 보이기'(결정 179, 시안 TSK-224). 처음 꺼짐.
+                    MorningSettingRow(
+                        label = stringResource(R.string.settings_next_alarm),
+                        value = stringResource(R.string.settings_next_alarm_desc),
+                        state = if (nextAlarmShown) SettingRowState.On else SettingRowState.Off,
+                        onCheckedChange = onNextAlarmShown,
+                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+                    )
                 }
                 // 깼는지 묻기, 한 번 더 확인(결정 145)
                 wakeCheckCard()
