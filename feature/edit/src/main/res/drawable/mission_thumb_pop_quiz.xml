@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TSK-233 미션 섬네일 도형 아이콘(피그마 1168:17778). 모서리는 앱에서 한 변의 22%로 잘라요. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <path android:pathData="M0,0h160v160h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="40" android:startY="40" android:endX="120" android:endY="120">
+                <item android:offset="0" android:color="#FFD4BDF7" />
+                <item android:offset="1" android:color="#FFA486EC" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M33,80a19,19 0 1 1 38,0a19,19 0 1 1 -38,0z" android:strokeColor="#FFFFFFFF" android:strokeWidth="12" />
+    <group android:rotation="-45" android:pivotX="85.2513" android:pivotY="96.2617">
+        <path android:pathData="M91.2513,96.2617h46a6,6 0 0 1 6,6v0a6,6 0 0 1 -6,6h-46a6,6 0 0 1 -6,-6v0a6,6 0 0 1 6,-6z" android:fillColor="#BFFFFFFF" />
+    </group>
+    <group android:rotation="45" android:pivotX="93.7365" android:pivotY="55.25">
+        <path android:pathData="M99.7365,55.25h46a6,6 0 0 1 6,6v0a6,6 0 0 1 -6,6h-46a6,6 0 0 1 -6,-6v0a6,6 0 0 1 6,-6z" android:fillColor="#BFFFFFFF" />
+    </group>
+</vector>

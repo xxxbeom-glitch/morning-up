@@ -62,7 +62,6 @@ private val BadgeIcon = 12.dp
 private val BadgeRing = 1.5.dp
 private val AddIcon = 24.dp
 private val PickThumb = 48.dp
-private val PickThumbRadius = 12.dp
 private val ChevronSize = 20.dp
 private const val DISABLED_ALPHA = 0.45f
 
@@ -103,7 +102,6 @@ internal fun MissionSlots(
 @Composable
 private fun FilledSlot(type: MissionType, onClick: () -> Unit, onRemove: () -> Unit, modifier: Modifier) {
     val name = AlarmText.missionName(alarmResources(), type)
-    val shape = RoundedCornerShape(MorningDimens.radiusTile)
     Box(modifier = modifier) {
         Image(
             painter = painterResource(thumbOf(type)),
@@ -111,7 +109,7 @@ private fun FilledSlot(type: MissionType, onClick: () -> Unit, onRemove: () -> U
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .clip(shape)
+                .clip(MissionThumbShape)
                 .testTag("$MISSION_SLOT_TAG${type.name}")
                 .semantics { contentDescription = name }
                 .morningClickable(role = Role.Button, onClick = onClick),
@@ -202,7 +200,7 @@ private fun MissionPickRow(type: MissionType, enabled: Boolean, onClick: () -> U
             painter = painterResource(thumbOf(type)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(PickThumb).clip(RoundedCornerShape(PickThumbRadius)),
+            modifier = Modifier.size(PickThumb).clip(MissionThumbShape),
         )
         Spacer(Modifier.width(MorningDimens.space16))
         Column(modifier = Modifier.weight(1f)) {

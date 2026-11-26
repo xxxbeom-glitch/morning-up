@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- TSK-233 미션 섬네일 도형 아이콘(피그마 1168:17778). 모서리는 앱에서 한 변의 22%로 잘라요. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="160"
+    android:viewportHeight="160">
+    <path android:pathData="M0,0h160v160h-160z">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="40" android:startY="40" android:endX="120" android:endY="120">
+                <item android:offset="0" android:color="#FFFBC796" />
+                <item android:offset="1" android:color="#FFF08F52" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M41,50h28a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-28a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M55,36h0a5,5 0 0 1 5,5v28a5,5 0 0 1 -5,5h0a5,5 0 0 1 -5,-5v-28a5,5 0 0 1 5,-5z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M91,50h28a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-28a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" android:fillColor="#B2FFFFFF" />
+    <group android:rotation="-45" android:pivotX="38.0294" android:pivotY="114.898">
+        <path android:pathData="M43.0294,114.898h28a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-28a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" android:fillColor="#B2FFFFFF" />
+    </group>
+    <group android:rotation="45" android:pivotX="45.1005" android:pivotY="88.0312">
+        <path android:pathData="M50.1005,88.0312h28a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-28a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" android:fillColor="#B2FFFFFF" />
+    </group>
+    <path android:pathData="M91,100h28a5,5 0 0 1 5,5v0a5,5 0 0 1 -5,5h-28a5,5 0 0 1 -5,-5v0a5,5 0 0 1 5,-5z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M100,91a5,5 0 1 1 10,0a5,5 0 1 1 -10,0z" android:fillColor="#FFFFFFFF" />
+    <path android:pathData="M100,119a5,5 0 1 1 10,0a5,5 0 1 1 -10,0z" android:fillColor="#FFFFFFFF" />
+</vector>

@@ -61,7 +61,6 @@ const val SHEET_COUNT_TAG = "sheetCount"
 /** 이름과 설명 사이(데모와 같음). */
 private val NameGap = 2.dp
 private val ThumbSize = 56.dp
-private val ThumbRadius = 12.dp
 private val PreviewButtonWidth = 106.dp
 private const val DISABLED_ALPHA = 0.45f
 
@@ -150,7 +149,7 @@ internal fun MissionCard(
             painter = painterResource(thumbOf(type)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier = Modifier.size(ThumbSize).clip(RoundedCornerShape(ThumbRadius)),
+            modifier = Modifier.size(ThumbSize).clip(MissionThumbShape),
         )
         Spacer(Modifier.width(MorningDimens.space16))
         Column(modifier = Modifier.weight(1f)) {
@@ -294,6 +293,10 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onSt
     }
 }
 
+/** 미션 섬네일 모서리. 크기와 상관없이 한 변의 22%예요(TSK-233: 56은 12, 40은 9). */
+internal val MissionThumbShape = RoundedCornerShape(percent = 22)
+
+/** 미션 섬네일 도형 아이콘(TSK-233, 벡터). Light와 Dark 모두 같은 그림이에요. */
 internal fun thumbOf(type: MissionType): Int = when (type) {
     MissionType.DropWords -> R.drawable.mission_thumb_drop_words
     MissionType.PopQuiz -> R.drawable.mission_thumb_pop_quiz
