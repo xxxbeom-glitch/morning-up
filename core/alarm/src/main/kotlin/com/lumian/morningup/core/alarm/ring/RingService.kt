@@ -77,25 +77,24 @@ class RingService : LifecycleService() {
     }
 
     /**
-     * W3 '정말 깼어요?'가 떠 있는 1분 중 30초 지점에 알림음을 한 번 더 내고 화면을 켜요(결정 182).
+     * W2 '깨어 있나요?'와 W3 '정말 깼어요?'가 떠 있는 1분 중 30초 지점에 알림음을 한 번 더 내고 화면을 켜요(결정 182, 185).
      * 뜰 때 한 번은 상태 기계의 PlayChime이 내요. 옛 2분 반복은 없앴어요.
      */
-    private val recheckNudge = Runnable {
+    private val chimeNudge = Runnable {
         val session = controller.session.value
-        if (session?.phase == RingPhase.RecheckAsking && session.pausedLeftMillis == null) {
-            diagnostics.record("recheck_nudge", session.plan.alarmId)
-            scope.launch { chime.playRecheck(session.plan.alarmId) }
+        val label = ChimeNudge.label(session?.phase)
+        if (session != null && label != null && session.pausedLeftMillis == null) {
+            diagnostics.record("chime_nudge", session.plan.alarmId, label)
+            scope.launch { chime.playSiren(session.plan.alarmId, label) }
             notifications.openScreenNow()
         }
     }
 
-    /** W3가 끝나기 30초 전에 [recheckNudge]를 걸어요. 서비스가 여러 번 불려도 끝 시각 기준이라 한 번만 울려요. */
-    private fun scheduleRecheckNudge() {
-        handler.removeCallbacks(recheckNudge)
-        val session = controller.session.value ?: return
-        if (session.phase != RingPhase.RecheckAsking || session.pausedLeftMillis != null) return
-        val delay = session.phaseEndsAt - RECHECK_NUDGE_BEFORE_END_MILLIS - System.currentTimeMillis()
-        if (delay > 0) handler.postDelayed(recheckNudge, delay)
+    /** W2, W3가 끝나기 30초 전에 [chimeNudge]를 걸어요. 서비스가 여러 번 불려도 끝 시각 기준이라 한 번만 울려요. */
+    private fun scheduleChimeNudge() {
+        handler.removeCallbacks(chimeNudge)
+        val delay = ChimeNudge.delayMillis(controller.session.value, System.currentTimeMillis()) ?: return
+        handler.postDelayed(chimeNudge, delay)
     }
 
     private val screenOffReceiver = object : BroadcastReceiver() {
@@ -232,7 +231,7 @@ class RingService : LifecycleService() {
             }
             else -> {
                 notifications.showRinging(phase)
-                scheduleRecheckNudge()
+                scheduleChimeNudge()
             }
         }
     }
@@ -265,7 +264,7 @@ class RingService : LifecycleService() {
             phase == RingPhase.AwaitingRecheck
         if (quiet) sound.stop()
         handler.removeCallbacks(relight)
-        handler.removeCallbacks(recheckNudge)
+        handler.removeCallbacks(chimeNudge)
         calls.stop(CALL_KEY)
         unregisterReceiver(screenOffReceiver)
         super.onDestroy()
@@ -278,8 +277,6 @@ class RingService : LifecycleService() {
         /** 화면이 꺼지고 잠시 뒤 다시 켜요. 끄자마자 열면 꺼지는 중과 겹쳐요. */
         private const val RELIGHT_DELAY_MILLIS = 600L
 
-        /** W3 끝나기 이만큼 전(1분 중 30초 지점)에 알림음을 한 번 더 내요(결정 182). */
-        private const val RECHECK_NUDGE_BEFORE_END_MILLIS = 30_000L
         private const val CALL_KEY = "ring_checks"
 
         /** 울림 화면 버튼을 서비스로 보내요. 화면이 앞에 있으니 서비스를 앞으로 띄울 수 있어요. */

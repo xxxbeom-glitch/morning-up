@@ -80,4 +80,14 @@ class AlarmTestCaseTest {
             assertEquals(100, loud.volumePercent)
         }
     }
+
+    @Test
+    fun volume_setsRingVolume_beforeSilent_andClamps() {
+        // TSK-250: `--ei volume N`은 알람 벨소리 볼륨(%)이고 silent보다 먼저예요.
+        val quiet = AlarmTestCases.alarmFor(AlarmTestCase.A, time, silent = true, volume = 1)
+        assertEquals(1, quiet.volumePercent)
+        assertEquals(alarm(AlarmTestCase.A).copy(volumePercent = 1), quiet)
+        assertEquals(100, AlarmTestCases.alarmFor(AlarmTestCase.A, time, volume = 150).volumePercent)
+        assertEquals(0, AlarmTestCases.alarmFor(AlarmTestCase.A, time, volume = -5).volumePercent)
+    }
 }

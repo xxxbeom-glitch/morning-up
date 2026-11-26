@@ -54,10 +54,15 @@ object AlarmTestCases {
     /**
      * [silent]이면 알람음 없이 걸어요(TSK-194). 볼륨만 0으로 두고 벨소리와 진동은 경우 설정 그대로라
      * 로그(`sound_play ... volume=0%`)와 진동 흐름은 소리 있을 때와 같아요.
+     * [volume](0~100, 알람 벨소리 볼륨 %)을 주면 [silent]보다 먼저 써요(TSK-250, W2, W3 사이렌을 작게 들어 보기).
      */
-    fun alarmFor(case: AlarmTestCase, time: LocalTime, silent: Boolean = false): Alarm {
+    fun alarmFor(case: AlarmTestCase, time: LocalTime, silent: Boolean = false, volume: Int? = null): Alarm {
         val alarm = caseAlarm(case, time)
-        return if (silent) alarm.copy(volumePercent = 0) else alarm
+        return when {
+            volume != null -> alarm.copy(volumePercent = volume.coerceIn(0, 100))
+            silent -> alarm.copy(volumePercent = 0)
+            else -> alarm
+        }
     }
 
     private fun caseAlarm(case: AlarmTestCase, time: LocalTime): Alarm {

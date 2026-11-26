@@ -8,7 +8,6 @@ import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingOutcome
-import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
 import java.time.Instant
 import java.time.ZoneId
@@ -132,10 +131,9 @@ class AndroidRingEffectRunner @Inject constructor(
      * 앱 볼륨은 알람마다 정한 볼륨이에요. 진동은 제 볼륨으로 울릴 때만 켜요(미션 중에는 소리와 진동 모두 꺼요, 결정 65).
      * 알람음을 끈 알람(진동만, S5)은 소리 0으로 진동만 울려요. 부드럽게 깨우기면 처음 켤 때 서서히 올려요(S7).
      */
-    /** W3는 사이렌 소리를 알람 벨소리 볼륨으로, W2는 기본 알림음을 30%로(사용자 지시 11-26). */
+    /** W2, W3 모두 증기 사이렌을 알람 벨소리 볼륨으로(사용자 지시 11-26, 결정 185). */
     private suspend fun playChime(session: RingSession?) {
-        val id = session?.plan?.alarmId
-        if (id != null && session.phase == RingPhase.RecheckAsking) chime.playRecheck(id) else chime.play(id)
+        chime.playSiren(session?.plan?.alarmId, ChimeNudge.label(session?.phase) ?: "w2")
     }
 
     private suspend fun playSound(session: RingSession?, fraction: Float) {

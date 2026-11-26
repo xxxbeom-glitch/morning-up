@@ -70,14 +70,20 @@ class DebugCommandReceiver : BroadcastReceiver() {
         val minutes = intent.getIntExtra(EXTRA_IN_MINUTES, 1).coerceIn(1, MAX_MINUTES)
         // `--ez silent true`면 알람음 없이 걸어요(TSK-194, Z플립5 시험은 소리 없이).
         val silent = intent.getBooleanExtra(EXTRA_SILENT, false)
+        // `--ei volume N`(0~100)이면 알람 벨소리 볼륨을 그 값으로. silent보다 먼저예요(TSK-250).
+        val volume = if (intent.hasExtra(EXTRA_VOLUME)) intent.getIntExtra(EXTRA_VOLUME, 100).coerceIn(0, 100) else null
         val pending = goAsync()
         scope.launch {
             try {
                 val current = now.now()
                 val time = current.toLocalTime().plusMinutes(minutes.toLong()).truncatedTo(ChronoUnit.MINUTES)
-                val alarm = repository.insert(AlarmTestCases.alarmFor(case, time, silent))
+                val alarm = repository.insert(AlarmTestCases.alarmFor(case, time, silent, volume))
                 rescheduler.reschedule(alarm, current)
-                val result = "case ${case.name} alarm ${alarm.id} at $time" + if (silent) " silent" else ""
+                val result = "case ${case.name} alarm ${alarm.id} at $time" + when {
+                    volume != null -> " volume=$volume%"
+                    silent -> " silent"
+                    else -> ""
+                }
                 FlowLog.event("debug_case_scheduled", alarmId = alarm.id, detail = result)
                 pending.resultData = result
             } finally {
@@ -185,6 +191,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_CASE = "case"
         const val EXTRA_IN_MINUTES = "in_minutes"
         const val EXTRA_SILENT = "silent"
+        const val EXTRA_VOLUME = "volume"
         const val ACTION_WAKE_CHECK = "com.lumian.morningup.debug.WAKE_CHECK"
         const val EXTRA_ASK_MINUTES = "ask_minutes"
         const val EXTRA_ANSWER_SECONDS = "answer_seconds"

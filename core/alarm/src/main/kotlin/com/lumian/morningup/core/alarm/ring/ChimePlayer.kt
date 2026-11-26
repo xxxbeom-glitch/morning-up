@@ -5,7 +5,6 @@ import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.MediaPlayer
-import android.media.RingtoneManager
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -19,11 +18,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * W2, W3가 뜰 때 짧은 알림음과 진동 2번(결정 145 3번). 알람 소리 통로(USAGE_ALARM)로 알람 볼륨의 30% 크기로
- * 한 번만 울려요. 무음 모드에서도 들려요. 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가
- * 최소 크기로 올리고 끝나면 돌려요(결정 143 대책을 W3에도).
- * W2는 폰 기본 알림음, W3 '정말 깼어요?'는 앱에 넣은 증기 사이렌 소리(`res/raw/w3_recheck`, 사용자 지시 11-26)예요.
- * W3 크기는 30%가 아니라 그 알람의 벨소리 볼륨(S4 볼륨 시트) 그대로예요([playRecheck]). 소리 고르기는 아직 없어요.
+ * W2, W3가 뜰 때 짧은 알림음과 진동 2번(결정 145 3번). 알람 소리 통로(USAGE_ALARM)로 울려서 무음 모드에서도 들려요.
+ * 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가 최소 크기로 올리고 끝나면 돌려요(결정 143 대책).
+ * W2 '깨어 있나요?'와 W3 '정말 깼어요?' 모두 앱에 넣은 증기 사이렌 소리(`res/raw/w3_recheck`)를 그 알람의 벨소리 볼륨
+ * (S6 볼륨 시트) 그대로 울려요(사용자 지시 11-26, 결정 185). 언제 울릴지는 [ChimeNudge]예요. 소리 고르기는 아직 없어요.
  * 채널 소리가 아니라 직접 울려서 알림 채널을 바꿀 필요는 없어요.
  */
 @Singleton
@@ -33,10 +31,12 @@ class ChimePlayer @Inject constructor(
     private val volumeGuard: AlarmVolumeGuard,
     private val alarms: AlarmStore,
 ) {
-    /** W3 알림음. 알람의 벨소리 볼륨으로 울려요. 알람을 못 읽으면 100%예요. */
-    suspend fun playRecheck(alarmId: Long) {
-        val percent = alarms.get(alarmId)?.volumePercent ?: FULL_PERCENT
-        play(alarmId, recheck = true, volume = percent / FULL_PERCENT.toFloat())
+    /**
+     * W2, W3 알림음. 알람의 벨소리 볼륨으로 울려요. 알람을 못 읽으면 100%예요. [label]은 진단 기록 이름(`w2`, `w3`)이에요.
+     */
+    suspend fun playSiren(alarmId: Long?, label: String) {
+        val percent = alarmId?.let { alarms.get(it)?.volumePercent } ?: FULL_PERCENT
+        play(alarmId, label, volume = percent / FULL_PERCENT.toFloat())
     }
 
     private val attributes = AudioAttributes.Builder()
@@ -48,18 +48,14 @@ class ChimePlayer @Inject constructor(
     private var volumeHeld = false
 
     @Synchronized
-    fun play(alarmId: Long?, recheck: Boolean = false, volume: Float = VOLUME_FRACTION) {
+    private fun play(alarmId: Long?, label: String, volume: Float) {
         val audio = context.getSystemService(AudioManager::class.java)
         if (audio?.getStreamVolume(AudioManager.STREAM_ALARM) == 0) diagnostics.record("chime_volume_zero", alarmId)
         vibrateTwice()
         release()
         volumeHeld = true
         volumeGuard.hold(alarmId)
-        val uri = if (recheck) {
-            "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.w3_recheck}".toUri()
-        } else {
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        } ?: return release()
+        val uri = "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.w3_recheck}".toUri()
         val mp = MediaPlayer()
         player = try {
             mp.setAudioAttributes(attributes)
@@ -69,7 +65,7 @@ class ChimePlayer @Inject constructor(
             mp.setVolume(played, played)
             mp.setOnCompletionListener { done -> synchronized(this) { if (player === done) release() } }
             mp.start()
-            diagnostics.record("chime", alarmId, if (recheck) "w3" else "w2")
+            diagnostics.record("chime", alarmId, label)
             mp
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             diagnostics.record("chime_failed", alarmId, e.javaClass.simpleName)
@@ -99,8 +95,6 @@ class ChimePlayer @Inject constructor(
     }
 
     private companion object {
-        /** W2: 알람 볼륨의 30%. */
-        const val VOLUME_FRACTION = 0.3f
         const val FULL_PERCENT = 100
         const val NO_REPEAT = -1
         val TWICE = longArrayOf(0, 200, 150, 200)
