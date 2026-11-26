@@ -10,6 +10,7 @@ import com.lumian.morningup.core.data.db.Migration2To3
 import com.lumian.morningup.core.data.db.LegacyWakeCheck
 import com.lumian.morningup.core.data.db.Migration3To4
 import com.lumian.morningup.core.data.db.Migration4To5
+import com.lumian.morningup.core.data.db.Migration5To6
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
@@ -135,7 +136,8 @@ class MigrationTest {
 
         val db = openApp(LegacyWakeCheck())
         val repo = AlarmRepository(db.alarmDao())
-        val expected = WakeCheck(true, 5, 30, recheckEnabled = true, recheckWaitMinutes = 5, recheckCount = 2)
+        // 앱으로 열면 v6까지 옮겨서 대답할 시간은 1분, 확인까지는 3분으로 고정돼요(결정 183).
+        val expected = WakeCheck(true, 5, 60, recheckEnabled = true, recheckWaitMinutes = 3, recheckCount = 2)
         assertThat(repo.all().map { it.wakeCheck }).containsExactly(expected, expected)
         // 앱을 열 때 다시 맞추기(rescheduleAll)처럼 읽은 알람을 통째로 다시 써도 값은 그대로예요.
         repo.all().forEach { repo.save(it.copy(nextTriggerAt = 1L)) }
@@ -151,7 +153,7 @@ class MigrationTest {
         val check = AlarmRepository(db.alarmDao()).all().single().wakeCheck
         db.close()
         assertThat(check)
-            .isEqualTo(WakeCheck(true, 10, 180, recheckEnabled = false, recheckWaitMinutes = 1, recheckCount = 3))
+            .isEqualTo(WakeCheck(true, 10, 60, recheckEnabled = false, recheckWaitMinutes = 3, recheckCount = 3))
     }
 
     @Test
@@ -167,6 +169,32 @@ class MigrationTest {
             }
         db.close()
         assertThat(row).containsExactly(1, 60, 5).inOrder()
+    }
+
+    @Test
+    fun v5ToV6_fixesOldAnswerAndWait_keepsRecheckOnOffAndCount() = runTest {
+        // 결정 183: 대답할 시간 30초, 3분 → 1분 / 확인까지 1분, 5분 → 3분 / 한 번 더 확인 끔 → '안 함'(끔 그대로), 켬 → 횟수 그대로.
+        createV4(1, 2, 3)
+        helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { LegacyWakeCheck() }).apply {
+            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 30, recheckWaitMinutes = 1, recheckEnabled = 1, recheckCount = 2 WHERE id = 1")
+            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 180, recheckWaitMinutes = 5, recheckEnabled = 0, recheckCount = 3 WHERE id = 2")
+            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 60, recheckWaitMinutes = 3, recheckEnabled = 1, recheckCount = 1 WHERE id = 3")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate(dbName, 6, true, Migration5To6)
+        val rows = db.query(
+            "SELECT id, wakeCheckAnswerSeconds, recheckWaitMinutes, recheckEnabled, recheckCount FROM alarms ORDER BY id",
+        ).use { c ->
+            buildList {
+                while (c.moveToNext()) add(List(5) { c.getInt(it) })
+            }
+        }
+        db.close()
+        assertThat(rows).containsExactly(
+            listOf(1, 60, 3, 1, 2),
+            listOf(2, 60, 3, 0, 3),
+            listOf(3, 60, 3, 1, 1),
+        ).inOrder()
     }
 
     private fun insertV1(id: Long, missions: String, sound: String = "default") =

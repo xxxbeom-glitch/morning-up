@@ -314,10 +314,11 @@ class AlarmWiringTest {
             .fire(3)
         val plan = sessions.load()!!.plan
         assertThat(plan.wakeCheckAskAfterMinutes).isEqualTo(5)
-        assertThat(plan.wakeCheckAnswerSeconds).isEqualTo(30)
+        // 결정 183: W2 대답할 시간 1분, W3까지 3분은 고정이라 옛 값(30초, 1분)이 남아 있어도 고정값으로 울려요.
+        assertThat(plan.wakeCheckAnswerSeconds).isEqualTo(60)
         assertThat(plan.recheckEnabled).isTrue()
         assertThat(plan.recheckAnswerMinutes).isEqualTo(1)
-        assertThat(plan.recheckWaitMinutes).isEqualTo(1)
+        assertThat(plan.recheckWaitMinutes).isEqualTo(3)
         assertThat(plan.recheckCount).isEqualTo(2)
     }
 

@@ -22,6 +22,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.WakeCheck
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,6 +101,29 @@ class EditScreenTest {
         compose.onNodeWithText("알람을 끈 뒤 깼는지 한 번 더 물어요").assertExists()
         compose.onNodeWithText("10분 후").performClick()
         assertThat(ask).isEqualTo(10)
+    }
+
+    @Test
+    fun wakeCheckSheet_twoRows_noneTurnsRecheckOff_countTurnsOn() {
+        var recheckOff = false
+        var count: Int? = null
+        val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true))
+        show(
+            EditUiState(loading = false, draft = draft),
+            EditActions(onRecheck = { recheckOff = !it }, onRecheckCount = { count = it }),
+        )
+        compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        // 결정 183: 줄은 '다시 물어보기'와 '한 번 더 확인' 둘. 대답할 시간, 확인까지, 묻는 횟수 줄은 없어요.
+        compose.onNodeWithText("다시 물어보기").assertExists()
+        compose.onNodeWithText("한 번 더 확인").assertExists()
+        compose.onNodeWithText("10초 동안 눌러야 완전히 꺼져요").assertExists()
+        compose.onNodeWithText("대답할 시간").assertDoesNotExist()
+        compose.onNodeWithText("확인까지").assertDoesNotExist()
+        compose.onNodeWithText("묻는 횟수").assertDoesNotExist()
+        compose.onNodeWithText("안 함").performClick()
+        assertThat(recheckOff).isTrue()
+        compose.onNodeWithText("2번").performClick()
+        assertThat(count).isEqualTo(2)
     }
 
     @Test

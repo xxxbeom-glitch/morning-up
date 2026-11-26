@@ -71,7 +71,8 @@ class WakeCheckSettingsPrefsTest {
         prefs.edit().putBoolean("migrated_from_alarms", true).putInt("ask_after_minutes", 5)
             .putInt("answer_seconds", 30).putInt("recheck_wait_minutes", 5).putInt("recheck_count", 2).commit()
         assertThat(WakeCheckSettingsPrefs.legacyWakeCheck(prefs))
-            .isEqualTo(LegacyWakeCheck(5, 30, recheckEnabled = true, recheckWaitMinutes = 5, recheckCount = 2))
+            // 결정 183: 대답할 시간과 확인까지는 고정값(1분, 3분)으로 넘기고, 다시 물어보기와 횟수는 옛 값 그대로예요.
+            .isEqualTo(LegacyWakeCheck(5, 60, recheckEnabled = true, recheckWaitMinutes = 3, recheckCount = 2))
     }
 
     @Test

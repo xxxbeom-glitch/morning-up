@@ -166,9 +166,32 @@ internal fun <T> ChipRow(
     selected: T?,
     optionLabel: @Composable (T) -> String,
     onSelect: (T) -> Unit,
+    description: String? = null,
+) {
+    Column(Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8)) {
+        ChipRowLine(label, options, selected, optionLabel, onSelect)
+        if (description != null) {
+            // 줄 아래 설명 한 줄(MorningSettingRow 아래 글과 같은 글꼴, 색).
+            Spacer(Modifier.height(MorningDimens.space4))
+            Text(
+                text = description,
+                style = MorningTheme.typography.captionMedium,
+                color = MorningTheme.colors.textSecondary,
+            )
+        }
+    }
+}
+
+@Composable
+private fun <T> ChipRowLine(
+    label: String,
+    options: List<T>,
+    selected: T?,
+    optionLabel: @Composable (T) -> String,
+    onSelect: (T) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -228,19 +251,14 @@ internal fun RingAgainSheetContent(alarm: Alarm, actions: EditActions, onDone: (
 /** 꺼져 있을 때 횟수 칸을 아무것도 고르지 않은 모양으로 두는 값(선택지에 없는 수). */
 private const val NOT_SELECTED = -1
 
-private const val SECONDS_PER_MINUTE = 60
+/** '한 번 더 확인' 줄의 '안 함' 칸 값. 고르면 한 번 더 확인(W3)을 꺼요. */
+private const val RECHECK_NONE = 0
 
-/** '30초', '1분', '3분'. */
-@Composable
-private fun answerLabel(seconds: Int): String = if (seconds < SECONDS_PER_MINUTE) {
-    stringResource(R.string.edit_seconds, seconds)
-} else {
-    stringResource(R.string.edit_minutes, seconds / SECONDS_PER_MINUTE)
-}
+private val RecheckOptions = listOf(RECHECK_NONE) + WakeCheckSettings.RECHECK_COUNTS
 
 /**
- * S4 다시 잠들기 방지 시트(결정 180, 시안 TSK-226 `1160:17295`). W2 다시 물어보기, 대답할 시간, '한 번 더 확인' 스위치,
- * 켜면 W3 확인까지와 묻는 횟수. 고르는 즉시 편집 중인 알람에 반영돼요. W3 대답할 시간은 1분 고정이에요(결정 176).
+ * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안). ① '다시 물어보기' 3, 5, 10분 후 ② '한 번 더 확인' 안 함, 1번, 2번, 3번과
+ * 그 아래 설명 한 줄. 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
  */
 @Composable
 internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
@@ -258,35 +276,15 @@ internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: (
             onSelect = actions.onWakeCheckAsk,
         )
         ChipRow(
-            label = stringResource(R.string.edit_wake_check_answer),
-            options = WakeCheckSettings.ANSWER_SECONDS,
-            selected = check.answerSeconds,
-            optionLabel = { answerLabel(it) },
-            onSelect = actions.onWakeCheckAnswer,
-        )
-        MorningSettingRow(
             label = stringResource(R.string.edit_recheck),
-            value = stringResource(R.string.edit_recheck_desc),
-            state = if (check.recheckEnabled) SettingRowState.On else SettingRowState.Off,
-            onCheckedChange = actions.onRecheck,
-            modifier = Modifier.height(SheetToggleRowHeight),
+            options = RecheckOptions,
+            selected = if (check.recheckEnabled) check.recheckCount else RECHECK_NONE,
+            optionLabel = { n ->
+                if (n == RECHECK_NONE) stringResource(R.string.edit_recheck_none) else stringResource(R.string.edit_times, n)
+            },
+            onSelect = { n -> if (n == RECHECK_NONE) actions.onRecheck(false) else actions.onRecheckCount(n) },
+            description = stringResource(R.string.edit_recheck_desc),
         )
-        if (check.recheckEnabled) {
-            ChipRow(
-                label = stringResource(R.string.edit_recheck_wait),
-                options = WakeCheckSettings.RECHECK_WAIT_MINUTES,
-                selected = check.recheckWaitMinutes,
-                optionLabel = { stringResource(R.string.edit_minutes_after, it) },
-                onSelect = actions.onRecheckWait,
-            )
-            ChipRow(
-                label = stringResource(R.string.edit_recheck_count),
-                options = WakeCheckSettings.RECHECK_COUNTS,
-                selected = check.recheckCount,
-                optionLabel = { stringResource(R.string.edit_times, it) },
-                onSelect = actions.onRecheckCount,
-            )
-        }
     }
 }
 

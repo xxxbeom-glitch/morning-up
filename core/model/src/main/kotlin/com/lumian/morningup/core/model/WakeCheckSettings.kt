@@ -33,16 +33,22 @@ data class WakeCheckSettings(
         /** W3 대답할 시간(분). 고르기 없이 1분이에요(결정 176). */
         const val RECHECK_ANSWER_MINUTES = 1
 
+        /** W2 '깼어요?' 대답할 시간(초). 결정 183부터 고르기 없이 1분이에요. */
+        const val FIXED_ANSWER_SECONDS = 60
+
+        /** W3 '정말 깼어요?'까지(그리고 W3와 다음 W3 사이) 기다리는 시간(분). 결정 183부터 고르기 없이 3분이에요. */
+        const val FIXED_RECHECK_WAIT_MINUTES = 3
+
         /** T1-1 '다시 물어보기' 3분 후, 5분 후, 10분 후. */
         val ASK_MINUTES = listOf(3, 5, 10)
 
-        /** T1-1 '대답할 시간' 30초, 1분, 3분. */
+        /** 옛 '대답할 시간' 30초, 1분, 3분. 옛 저장값을 읽을 때만 써요(결정 183부터 [FIXED_ANSWER_SECONDS]). */
         val ANSWER_SECONDS = listOf(30, 60, 180)
 
-        /** T1-2 'W3까지 기다리는 시간' 1분 후, 3분 후, 5분 후(결정 176). */
+        /** 옛 '확인까지' 1분 후, 3분 후, 5분 후. 옛 저장값을 읽을 때만 써요(결정 183부터 [FIXED_RECHECK_WAIT_MINUTES]). */
         val RECHECK_WAIT_MINUTES = listOf(1, 3, 5)
 
-        /** T1-2 '묻는 횟수' 1번, 2번, 3번(결정 176). */
+        /** '한 번 더 확인' 1번, 2번, 3번(결정 176, 183). 시트에서는 앞에 '안 함'([WakeCheck.recheckEnabled] 끔)이 붙어요. */
         val RECHECK_COUNTS = listOf(1, 2, 3)
     }
 }

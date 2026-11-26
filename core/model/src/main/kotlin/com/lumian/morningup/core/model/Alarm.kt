@@ -24,12 +24,12 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
 }
 
 /**
- * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지와 그 값(결정 180, 알람마다). 알람 편집 S4 시트에서 정해요.
+ * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지와 그 값(결정 180, 알람마다). 알람 편집 S4 시트 두 줄에서 정해요(결정 183).
  * - [askAfterMinutes]: W2 '다시 물어보기'. 미션을 끝낸 뒤 W2까지예요.
- * - [answerSeconds]: W2 '대답할 시간'.
- * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.
- * - [recheckWaitMinutes]: W3 '확인까지'. W2 '깼어요' 뒤 W3까지, W3와 다음 W3 사이(결정 176).
- * - [recheckCount]: W3 '묻는 횟수'(결정 176).
+ * - [answerSeconds]: W2 대답할 시간. 결정 183부터 1분 고정이라 [normalized]가 늘 1분으로 맞춰요.
+ * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 꺼짐이 시트의 '안 함' 칸이에요. 처음 켜짐.
+ * - [recheckWaitMinutes]: W2 '깼어요' 뒤 W3까지, W3와 다음 W3 사이. 결정 183부터 3분 고정이에요.
+ * - [recheckCount]: '한 번 더 확인' 횟수 1, 2, 3번(결정 176).
  * 처음 값은 결정 145의 전체 설정 처음 값과 같아요. 옛 전체 설정 값은 한 번 모든 알람에 옮겨요(DB v4 → v5, Migration4To5).
  */
 data class WakeCheck(
@@ -40,14 +40,12 @@ data class WakeCheck(
     val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
     val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
 ) {
-    /** 고를 수 없는 값(옛 저장값)은 처음 값으로 바꿔요. */
+    /** 고를 수 없는 값(옛 저장값)은 처음 값으로, 고정값(결정 183)은 고정값으로 바꿔요. */
     fun normalized(): WakeCheck = copy(
         askAfterMinutes = askAfterMinutes.takeIf { it in WakeCheckSettings.ASK_MINUTES }
             ?: WakeCheckSettings.DEFAULT_ASK_MINUTES,
-        answerSeconds = answerSeconds.takeIf { it in WakeCheckSettings.ANSWER_SECONDS }
-            ?: WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
-        recheckWaitMinutes = recheckWaitMinutes.takeIf { it in WakeCheckSettings.RECHECK_WAIT_MINUTES }
-            ?: WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+        answerSeconds = WakeCheckSettings.FIXED_ANSWER_SECONDS,
+        recheckWaitMinutes = WakeCheckSettings.FIXED_RECHECK_WAIT_MINUTES,
         recheckCount = recheckCount.takeIf { it in WakeCheckSettings.RECHECK_COUNTS }
             ?: WakeCheckSettings.DEFAULT_RECHECK_COUNT,
     )

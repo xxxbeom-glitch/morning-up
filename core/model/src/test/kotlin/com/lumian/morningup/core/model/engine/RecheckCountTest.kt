@@ -52,9 +52,19 @@ class RecheckCountTest {
         val check = WakeCheck(enabled = true, askAfterMinutes = 10, recheckWaitMinutes = 1, recheckCount = 3)
         val p = RingPlan.from(Alarm(time = LocalTime.of(6, 30), wakeCheck = check), WakeCheckSettings())
         assertThat(p.wakeCheckAskAfterMinutes).isEqualTo(10)
-        assertThat(p.recheckWaitMinutes).isEqualTo(1)
+        // 결정 183: W3까지 기다리는 시간은 3분 고정이라 옛 값 1분은 3분이 돼요. 횟수는 알람 값 그대로예요.
+        assertThat(p.recheckWaitMinutes).isEqualTo(3)
         assertThat(p.recheckCount).isEqualTo(3)
         assertThat(p.recheckAnswerMinutes).isEqualTo(1)
+    }
+
+    @Test
+    fun normalized_fixesOldAnswerAndWait_keepsRecheckOffAndCount() {
+        // 결정 183: 대답할 시간 30초, 3분 → 1분 / 확인까지 1분, 5분 → 3분 / 한 번 더 확인 끔('안 함')과 횟수는 그대로.
+        val old = WakeCheck(true, 5, 180, recheckEnabled = false, recheckWaitMinutes = 5, recheckCount = 2)
+        assertThat(old.normalized())
+            .isEqualTo(WakeCheck(true, 5, 60, recheckEnabled = false, recheckWaitMinutes = 3, recheckCount = 2))
+        assertThat(WakeCheck(answerSeconds = 30, recheckWaitMinutes = 1).normalized().answerSeconds).isEqualTo(60)
     }
 
     @Test

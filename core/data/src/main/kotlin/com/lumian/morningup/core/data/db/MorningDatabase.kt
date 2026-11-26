@@ -12,7 +12,7 @@ import com.lumian.morningup.core.model.WakeCheckSettings
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -28,7 +28,7 @@ abstract class MorningDatabase : RoomDatabase() {
          * 다시 잠들기 방지 값이에요(앱은 설정 저장소에서 읽어요, 결정 180).
          */
         fun migrations(legacyWakeCheck: () -> LegacyWakeCheck = { LegacyWakeCheck() }): List<Migration> =
-            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5(legacyWakeCheck))
+            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5(legacyWakeCheck), Migration5To6)
     }
 }
 
@@ -105,5 +105,20 @@ class Migration4To5(private val legacy: () -> LegacyWakeCheck) : Migration(4, 5)
                 arrayOf<Any>(ask, answer),
             )
         }
+    }
+}
+
+/**
+ * v5 → v6: '다시 잠들기 방지' 시트를 두 줄로 줄여서(결정 183) W2 대답할 시간은 1분, W3까지 기다리는 시간은 3분으로
+ * 고정해요. 옛 값(대답할 시간 30초, 3분 / 확인까지 1분, 5분)을 모든 알람에서 고정값으로 바꿔요. 표 구조는 그대로예요.
+ * '한 번 더 확인' 끔은 그대로 끔이고 시트에서 '안 함'으로 보여요. 켬이면 횟수도 그대로예요.
+ */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration5To6 : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "UPDATE alarms SET wakeCheckAnswerSeconds = ?, recheckWaitMinutes = ?",
+            arrayOf<Any>(WakeCheckSettings.FIXED_ANSWER_SECONDS, WakeCheckSettings.FIXED_RECHECK_WAIT_MINUTES),
+        )
     }
 }
