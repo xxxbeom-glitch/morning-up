@@ -431,12 +431,19 @@ class RingNotifications @Inject constructor(
     private fun isWaiting(phase: RingPhase?) =
         phase == RingPhase.Resting || phase == RingPhase.AwaitingWakeCheck || phase == RingPhase.AwaitingRecheck
 
+    /** 놓친 까닭: 아무도 안 끔, 폰이 꺼져 있었음, 앱이 강제로 닫혀 있었음(TSK-177 답 6). */
+    enum class MissedReason { Ignored, PoweredOff, AppClosed }
+
     @SuppressLint("MissingPermission")
-    fun missed(alarmId: Long, time: LocalTime, poweredOff: Boolean) {
+    fun missed(alarmId: Long, time: LocalTime, reason: MissedReason) {
         ensureChannels()
         if (!manager.areNotificationsEnabled()) return
         val label = time.format(DateTimeFormatter.ofPattern("H:mm"))
-        val template = if (poweredOff) R.string.missed_text_powered_off else R.string.missed_text_ignored
+        val template = when (reason) {
+            MissedReason.Ignored -> R.string.missed_text_ignored
+            MissedReason.PoweredOff -> R.string.missed_text_powered_off
+            MissedReason.AppClosed -> R.string.missed_text_app_closed
+        }
         val body = context.getString(template, label)
         val notification = NotificationCompat.Builder(context, CHANNEL_MISSED)
             .setSmallIcon(R.drawable.ic_alarm_clock)
@@ -446,6 +453,21 @@ class RingNotifications @Inject constructor(
             .setAutoCancel(true)
             .build()
         manager.notify(MISSED_NOTIFICATION_BASE + alarmId.toInt(), notification)
+    }
+
+    /** 강제 종료 흔적(TSK-177 답 6, 시안 N2). 앱을 다시 열어 알람을 다시 맞춘 뒤 한 번 띄워요. */
+    @SuppressLint("MissingPermission")
+    fun forceStopped() {
+        ensureChannels()
+        if (!manager.areNotificationsEnabled()) return
+        val notification = NotificationCompat.Builder(context, CHANNEL_MISSED)
+            .setSmallIcon(R.drawable.ic_alarm_clock)
+            .setContentTitle(text(R.string.force_stopped_title))
+            .setContentText(text(R.string.force_stopped_text))
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            .build()
+        manager.notify(FORCE_STOPPED_NOTIFICATION_ID, notification)
     }
 
     private fun phaseText(phase: RingPhase?): Int = when (phase) {
@@ -487,6 +509,7 @@ class RingNotifications @Inject constructor(
          */
         const val ESCAPE_NOTIFICATION_ID = 5
         const val ESCAPE_DONE_NOTIFICATION_ID = 6
+        private const val FORCE_STOPPED_NOTIFICATION_ID = 7
         private const val MISSED_NOTIFICATION_BASE = 1000
         private const val SCREEN_WAKE_MILLIS = 10_000L
         private const val NOON = 12

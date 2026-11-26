@@ -9,13 +9,18 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/** 폰이 꺼져 있던 동안 지난 알람: 10분 안이면 바로 울리고, 넘으면 '놓친 알람' 알림을 남겨요. */
+/**
+ * 폰이 꺼져 있던 동안 지난 알람: 10분 안이면 바로 울리고, 넘으면 '놓친 알람' 알림을 남겨요.
+ * 앱이 강제로 닫혀 있던 것을 알아챈 동안([appClosed])은 놓친 알람 문구를 '앱이 닫혀 있는 동안'으로 나눠요(TSK-177 답 6).
+ */
 @Singleton
 class AndroidCatchUpHandler @Inject constructor(
     @ApplicationContext private val context: Context,
     private val notifications: RingNotifications,
     private val diagnostics: AlarmDiagnostics,
 ) : CatchUpHandler {
+    @Volatile var appClosed: Boolean = false
+
     override fun ringNow(alarm: Alarm) {
         diagnostics.record("catch_up_ring", alarm.id)
         val intent = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_FIRE)
@@ -25,6 +30,10 @@ class AndroidCatchUpHandler @Inject constructor(
 
     override fun notifyMissed(alarm: Alarm) {
         diagnostics.record("catch_up_missed", alarm.id)
-        notifications.missed(alarm.id, alarm.time, poweredOff = true)
+        val reason = when {
+            appClosed -> RingNotifications.MissedReason.AppClosed
+            else -> RingNotifications.MissedReason.PoweredOff
+        }
+        notifications.missed(alarm.id, alarm.time, reason)
     }
 }

@@ -16,6 +16,7 @@ import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.BatteryReminder
+import com.lumian.morningup.core.alarm.ForceStopTrace
 import com.lumian.morningup.core.alarm.PreRingCheck
 import com.lumian.morningup.core.alarm.SilencedRingLog
 import com.lumian.morningup.core.alarm.NowProvider
@@ -57,6 +58,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var batteryReminder: BatteryReminder
 
     @Inject lateinit var preRing: PreRingCheck
+
+    @Inject lateinit var forceStop: ForceStopTrace
 
     @Inject lateinit var silencedRings: SilencedRingLog
 
@@ -135,7 +138,10 @@ class MainActivity : ComponentActivity() {
                 notifications.cancelRinging()
             }
             // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
+            // 강제 종료로 예약이 지워졌으면 다시 맞춘 뒤 한 번 알려요(TSK-177 답 6).
+            val forced = forceStop.begin()
             rescheduler.rescheduleAll(now.now())
+            forceStop.finish(forced)
             // 울리기 10분 전 방해 금지 점검을 다음 알람에 맞춰 잡아요(TSK-177 답 2).
             preRing.schedule()
         }

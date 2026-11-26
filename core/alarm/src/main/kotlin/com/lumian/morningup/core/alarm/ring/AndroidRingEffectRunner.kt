@@ -95,7 +95,9 @@ class AndroidRingEffectRunner @Inject constructor(
             }
             RingEffect.CancelTimer -> timers.cancel()
             is RingEffect.PostMissedNotification -> {
-                alarms.get(effect.alarmId)?.let { notifications.missed(it.id, it.time, poweredOff = false) }
+                alarms.get(effect.alarmId)?.let {
+                    notifications.missed(it.id, it.time, RingNotifications.MissedReason.Ignored)
+                }
             }
             is RingEffect.RescheduleAlarm -> rescheduler.afterFired(effect.alarmId, diagnostics.now())
             is RingEffect.MarkPassed -> diagnostics.record("passed", effect.alarmId)
