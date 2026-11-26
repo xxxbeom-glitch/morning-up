@@ -786,3 +786,7 @@
 {"at": "2026-11-26 11:12:12", "by": "Leader", "id": "TSK-210", "action": "set", "changes": {"reviewer": ["[QA 1]", "[QA 2]"]}}
 {"at": "2026-11-26 11:12:12", "by": "Leader", "id": "TSK-217", "action": "set", "changes": {"reviewer": ["[QA 1]", "[QA 2]"]}}
 {"at": "2026-11-26 11:12:14", "by": "Leader", "id": "TSK-218", "action": "set", "changes": {"reviewer": ["[QA 1]", "[QA 2]"]}}
+{"at": "2026-11-26 11:15:30", "by": "[개발 21]", "id": "TSK-094", "action": "set", "changes": {"commits": [["1c4bf94", "2888e0e"], ["1c4bf94", "2888e0e", "1009bd7"]]}}
+{"at": "2026-11-26 11:15:31", "by": "[개발 21]", "id": "TSK-094", "action": "comment", "changes": {"comments": [null, ["2단위 끝(1009bd7): 방해 금지 알람 막힘과 배터리 '제한' 검사(앱 열 때), 홈 배너 순서와 '그 밖에 n개 더', H2-6/7/8 글. 남은 것: 저장 때 경고 시트, 10분 전과 울린 뒤 검사, 밤 9시 내일 알람 점검, 강제 종료 흔적, 12에서만 정확한 알람 줄, 울리는 동안 방해 금지 바꾸기, T2-1 화면"]]}}
+{"at": "2026-11-26 11:16:30", "by": "Leader", "id": "TSK-094", "action": "set", "changes": {"owner": ["[개발 21]", "[개발 22]"]}}
+{"at": "2026-11-26 11:16:32", "by": "Leader", "id": "TSK-094", "action": "comment", "changes": {"comments": [null, ["11-26 [개발 21] 2단위까지(1c4bf94, 2888e0e, 1009bd7). 남은 7개는 docs/handover/dev-21-handover.md, [개발 22]가 이어받음"]]}}
