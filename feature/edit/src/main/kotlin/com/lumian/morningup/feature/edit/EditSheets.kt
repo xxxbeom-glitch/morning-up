@@ -158,7 +158,10 @@ internal fun volumeValue(alarm: Alarm): String {
     return parts.joinToString(", ")
 }
 
-/** 피그마 S3, S4 줄: 왼쪽 이름(`Body/Medium` `text/body`), 오른쪽 Choice Chip(너비 60, 사이 6). 위아래 8(결정 81). */
+/**
+ * 피그마 S3, S4 줄: 왼쪽 이름(`Body/Medium` `text/body`), 오른쪽 Choice Chip(너비 60, 사이 6). 위아래 8(결정 81).
+ * 이름은 늘 한 줄이에요. 칩이 4개라 좁은 화면(Z플립5)에서 자리가 모자라면 칩만 조금 줄어요(ISS-058).
+ */
 @Composable
 internal fun <T> ChipRow(
     label: String,
@@ -175,15 +178,20 @@ internal fun <T> ChipRow(
             text = label,
             style = MorningTheme.typography.bodyMedium,
             color = MorningTheme.colors.textBody,
-            modifier = Modifier.weight(1f).padding(end = MorningDimens.space12),
+            maxLines = 1,
+            softWrap = false,
+            modifier = Modifier.padding(end = MorningDimens.space12),
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(ChipGap)) {
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(ChipGap, Alignment.End),
+        ) {
             options.forEach { option ->
                 MorningChoiceChip(
                     label = optionLabel(option),
                     selected = option == selected,
                     onClick = { onSelect(option) },
-                    modifier = Modifier.width(RowChipWidth),
+                    modifier = Modifier.weight(1f, fill = false).width(RowChipWidth),
                 )
             }
         }

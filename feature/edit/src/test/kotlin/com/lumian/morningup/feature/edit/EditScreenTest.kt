@@ -1,7 +1,9 @@
 package com.lumian.morningup.feature.edit
 
 import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
@@ -127,6 +129,19 @@ class EditScreenTest {
         assertThat(recheckOff).isTrue()
         compose.onNodeWithText("2번").performClick()
         assertThat(count).isEqualTo(2)
+    }
+
+    @Test
+    @Config(qualifiers = "w360dp-h748dp")
+    fun wakeCheckSheet_narrowScreen_recheckLabelStaysOneLine() {
+        // ISS-058: Z플립5 너비에서 '한 번 더 확인' 줄 이름이 두 줄로 갈리지 않아요. 칩 4개는 그대로 다 보여요.
+        val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true))
+        show(EditUiState(loading = false, draft = draft, labRecheck = true), EditActions())
+        compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
+        val layouts = mutableListOf<TextLayoutResult>()
+        compose.onNodeWithText("한 번 더 확인").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        assertThat(layouts.single().lineCount).isEqualTo(1)
+        listOf("안 함", "1번", "2번", "3번").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
     }
 
     @Test
