@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -49,8 +48,7 @@ class EscapeScreenTest {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE))
         compose.onNodeWithText("문장을 그대로 따라 쓰면 알람이 꺼져요").assertExists()
         compose.onNodeWithTag(MISSION_TIMELINE_TAG).assertExists()
-        compose.onNodeWithContentDescription("미션으로 돌아가기").assertExists()
-        compose.onNodeWithText("미션으로 돌아가기").assertDoesNotExist()
+        compose.onNodeWithText("다시 미션 수행하기").assertExists()
         compose.onNodeWithText("미션 포기").assertDoesNotExist()
         compose.onNodeWithText("소리를 잠시 껐어요").assertDoesNotExist()
         compose.onNodeWithText("빨간 글자를 지우고 다시 써 주세요").assertDoesNotExist()

@@ -34,6 +34,6 @@
     <!-- M5 미션 포기(결정 171, 172, 시안 1149:15007) -->
     <string name="escape_screen_idle">%1$d초 안에 쓰지 않으면 미션으로 돌아가요</string>
     <string name="escape_screen_guide">문장을 그대로 따라 쓰면 알람이 꺼져요</string>
-    <string name="escape_screen_back">미션으로 돌아가기</string>
+    <string name="escape_screen_retry">다시 미션 수행하기</string>
     <string name="escape_screen_input">따라 쓰는 칸</string>
 </resources>

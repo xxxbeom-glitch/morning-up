@@ -8,7 +8,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,10 +17,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,10 +59,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.composables.icons.lucide.ChevronLeft
-import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.perform
+import com.lumian.morningup.core.designsystem.motion.pressScale
 import com.lumian.morningup.core.designsystem.theme.MissionColors
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -78,7 +76,7 @@ private val TracePadding = 24.dp
 private val TraceMinHeight = 100.dp
 private val TraceSize = 24.sp
 private val TraceLineHeight = 34.sp
-private val BackTouch = 48.dp
+private val RetryHeight = 40.dp
 private const val SHAKE_OFFSET = 6f
 private const val GHOST_ALPHA = 0.35f
 private const val LOW_SECONDS = 10
@@ -116,9 +114,9 @@ fun RingEscapeRoute(viewModel: EscapeViewModel = hiltViewModel()) {
 
 /**
  * M5 미션 포기, 따라 쓰기 모양(TSK-231 시안 `1165:17736`, 결정 171). 미션 화면처럼 늘 어두운 바탕이에요.
- * 위쪽 줄은 다른 미션 화면과 같게 '<'와 남은 시간 바(마지막으로 친 때부터 1분, 칠 때마다 다시 차요).
- * 10초 아래면 안내 줄이 빨개져요. 안내 한 줄, 흐린 예문 위에 바로 겹쳐 쓰는 칸, 그리고 폰 키보드. 확인 버튼은 없어요.
- * 끝까지 맞게 쓰면 칸이 초록이 되고 '<'가 사라져요. 뒤로 가기는 미션으로 돌아가기예요.
+ * 위에 다른 미션 화면과 같은 남은 시간 바(마지막으로 친 때부터 1분, 칠 때마다 다시 차요), 안내 한 줄
+ * (10초 아래면 빨강), 흐린 예문 위에 바로 겹쳐 쓰는 칸, 그 아래 '다시 미션 수행하기', 그리고 폰 키보드.
+ * 확인 버튼은 없어요. 끝까지 맞게 쓰면 칸이 초록이 되고 아래 버튼이 사라져요. 뒤로 가기는 미션으로 돌아가기예요.
  */
 @Composable
 fun EscapeScreen(
@@ -134,18 +132,12 @@ fun EscapeScreen(
     BackHandler(enabled = !correct) { onBack() }
     MissionFrame(backdrop = MissionColors.DropWords, status = null, remainingMillis = null, modifier = modifier) {
         Column(Modifier.fillMaxSize().imePadding()) {
-            // 다른 미션 화면 위쪽 줄과 같게: 왼쪽 '<' 하나, 오른쪽으로 남은 시간 바(MissionHeader와 같은 자리, 같은 부품).
-            Row(
-                Modifier.fillMaxWidth().padding(top = MorningDimens.space12).height(BackTouch),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                if (!correct) BackButton(onBack)
-                MissionTimeline(
-                    remainingMillis = if (correct) MissionEscape.IDLE_MILLIS else remainingMillis,
-                    totalMillis = MissionEscape.IDLE_MILLIS,
-                    modifier = Modifier.weight(1f),
-                )
-            }
+            // 다른 미션 화면 위쪽 줄과 같은 남은 시간 바(MissionHeader와 같은 자리, 같은 부품).
+            MissionTimeline(
+                remainingMillis = if (correct) MissionEscape.IDLE_MILLIS else remainingMillis,
+                totalMillis = MissionEscape.IDLE_MILLIS,
+                modifier = Modifier.fillMaxWidth().padding(top = MorningDimens.space12),
+            )
             Spacer(Modifier.height(MorningDimens.space24))
             Text(
                 text = if (low) {
@@ -160,35 +152,39 @@ fun EscapeScreen(
             )
             Spacer(Modifier.height(MorningDimens.space16))
             TraceField(state = state, onType = onType)
+            if (!correct) {
+                Spacer(Modifier.height(MorningDimens.space16))
+                RetryMissionButton(onBack, Modifier.align(Alignment.CenterHorizontally))
+            }
         }
     }
 }
 
-/** 왼쪽 위 '<'(Lucide chevron-left). 미리보기 닫기와 같은 크기, 누르는 곳 48. 누르면 하던 미션으로 돌아가요. */
+/**
+ * 칸 아래 가운데 '다시 미션 수행하기'. 옛 M5 '미션으로 돌아가기'와 같은 미션 화면 알약(흰 10% 칠, 흰 글자)이에요.
+ * 누르면 하던 미션으로 돌아가요.
+ */
 @Composable
-private fun BackButton(onBack: () -> Unit) {
+private fun RetryMissionButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
     val view = LocalView.current
-    val description = stringResource(R.string.escape_screen_back)
+    val interaction = remember { MutableInteractionSource() }
     Box(
-        modifier = Modifier
-            .size(BackTouch)
-            .testTag(ESCAPE_BACK_TAG)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                role = Role.Button,
-            ) {
+        modifier = modifier
+            .height(RetryHeight)
+            .pressScale(interaction)
+            .background(MissionColors.Fill, CircleShape)
+            .clickable(interactionSource = interaction, indication = null, role = Role.Button) {
                 view.perform(MorningHaptic.Press)
                 onBack()
             }
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.CenterStart,
+            .testTag(ESCAPE_BACK_TAG)
+            .padding(horizontal = MorningDimens.space16),
+        contentAlignment = Alignment.Center,
     ) {
-        Icon(
-            imageVector = Lucide.ChevronLeft,
-            contentDescription = null,
-            tint = MissionColors.Text,
-            modifier = Modifier.size(MorningDimens.iconMd),
+        Text(
+            text = stringResource(R.string.escape_screen_retry),
+            style = MorningTheme.typography.captionStrong,
+            color = MissionColors.Text,
         )
     }
 }
