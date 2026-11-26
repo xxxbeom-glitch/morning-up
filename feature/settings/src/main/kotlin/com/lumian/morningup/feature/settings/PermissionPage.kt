@@ -182,6 +182,7 @@ fun PermissionRoute(onBack: () -> Unit, modifier: Modifier = Modifier, viewModel
     PermissionPage(
         report = report,
         showSamsungSleep = PermissionSettings.isSamsung,
+        showExactAlarm = exactAlarmRowVisible(Build.VERSION.SDK_INT),
         onBack = onBack,
         onOpen = { open(it) },
         onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
@@ -272,7 +273,8 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 
 /**
  * '권한' 화면 카드 셋: '필수 권한'(알림, 전체 화면 알림, 다른 앱 위에 표시), '선택 권한'(배터리, 위치),
- * '기타'(방해 금지 모드 예외, 알람 음량 화살표, 절전 예외 앱(삼성만) 화살표). 정확한 알람 줄은 없어요(결정 133).
+ * '기타'(방해 금지 모드 예외, 알람 음량 화살표, 절전 예외 앱(삼성만) 화살표).
+ * [showExactAlarm]이면 필수 카드 끝에 '정확한 알람' 줄을 더해요(안드로이드 12만, TSK-177 답 8). 13 이상은 설치 때 받아 줄이 없어요(결정 133).
  */
 @Composable
 fun PermissionPage(
@@ -282,6 +284,7 @@ fun PermissionPage(
     onOpen: (AlarmPermission) -> Unit,
     onOpenSamsungSleep: () -> Unit,
     modifier: Modifier = Modifier,
+    showExactAlarm: Boolean = false,
 ) {
     Column(
         modifier = modifier
@@ -313,6 +316,7 @@ fun PermissionPage(
                 ToggleRow(AlarmPermission.Notifications, report, onOpen)
                 ToggleRow(AlarmPermission.FullScreen, report, onOpen)
                 ToggleRow(AlarmPermission.Overlay, report, onOpen)
+                if (showExactAlarm) ToggleRow(AlarmPermission.ExactAlarm, report, onOpen)
             }
             PermissionCard(R.string.permission_optional) {
                 ToggleRow(AlarmPermission.Battery, report, onOpen)
@@ -433,3 +437,7 @@ private fun RowFrame(
         trailing()
     }
 }
+
+/** '정확한 알람' 줄을 보일지. 사용자가 끌 수 있는 안드로이드 12(API 31, 32)에서만 보여요(TSK-177 답 8). */
+internal fun exactAlarmRowVisible(sdk: Int): Boolean =
+    sdk == Build.VERSION_CODES.S || sdk == Build.VERSION_CODES.S_V2

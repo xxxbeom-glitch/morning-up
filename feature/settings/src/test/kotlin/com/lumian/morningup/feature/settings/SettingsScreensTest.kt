@@ -91,7 +91,12 @@ class SettingsScreensTest {
         compose.onNodeWithText("허용 안 됨").assertExists()
     }
 
-    private fun setPage(report: PermissionReport, samsung: Boolean, onOpen: (AlarmPermission) -> Unit = {}) {
+    private fun setPage(
+        report: PermissionReport,
+        samsung: Boolean,
+        exactAlarm: Boolean = false,
+        onOpen: (AlarmPermission) -> Unit = {},
+    ) {
         compose.setContent {
             MorningTheme(darkTheme = false, reduceMotion = true) {
                 PermissionPage(
@@ -100,9 +105,24 @@ class SettingsScreensTest {
                     onBack = {},
                     onOpen = onOpen,
                     onOpenSamsungSleep = {},
+                    showExactAlarm = exactAlarm,
                 )
             }
         }
+    }
+
+    @Test
+    fun page_android12_showsExactAlarmRow() {
+        var opened: AlarmPermission? = null
+        setPage(report(AlarmPermission.ExactAlarm), samsung = false, exactAlarm = true) { opened = it }
+        compose.onNodeWithText("정확한 알람").assertExists().performClick()
+        assertThat(opened).isEqualTo(AlarmPermission.ExactAlarm)
+    }
+
+    @Test
+    fun exactAlarmRow_onlyAndroid12() {
+        assertThat(listOf(30, 31, 32, 33).map(::exactAlarmRowVisible))
+            .containsExactly(false, true, true, false).inOrder()
     }
 
     @Test
