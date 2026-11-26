@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -206,7 +207,13 @@ private fun SentenceCard(sentence: String) {
     }
 }
 
-/** 피그마 Mission Input(엔터 켬, 글자 20, 오른쪽 여백 56)을 폰 키보드로 쓰는 칸. 틀리면 빨간 테두리 2, 맞으면 초록. */
+/** 따라 쓰는 칸이 늘어나는 최대 줄 수. 출시 예문 40~60자도 다 보여요. */
+private const val ESCAPE_INPUT_MAX_LINES = 4
+
+/**
+ * 피그마 Mission Input(엔터 켬, 글자 20, 오른쪽 여백 56)을 폰 키보드로 쓰는 칸. 틀리면 빨간 테두리 2, 맞으면 초록.
+ * 긴 예문도 다 보이게 줄을 바꿔 [ESCAPE_INPUT_MAX_LINES]줄까지 늘어나요(ISS-052). 줄 바꿈 글자는 넣지 않아요.
+ */
 @Composable
 private fun EscapeInput(state: EscapeUiState, onType: (String) -> Unit, onSubmit: () -> Unit) {
     val error = MorningTheme.colors.statusError
@@ -224,16 +231,17 @@ private fun EscapeInput(state: EscapeUiState, onType: (String) -> Unit, onSubmit
     Box(
         Modifier
             .fillMaxWidth()
-            .height(MissionRowHeight)
+            .heightIn(min = MissionRowHeight)
             .background(if (correct) MissionColors.Success else MissionColors.Fill, shape)
             .then(if (wrong) Modifier.border(WrongBorder, error, shape) else Modifier),
         contentAlignment = Alignment.CenterStart,
     ) {
         BasicTextField(
             value = state.text,
-            onValueChange = onType,
+            onValueChange = { onType(it.replace("\n", "")) },
             enabled = !correct,
-            singleLine = true,
+            singleLine = false,
+            maxLines = ESCAPE_INPUT_MAX_LINES,
             textStyle = MorningTheme.typography.bodyMedium.copy(
                 fontSize = InputSize,
                 fontWeight = FontWeight.Bold,
@@ -250,6 +258,7 @@ private fun EscapeInput(state: EscapeUiState, onType: (String) -> Unit, onSubmit
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(start = InputEndPadding, end = InputEndPadding)
+                .padding(vertical = MorningDimens.space12)
                 .focusRequester(focus)
                 .testTag(ESCAPE_INPUT_TAG)
                 .semantics { contentDescription = description },

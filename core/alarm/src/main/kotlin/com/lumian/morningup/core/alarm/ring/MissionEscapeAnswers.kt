@@ -34,7 +34,8 @@ class MissionEscapeAnswers @Inject constructor(
     private val controller: RingController,
     private val diagnostics: AlarmDiagnostics,
 ) {
-    suspend fun answer(text: CharSequence?): EscapeAnswer {
+    /** [fromScreen]이면 M5 화면에서 보낸 답이에요. 틀리면 M5 시간을 다시 걸어요(ISS-051). */
+    suspend fun answer(text: CharSequence?, fromScreen: Boolean = false): EscapeAnswer {
         val session = sessions.load()
         val sentence = notifier.currentSentence
         if (session?.escapeShown != true || sentence == null) {
@@ -57,7 +58,7 @@ class MissionEscapeAnswers @Inject constructor(
         } else {
             notifier.showWrong()
             // 알림 창에서 쓰는 동안 미션 화면을 안 만져도 59초가 지나 다시 울리지 않게, 보낼 때마다 '미션 조작'으로 쳐요.
-            send(RingEvent.MissionInteraction)
+            send(if (fromScreen) RingEvent.EscapeTyped else RingEvent.MissionInteraction)
             EscapeAnswer.Wrong
         }
     }

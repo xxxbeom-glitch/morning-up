@@ -31,6 +31,12 @@ object RingStateMachine {
     const val RING_MILLIS = 120_000L
     const val MISSION_MILLIS = 59_000L
 
+    /**
+     * M5 미션 포기에 있는 동안 걸어 두는 미션 시간(ISS-051). M5는 마지막으로 쓴 뒤 1분이 지나야 미션으로 돌아가니,
+     * 그 1분에 돌아간 뒤의 미션 시간을 더해요. 그래야 M5에 있는 동안 다시 울리지 않아요.
+     */
+    const val ESCAPE_HOLD_MILLIS = MissionEscape.IDLE_MILLIS + MISSION_MILLIS
+
     /** W2, W3에 답하지 못해 처음부터 다시 울리는 것은 알람 하나에 2번까지예요(결정 145 6번). */
     const val MAX_ROUNDS = 2
     private const val FULL_VOLUME = 1f
@@ -71,7 +77,7 @@ object RingStateMachine {
             RingEvent.MissionCompleted -> missionCompleted(session, now)
             RingEvent.DismissWithoutMission -> dismissWithoutMission(session, now)
             RingEvent.MissionEscaped -> missionEscaped(session, now)
-            RingEvent.EscapeOpened -> escapeOpened(session, now)
+            RingEvent.EscapeOpened, RingEvent.EscapeTyped -> escapeOpened(session, now)
             RingEvent.WakeCheckConfirmed ->
                 if (session.phase == RingPhase.WakeCheckAsking) {
                     wakeCheckPassed(session, now)
@@ -277,19 +283,20 @@ object RingStateMachine {
     }
 
     /**
-     * M5 '미션 포기' 화면을 열었어요(결정 171). 화면에 있는 동안 소리를 꺼요. 울림, 쉬는 중이면 미션 중으로 넘겨
-     * 소리를 끄고 미션 시간(2분)을 걸어요. M5는 1분 동안 안 쓰면 미션 화면으로 돌아가서 그 전에 다시 울리지 않아요.
+     * M5 '미션 포기' 화면을 열었거나 M5에서 글을 썼어요(결정 171). 화면에 있는 동안 소리를 꺼요. 울림, 쉬는 중이면
+     * 미션 중으로 넘겨 소리를 꺼요. 미션 시간은 [ESCAPE_HOLD_MILLIS](M5 1분 + 미션 시간)로 걸어서, M5에서 1분 동안
+     * 안 써 미션으로 돌아가기 전에는 다시 울리지 않아요(ISS-051).
      * 미션 화면은 띄우지 않아요(지금 화면은 M5예요). 알림이 닫혀 있으면 받지 않아요.
      */
     private fun escapeOpened(session: RingSession, now: Long): Transition {
         if (!session.escapeShown) return NoChange(session)
         return when (session.phase) {
-            RingPhase.InMission -> missionInteraction(session, now)
-            RingPhase.Ringing, RingPhase.Resting -> {
-                val mission = session.copy(phase = RingPhase.InMission, phaseEndsAt = now + MISSION_MILLIS)
+            RingPhase.InMission, RingPhase.Ringing, RingPhase.Resting -> {
+                val mission = session.copy(phase = RingPhase.InMission, phaseEndsAt = now + ESCAPE_HOLD_MILLIS)
+                val stop = if (session.phase == RingPhase.InMission) emptyList() else listOf(StopSound)
                 Transition(
                     mission,
-                    listOf(StopSound, ScheduleTimer(mission.phaseEndsAt, TimerKind.MissionTimeout)),
+                    stop + ScheduleTimer(mission.phaseEndsAt, TimerKind.MissionTimeout),
                 )
             }
             else -> NoChange(session)

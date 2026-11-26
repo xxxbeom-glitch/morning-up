@@ -206,6 +206,9 @@ sealed interface RingEvent {
      */
     data object EscapeOpened : RingEvent
 
+    /** M5에서 글을 쓰거나 틀리게 보냈어요. [EscapeOpened]와 같게 M5 시간(1분 + 미션 시간)을 다시 걸어요(ISS-051). */
+    data object EscapeTyped : RingEvent
+
     /** W2 '깼어요'(10초 길게 누르기, 결정 145 9-1). */
     data object WakeCheckConfirmed : RingEvent
 
@@ -233,6 +236,7 @@ sealed interface RingEvent {
             "dismiss_without_mission" to DismissWithoutMission,
             "mission_escaped" to MissionEscaped,
             "escape_opened" to EscapeOpened,
+            "escape_typed" to EscapeTyped,
             "wake_check_confirmed" to WakeCheckConfirmed,
             "recheck_confirmed" to RecheckConfirmed,
         )

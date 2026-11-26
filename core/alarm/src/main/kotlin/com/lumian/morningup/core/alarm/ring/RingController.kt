@@ -139,8 +139,8 @@ class RingController @Inject constructor(
     private suspend fun apply(event: RingEvent) {
         val current = sessions.load()
         val transition = RingStateMachine.reduce(current, event, now.millis(), calls.inCall())
-        // 미션 화면 조작(59초 다시 채우기)은 너무 잦아서 흐름 로그에 남기지 않아요.
-        if (event != RingEvent.MissionInteraction) {
+        // 미션 화면 조작(59초 다시 채우기)과 M5에서 쓰기는 너무 잦아서 흐름 로그에 남기지 않아요.
+        if (event != RingEvent.MissionInteraction && event != RingEvent.EscapeTyped) {
             val after = transition.session
             val firedId = (event as? RingEvent.AlarmFired)?.plan?.alarmId
             FlowLog.event(

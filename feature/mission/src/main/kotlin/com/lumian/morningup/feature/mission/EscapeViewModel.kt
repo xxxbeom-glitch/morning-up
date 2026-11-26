@@ -72,8 +72,8 @@ class EscapeViewModel @Inject constructor(
             }
         } else {
             _state.update { it.copy(result = EscapeResult.Wrong, lastTypedAt = at) }
-            // 틀림 기록을 남기고 '미션 조작'으로 미션 시간을 다시 채워요.
-            viewModelScope.launch { answers.answer(current.text) }
+            // 틀림 기록을 남기고 M5 시간(1분 + 미션 시간)을 다시 채워요(ISS-051).
+            viewModelScope.launch { answers.answer(current.text, fromScreen = true) }
             lastInteractionSent = at
         }
     }
@@ -87,7 +87,8 @@ class EscapeViewModel @Inject constructor(
     private fun keepMissionAlive(at: Long) {
         if (at - lastInteractionSent < INTERACTION_GAP_MILLIS) return
         lastInteractionSent = at
-        link.send(RingEvent.MissionInteraction)
+        // '미션 조작'(59초)이 아니라 M5 열기와 같게 1분 + 미션 시간을 다시 걸어요(ISS-051).
+        link.send(RingEvent.EscapeTyped)
     }
 
     companion object {

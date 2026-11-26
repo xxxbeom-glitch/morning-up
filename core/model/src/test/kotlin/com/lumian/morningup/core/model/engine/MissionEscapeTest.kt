@@ -301,7 +301,7 @@ class MissionEscapeTest {
         val s = started().session!!
         val t = reduce(s, RingEvent.EscapeOpened, t0 + 40 * sec)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.InMission)
-        assertThat(t.session!!.phaseEndsAt).isEqualTo(t0 + 40 * sec + RingStateMachine.MISSION_MILLIS)
+        assertThat(t.session!!.phaseEndsAt).isEqualTo(t0 + 40 * sec + RingStateMachine.ESCAPE_HOLD_MILLIS)
         assertThat(t.effects.none { it is RingEffect.ShowMission }).isTrue()
     }
 
@@ -315,8 +315,18 @@ class MissionEscapeTest {
         assertThat(t.session!!.escapeShown).isTrue()
         assertThat(t.effects).contains(StopSound)
         assertThat(t.effects.none { it is RingEffect.ShowMission }).isTrue()
-        val endsAt = t0 + 4 * min + RingStateMachine.MISSION_MILLIS
+        val endsAt = t0 + 4 * min + RingStateMachine.ESCAPE_HOLD_MILLIS
         assertThat(t.effects).contains(ScheduleTimer(endsAt, TimerKind.MissionTimeout))
+    }
+
+    @Test
+    fun escapeHold_outlastsEscapeIdle_soNoRingBeforeBackToMission() {
+        // ISS-051: M5에서 1분 안 쓰면 미션으로 돌아가요. 그 전에 미션 시간이 끝나 다시 울리면 안 돼요.
+        assertThat(RingStateMachine.ESCAPE_HOLD_MILLIS).isGreaterThan(MissionEscape.IDLE_MILLIS)
+        val s = started().session!!
+        val typed = reduce(s, RingEvent.EscapeTyped, t0 + 40 * sec).session!!
+        val idleBack = t0 + 40 * sec + MissionEscape.IDLE_MILLIS
+        assertThat(typed.phaseEndsAt - idleBack).isEqualTo(RingStateMachine.MISSION_MILLIS)
     }
 
     @Test
