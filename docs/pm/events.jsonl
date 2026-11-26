@@ -692,3 +692,5 @@
 {"at": "2026-11-26 10:09:16", "by": "[QA 1]", "id": "TSK-207", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["Z플립5 50a0e0e 판: T1 이름, 묻는 때, O2-1 글 통과. 안내 글은 사용자 알람이 방지 켬이라 단위 시험으로 갈음, H2는 글자 확인"]]}}
 {"at": "2026-11-26 10:09:17", "by": "[QA 1]", "id": "ISS-050", "action": "comment", "changes": {"comments": [null, ["QA 1 Z플립5 확인 통과(50a0e0e): 울리는 알람과 꺼진 알람 골라 켜기 → 다른 알람만 켜짐, 토스트. 모든 알람 켜기는 같은 turnOn이라 코드 확인. resolve 뒤 닫아도 돼요"]]}}
 {"at": "2026-11-26 10:09:17", "by": "[QA 1]", "id": "TSK-206", "action": "comment", "changes": {"comments": [null, ["QA 1 Z플립5 확인 통과: 약 3.5초 한 획씩 쓰고 O2-1로 넘어감. 녹화 docs/exports/tsk-206/splash-flip5.mp4"]]}}
+{"at": "2026-11-26 10:09:46", "by": "Leader", "id": "ISS-050", "action": "resolve", "changes": {"status": ["open", "resolved"], "resolved": [null, "2026-11-26"], "fix": [null, "50a0e0e"]}}
+{"at": "2026-11-26 10:09:47", "by": "Leader", "id": "TSK-206", "action": "comment", "changes": {"comments": [null, ["QA 1 폰 녹화 docs/exports/tsk-206/splash-flip5.mp4. 완료 조건 5(사용자 확인) 남아 승인 보류"]]}}
