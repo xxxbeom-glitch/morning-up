@@ -19,7 +19,7 @@ class PermissionPromptTest {
     }
 
     @Test
-    fun order_notificationsThenOverlayThenFullScreenThenBattery() {
+    fun order_overlayThenNotificationsThenFullScreenThenBattery() {
         assertThat(report(AlarmPermission.Notifications, AlarmPermission.FullScreen).banner)
             .isEqualTo(PermissionBanner.Notifications)
         assertThat(report(AlarmPermission.Overlay, AlarmPermission.FullScreen, AlarmPermission.Battery).banner)
@@ -30,20 +30,44 @@ class PermissionPromptTest {
     }
 
     @Test
-    fun locationExactDndVolumeOff_noBanner() {
-        val r = report(
-            AlarmPermission.Location,
-            AlarmPermission.ExactAlarm,
-            AlarmPermission.DoNotDisturb,
-            AlarmPermission.AlarmVolume,
-        )
+    fun locationDndAccessVolumeOff_noBanner() {
+        val r = report(AlarmPermission.Location, AlarmPermission.DoNotDisturb, AlarmPermission.AlarmVolume)
         assertThat(r.banner).isNull()
+        assertThat(r.bannerMore).isEqualTo(0)
     }
 
     @Test
-    fun batteryBanner_opensOptionalStep_otherBannersRequired() {
+    fun exactAlarmOff_bannerBeforeBattery() {
+        // 정확한 알람은 안드로이드 12에서만 꺼질 수 있어요(TSK-177 답 8).
+        assertThat(report(AlarmPermission.ExactAlarm, AlarmPermission.Battery).banner)
+            .isEqualTo(PermissionBanner.ExactAlarm)
+        assertThat(report(AlarmPermission.FullScreen, AlarmPermission.ExactAlarm).banner)
+            .isEqualTo(PermissionBanner.FullScreen)
+    }
+
+    @Test
+    fun restrictedThenSilenced_comeFirst_andCountOthers() {
+        val all = report(AlarmPermission.Notifications, AlarmPermission.Overlay, AlarmPermission.Battery)
+            .copy(backgroundRestricted = true, alarmsSilenced = true)
+        assertThat(all.banners).containsExactly(
+            PermissionBanner.BatteryRestricted,
+            PermissionBanner.AlarmsSilenced,
+            PermissionBanner.NotificationsAndOverlay,
+            PermissionBanner.Battery,
+        ).inOrder()
+        assertThat(all.bannerMore).isEqualTo(3)
+        val silenced = report(AlarmPermission.Battery).copy(alarmsSilenced = true)
+        assertThat(silenced.banner).isEqualTo(PermissionBanner.AlarmsSilenced)
+        assertThat(silenced.bannerMore).isEqualTo(1)
+    }
+
+    @Test
+    fun startSteps_batteryOptional_deviceStatesNone_othersRequired() {
         assertThat(PermissionBanner.Battery.startStep).isEqualTo(PermissionStep.Optional)
-        PermissionBanner.entries.filter { it != PermissionBanner.Battery }.forEach {
+        val noSheet =
+            setOf(PermissionBanner.BatteryRestricted, PermissionBanner.AlarmsSilenced, PermissionBanner.ExactAlarm)
+        noSheet.forEach { assertThat(it.startStep).isNull() }
+        PermissionBanner.entries.filter { it != PermissionBanner.Battery && it !in noSheet }.forEach {
             assertThat(it.startStep).isEqualTo(PermissionStep.Required)
         }
     }

@@ -65,6 +65,16 @@
     <string name="banner_battery">배터리 사용 제한이 켜져 있어요</string>
     <string name="banner_battery_desc">절전 때문에 알람이 울리지 않을 수 있어요</string>
     <string name="banner_release">풀기</string>
+    <!-- H2-6, H2-7, H2-8(결정 143, TSK-177 답 7, 8, 시안 TSK-220) -->
+    <string name="banner_view">보기</string>
+    <string name="banner_restricted">배터리가 \'제한\'으로 되어 있어요</string>
+    <string name="banner_restricted_desc">알람이 울리지 않을 수 있어요</string>
+    <string name="banner_silenced">방해 금지가 알람 소리를 막아요</string>
+    <string name="banner_silenced_desc">\'알람\' 허용을 켜 주세요</string>
+    <string name="banner_exact">알람이 몇 분 늦게 울릴 수 있어요</string>
+    <string name="banner_exact_desc">\'정확한 알람\'을 켜 주세요</string>
+    <!-- 배너 설명 끝에 붙는 나머지 수 -->
+    <string name="banner_more">%1$s. 그 밖에 %2$d개 더</string>
     <!-- 나중용 권한 시트 PL2(결정 127 시트 문구, 129 보충 5, 132) -->
     <string name="pl_required_title">원활한 앱 사용을 위해\n아래 권한을 허용해 주세요</string>
     <string name="pl_optional_title">함께 켜 두면 좋은 권한이에요</string>

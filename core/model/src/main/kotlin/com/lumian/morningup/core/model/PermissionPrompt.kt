@@ -1,11 +1,19 @@
 package com.lumian.morningup.core.model
 
 /**
- * 홈 H2 권한 경고 배너(결정 113, 119, 120). 꺼진 권한이 여러 개여도 급한 것 하나만 보여요.
- * 순서: [NotificationsAndOverlay](H2-1) → [Notifications](H2-2) → [Overlay](H2-3) → [FullScreen] → [Battery](H2-5).
- * [Battery]는 필수 셋이 모두 켜졌을 때만 나와요. 정확한 알람은 배너에 넣지 않아요(결정 133).
+ * 홈 H2 권한 경고 배너(결정 113, 119, 120, TSK-177 표 5절 순서). 꺼진 것이 여러 개여도 급한 것 하나만 보이고,
+ * 나머지 수는 설명 끝 '그 밖에 n개 더'로 알려요([PermissionReport.bannerMore]).
+ * 순서: [BatteryRestricted](H2-7) → [AlarmsSilenced](H2-6) → [NotificationsAndOverlay](H2-1) → [Overlay](H2-3)
+ * → [Notifications](H2-2) → [FullScreen] → [ExactAlarm](H2-8) → [Battery](H2-5).
+ * [startStep]이 null이면 권한 시트가 아니라 기기 설정이나 안내 화면을 열어요.
  */
-enum class PermissionBanner(val startStep: PermissionStep) {
+enum class PermissionBanner(val startStep: PermissionStep?) {
+    /** H2-7 배터리 사용이 '제한'(서비스가 못 떠서 소리도 화면도 막혀요). */
+    BatteryRestricted(null),
+
+    /** H2-6 방해 금지가 알람 소리를 막고 있어요. 앱이 못 켜서 T2-1 안내로 가요. */
+    AlarmsSilenced(null),
+
     /** H2-1 알림과 '다른 앱 위에 표시'가 둘 다 꺼짐. */
     NotificationsAndOverlay(PermissionStep.Required),
 
@@ -21,24 +29,39 @@ enum class PermissionBanner(val startStep: PermissionStep) {
      */
     FullScreen(PermissionStep.Required),
 
+    /**
+     * H2-8 정확한 알람 꺼짐. 안드로이드 13 이상은 설치 때 받아 늘 켜져 있어서 12에서만 나와요(TSK-177 답 8).
+     */
+    ExactAlarm(null),
+
     /** H2-5 배터리 사용 제한이 켜져 있음(절전 예외가 꺼짐). */
     Battery(PermissionStep.Optional),
 }
 
-/** 지금 띄울 배너. 없으면 null. */
-val PermissionReport.banner: PermissionBanner?
+/** 지금 걸리는 배너 모두, 급한 순서. 알림과 다른 앱 위에 표시가 둘 다 꺼지면 한 칸([NotificationsAndOverlay])이에요. */
+val PermissionReport.banners: List<PermissionBanner>
     get() {
         val notifications = isGranted(AlarmPermission.Notifications)
         val overlay = isGranted(AlarmPermission.Overlay)
-        return when {
-            !notifications && !overlay -> PermissionBanner.NotificationsAndOverlay
-            !notifications -> PermissionBanner.Notifications
-            !overlay -> PermissionBanner.Overlay
-            !isGranted(AlarmPermission.FullScreen) -> PermissionBanner.FullScreen
-            !isGranted(AlarmPermission.Battery) -> PermissionBanner.Battery
-            else -> null
+        return buildList {
+            if (backgroundRestricted) add(PermissionBanner.BatteryRestricted)
+            if (alarmsSilenced) add(PermissionBanner.AlarmsSilenced)
+            when {
+                !notifications && !overlay -> add(PermissionBanner.NotificationsAndOverlay)
+                !overlay -> add(PermissionBanner.Overlay)
+                !notifications -> add(PermissionBanner.Notifications)
+            }
+            if (!isGranted(AlarmPermission.FullScreen)) add(PermissionBanner.FullScreen)
+            if (!isGranted(AlarmPermission.ExactAlarm)) add(PermissionBanner.ExactAlarm)
+            if (!isGranted(AlarmPermission.Battery)) add(PermissionBanner.Battery)
         }
     }
+
+/** 지금 띄울 배너. 없으면 null. */
+val PermissionReport.banner: PermissionBanner? get() = banners.firstOrNull()
+
+/** 띄운 배너 말고 더 걸린 수. '그 밖에 n개 더'에 써요. */
+val PermissionReport.bannerMore: Int get() = (banners.size - 1).coerceAtLeast(0)
 
 /** 나중용 권한 시트 PL2의 두 단계(결정 129 보충 5, 132). */
 enum class PermissionStep(val permissions: List<AlarmPermission>) {

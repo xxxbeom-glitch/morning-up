@@ -1,6 +1,8 @@
 package com.lumian.morningup.core.alarm
 
+import android.app.ActivityManager
 import android.app.AlarmManager
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
@@ -89,5 +91,30 @@ class AndroidPermissionCheckerTest {
         checker.refresh()
         assertThat(checker.report.value.isGranted(AlarmPermission.AlarmVolume)).isFalse()
         assertThat(checker.report.value.missingRequired).doesNotContain(AlarmPermission.AlarmVolume)
+    }
+
+    @Test
+    fun dndPriorityWithoutAlarms_silencesAlarms_untilAllowed() {
+        val nm = context.getSystemService(NotificationManager::class.java)
+        shadowOf(nm).setNotificationPolicyAccessGranted(true)
+        nm.setNotificationPolicy(NotificationManager.Policy(0, 0, 0))
+        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
+        checker.refresh()
+        assertThat(checker.report.value.alarmsSilenced).isTrue()
+        nm.setNotificationPolicy(NotificationManager.Policy(NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS, 0, 0))
+        checker.refresh()
+        assertThat(checker.report.value.alarmsSilenced).isFalse()
+        nm.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
+        checker.refresh()
+        assertThat(checker.report.value.alarmsSilenced).isTrue()
+    }
+
+    @Test
+    fun backgroundRestricted_isRead() {
+        val am = context.getSystemService(ActivityManager::class.java)
+        shadowOf(am).setBackgroundRestricted(true)
+        checker.refresh()
+        assertThat(checker.report.value.backgroundRestricted).isTrue()
+        assertThat(checker.report.value.alarmsSilenced).isFalse()
     }
 }

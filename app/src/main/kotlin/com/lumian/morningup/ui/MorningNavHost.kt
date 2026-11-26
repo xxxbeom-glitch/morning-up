@@ -30,6 +30,7 @@ import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionStep
 import com.lumian.morningup.core.model.banner
+import com.lumian.morningup.core.model.bannerMore
 import com.lumian.morningup.feature.edit.AlarmEditRoute
 import com.lumian.morningup.feature.edit.EditRoute
 import com.lumian.morningup.feature.edit.MissionTryRoute
@@ -44,6 +45,7 @@ import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
 import com.lumian.morningup.feature.settings.PermissionStepSheet
+import com.lumian.morningup.feature.settings.openBannerTarget
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
@@ -177,7 +179,17 @@ fun MorningNavHost(
                         savedRestReleased = entry.savedStateHandle[REST_RELEASED_KEY] ?: false,
                         onSelectingChange = { homeSelecting = it },
                         banner = report.banner?.let { kind ->
-                            { PermissionBanner(kind, onClick = { permissionSheet = kind.startStep }) }
+                            {
+                                val context = LocalContext.current
+                                PermissionBanner(
+                                    kind,
+                                    onClick = {
+                                        val step = kind.startStep
+                                        if (step != null) permissionSheet = step else openBannerTarget(context, kind)
+                                    },
+                                    more = report.bannerMore,
+                                )
+                            }
                         },
                     )
                 },

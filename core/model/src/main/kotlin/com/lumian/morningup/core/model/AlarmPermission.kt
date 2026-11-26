@@ -39,8 +39,15 @@ enum class AlarmPermission(val group: PermissionGroup, val required: Boolean) {
 /** 설정 '권한' 화면의 카드(결정 130 보충). [Hidden]은 '권한' 화면에 줄이 없어요. */
 enum class PermissionGroup { Required, Optional, Other, Hidden }
 
-/** 한 번 확인한 권한 상태 묶음. */
-data class PermissionReport(val granted: Map<AlarmPermission, Boolean>) {
+/**
+ * 한 번 확인한 권한 상태 묶음. 권한이 아닌 기기 상태 둘도 같이 들고 있어요(결정 143, TSK-177 표 C-13, R2).
+ * [backgroundRestricted]는 앱 배터리 사용이 '제한', [alarmsSilenced]는 지금 방해 금지가 알람 소리를 막는 중이에요.
+ */
+data class PermissionReport(
+    val granted: Map<AlarmPermission, Boolean>,
+    val backgroundRestricted: Boolean = false,
+    val alarmsSilenced: Boolean = false,
+) {
     fun isGranted(permission: AlarmPermission): Boolean = granted[permission] ?: false
 
     /** 꺼진 필수 권한. 비어 있지 않으면 배너, 말풍선을 켜요. */
