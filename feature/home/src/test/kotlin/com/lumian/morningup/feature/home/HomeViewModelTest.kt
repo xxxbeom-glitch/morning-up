@@ -89,7 +89,7 @@ class HomeViewModelTest {
 
     @Test
     fun restSelected_restsOnlyRestable_keepsOthersOn_andClosesSelection() = runTest {
-        // 월 23:10: 평일 06:30은 오늘 이미 울려 쉴 것이 없고, 토 07:10은 다음 토요일을 쉬어요. 꺼진 8:00은 빠져요(결정 158).
+        // 월 23:10: 평일 06:30은 다음 울림(화)을, 토 07:10은 다음 토요일을 쉬어요. 꺼진 8:00은 빠져요(결정 158, 175).
         val book = FakeAlarmBook(listOf(a630, a710, a800))
         val vm = viewModel(book)
         vm.uiState.test {
@@ -97,15 +97,17 @@ class HomeViewModelTest {
             vm.startSelection()
             awaitItem()
             vm.toggleSelectAll()
-            assertThat(awaitItem().restable).containsExactly(2L)
+            assertThat(awaitItem().restable).containsExactly(1L, 2L)
             vm.restSelected()
             var state = awaitItem()
-            while (2L !in state.resting) state = awaitItem()
+            while (2L !in state.resting || 1L !in state.resting) state = awaitItem()
             assertThat(state.selection).isNull()
+            // 둘 이상 쉬면 쉬는 날 토스트는 띄우지 않아요.
             assertThat(state.message).isNull()
             assertThat(book.get(2)!!.skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 21))
             assertThat(book.get(2)!!.enabled).isTrue()
-            assertThat(book.get(1)!!.skipOnceDate).isNull()
+            assertThat(book.get(1)!!.skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 17))
+            assertThat(book.get(3)!!.skipOnceDate).isNull()
         }
     }
 
@@ -358,21 +360,22 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun restOnce_afterChecksEnded_onRingDay_restsToday_andRingsTomorrow() = runTest {
-        // 수요일 07:00, 06:30 울림과 남은 확인이 모두 끝났어요. 오늘(수)을 쉰 걸로 쳐서 목요일에 울려요(결정 156).
+    fun restOnce_afterChecksEnded_onRingDay_skipsTomorrow() = runTest {
+        // 수요일 07:00, 06:30 울림과 남은 확인이 모두 끝났어요. 다음 울림(목)을 쉬고 금요일에 울려요(결정 175).
         val state = rested(a630, ZonedDateTime.of(2026, 11, 18, 7, 0, 0, 0, seoul))
-        assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 18))
-        assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
-        assertThat(state.resting[1L]).isEqualTo(RestLabel.Within(TimeUntil(0, 23, 30)))
-        assertThat(state.next!!.until).isEqualTo(TimeUntil(0, 23, 30))
+        assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
+        assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
+        assertThat(state.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.FRIDAY))
+        assertThat(state.next!!.until).isEqualTo(TimeUntil(1, 23, 30))
     }
 
     @Test
-    fun restOnce_ringDayAfternoon_ringsTomorrow() = runTest {
-        // 사용자가 찾은 경우: 수요일 오후에 누르면 '금요일'이 아니라 목요일에 울려요(ISS-049).
+    fun restOnce_ringDayAfternoon_skipsTomorrow() = runTest {
+        // 수요일 오후에 누르면 아직 오지 않은 목요일을 쉬고 금요일에 울려요(결정 175, 156을 되돌림).
         val state = rested(a630, ZonedDateTime.of(2026, 11, 18, 15, 0, 0, 0, seoul))
-        assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
-        assertThat(state.resting[1L]).isEqualTo(RestLabel.Within(TimeUntil(0, 15, 30)))
+        assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
+        assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
+        assertThat(state.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.FRIDAY))
     }
 
     @Test
@@ -385,24 +388,25 @@ class HomeViewModelTest {
             assertThat(it.next!!.at).isEqualTo(thu)
             assertThat(it.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
         }
-        // 울림 시각 그때(06:30:00)와 직후(06:30:01)도 목요일이에요.
+        // 울림 시각 그때(06:30:00)와 직후(06:30:01)는 수요일 울림이 왔으니 목요일을 쉬고 금요일이에요(결정 175).
+        val fri = ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul)
         rested(a630, ZonedDateTime.of(2026, 11, 18, 6, 30, 0, 0, seoul)).let {
-            assertThat(it.alarms.first().skipOnceDate).isEqualTo(wed)
-            assertThat(it.next!!.at).isEqualTo(thu)
+            assertThat(it.alarms.first().skipOnceDate).isEqualTo(thu.toLocalDate())
+            assertThat(it.next!!.at).isEqualTo(fri)
         }
         rested(a630, ZonedDateTime.of(2026, 11, 18, 6, 30, 1, 0, seoul)).let {
-            assertThat(it.next!!.at).isEqualTo(thu)
-            assertThat(it.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.THURSDAY))
+            assertThat(it.next!!.at).isEqualTo(fri)
+            assertThat(it.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.FRIDAY))
         }
     }
 
     @Test
     fun restOnce_aroundMidnight() = runTest {
-        // 수요일 23:59는 수요일을 쉬어서 목요일 06:30(6시간 31분 뒤)에 울려요.
+        // 수요일 23:59는 다음 울림(목)을 쉬어서 금요일 06:30에 울려요.
         rested(a630, ZonedDateTime.of(2026, 11, 18, 23, 59, 0, 0, seoul)).let {
-            assertThat(it.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 18))
-            assertThat(it.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
-            assertThat(it.resting[1L]).isEqualTo(RestLabel.Within(TimeUntil(0, 6, 31)))
+            assertThat(it.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
+            assertThat(it.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
+            assertThat(it.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.FRIDAY))
         }
         // 목요일 00:00은 이미 목요일이라 목요일 울림을 쉬고 금요일에 울려요.
         rested(a630, ZonedDateTime.of(2026, 11, 19, 0, 0, 0, 0, seoul)).let {
@@ -439,10 +443,10 @@ class HomeViewModelTest {
             assertThat(it.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
             assertThat(it.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
         }
-        // 공휴일에도 울리는 알람은 수요일이 울리는 날이라 목요일에 울려요.
+        // 공휴일에도 울리는 알람은 수요일 울림이 이미 지나서 목요일을 쉬고 금요일에 울려요.
         rested(a630, at, wedHoliday).let {
-            assertThat(it.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 18))
-            assertThat(it.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
+            assertThat(it.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 19))
+            assertThat(it.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
         }
     }
 
@@ -458,7 +462,7 @@ class HomeViewModelTest {
 
     @Test
     fun restOnce_afterTurnAllOff_usesSameRule() = runTest {
-        // '모든 알람 끄기'에서 생긴 '이번만 쉬기'도 수요일 오후면 목요일에 울려요.
+        // '모든 알람 끄기'에서 생긴 '이번만 쉬기'도 수요일 오후면 목요일을 쉬고 금요일에 울려요.
         clock = ZonedDateTime.of(2026, 11, 18, 15, 0, 0, 0, seoul)
         val vm = viewModel(FakeAlarmBook(listOf(a630)))
         vm.uiState.test {
@@ -468,7 +472,7 @@ class HomeViewModelTest {
             while (state.alarms.first().enabled) state = awaitItem()
             vm.restOnce(state.alarms.first())
             while (1L !in state.resting) state = awaitItem()
-            assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 19, 6, 30, 0, 0, seoul))
+            assertThat(state.next!!.at).isEqualTo(ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul))
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -631,7 +635,7 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun restOnce_ringDayNight_restsToday_andShowsTimeLeft() = runTest {
+    fun restOnce_ringDayNight_skipsNextRing_andShowsDay() = runTest {
         val book = FakeAlarmBook(listOf(a630))
         val vm = viewModel(book)
         vm.uiState.test {
@@ -641,13 +645,12 @@ class HomeViewModelTest {
             while (state.alarms.first().enabled) state = awaitItem()
             vm.restOnce(state.alarms.first())
             while (1L !in state.resting) state = awaitItem()
-            // 월요일 밤(울리는 날, 이미 울림)에 쉬면 월요일을 쉰 걸로 치고 화요일에 울려요(결정 156).
-            assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 16))
-            // 월요일 23:10부터 화요일 06:30까지 7시간 20분이에요.
-            assertThat(state.resting[1L]).isEqualTo(RestLabel.Within(TimeUntil(0, 7, 20)))
+            // 월요일 밤(이미 울림)에 쉬면 다음 울림(화)을 쉬고 수요일에 울려요(결정 175).
+            assertThat(state.alarms.first().skipOnceDate).isEqualTo(LocalDate.of(2026, 11, 17))
+            assertThat(state.resting[1L]).isEqualTo(RestLabel.OnDay(DayOfWeek.WEDNESDAY))
             assertThat(state.shownOn(state.alarms.first())).isFalse()
             assertThat(state.restOffers).isEmpty()
-            assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 17))
+            assertThat(state.next!!.at.toLocalDate()).isEqualTo(LocalDate.of(2026, 11, 18))
 
             // 쉬는 중인 카드의 토글을 켜면 쉬기를 풀어요.
             vm.setEnabled(state.alarms.first(), true)
@@ -716,7 +719,7 @@ class HomeViewModelTest {
 }
 
 /** 날씨 없는 시험용 출처(홈은 맑은 하늘). */
-private object NoWeather : WeatherSource {
+internal object NoWeather : WeatherSource {
     override val weather: StateFlow<WeatherKind?> = MutableStateFlow(null)
 
     override fun refresh(force: Boolean) = Unit

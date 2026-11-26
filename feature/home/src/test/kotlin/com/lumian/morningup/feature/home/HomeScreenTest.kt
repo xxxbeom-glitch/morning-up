@@ -94,6 +94,24 @@ class HomeScreenTest {
     }
 
     @Test
+    fun restedToast_saysRestDayAndNextRing() {
+        val seoul = ZoneId.of("Asia/Seoul")
+        val next = ZonedDateTime.of(2026, 11, 20, 6, 30, 0, 0, seoul)
+        val rested = HomeMessage.Rested(LocalDate.of(2026, 11, 19), next)
+        show(HomeUiState(loading = false, today = today, message = rested))
+        compose.onNodeWithText("목요일은 쉬어요. 금요일 오전 6:30에 울려요").assertExists()
+    }
+
+    @Test
+    fun restedToast_farNextRing_showsDate() {
+        val seoul = ZoneId.of("Asia/Seoul")
+        val next = ZonedDateTime.of(2026, 12, 5, 7, 10, 0, 0, seoul)
+        val rested = HomeMessage.Rested(LocalDate.of(2026, 11, 28), next, nextOnDate = true)
+        show(HomeUiState(loading = false, today = today, message = rested))
+        compose.onNodeWithText("토요일은 쉬어요. 12월 5일 (토) 오전 7:10에 울려요").assertExists()
+    }
+
+    @Test
     fun selectionBar_showsRest_onlyWhenRestable() {
         val on = alarm.copy(repeatDays = setOf(DayOfWeek.SATURDAY))
         val state = HomeUiState(loading = false, alarms = listOf(on), today = today, selection = setOf(1L))

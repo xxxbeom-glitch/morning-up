@@ -1,5 +1,6 @@
 package com.lumian.morningup.feature.home
 
+import android.content.res.Resources
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -812,6 +813,17 @@ private fun EmptyHome(
 private val EmptyIconBox = 64.dp
 private val EmptyButtonWidth = 160.dp
 
+/** 쉬는 날 토스트 글(결정 175). 다음 울림이 멀면 날짜로 보여요. */
+private fun restedText(res: Resources, shown: HomeMessage.Rested): String {
+    val skip = AlarmText.dayShort(res, shown.skip.dayOfWeek)
+    val time = AlarmText.time(res, shown.next.toLocalTime())
+    return if (shown.nextOnDate) {
+        res.getString(R.string.home_rested_date, skip, AlarmText.date(res, shown.next.toLocalDate()), time)
+    } else {
+        res.getString(R.string.home_rested, skip, AlarmText.dayShort(res, shown.next.dayOfWeek), time)
+    }
+}
+
 @Composable
 private fun Messages(
     message: HomeMessage?,
@@ -845,6 +857,7 @@ private fun Messages(
             )
             HomeMessage.ChecksStopped -> MorningToast(text = stringResource(R.string.home_checks_stopped))
             HomeMessage.Ringing -> MorningToast(text = stringResource(R.string.home_ringing_blocked))
+            is HomeMessage.Rested -> MorningToast(text = restedText(res, shown))
             is HomeMessage.Deleted -> MorningSnackbar(
                 text = if (shown.alarms.size == 1) {
                     stringResource(R.string.home_deleted)

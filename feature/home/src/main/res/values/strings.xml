@@ -29,6 +29,10 @@
     <string name="home_resting_date">%1$d월 %2$d일(%3$s)에 다시 울려요</string>
     <!-- 쉬는 중 24시간 안: 19시간 43분 뒤 다시 울려요 (홈 위 문구와 같은 계산) -->
     <string name="home_resting_within">%1$s 뒤 다시 울려요</string>
+    <!-- 이번만 쉬기 누른 순간(결정 175): 목요일은 쉬어요. 금요일 오전 6:30에 울려요 -->
+    <string name="home_rested">%1$s요일은 쉬어요. %2$s요일 %3$s에 울려요</string>
+    <!-- 다음 울림이 7일 뒤 이상: 토요일은 쉬어요. 12월 5일 (토) 오전 7:10에 울려요 -->
+    <string name="home_rested_date">%1$s요일은 쉬어요. %2$s %3$s에 울려요</string>
 
     <!-- H3 더보기, 선택 모드 -->
     <string name="home_menu_all_off">모든 알람 끄기</string>
