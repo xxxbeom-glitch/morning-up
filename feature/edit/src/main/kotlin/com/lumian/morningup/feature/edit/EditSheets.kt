@@ -166,32 +166,9 @@ internal fun <T> ChipRow(
     selected: T?,
     optionLabel: @Composable (T) -> String,
     onSelect: (T) -> Unit,
-    description: String? = null,
-) {
-    Column(Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8)) {
-        ChipRowLine(label, options, selected, optionLabel, onSelect)
-        if (description != null) {
-            // 줄 아래 설명 한 줄(MorningSettingRow 아래 글과 같은 글꼴, 색).
-            Spacer(Modifier.height(MorningDimens.space4))
-            Text(
-                text = description,
-                style = MorningTheme.typography.captionMedium,
-                color = MorningTheme.colors.textSecondary,
-            )
-        }
-    }
-}
-
-@Composable
-private fun <T> ChipRowLine(
-    label: String,
-    options: List<T>,
-    selected: T?,
-    optionLabel: @Composable (T) -> String,
-    onSelect: (T) -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(vertical = MorningDimens.space8),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -257,8 +234,8 @@ private const val RECHECK_NONE = 0
 private val RecheckOptions = listOf(RECHECK_NONE) + WakeCheckSettings.RECHECK_COUNTS
 
 /**
- * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안). ① '다시 물어보기' 3, 5, 10분 후 ② '한 번 더 확인' 안 함, 1번, 2번, 3번과
- * 그 아래 설명 한 줄. 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
+ * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안). ① '간격' 3, 5, 10분 후 ② '한 번 더 확인' 안 함, 1번, 2번, 3번.
+ * 줄 아래 설명 글은 없어요(TSK-247). 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
  */
 @Composable
 internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
@@ -283,7 +260,6 @@ internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: (
                 if (n == RECHECK_NONE) stringResource(R.string.edit_recheck_none) else stringResource(R.string.edit_times, n)
             },
             onSelect = { n -> if (n == RECHECK_NONE) actions.onRecheck(false) else actions.onRecheckCount(n) },
-            description = stringResource(R.string.edit_recheck_desc),
         )
     }
 }

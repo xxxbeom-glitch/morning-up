@@ -113,10 +113,11 @@ class EditScreenTest {
             EditActions(onRecheck = { recheckOff = !it }, onRecheckCount = { count = it }),
         )
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
-        // 결정 183: 줄은 '다시 물어보기'와 '한 번 더 확인' 둘. 대답할 시간, 확인까지, 묻는 횟수 줄은 없어요.
-        compose.onNodeWithText("다시 물어보기").assertExists()
+        // 결정 183, TSK-247: 줄은 '간격'과 '한 번 더 확인' 둘, 줄 아래 설명 글 없음. 대답할 시간, 확인까지, 묻는 횟수 줄도 없어요.
+        compose.onNodeWithText("간격").assertExists()
         compose.onNodeWithText("한 번 더 확인").assertExists()
-        compose.onNodeWithText("10초 동안 눌러야 완전히 꺼져요").assertExists()
+        compose.onNodeWithText("다시 물어보기").assertDoesNotExist()
+        compose.onNodeWithText("10초 동안 눌러야 완전히 꺼져요").assertDoesNotExist()
         compose.onNodeWithText("대답할 시간").assertDoesNotExist()
         compose.onNodeWithText("확인까지").assertDoesNotExist()
         compose.onNodeWithText("묻는 횟수").assertDoesNotExist()
