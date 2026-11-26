@@ -843,3 +843,4 @@
 {"at": "2026-11-26 11:51:17", "by": "Leader", "id": "TSK-227", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
 {"at": "2026-11-26 11:51:17", "by": "Leader", "id": "TSK-229", "action": "set", "changes": {"reviewer": ["[QA 2]", "[QA 3]"]}}
 {"at": "2026-11-26 11:53:41", "by": "Leader", "id": "TSK-230", "action": "create", "changes": {"id": [null, "TSK-230"], "wbs": [null, "4.76"], "parent": [null, "TSK-004"], "title": [null, "정말 깼어요 화면 30초 지점 알림음 한 번 더"], "area": [null, "dev"], "owner": [null, "[개발 23]"], "reviewer": [null, "[QA 3]"], "status": [null, "todo"], "start": [null, "2026-11-26"], "due": [null, "2026-11-27"], "decisions": [[], ["182"]], "acceptance": [[], ["W3 화면 뜰 때 한 번, 30초에 한 번 더 알림음", "60초 안 누르면 다시 울림 그대로", "옛 2분 반복 없앰", "빌드, 시험, detekt 통과"]]}}
+{"at": "2026-11-26 11:55:12", "by": "Leader", "id": "TSK-217", "action": "comment", "changes": {"comments": [null, ["11-26 사용자: 여러 개 한 번에 쉬기 때 안내 '띄우지 않기'(지금대로)"]]}}
