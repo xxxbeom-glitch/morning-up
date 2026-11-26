@@ -201,4 +201,15 @@
     <string name="settings_lab_speed_fast">빠르게</string>
     <string name="settings_lab_speed_desc">버튼이 튕겨 다니는 빠르기예요</string>
     <string name="settings_lab_preview">미리 해보기</string>
+    <string name="dnd_guide_title">방해 금지 중에도 울리게</string>
+    <string name="dnd_guide_intro">방해 금지나 수면 모드가 켜지면 알람 화면은 떠도 소리와 진동이 막힐 수 있어요.</string>
+    <string name="dnd_guide_step_title">방해 금지에서 \'알람\' 켜기</string>
+    <string name="dnd_guide_step_body">폰 설정의 방해 금지에서 \'알람 및 소리\'를 열고 \'알람\'을 켜요. 이 스위치 하나가 알람 소리를 정해요.</string>
+    <string name="dnd_guide_switch_label">알람</string>
+    <string name="dnd_guide_switch_desc">방해 금지 중에도 소리와 진동 내기</string>
+    <string name="dnd_guide_note_title">알아 두세요</string>
+    <string name="dnd_guide_note_routine">수면 모드나 루틴이 시간 맞춰 켜져도 이 \'알람\' 스위치를 따라요.</string>
+    <string name="dnd_guide_note_apps">\'허용할 앱\'에 일어나 앱을 넣어도 이 스위치가 꺼져 있으면 소리가 막혀요.</string>
+    <string name="dnd_guide_footnote">앱이 이 설정을 대신 바꾸거나 읽을 수 없어요. 폰 설정에서 직접 확인해 주세요.</string>
+    <string name="dnd_guide_open">방해 금지 설정 열기</string>
 </resources>

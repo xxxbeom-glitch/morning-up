@@ -43,6 +43,7 @@ import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
 import com.lumian.morningup.feature.ring.TrickPreviewRoute
+import com.lumian.morningup.feature.settings.DndGuideRoute
 import com.lumian.morningup.feature.settings.FaqPage
 import com.lumian.morningup.feature.settings.LabRoute
 import com.lumian.morningup.feature.settings.LicensesPage
@@ -83,6 +84,10 @@ data object MissionTryDestination
 /** 설정 '권한' 한 화면(결정 130 보충). */
 @Serializable
 data object PermissionsRoute
+
+/** T2-1 '방해 금지 중에도 울리게'(TSK-177 답 4). */
+@Serializable
+data object DndGuideDestination
 
 /** T3 '확실히 잠깨기' 실험실(결정 146). */
 @Serializable
@@ -174,11 +179,11 @@ fun MorningNavHost(
             // 저장 경고 창(TSK-177 답 1, 2)에서 고치기를 눌렀으면 저장 뒤 홈에서 고칠 곳을 열어요.
             val saveFix by entry.savedStateHandle.getStateFlow<String?>(SAVE_FIX_KEY, null)
                 .collectAsStateWithLifecycle()
-            val fixContext = LocalContext.current
+            val openDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } }
             LaunchedEffect(saveFix) {
                 when (saveFix?.let(SaveWarning::valueOf)) {
                     SaveWarning.CannotDismiss -> permissionSheet = PermissionStep.Required
-                    SaveWarning.AlarmsSilenced -> openBannerTarget(fixContext, BannerKind.AlarmsSilenced)
+                    SaveWarning.AlarmsSilenced -> openDndGuide()
                     null -> return@LaunchedEffect
                 }
                 entry.savedStateHandle[SAVE_FIX_KEY] = null
@@ -207,7 +212,11 @@ fun MorningNavHost(
                                     kind,
                                     onClick = {
                                         val step = kind.startStep
-                                        if (step != null) permissionSheet = step else openBannerTarget(context, kind)
+                                        when {
+                                            step != null -> permissionSheet = step
+                                            kind == BannerKind.AlarmsSilenced -> openDndGuide()
+                                            else -> openBannerTarget(context, kind)
+                                        }
                                     },
                                     more = report.bannerMore,
                                 )
@@ -251,7 +260,7 @@ fun MorningNavHost(
                     onClose = onSilencedRingNoticeHandled,
                     onOpenSettings = {
                         onSilencedRingNoticeHandled()
-                        openBannerTarget(fixContext, BannerKind.AlarmsSilenced)
+                        openDndGuide()
                     },
                 )
             }
@@ -282,6 +291,9 @@ fun MorningNavHost(
         }
         composable<PermissionsRoute> {
             PermissionRoute(onBack = { navController.popBackStack() })
+        }
+        composable<DndGuideDestination> {
+            DndGuideRoute(onBack = { navController.popBackStack() })
         }
         composable<LabDestination> {
             LabRoute(
