@@ -1,4 +1,4 @@
-# [개발 19] 넘김 메모 (11-25)
+# [개발 19] 넘김 메모 (11-25, 11-26 덧붙임)
 
 다음 개발 방([개발 20])이 이어받을 것들이에요. 일 목록은 `python tools/pm/pm.py mine --as "[개발 20]"`로 다시 확인하고, owner가 [개발 19]인 열린 일은 `pm.py set 키 --as "[개발 20]" owner="[개발 20]"`로 바꿔요. 앞 방 메모 `dev-16-handover.md`~`dev-18-handover.md`의 '주의할 점'도 그대로 유효해요.
 
@@ -13,11 +13,16 @@
 | TSK-205 | 8cee221 | Drop Words 최근 사흘 단어 빼기. `RecentDropWords`(core/model), `PrefsDropWordHistory`(기기 보호 저장소 `drop_word_history`) | QA 확인 대기 |
 | TSK-206 | 4e32f48 | 스플래시 손글씨(결정 170). `SplashHandwriting.kt`, 약 3초 + 0.5초 멈춤, 움직임 줄이기면 완성 글자. 미리보기 GIF `docs/exports/tsk-206/` | Leader 검토 대기 |
 | TSK-207 | 4e3270a | 결정 164(T1 카드 이름 '다시 잠들기 방지', 첫 줄 '묻는 때', 켠 알람 없으면 T1, T3 안내), 167(O2-1, H2-1, H2-2 설명에 비상구 이유) | QA 확인 대기 |
+| ISS-050 | 50a0e0e | 선택 모드 '켜기', '모든 알람 켜기'도 울리는 중(쉬는 중, 미션 중 포함) 알람은 빼고 토스트(결정 165, 홈 토글과 같게). 시험 `ringingAlarm_isLeftOut_ofSelectionTurnOn` | QA 확인 대기 |
 
-- 마지막 APK: `app/build/outputs/apk/debug/app-debug.apk`, 빌드 시각 11-25 17:12:14(4e3270a, 206, 207 포함). [QA 1]에게 바뀐 점과 함께 넘겼어요.
+- 마지막 APK: `app/build/outputs/apk/debug/app-debug.apk`, 빌드 시각 11-25 17:29:30(50a0e0e, 206, 207, ISS-050 포함). 11-26에 [QA 1]에게 세 가지를 함께 보도록 넘겼어요(Z플립5, 소리 없이).
 - [QA 1]은 11-26에 Z플립5에서 소리 없이 TSK-204, 202, 205, 206, 207을 한 번에 봐요. 반려되면 그 고침을 [개발 20]이 이어받아요.
 
-## 남은 일
+## 남은 일 (Leader 11-26 순서, 하나씩)
+1. TSK-211 다크 모드 홈 별 무작위 반짝임(결정 173, `docs/decisions-11-26.md`). `HomeSky.kt`. 별 개수와 자리 무작위, 별마다 투명도 0→100→0% 되풀이, 움직임 줄이기면 멈춤.
+2. TSK-212 버튼 속이기 빠르기 1~10단계 슬라이더(결정 174, 결정 155의 세 칸을 바꿈). [디자인 19] TSK-209 시안이 나온 뒤 시작해요. 처음 값은 지금 '보통'보다 빠르게.
+3. TSK-210 미션 포기 화면(결정 171, 172). [디자인 19] TSK-208 시안이 나온 뒤 시작해요.
+- 세 일의 owner는 이미 [개발 20]이에요. QA 1이 206, 207, ISS-050을 반려하면 그 고침이 먼저예요.
 - TSK-206 빠르기 조정: 사용자가 GIF나 폰 녹화를 보고 정하면 `SplashHandwriting.kt`의 `DRAW_MILLIS`, `HOLD_MILLIS`, `PACE`, `PAUSES`만 바꿔요. 바꾼 뒤 `python docs/exports/tsk-206/make_preview.py .`로 GIF를 다시 만들어요. 실제 폰 녹화는 아직 없어요(설치는 Leader, QA 몫).
 - TSK-094(기기 호환성 대책 4개), TSK-178(소리 녹음 확인 기능): Leader 지시가 오면 시작해요.
 
