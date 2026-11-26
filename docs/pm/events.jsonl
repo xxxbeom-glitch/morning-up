@@ -721,3 +721,4 @@
 {"at": "2026-11-26 10:23:12", "by": "[개발 20]", "id": "TSK-212", "action": "set", "changes": {"commits": [[], ["84b67e1"]]}}
 {"at": "2026-11-26 10:23:12", "by": "[개발 20]", "id": "TSK-212", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["T3-1 속도 칩 세 개를 1~10단계 슬라이더로(TrickSpeedSlider.kt, 시안 1070:14319). 단계마다 0.1배씩 1단계 0.3 ~ 10단계 1.2 화면너비/초. 옛 저장값 느리게→2, 보통→5, 빠르게→9단계로 옮김. 처음 값 6단계(0.8, 옛 보통 0.7보다 빠름). T3 둘째 줄 '속도 6단계, 20초 동안'. 시험 TrickSpeedTest 4개, LabPageTest, core:data, feature:ring, assembleDebug, detekt 통과. Z플립5 단계 값 확인(완료 조건 3)은 설치 지시 때. 디버그 명령 --es speed 는 숫자 1~10도 받음. 커밋 84b67e1"]]}}
 {"at": "2026-11-26 10:23:12", "by": "Leader", "id": "TSK-177", "action": "comment", "changes": {"comments": [null, ["물을 것 1번 답: 저장하고 경고(추천대로). docs/decisions-11-26.md 아래 표"]]}}
+{"at": "2026-11-26 10:24:54", "by": "Leader", "id": "TSK-177", "action": "comment", "changes": {"comments": [null, ["물을 것 2번 답: 다섯 번 다 확인(추천대로)"]]}}
