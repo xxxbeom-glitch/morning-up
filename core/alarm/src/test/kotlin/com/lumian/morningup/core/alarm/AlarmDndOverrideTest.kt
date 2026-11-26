@@ -6,6 +6,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.alarm.ring.AlarmDndOverride
 import com.lumian.morningup.core.alarm.ring.DndControl
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -17,6 +18,11 @@ class AlarmDndOverrideTest {
     private val prefs = context.getSharedPreferences("dnd_override_test", Context.MODE_PRIVATE)
     private val control = FakeDnd()
     private val events = mutableListOf<String>()
+
+    @After
+    fun clear() {
+        prefs.edit().clear().commit()
+    }
     private val override = AlarmDndOverride(prefs, control) { event, _ -> events += event }
 
     @Test
@@ -84,7 +90,54 @@ class AlarmDndOverrideTest {
         assertThat(AlarmDndOverride(prefs, control) { _, _ -> }.enabled.value).isTrue()
     }
 
+    @Test
+    fun android15_userDndWins_untouched_andRecorded() {
+        // ISS-057: 안드로이드 15부터는 앱 규칙이 사용자 방해 금지를 못 이겨서 바꾸지 않아요.
+        override.setEnabled(true)
+        control.canOverride = false
+        override.hold()
+        override.release()
+        assertThat(control.changes).isEmpty()
+        assertThat(events).containsExactly(AlarmDndOverride.EVENT_UNSUPPORTED)
+        assertThat(override.supported).isFalse()
+    }
+
+    @Test
+    fun killedWhileRinging_nextStartRestores() {
+        override.setEnabled(true)
+        override.hold()
+        // 앱이 강제 종료돼 release가 오지 않았어요. 다음 시작에 새로 만들어 돌려요.
+        val next = AlarmDndOverride(prefs, control) { event, _ -> events += event }
+        next.recoverLeftover()
+        assertThat(control.now).isEqualTo(PRIORITY)
+        assertThat(events.last()).isEqualTo(AlarmDndOverride.EVENT_LEFTOVER)
+        // 한 번 돌리면 다시 하지 않아요.
+        control.changes.clear()
+        next.recoverLeftover()
+        assertThat(control.changes).isEmpty()
+    }
+
+    @Test
+    fun android15_leftoverAppRule_turnedOffOnce() {
+        // 예전 판이 남긴 앱 규칙은 시작 때 한 번 꺼요(앱 규칙만 꺼지고 사용자 방해 금지는 그대로).
+        control.canOverride = false
+        override.recoverLeftover()
+        override.recoverLeftover()
+        assertThat(control.changes).containsExactly(NotificationManager.INTERRUPTION_FILTER_ALL)
+    }
+
+    @Test
+    fun normalRelease_noLeftoverOnNextStart() {
+        override.setEnabled(true)
+        override.hold()
+        override.release()
+        control.changes.clear()
+        AlarmDndOverride(prefs, control) { _, _ -> }.recoverLeftover()
+        assertThat(control.changes).isEmpty()
+    }
+
     private class FakeDnd : DndControl {
+        var canOverride = true
         var access = true
         var silenced = true
         var now = PRIORITY
@@ -100,6 +153,8 @@ class AlarmDndOverrideTest {
             changes += filter
             now = filter
         }
+
+        override fun canOverride() = canOverride
     }
 
     private companion object {

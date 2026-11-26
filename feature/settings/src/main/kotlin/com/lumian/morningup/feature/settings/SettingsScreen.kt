@@ -78,6 +78,7 @@ fun SettingsRoute(
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     onOpenLab: () -> Unit = {},
+    onOpenDndGuide: () -> Unit = {},
     labCard: @Composable () -> Unit = { LabCard(onOpen = onOpenLab) },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -114,10 +115,13 @@ fun SettingsRoute(
         // 방해 금지 접근 권한이 있을 때만 켜진 모양이에요. 없으면 켤 때 그 권한 화면으로 보내요(TSK-177 답 3).
         nextAlarmShown = nextShown,
         onNextAlarmShown = viewModel::setNextAlarmShown,
-        dndOverride = dndOn && report.isGranted(AlarmPermission.DoNotDisturb),
+        // 안드로이드 15부터는 앱이 사용자 방해 금지를 풀 수 없어서 켜지 않고 '알람 허용' 안내(T2-1)로 보내요(ISS-057).
+        dndOverride = dndOn && report.isGranted(AlarmPermission.DoNotDisturb) && viewModel.dndOverrideSupported,
         onDndOverride = { on ->
-            viewModel.setDndOverrideEnabled(on)
-            if (on && !report.isGranted(AlarmPermission.DoNotDisturb)) {
+            val guide = on && !viewModel.dndOverrideSupported
+            viewModel.setDndOverrideEnabled(on && !guide)
+            if (guide) onOpenDndGuide()
+            if (on && !guide && !report.isGranted(AlarmPermission.DoNotDisturb)) {
                 PermissionSettings.open(context, PermissionSettings.intentFor(context, AlarmPermission.DoNotDisturb))
             }
         },

@@ -235,6 +235,7 @@ fun MorningNavHost(
                         onOpenFaq = { navController.navigate(FaqRoute) { launchSingleTop = true } },
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
                         onOpenLab = { navController.navigate(LabDestination) { launchSingleTop = true } },
+                        onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
                         themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG).takeIf { BuildConfig.DEBUG },
                         onThemeMode = { mode -> ThemeModeStore.set(context, mode) },
                     )

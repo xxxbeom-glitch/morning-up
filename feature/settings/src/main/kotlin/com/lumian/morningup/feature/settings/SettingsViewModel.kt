@@ -57,6 +57,9 @@ class SettingsViewModel @Inject constructor(
     /** 설정 탭 '방해 금지 잠깐 풀기' 토글(TSK-177 답 3). 처음 꺼짐. */
     val dndOverrideEnabled: StateFlow<Boolean> = dndOverride?.enabled ?: MutableStateFlow(false)
 
+    /** 안드로이드 15부터는 잠깐 풀기가 안 돼서 T2-1 안내로 보내요(ISS-057). */
+    val dndOverrideSupported: Boolean get() = dndOverride?.supported ?: true
+
     fun setDndOverrideEnabled(on: Boolean) {
         dndOverride?.setEnabled(on)
     }
