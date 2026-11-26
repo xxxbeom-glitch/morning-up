@@ -31,6 +31,8 @@ import com.lumian.morningup.core.designsystem.theme.MorningColors
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.WeatherKind
 import java.time.LocalTime
+import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.random.Random
 
 /** H0 하늘 장면. 해와 달은 시각을 따라 바뀌어요(날씨는 9단계). */
@@ -68,7 +70,9 @@ private val RiseFrom = 220.dp
 private val FloatRange = 6.dp
 private const val RISE_MILLIS = 1_000
 private const val FLOAT_MILLIS = 3_500
-private const val TWINKLE_MILLIS = 2_400
+/** 별 반짝임 한 바퀴. 별마다 주기(3~6초)가 이 시간을 나눠떨어지게 해서 되풀이가 끊기지 않아요. */
+private const val TWINKLE_LOOP_MILLIS = 60_000
+private val TwinklePeriods = intArrayOf(3, 4, 5, 6)
 private const val SKY_SOLID_STOP = 0.55f
 private const val SKY_FADE_STOP = 0.9f
 private const val SUN_HALO_ALPHA = 0.55f
@@ -76,26 +80,31 @@ private const val SUN_INNER_ALPHA = 0.6f
 private const val MOON_HALO_ALPHA = 0.3f
 private const val MARE_ALPHA = 0.45f
 private const val CRATER_ALPHA = 0.5f
-private const val STAR_COUNT = 34
-private const val STAR_SEED = 7
+private const val STAR_MIN_COUNT = 24
+private const val STAR_MAX_COUNT = 40
 private const val STAR_BLUE_SHARE = 0.2f
-private const val STAR_DIM = 0.3f
 private const val STAR_MIN_ALPHA = 0.35f
 private const val STAR_AREA = 0.6f
 private const val BODY_X = 0.5f
 
-private data class Star(
+/**
+ * 별 하나. [alpha]는 '애니메이션 줄이기'일 때 멈춰 보이는 밝기예요.
+ * 반짝일 때는 [periodSeconds]초마다 투명도 0%에서 100%로, 다시 0%로 바뀌고, [phase]만큼 어긋나서 시작해요.
+ */
+internal data class Star(
     val x: Float,
     val y: Float,
     val radius: Float,
     val alpha: Float,
     val blue: Boolean,
-    val twinkles: Boolean,
+    val periodSeconds: Int,
+    val phase: Float,
 )
 
 /**
  * 홈 위쪽 하늘(Home Sky 360x420). 아래 55%부터 90%까지 바탕색으로 서서히 녹아요.
- * 처음 보일 때 해나 달이 아래에서 1초 동안 올라오고, 그 뒤 위아래 6dp로 둥실거려요. 밤에는 별 절반이 반짝여요.
+ * 처음 보일 때 해나 달이 아래에서 1초 동안 올라오고, 그 뒤 위아래 6dp로 둥실거려요.
+ * 밤(다크 모드)에는 별 개수와 자리가 열 때마다 무작위이고, 별마다 따로 천천히 나타났다 사라져요(결정 173).
  * '애니메이션 줄이기'가 켜져 있으면 제자리에 멈춘 장면이에요.
  */
 @Composable
@@ -112,7 +121,7 @@ fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier, weather:
     val float = floatState(reduceMotion)
     val falling = weather == WeatherKind.Rain || weather == WeatherKind.Snow
     val twinkle = twinkleState(reduceMotion || scene != SkyScene.Night || falling)
-    val stars = remember { stars() }
+    val stars = remember { randomStars(Random.Default) }
     val (top, bottom) = if (falling) weatherColors(weather, moon, colors) else sceneColors(scene, colors)
     val fall = fallState(reduceMotion || !falling, weather == WeatherKind.Snow)
     val particles = remember(weather) { particles(weather) }
@@ -130,7 +139,7 @@ fun HomeSky(time: LocalTime, height: Dp, modifier: Modifier = Modifier, weather:
         if (falling) {
             drawFalling(particles, fall.value, weather == WeatherKind.Snow, moon, colors)
         } else {
-            if (scene == SkyScene.Night) drawStars(stars, twinkle.value, colors)
+            if (scene == SkyScene.Night) drawStars(stars, twinkle?.value, colors)
             val center = Offset(
                 size.width * BODY_X,
                 BodyCenterY.toPx() + rise.value * RiseFrom.toPx() + float.value * FloatRange.toPx(),
@@ -151,16 +160,19 @@ private fun floatState(still: Boolean): State<Float> {
     )
 }
 
+/** 반짝임 시계(초). 멈춘 장면이면 null이라 별은 저마다의 고정 밝기로 그려요. */
 @Composable
-private fun twinkleState(still: Boolean): State<Float> {
-    if (still) return remember { mutableFloatStateOf(1f) }
+private fun twinkleState(still: Boolean): State<Float>? {
+    if (still) return null
     return rememberInfiniteTransition(label = "twinkle").animateFloat(
-        initialValue = 1f,
-        targetValue = STAR_DIM,
-        animationSpec = infiniteRepeatable(tween(TWINKLE_MILLIS), RepeatMode.Reverse),
-        label = "twinkleAlpha",
+        initialValue = 0f,
+        targetValue = TWINKLE_LOOP_MILLIS / MILLIS_PER_SECOND,
+        animationSpec = infiniteRepeatable(tween(TWINKLE_LOOP_MILLIS, easing = LinearEasing), RepeatMode.Restart),
+        label = "twinkleSeconds",
     )
 }
+
+private const val MILLIS_PER_SECOND = 1_000f
 
 private fun sceneColors(scene: SkyScene, c: MorningColors): Pair<Color, Color> = when (scene) {
     SkyScene.Dawn -> c.sky2 to c.sky4
@@ -169,27 +181,33 @@ private fun sceneColors(scene: SkyScene, c: MorningColors): Pair<Color, Color> =
     SkyScene.Night -> c.skyNightTop to c.skyNightBottom
 }
 
-private fun stars(): List<Star> {
-    val random = Random(STAR_SEED)
-    return List(STAR_COUNT) { i ->
+/** 별 개수(24~40개), 자리, 크기, 반짝임 주기와 어긋남을 모두 [random]으로 정해요. */
+internal fun randomStars(random: Random): List<Star> =
+    List(random.nextInt(STAR_MIN_COUNT, STAR_MAX_COUNT + 1)) {
         Star(
             x = random.nextFloat(),
             y = random.nextFloat() * STAR_AREA,
             radius = 0.5f + random.nextFloat() * 1.5f,
             alpha = STAR_MIN_ALPHA + random.nextFloat() * (1f - STAR_MIN_ALPHA),
             blue = random.nextFloat() < STAR_BLUE_SHARE,
-            twinkles = i % 2 == 0,
+            periodSeconds = TwinklePeriods[random.nextInt(TwinklePeriods.size)],
+            phase = random.nextFloat(),
         )
     }
+
+/** [seconds]초일 때 별 투명도(0~1). 0에서 1로, 다시 0으로 부드럽게 되풀이해요. */
+internal fun starTwinkleAlpha(star: Star, seconds: Float): Float {
+    val turn = seconds / star.periodSeconds + star.phase
+    return (1f - cos(turn * 2f * PI.toFloat())) / 2f
 }
 
-private fun DrawScope.drawStars(stars: List<Star>, twinkle: Float, c: MorningColors) {
+private fun DrawScope.drawStars(stars: List<Star>, seconds: Float?, c: MorningColors) {
     stars.forEach { s ->
         drawCircle(
             color = if (s.blue) c.skyStarBlue else c.skyStar,
             radius = s.radius.dp.toPx(),
             center = Offset(s.x * size.width, s.y * size.height),
-            alpha = s.alpha * if (s.twinkles) twinkle else 1f,
+            alpha = if (seconds == null) s.alpha else starTwinkleAlpha(s, seconds),
         )
     }
 }
