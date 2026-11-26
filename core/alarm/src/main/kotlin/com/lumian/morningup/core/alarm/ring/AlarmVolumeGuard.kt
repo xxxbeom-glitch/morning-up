@@ -47,14 +47,14 @@ class AlarmVolumeGuard internal constructor(
 
     @Synchronized
     fun release() {
-        if (holders == 0) return
-        holders--
+        holders = (holders - 1).coerceAtLeast(0)
         if (holders > 0) return
-        val to = raised ?: return
-        val from = saved ?: return
+        val to = raised
+        val from = saved
         raised = null
         saved = null
-        val a = audio ?: return
+        val a = audio
+        if (to == null || from == null || a == null) return
         val current = a.getStreamVolume(STREAM)
         if (VolumeFloor.shouldRestore(current, to)) {
             runCatching { a.setStreamVolume(STREAM, from, 0) }
