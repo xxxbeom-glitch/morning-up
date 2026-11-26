@@ -16,7 +16,13 @@ class BatteryReminderPolicyTest {
         notifications: Boolean = true,
         exempt: Boolean = false,
         last: LocalDate? = null,
-    ) = BatteryReminderPolicy.shouldNotify(at(19, 21), nextAlarm, notifications, exempt, last)
+    ) = BatteryReminderPolicy.shouldNotify(
+        at(19, 21),
+        nextAlarm,
+        notifications,
+        if (exempt) emptyList() else listOf(TomorrowIssue.BatteryExempt),
+        last,
+    )
 
     @Test
     fun nextCheck_tonightBeforeNine_tomorrowAfter() {
@@ -43,5 +49,19 @@ class BatteryReminderPolicyTest {
         assertThat(notify(null)).isFalse()
         assertThat(notify(at(19, 23))).isFalse()
         assertThat(notify(at(21, 7))).isFalse()
+    }
+
+    @Test
+    fun issues_inUrgentOrder_lowBatteryOnlyWhenNotCharging() {
+        assertThat(BatteryReminderPolicy.issues(false, false, 50, false, true)).isEmpty()
+        assertThat(BatteryReminderPolicy.issues(true, true, 15, false, false)).containsExactly(
+            TomorrowIssue.BatteryRestricted,
+            TomorrowIssue.AlarmsSilenced,
+            TomorrowIssue.LowBattery,
+            TomorrowIssue.BatteryExempt,
+        ).inOrder()
+        assertThat(BatteryReminderPolicy.issues(false, false, 15, true, true)).isEmpty()
+        assertThat(BatteryReminderPolicy.issues(false, false, 20, false, true)).isEmpty()
+        assertThat(BatteryReminderPolicy.issues(false, false, null, false, true)).isEmpty()
     }
 }

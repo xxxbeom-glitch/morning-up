@@ -58,6 +58,12 @@
     <string name="channel_reminder_description">내일 알람이 제때 울리지 못할 수 있을 때 알려요</string>
     <string name="battery_reminder_title">내일 알람이 울리지 않을 수 있어요</string>
     <string name="battery_reminder_text">배터리 사용 제한이 켜져 있어요. 눌러서 풀어 주세요.</string>
+    <!-- 밤 9시 내일 알람 점검 (TSK-177 답 5, 시안 N1) -->
+    <string name="tomorrow_title_silent">내일 알람이 소리 없이 울릴 수 있어요</string>
+    <string name="tomorrow_text_restricted">배터리 사용이 \'제한\'으로 되어 있어요</string>
+    <string name="tomorrow_text_silenced">방해 금지가 알람을 막고 있어요</string>
+    <string name="tomorrow_text_low_battery">배터리가 %1$d%% 남았어요. 자기 전에 충전해 주세요</string>
+    <string name="tomorrow_more">%1$s. 그 밖에 %2$d개 더</string>
     <!-- 미션 비상구 알림(결정 149~151, TSK-182). 버튼 글 '미션 포기'는 가칭이라 escape_action 하나에만 둬요 -->
     <string name="channel_escape">미션을 못 할 때</string>
     <string name="channel_escape_description">울림 미션을 할 수 없을 때 문장을 따라 써서 알람을 끄는 알림이에요</string>
