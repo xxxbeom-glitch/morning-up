@@ -74,7 +74,8 @@ data class RingPlan(
             wakeCheckAnswerSeconds = alarm.wakeCheck.normalized().answerSeconds,
             powerOffGuard = alarm.powerOffGuard && alarm.missions.isNotEmpty(),
             background = alarm.background,
-            recheckEnabled = alarm.wakeCheck.recheckEnabled,
+            // 결정 184: W3는 실험실 '한 번 더 확인'이 켜져 있을 때만 알람 값대로 물어요.
+            recheckEnabled = alarm.wakeCheck.recheckEnabled && settings.lab.recheckEnabled,
             recheckWaitMinutes = alarm.wakeCheck.normalized().recheckWaitMinutes,
             recheckCount = alarm.wakeCheck.normalized().recheckCount,
             minuteMillis = settings.lab.debugMinuteMillis,

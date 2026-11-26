@@ -322,7 +322,8 @@ fun EditScreen(
             when (lastSheet) {
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
-                EditSheet.WakeCheck -> WakeCheckSheetContent(state.draft, actions, onDone = { sheet = null })
+                EditSheet.WakeCheck ->
+                    WakeCheckSheetContent(state.draft, state.labRecheck, actions, onDone = { sheet = null })
                 EditSheet.MissionPick -> MissionPickSheetContent(
                     state = state,
                     onPick = { type ->
@@ -575,7 +576,7 @@ private fun MissionCard(
         // 토글을 켜면 켜고 나서 시트도 바로 띄워요.
         MorningSettingRow(
             label = stringResource(R.string.edit_wake_check),
-            value = if (alarm.wakeCheck.enabled) wakeCheckValue(alarm) else offValue(),
+            value = if (alarm.wakeCheck.enabled) wakeCheckValue(alarm, state.labRecheck) else offValue(),
             state = onOff(alarm.wakeCheck.enabled),
             onCheckedChange = { on ->
                 actions.onWakeCheck(on)

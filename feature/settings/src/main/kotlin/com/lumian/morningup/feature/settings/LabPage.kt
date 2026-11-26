@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lumian.morningup.core.alarm.ring.LabLog
 import com.lumian.morningup.core.alarm.ring.TrickAccessibility
@@ -43,11 +44,14 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
+import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 /** T3에서 여는 시트(결정 146 1절). */
 enum class LabSheet { Trick, HideEscape }
@@ -63,6 +67,7 @@ const val LAB_ESCAPE_SHEET_TAG = "lab_escape_sheet"
 class LabViewModel @Inject constructor(
     private val store: WakeCheckSettingsStore,
     private val labLog: LabLog,
+    private val checks: WakeCheckGate,
 ) : ViewModel() {
     val settings: StateFlow<WakeCheckSettings> = store.settings
 
@@ -83,6 +88,23 @@ class LabViewModel @Inject constructor(
     fun setEscapeHidden(hidden: Boolean) {
         updateLab { it.copy(escapeHidden = hidden) }
         labLog.record(if (hidden) LabLog.ESCAPE_HIDE_ON else LabLog.ESCAPE_HIDE_OFF, kept = true)
+    }
+
+    /**
+     * '한 번 더 확인'(결정 184). 끄면 지금 기다리는 W3(와 W2 뒤에 이어질 W3)를 취소해요. 알람마다 저장된 횟수는 그대로예요.
+     * 켜고 끄기와 취소 여부를 폰 안 진단 기록에 남겨요.
+     */
+    fun setRecheck(on: Boolean) {
+        updateLab { it.copy(recheckEnabled = on) }
+        if (on) {
+            labLog.record(LabLog.RECHECK_LAB_ON, kept = true)
+            return
+        }
+        viewModelScope.launch {
+            val pending = checks.recheckPending.first()
+            checks.recheckTurnedOff()
+            labLog.record(LabLog.RECHECK_LAB_OFF, detail = "pending_cancelled=$pending", kept = true)
+        }
     }
 
     private fun updateLab(transform: (LabSettings) -> LabSettings): LabSettings {
@@ -115,10 +137,15 @@ fun LabCardContent(lab: LabSettings, onOpen: () -> Unit) {
     }
 }
 
-/** T1 줄 값: '꺼짐' 또는 '버튼 속이기'(결정 177). */
+/** T1 줄 값: '꺼짐' 또는 켠 것 이름을 이어서('버튼 속이기, 한 번 더 확인', 결정 177, 184). */
 @Composable
-private fun labValue(lab: LabSettings): String =
-    stringResource(if (lab.trickEnabled) R.string.settings_lab_trick else R.string.settings_lab_off)
+private fun labValue(lab: LabSettings): String {
+    val names = buildList {
+        if (lab.trickEnabled) add(stringResource(R.string.settings_lab_trick))
+        if (lab.recheckEnabled) add(stringResource(R.string.settings_lab_recheck))
+    }
+    return if (names.isEmpty()) stringResource(R.string.settings_lab_off) else names.joinToString(", ")
+}
 
 /** T3 '확실히 잠깨기' 페이지. [onPreview]는 T3-3 미리 해보기를 열어요. */
 @Composable
@@ -134,6 +161,7 @@ fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel 
         onPreview = onPreview,
         onEscapeHidden = viewModel::setEscapeHidden,
         trickOff = trickOff,
+        onRecheck = viewModel::setRecheck,
     )
 }
 
@@ -152,6 +180,7 @@ fun LabScreen(
     modifier: Modifier = Modifier,
     onEscapeHidden: (Boolean) -> Unit = {},
     trickOff: Boolean = false,
+    onRecheck: (Boolean) -> Unit = {},
 ) {
     var sheet by rememberSaveable { mutableStateOf<LabSheet?>(null) }
     val colors = MorningTheme.colors
@@ -207,6 +236,8 @@ fun LabScreen(
                 hidden = lab.escapeHidden,
                 onToggle = { on -> if (on) sheet = LabSheet.HideEscape else onEscapeHidden(false) },
             )
+            Spacer(Modifier.height(MorningDimens.space4))
+            RecheckCard(on = lab.recheckEnabled, onToggle = onRecheck)
         }
     }
     val open = sheet
@@ -265,6 +296,24 @@ private fun EscapeCard(hidden: Boolean, onToggle: (Boolean) -> Unit) {
         color = MorningTheme.colors.textSecondary,
         modifier = Modifier.padding(horizontal = MorningDimens.layoutCardPadding),
     )
+}
+
+/**
+ * T3 셋째 카드: '한 번 더 확인' 토글 한 줄(결정 184, 기존 실험실 줄 부품). 켜면 알람 편집 '다시 잠들기 방지' 시트에
+ * '한 번 더 확인' 줄이 보이고 알람마다 정한 횟수대로 '정말 깼어요?'를 물어요.
+ */
+@Composable
+private fun RecheckCard(on: Boolean, onToggle: (Boolean) -> Unit) {
+    MorningSettingsCard(title = null) {
+        MorningSettingRow(
+            label = stringResource(R.string.settings_lab_recheck),
+            value = stringResource(R.string.settings_lab_recheck_value),
+            state = if (on) SettingRowState.On else SettingRowState.Off,
+            onCheckedChange = onToggle,
+            onClick = { onToggle(!on) },
+            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+        )
+    }
 }
 
 /** T3-4: 제목, 설명, '숨겨도 이럴 때는 떠요'와 두 줄, 아래 '취소'(보조)와 '숨기기'를 같은 너비로(시안 1084:13939). */

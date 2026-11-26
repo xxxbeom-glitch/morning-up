@@ -235,10 +235,10 @@ private val RecheckOptions = listOf(RECHECK_NONE) + WakeCheckSettings.RECHECK_CO
 
 /**
  * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안). ① '간격' 3, 5, 10분 후 ② '한 번 더 확인' 안 함, 1번, 2번, 3번.
- * 줄 아래 설명 글은 없어요(TSK-247). 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
+ * ② 줄은 설정 > 실험실 '한 번 더 확인'을 켰을 때만 보여요(결정 184). 줄 아래 설명 글은 없어요(TSK-247). 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
  */
 @Composable
-internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+internal fun WakeCheckSheetContent(alarm: Alarm, labRecheck: Boolean, actions: EditActions, onDone: () -> Unit) {
     val check = alarm.wakeCheck
     EditSheetFrame(
         title = stringResource(R.string.edit_wake_check),
@@ -252,23 +252,31 @@ internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: (
             optionLabel = { stringResource(R.string.edit_minutes_after, it) },
             onSelect = actions.onWakeCheckAsk,
         )
-        ChipRow(
-            label = stringResource(R.string.edit_recheck),
-            options = RecheckOptions,
-            selected = if (check.recheckEnabled) check.recheckCount else RECHECK_NONE,
-            optionLabel = { n ->
-                if (n == RECHECK_NONE) stringResource(R.string.edit_recheck_none) else stringResource(R.string.edit_times, n)
-            },
-            onSelect = { n -> if (n == RECHECK_NONE) actions.onRecheck(false) else actions.onRecheckCount(n) },
-        )
+        // 결정 184: '한 번 더 확인' 줄은 실험실에서 켰을 때만 보여요.
+        if (labRecheck) RecheckRow(check.recheckEnabled, check.recheckCount, actions)
     }
 }
 
-/** '다시 잠들기 방지' 줄 값: '3분 후, 한 번 더 확인 1번'. 한 번 더 확인이 꺼져 있으면 '3분 후'예요. */
 @Composable
-internal fun wakeCheckValue(alarm: Alarm): String {
+private fun RecheckRow(enabled: Boolean, count: Int, actions: EditActions) {
+    ChipRow(
+        label = stringResource(R.string.edit_recheck),
+        options = RecheckOptions,
+        selected = if (enabled) count else RECHECK_NONE,
+        optionLabel = { n ->
+            if (n == RECHECK_NONE) stringResource(R.string.edit_recheck_none) else stringResource(R.string.edit_times, n)
+        },
+        onSelect = { n -> if (n == RECHECK_NONE) actions.onRecheck(false) else actions.onRecheckCount(n) },
+    )
+}
+
+/**
+ * '다시 잠들기 방지' 줄 값: '3분 후, 한 번 더 확인 1번'. 한 번 더 확인이 꺼져 있거나 실험실에서 꺼 두었으면 '3분 후'예요(결정 184).
+ */
+@Composable
+internal fun wakeCheckValue(alarm: Alarm, labRecheck: Boolean): String {
     val check = alarm.wakeCheck
-    return if (check.recheckEnabled) {
+    return if (check.recheckEnabled && labRecheck) {
         stringResource(R.string.edit_wake_check_value, check.askAfterMinutes, check.recheckCount)
     } else {
         stringResource(R.string.edit_wake_check_value_no_recheck, check.askAfterMinutes)

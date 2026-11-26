@@ -86,6 +86,7 @@ class WakeCheckSettingsPrefs internal constructor(
         // 없앤 값(W3 확인할 시간, 실험실 여러 번 묻기)은 옮기지 않고 지워요(결정 176, 177).
         OBSOLETE_KEYS.forEach { remove(it) }
         putBoolean(KEY_ESCAPE_HIDDEN, settings.lab.escapeHidden)
+        putBoolean(KEY_LAB_RECHECK, settings.lab.recheckEnabled)
         putLong(KEY_DEBUG_MINUTE, settings.lab.debugMinuteMillis)
     }
 
@@ -107,6 +108,9 @@ class WakeCheckSettingsPrefs internal constructor(
 
         /** 미션 비상구 알림 숨기기(결정 151). */
         private const val KEY_ESCAPE_HIDDEN = "lab_escape_hidden"
+
+        /** 실험실 '한 번 더 확인'(결정 184). 옛 [KEY_RECHECK](처음 켜짐)와 따로 두고 처음 꺼짐이에요. */
+        private const val KEY_LAB_RECHECK = "lab_recheck"
 
         /** 시험용 1분 길이. 디버그 adb 명령만 바꿔요. */
         private const val KEY_DEBUG_MINUTE = "lab_debug_minute_millis"
@@ -134,6 +138,7 @@ class WakeCheckSettingsPrefs internal constructor(
                 trickSpeed = TrickSpeed.of(prefs.getString(KEY_TRICK_SPEED, null)),
                 escapeHidden = prefs.getBoolean(KEY_ESCAPE_HIDDEN, false),
                 debugMinuteMillis = prefs.getLong(KEY_DEBUG_MINUTE, LabSettings.MINUTE_MILLIS),
+                recheckEnabled = prefs.getBoolean(KEY_LAB_RECHECK, false),
             ),
         )
 

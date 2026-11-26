@@ -20,6 +20,7 @@ import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.InMemoryWakeCheckSettingsStore
+import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.engine.AlarmStore
@@ -309,7 +310,8 @@ class AlarmWiringTest {
         // 결정 180: W2, W3 값은 알람마다예요. 전체 설정(3분, 60초)이 아니라 알람 값으로 울려요.
         val sessions = sessionStore(tmp.newFile("g.preferences_pb").also { it.delete() })
         val check = WakeCheck(true, 5, 30, recheckEnabled = true, recheckWaitMinutes = 1, recheckCount = 2)
-        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings())
+        // 결정 184: W3는 실험실 '한 번 더 확인'을 켜야 물어요.
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(lab = LabSettings(recheckEnabled = true)))
         RingController(sessions, FakeAlarms(mathAlarm.copy(wakeCheck = check)), RecordingRunner(), now, settings)
             .fire(3)
         val plan = sessions.load()!!.plan
@@ -323,9 +325,26 @@ class AlarmWiringTest {
     }
 
     @Test
+    fun fire_labRecheckOff_skipsW3_butKeepsAlarmCount() = runTest {
+        // 결정 184: 실험실 '한 번 더 확인'이 꺼져 있으면(처음 값) 알람에 횟수가 있어도 W3를 묻지 않아요.
+        val sessions = sessionStore(tmp.newFile("g2.preferences_pb").also { it.delete() })
+        val check = WakeCheck(true, 5, recheckEnabled = true, recheckCount = 2)
+        val alarm = mathAlarm.copy(wakeCheck = check)
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings())
+        RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now, settings).fire(3)
+        val plan = sessions.load()!!.plan
+        assertThat(plan.wakeCheckEnabled).isTrue()
+        assertThat(plan.recheckEnabled).isFalse()
+        // 알람에 저장된 횟수는 그대로예요.
+        assertThat(alarm.wakeCheck.recheckCount).isEqualTo(2)
+    }
+
+    @Test
     fun recheck_waitsQuietly_thenOpensEarly_andEnds() = runTest {
         val sessions = sessionStore(tmp.newFile("h.preferences_pb").also { it.delete() })
-        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(askAfterMinutes = 3, answerSeconds = 60))
+        val settings = InMemoryWakeCheckSettingsStore(
+            WakeCheckSettings(askAfterMinutes = 3, answerSeconds = 60, lab = LabSettings(recheckEnabled = true)),
+        )
         val runner = RecordingRunner()
         val controller = RingController(sessions, FakeAlarms(checkAlarm), runner, now, settings)
         controller.fire(3)

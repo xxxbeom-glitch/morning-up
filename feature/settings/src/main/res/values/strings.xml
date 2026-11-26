@@ -175,6 +175,8 @@
     <string name="settings_lab_intro">잘 못 일어나는 분을 위한 실험 기능이에요. 아직 다듬는 중이라, 써 보고 \'의견 보내기\'로 알려 주세요.</string>
     <string name="settings_lab_note">톡백 같은 접근성 기능을 쓰는 중에는 버튼 속이기가 자동으로 꺼져요.</string>
     <string name="settings_lab_trick">버튼 속이기</string>
+    <string name="settings_lab_recheck">한 번 더 확인</string>
+    <string name="settings_lab_recheck_value">\'깼어요\'를 누른 뒤 \'정말 깼어요?\'를 또 물어요</string>
     <string name="settings_lab_trick_off">울릴 때 버튼이 움직여요</string>
     <string name="settings_lab_trick_on">속도 %1$s, %2$d초 동안</string>
     <string name="settings_lab_trick_desc">알람이 울리면 버튼이 화면 안을 공처럼 튕겨 다녀요. 화면을 만지고 %1$d초가 지나면 제자리에 멈춰요.</string>

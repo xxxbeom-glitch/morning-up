@@ -102,7 +102,10 @@ class WakeCheckSettingsPrefsTest {
             trickSpeed = TrickSpeed.Slow,
             escapeHidden = true,
             debugMinuteMillis = 6_000L,
+            recheckEnabled = true,
         )
+        // 결정 184: 실험실 '한 번 더 확인'은 처음 꺼짐이고, 켜면 다시 열어도 켜져 있어요.
+        assertThat(store.current().lab.recheckEnabled).isFalse()
         store.update { it.copy(lab = lab) }
         val again = WakeCheckSettingsPrefs(prefs, db.alarmDao())
         assertThat(again.current().lab).isEqualTo(lab)

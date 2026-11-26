@@ -98,6 +98,11 @@ data class LabSettings(
     val trickSpeed: TrickSpeed = TrickSpeed.Default,
     val escapeHidden: Boolean = false,
     val debugMinuteMillis: Long = MINUTE_MILLIS,
+    /**
+     * '한 번 더 확인'(W3 '정말 깼어요?', 결정 184). 유료 후보라 실험실에서 켜요. 처음 꺼짐.
+     * 꺼져 있으면 알람마다 저장된 횟수가 있어도 W3를 묻지 않고, 편집 시트에 그 줄이 안 보여요.
+     */
+    val recheckEnabled: Boolean = false,
 ) {
     /** 이번 울림에 걸 버튼 속이기. 꺼져 있으면 null. */
     val trick: ButtonTrick? get() = if (trickEnabled) ButtonTrick(trickSpeed) else null

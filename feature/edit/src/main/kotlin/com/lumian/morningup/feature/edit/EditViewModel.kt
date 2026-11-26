@@ -7,6 +7,7 @@ import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ShakeSupport
 import com.lumian.morningup.core.model.WakeCheckSettings
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
@@ -87,6 +88,8 @@ data class EditUiState(
     val ringingBlocked: Boolean = false,
     /** 저장 전에 띄운 경고 창 S0-2, S0-3(TSK-177 답 1, 2). 두 버튼 모두 저장해요. */
     val saveWarning: SaveWarning? = null,
+    /** 실험실 '한 번 더 확인'이 켜져 있는지(결정 184). 꺼져 있으면 S4 시트는 '간격' 한 줄, 줄 값은 간격만이에요. */
+    val labRecheck: Boolean = false,
 ) {
     /** 미션이 없으면 '미션 선택' 토글 꺼짐, 값 '없음', '미리 해보기' 숨김, '전원 종료 방지' 비활성(dev-readiness 4-1). */
     val hasMissions: Boolean get() = draft.missions.isNotEmpty()
@@ -135,6 +138,7 @@ class EditViewModel @Inject constructor(
     shakeSupport: ShakeSupport,
     private val checks: WakeCheckGate? = null,
     private val permissions: PermissionChecker? = null,
+    labSettings: WakeCheckSettingsStore? = null,
 ) : ViewModel() {
     private data class Editor(
         val loading: Boolean = true,
@@ -162,7 +166,9 @@ class EditViewModel @Inject constructor(
     private val editor = MutableStateFlow(Editor())
     private val clock = merge(flowOf(Unit), ticker.ticks()).map { now.now() }
 
-    val uiState: StateFlow<EditUiState> = combine(editor, clock) { e, at ->
+    private val labRecheck = labSettings?.settings?.map { it.lab.recheckEnabled } ?: flowOf(false)
+
+    val uiState: StateFlow<EditUiState> = combine(editor, clock, labRecheck) { e, at, recheck ->
         EditUiState(
             loading = e.loading,
             isNew = e.original.id == EditRoute.NEW_ALARM,
@@ -179,6 +185,7 @@ class EditViewModel @Inject constructor(
             shakeAvailable = shakeAvailable,
             ringingBlocked = e.ringingBlocked,
             saveWarning = e.saveWarning,
+            labRecheck = recheck,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), EditUiState())
 

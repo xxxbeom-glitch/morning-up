@@ -109,9 +109,11 @@ class EditScreenTest {
         var count: Int? = null
         val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true))
         show(
-            EditUiState(loading = false, draft = draft),
+            EditUiState(loading = false, draft = draft, labRecheck = true),
             EditActions(onRecheck = { recheckOff = !it }, onRecheckCount = { count = it }),
         )
+        // 실험실에서 켜면 줄 값에 횟수도 보여요.
+        compose.onNodeWithText("3분 후, 한 번 더 확인 1번").assertExists()
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
         // 결정 183, TSK-247: 줄은 '간격'과 '한 번 더 확인' 둘, 줄 아래 설명 글 없음. 대답할 시간, 확인까지, 묻는 횟수 줄도 없어요.
         compose.onNodeWithText("간격").assertExists()
@@ -125,6 +127,18 @@ class EditScreenTest {
         assertThat(recheckOff).isTrue()
         compose.onNodeWithText("2번").performClick()
         assertThat(count).isEqualTo(2)
+    }
+
+    @Test
+    fun wakeCheckSheet_labRecheckOff_onlyIntervalRow_andValueIsIntervalOnly() {
+        // 결정 184: 실험실 '한 번 더 확인'이 꺼져 있으면 시트는 '간격' 한 줄, 줄 값은 '3분 후'처럼 간격만이에요.
+        val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true, recheckCount = 2))
+        show(EditUiState(loading = false, draft = draft, labRecheck = false), EditActions())
+        compose.onNodeWithText("3분 후").performScrollTo().assertExists()
+        compose.onNodeWithText("다시 잠들기 방지").performSemanticsAction(SemanticsActions.OnClick)
+        compose.onNodeWithText("간격").assertExists()
+        compose.onNodeWithText("한 번 더 확인").assertDoesNotExist()
+        compose.onNodeWithText("2번").assertDoesNotExist()
     }
 
     @Test

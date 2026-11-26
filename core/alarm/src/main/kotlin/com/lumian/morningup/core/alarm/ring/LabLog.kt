@@ -31,5 +31,9 @@ class LabLog @Inject constructor(private val diagnostics: AlarmDiagnostics) {
         /** 설정 T3에서 미션 포기 알림 숨기기를 켜거나 껐어요(결정 151). */
         const val ESCAPE_HIDE_ON = "lab_escape_hide_on"
         const val ESCAPE_HIDE_OFF = "lab_escape_hide_off"
+
+        /** 설정 T3에서 '한 번 더 확인'을 켜거나 껐어요(결정 184). 끌 때 남은 W3가 있었으면 취소하고 detail에 적어요. */
+        const val RECHECK_LAB_ON = "lab_recheck_on"
+        const val RECHECK_LAB_OFF = "lab_recheck_off"
     }
 }

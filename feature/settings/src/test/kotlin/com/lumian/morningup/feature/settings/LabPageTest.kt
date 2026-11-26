@@ -41,6 +41,7 @@ class LabPageTest {
                 onPreview = { calls += "preview" },
                 onEscapeHidden = { calls += "escape:$it" },
                 trickOff = trickOff,
+                onRecheck = { calls += "recheck:$it" },
             )
         }
     }
@@ -56,6 +57,16 @@ class LabPageTest {
         lab = LabSettings(trickEnabled = true)
         compose.onNodeWithText("버튼 속이기").performClick()
         assertThat(calls).containsExactly("open")
+        // 결정 184: 켠 것 이름을 이어서 보여요.
+        lab = LabSettings(trickEnabled = true, recheckEnabled = true)
+        compose.onNodeWithText("버튼 속이기, 한 번 더 확인").assertExists()
+    }
+
+    @Test
+    fun t3_recheckCard_startsOff_andToggles() {
+        showPage()
+        compose.onNodeWithText("한 번 더 확인").performScrollTo().performClick()
+        assertThat(calls).containsExactly("recheck:true")
     }
 
     @Test
