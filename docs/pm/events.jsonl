@@ -874,3 +874,8 @@
 {"at": "2026-11-26 13:09:10", "by": "Leader", "id": "TSK-233", "action": "comment", "changes": {"comments": [null, ["사용자 의견(11-26): 흔들흔들 아이콘 양옆 호가 날개처럼 보임. 다시 그리기(안 2~3개)"]]}}
 {"at": "2026-11-26 13:11:37", "by": "Leader", "id": "TSK-233", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 흔들흔들은 안 A(짧은 진동 선). 피그마 Mission Card, S1 타일, 편집 B 교체와 SVG 내보내기까지"]]}}
 {"at": "2026-11-26 13:11:37", "by": "Leader", "id": "TSK-239", "action": "create", "changes": {"id": [null, "TSK-239"], "wbs": [null, "4.79"], "parent": [null, "TSK-004"], "title": [null, "기상 미션 섬네일을 새 도형 아이콘으로 앱에서 바꾸기"], "area": [null, "dev"], "owner": [null, "Leader"], "reviewer": [null, "[QA 3]"], "status": [null, "todo"], "relates": [[], ["TSK-233"]], "desc": [null, "TSK-233 SVG 나오면, 개발 방이 비는 때에 맡김"], "acceptance": [[], ["S1 타일, 미션 카드, 편집 B 미션 줄 그림 교체", "Light, Dark 모두 확인"]]}}
+{"at": "2026-11-26 13:11:56", "by": "Leader", "id": "TSK-233", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 암산 아이콘은 = 대신 ÷ (+ − × ÷)"]]}}
+{"at": "2026-11-26 13:12:47", "by": "Leader", "id": "TSK-238", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 남은 시간은 미션 화면의 남은 시간 바 부품을 그대로 씀(알약 아님)"]]}}
+{"at": "2026-11-26 13:12:48", "by": "Leader", "id": "TSK-231", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 남은 시간 알약 대신 미션 화면 남은 시간 바 부품. 피그마 고침 [디자인 21]"]]}}
+{"at": "2026-11-26 13:13:34", "by": "Leader", "id": "TSK-238", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 돌아가기는 '<' 아이콘 하나(알라미처럼)"]]}}
+{"at": "2026-11-26 13:13:35", "by": "Leader", "id": "TSK-231", "action": "comment", "changes": {"comments": [null, ["사용자(11-26): 돌아가기는 '<' 아이콘 하나"]]}}
