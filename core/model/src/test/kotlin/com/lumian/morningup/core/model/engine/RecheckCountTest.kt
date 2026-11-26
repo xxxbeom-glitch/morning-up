@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.engine.RingEffect.RecheckScheduled
 import com.lumian.morningup.core.model.engine.RingEffect.ScheduleTimer
@@ -46,9 +47,10 @@ class RecheckCountTest {
     }
 
     @Test
-    fun planFromSettings_takesWaitAndCount_andFixedAnswerMinute() {
-        val settings = WakeCheckSettings(askAfterMinutes = 10, recheckWaitMinutes = 1, recheckCount = 3)
-        val p = RingPlan.from(Alarm(time = LocalTime.of(6, 30)), settings)
+    fun planFromAlarm_takesWaitAndCount_andFixedAnswerMinute() {
+        // 결정 180: W2, W3 값은 알람마다예요. 전체 설정(처음 값)이 아니라 알람 값을 써요.
+        val check = WakeCheck(enabled = true, askAfterMinutes = 10, recheckWaitMinutes = 1, recheckCount = 3)
+        val p = RingPlan.from(Alarm(time = LocalTime.of(6, 30), wakeCheck = check), WakeCheckSettings())
         assertThat(p.wakeCheckAskAfterMinutes).isEqualTo(10)
         assertThat(p.recheckWaitMinutes).isEqualTo(1)
         assertThat(p.recheckCount).isEqualTo(3)
