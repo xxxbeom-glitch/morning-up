@@ -13,6 +13,7 @@ import android.os.VibratorManager
 import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.model.engine.AlarmStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,6 +23,7 @@ import javax.inject.Singleton
  * 한 번만 울려요. 무음 모드에서도 들려요. 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가
  * 최소 크기로 올리고 끝나면 돌려요(결정 143 대책을 W3에도).
  * W2는 폰 기본 알림음, W3 '정말 깼어요?'는 앱에 넣은 증기 사이렌 소리(`res/raw/w3_recheck`, 사용자 지시 11-26)예요.
+ * W3 크기는 30%가 아니라 그 알람의 벨소리 볼륨(S4 볼륨 시트) 그대로예요([playRecheck]). 소리 고르기는 아직 없어요.
  * 채널 소리가 아니라 직접 울려서 알림 채널을 바꿀 필요는 없어요.
  */
 @Singleton
@@ -29,7 +31,14 @@ class ChimePlayer @Inject constructor(
     @ApplicationContext private val context: Context,
     private val diagnostics: AlarmDiagnostics,
     private val volumeGuard: AlarmVolumeGuard,
+    private val alarms: AlarmStore,
 ) {
+    /** W3 알림음. 알람의 벨소리 볼륨으로 울려요. 알람을 못 읽으면 100%예요. */
+    suspend fun playRecheck(alarmId: Long) {
+        val percent = alarms.get(alarmId)?.volumePercent ?: FULL_PERCENT
+        play(alarmId, recheck = true, volume = percent / FULL_PERCENT.toFloat())
+    }
+
     private val attributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_ALARM)
         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
@@ -39,7 +48,7 @@ class ChimePlayer @Inject constructor(
     private var volumeHeld = false
 
     @Synchronized
-    fun play(alarmId: Long?, recheck: Boolean = false) {
+    fun play(alarmId: Long?, recheck: Boolean = false, volume: Float = VOLUME_FRACTION) {
         val audio = context.getSystemService(AudioManager::class.java)
         if (audio?.getStreamVolume(AudioManager.STREAM_ALARM) == 0) diagnostics.record("chime_volume_zero", alarmId)
         vibrateTwice()
@@ -56,8 +65,8 @@ class ChimePlayer @Inject constructor(
             mp.setAudioAttributes(attributes)
             mp.setDataSource(context, uri)
             mp.prepare()
-            val volume = RingMute.volume(VOLUME_FRACTION)
-            mp.setVolume(volume, volume)
+            val played = RingMute.volume(volume)
+            mp.setVolume(played, played)
             mp.setOnCompletionListener { done -> synchronized(this) { if (player === done) release() } }
             mp.start()
             diagnostics.record("chime", alarmId, if (recheck) "w3" else "w2")
@@ -90,8 +99,9 @@ class ChimePlayer @Inject constructor(
     }
 
     private companion object {
-        /** 알람 볼륨의 30%. */
+        /** W2: 알람 볼륨의 30%. */
         const val VOLUME_FRACTION = 0.3f
+        const val FULL_PERCENT = 100
         const val NO_REPEAT = -1
         val TWICE = longArrayOf(0, 200, 150, 200)
     }
