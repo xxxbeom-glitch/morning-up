@@ -25,7 +25,7 @@ data class AlarmEntity(
     val ringAgainIntervalMinutes: Int,
     val ringAgainCount: Int?,
     val wakeCheckEnabled: Boolean,
-    /** 예전 알람마다 값. 결정 145부터 전체 설정으로 옮기고(WakeCheckSettingsPrefs) 이 칸은 읽기만 해요. */
+    /** W2 '다시 물어보기'(분). 결정 145~179에는 전체 설정이었다가 결정 180에 다시 알람마다예요. */
     val wakeCheckAskAfterMinutes: Int,
     val wakeCheckAnswerSeconds: Int,
     val powerOffGuard: Boolean,
@@ -40,6 +40,12 @@ data class AlarmEntity(
     @ColumnInfo(defaultValue = "basic") val vibrationPattern: String = VibrationPattern.Basic.key,
     /** v3: S7 부드럽게 깨우기 길이(초). */
     @ColumnInfo(defaultValue = "30") val gentleSeconds: Int = Alarm.DEFAULT_GENTLE_SECONDS,
+    /** v5: W3 '한 번 더 확인'(결정 180). */
+    @ColumnInfo(defaultValue = "1") val recheckEnabled: Boolean = true,
+    /** v5: W3 '확인까지'(분). */
+    @ColumnInfo(defaultValue = "3") val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+    /** v5: W3 '묻는 횟수'. */
+    @ColumnInfo(defaultValue = "1") val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
 )
 
 internal fun Set<DayOfWeek>.toMask(): Int = fold(0) { mask, day -> mask or (1 shl (day.value - 1)) }
@@ -55,7 +61,14 @@ fun AlarmEntity.toModel(): Alarm = Alarm(
     // 모르는 미션(앞으로 지운 미션)은 건너뛰어요.
     missions = MissionCodec.decode(missions),
     ringAgain = RingAgain(ringAgainIntervalMinutes, ringAgainCount),
-    wakeCheck = WakeCheck(wakeCheckEnabled),
+    wakeCheck = WakeCheck(
+        enabled = wakeCheckEnabled,
+        askAfterMinutes = wakeCheckAskAfterMinutes,
+        answerSeconds = wakeCheckAnswerSeconds,
+        recheckEnabled = recheckEnabled,
+        recheckWaitMinutes = recheckWaitMinutes,
+        recheckCount = recheckCount,
+    ).normalized(),
     powerOffGuard = powerOffGuard,
     soundId = soundId,
     volumePercent = volumePercent,
@@ -79,8 +92,8 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     ringAgainIntervalMinutes = ringAgain.intervalMinutes,
     ringAgainCount = ringAgain.count,
     wakeCheckEnabled = wakeCheck.enabled,
-    wakeCheckAskAfterMinutes = WakeCheckSettings.DEFAULT_ASK_MINUTES,
-    wakeCheckAnswerSeconds = WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
+    wakeCheckAskAfterMinutes = wakeCheck.askAfterMinutes,
+    wakeCheckAnswerSeconds = wakeCheck.answerSeconds,
     powerOffGuard = powerOffGuard,
     soundId = soundId,
     volumePercent = volumePercent,
@@ -91,4 +104,7 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     nextTriggerAt = nextTriggerAt,
     vibrationPattern = vibrationPattern.key,
     gentleSeconds = gentleSeconds,
+    recheckEnabled = wakeCheck.recheckEnabled,
+    recheckWaitMinutes = wakeCheck.recheckWaitMinutes,
+    recheckCount = wakeCheck.recheckCount,
 )

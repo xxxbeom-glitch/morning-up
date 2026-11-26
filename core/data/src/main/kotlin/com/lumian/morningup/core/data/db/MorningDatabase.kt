@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -23,7 +23,7 @@ abstract class MorningDatabase : RoomDatabase() {
         const val NAME = "morningup.db"
 
         /** 앱이 여는 모든 구조 옮기기. 빌더에 이것만 넘겨요. */
-        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3, Migration3To4)
+        val MIGRATIONS: List<Migration> = listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5)
     }
 }
 
@@ -62,5 +62,18 @@ object Migration2To3 : Migration(2, 3) {
 object Migration3To4 : Migration(3, 4) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE alarms SET soundId = 'random' WHERE soundId = 'silent'")
+    }
+}
+
+/**
+ * v4 → v5: W3 '한 번 더 확인', '확인까지', '묻는 횟수' 칸을 더해요(결정 180, 알람마다). 처음 값(켜짐, 3분, 1번)으로 채우고,
+ * 옛 전체 설정 값은 설정 저장소가 한 번 모든 알람에 옮겨요(WakeCheckSettingsPrefs).
+ */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration4To5 : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE alarms ADD COLUMN recheckEnabled INTEGER NOT NULL DEFAULT 1")
+        db.execSQL("ALTER TABLE alarms ADD COLUMN recheckWaitMinutes INTEGER NOT NULL DEFAULT 3")
+        db.execSQL("ALTER TABLE alarms ADD COLUMN recheckCount INTEGER NOT NULL DEFAULT 1")
     }
 }

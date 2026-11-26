@@ -7,6 +7,7 @@ import com.lumian.morningup.core.data.db.AlarmDao
 import com.lumian.morningup.core.data.db.AlarmEntity
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.TrickSpeed
+import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -19,8 +20,9 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /**
- * 다시 잠들기 방지 전체 설정(결정 145). 재부팅 뒤 잠금을 풀기 전에도 울림이 읽어야 해서 기기 보호 저장소에 둬요.
- * 처음 한 번은 예전 알람마다 값을 옮겨요([migrate]).
+ * 앱 전체 설정(실험실, 옛 다시 잠들기 방지 전체 값). 재부팅 뒤 잠금을 풀기 전에도 울림이 읽어야 해서 기기 보호 저장소에 둬요.
+ * [migrate]가 옮기기 두 가지를 한 번씩 해요. 결정 145 때 예전 알람마다 값을 전체로 모으고, 결정 180에 전체 값을 다시
+ * 모든 알람으로 나눠요. 그 뒤로 W2, W3 값은 알람 것만 써요.
  */
 @Singleton
 class WakeCheckSettingsPrefs internal constructor(
@@ -56,7 +58,12 @@ class WakeCheckSettingsPrefs internal constructor(
      * 처음 값으로 바꿔요. 한 번만 하고, 알람이 없거나 다 꺼져 있으면 처음 값 그대로예요.
      */
     suspend fun migrate() = mutex.withLock {
-        if (prefs.getBoolean(KEY_MIGRATED, false)) return@withLock
+        migrateFromAlarms()
+        migrateToAlarms()
+    }
+
+    private suspend fun migrateFromAlarms() {
+        if (prefs.getBoolean(KEY_MIGRATED, false)) return
         val picked = pickLegacy(dao.getAll())
         synchronized(this) {
             val next = if (picked != null && !prefs.contains(KEY_ASK)) {
@@ -68,6 +75,23 @@ class WakeCheckSettingsPrefs internal constructor(
             prefs.edit { putBoolean(KEY_MIGRATED, true) }
             state.value = next
         }
+    }
+
+    /**
+     * 결정 180: 전체 설정의 W2, W3 값을 지금 있는 모든 알람에 옮겨요. 한 번만 하고, 그 뒤 새 알람은 처음 값으로 시작해요.
+     * 옮긴 값은 고를 수 있는 값으로 맞춰요.
+     */
+    private suspend fun migrateToAlarms() {
+        if (prefs.getBoolean(KEY_PER_ALARM, false)) return
+        val values = WakeCheck.valuesOf(state.value, enabled = false)
+        dao.applyWakeCheckToAll(
+            ask = values.askAfterMinutes,
+            answer = values.answerSeconds,
+            recheck = values.recheckEnabled,
+            wait = values.recheckWaitMinutes,
+            count = values.recheckCount,
+        )
+        prefs.edit { putBoolean(KEY_PER_ALARM, true) }
     }
 
     private fun read() = WakeCheckSettings(
@@ -114,6 +138,9 @@ class WakeCheckSettingsPrefs internal constructor(
         private const val KEY_RECHECK_WAIT = "recheck_wait_minutes"
         private const val KEY_RECHECK_COUNT = "recheck_count"
         private const val KEY_MIGRATED = "migrated_from_alarms"
+
+        /** 결정 180: 전체 W2, W3 값을 모든 알람에 옮겼는지. */
+        private const val KEY_PER_ALARM = "migrated_to_alarms"
 
         // 실험실 '확실히 잠깨기'(결정 146)
         private const val KEY_TRICK = "lab_trick"

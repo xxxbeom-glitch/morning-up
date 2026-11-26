@@ -77,7 +77,6 @@ fun SettingsRoute(
     themeMode: ThemeMode? = null,
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
-    wakeCheckCard: @Composable () -> Unit = { WakeCheckCard() },
     onOpenLab: () -> Unit = {},
     labCard: @Composable () -> Unit = { LabCard(onOpen = onOpenLab) },
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -102,7 +101,6 @@ fun SettingsRoute(
         themeMode = themeMode,
         onThemeMode = onThemeMode,
         weatherCard = weatherCard,
-        wakeCheckCard = wakeCheckCard,
         labCard = labCard,
         // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
         // 켤 때 값은 먼저 켬으로 둬서, 서비스를 켜고 돌아오면 토글이 켜진 채로 보이고, 안 켜고 돌아오면 꺼진 채예요.
@@ -153,7 +151,6 @@ fun SettingsScreen(
     themeMode: ThemeMode? = null,
     onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
-    wakeCheckCard: @Composable () -> Unit = {},
     labCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
@@ -198,8 +195,7 @@ fun SettingsScreen(
                         modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
                     )
                 }
-                // 깼는지 묻기, 한 번 더 확인(결정 145)
-                wakeCheckCard()
+                // 깼는지 묻기 값은 알람마다라 알람 편집 S4 시트에 있어요(결정 180, 시안 TSK-226).
                 MorningSettingsCard(title = null) {
                     MorningSettingRow(
                         label = stringResource(R.string.settings_power_guard),

@@ -25,7 +25,20 @@
     <string name="edit_ring_again_value">%1$d분, %2$d회</string>
     <string name="edit_ring_again_until_off">%1$d분, 무제한</string>
     <string name="edit_wake_check">다시 잠들기 방지</string>
-    <string name="edit_wake_check_desc">알람을 끈 뒤 깼는지 다시 물어요</string>
+    <!-- S4 다시 잠들기 방지 시트(결정 180, 시안 TSK-226) -->
+    <string name="edit_wake_check_sheet_desc">알람을 끈 뒤 깼는지 한 번 더 물어요</string>
+    <string name="edit_wake_check_ask">다시 물어보기</string>
+    <string name="edit_wake_check_answer">대답할 시간</string>
+    <string name="edit_recheck">한 번 더 확인</string>
+    <string name="edit_recheck_desc">10초 동안 눌러야 완전히 꺼져요</string>
+    <string name="edit_recheck_wait">확인까지</string>
+    <string name="edit_recheck_count">묻는 횟수</string>
+    <string name="edit_minutes_after">%1$d분 후</string>
+    <string name="edit_minutes">%1$d분</string>
+    <string name="edit_times">%1$d번</string>
+    <!-- 편집 줄 값: 3분 후, 한 번 더 확인 1번 -->
+    <string name="edit_wake_check_value">%1$d분 후, 한 번 더 확인 %2$d번</string>
+    <string name="edit_wake_check_value_no_recheck">%1$d분 후</string>
     <string name="edit_power_off">전원 종료 방지</string>
     <string name="edit_power_off_value">미션 끝날 때까지</string>
 

@@ -29,9 +29,10 @@ import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.WakeCheckSettings
 
 /** 알람 편집 화면 위에 띄우는 바텀시트(결정 78, 98). 페이지 대신 시트로 고르는 설정이에요. */
-enum class EditSheet { Volume, RingAgain, MissionPick }
+enum class EditSheet { Volume, RingAgain, MissionPick, WakeCheck }
 
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요. */
 private val FooterBleed = 8.dp
@@ -226,3 +227,76 @@ internal fun RingAgainSheetContent(alarm: Alarm, actions: EditActions, onDone: (
 
 /** 꺼져 있을 때 횟수 칸을 아무것도 고르지 않은 모양으로 두는 값(선택지에 없는 수). */
 private const val NOT_SELECTED = -1
+
+private const val SECONDS_PER_MINUTE = 60
+
+/** '30초', '1분', '3분'. */
+@Composable
+private fun answerLabel(seconds: Int): String = if (seconds < SECONDS_PER_MINUTE) {
+    stringResource(R.string.edit_seconds, seconds)
+} else {
+    stringResource(R.string.edit_minutes, seconds / SECONDS_PER_MINUTE)
+}
+
+/**
+ * S4 다시 잠들기 방지 시트(결정 180, 시안 TSK-226 `1160:17295`). W2 다시 물어보기, 대답할 시간, '한 번 더 확인' 스위치,
+ * 켜면 W3 확인까지와 묻는 횟수. 고르는 즉시 편집 중인 알람에 반영돼요. W3 대답할 시간은 1분 고정이에요(결정 176).
+ */
+@Composable
+internal fun WakeCheckSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+    val check = alarm.wakeCheck
+    EditSheetFrame(
+        title = stringResource(R.string.edit_wake_check),
+        description = stringResource(R.string.edit_wake_check_sheet_desc),
+        onDone = onDone,
+    ) {
+        ChipRow(
+            label = stringResource(R.string.edit_wake_check_ask),
+            options = WakeCheckSettings.ASK_MINUTES,
+            selected = check.askAfterMinutes,
+            optionLabel = { stringResource(R.string.edit_minutes_after, it) },
+            onSelect = actions.onWakeCheckAsk,
+        )
+        ChipRow(
+            label = stringResource(R.string.edit_wake_check_answer),
+            options = WakeCheckSettings.ANSWER_SECONDS,
+            selected = check.answerSeconds,
+            optionLabel = { answerLabel(it) },
+            onSelect = actions.onWakeCheckAnswer,
+        )
+        MorningSettingRow(
+            label = stringResource(R.string.edit_recheck),
+            value = stringResource(R.string.edit_recheck_desc),
+            state = if (check.recheckEnabled) SettingRowState.On else SettingRowState.Off,
+            onCheckedChange = actions.onRecheck,
+            modifier = Modifier.height(SheetToggleRowHeight),
+        )
+        if (check.recheckEnabled) {
+            ChipRow(
+                label = stringResource(R.string.edit_recheck_wait),
+                options = WakeCheckSettings.RECHECK_WAIT_MINUTES,
+                selected = check.recheckWaitMinutes,
+                optionLabel = { stringResource(R.string.edit_minutes_after, it) },
+                onSelect = actions.onRecheckWait,
+            )
+            ChipRow(
+                label = stringResource(R.string.edit_recheck_count),
+                options = WakeCheckSettings.RECHECK_COUNTS,
+                selected = check.recheckCount,
+                optionLabel = { stringResource(R.string.edit_times, it) },
+                onSelect = actions.onRecheckCount,
+            )
+        }
+    }
+}
+
+/** '다시 잠들기 방지' 줄 값: '3분 후, 한 번 더 확인 1번'. 한 번 더 확인이 꺼져 있으면 '3분 후'예요. */
+@Composable
+internal fun wakeCheckValue(alarm: Alarm): String {
+    val check = alarm.wakeCheck
+    return if (check.recheckEnabled) {
+        stringResource(R.string.edit_wake_check_value, check.askAfterMinutes, check.recheckCount)
+    } else {
+        stringResource(R.string.edit_wake_check_value_no_recheck, check.askAfterMinutes)
+    }
+}

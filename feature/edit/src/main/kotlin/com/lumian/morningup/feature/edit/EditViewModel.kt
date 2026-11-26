@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ShakeSupport
+import com.lumian.morningup.core.model.WakeCheckSettings
+import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
 import com.lumian.morningup.core.model.WakeCheckGate
@@ -279,6 +281,28 @@ class EditViewModel @Inject constructor(
     }
 
     fun setWakeCheck(on: Boolean) = edit { it.copy(wakeCheck = it.wakeCheck.copy(enabled = on)) }
+
+    // S4 시트(결정 180). 값을 고르면 다시 잠들기 방지도 켜요(꺼진 줄의 글자를 눌러 시트를 연 경우).
+    fun setWakeCheckAsk(minutes: Int) {
+        if (minutes in WakeCheckSettings.ASK_MINUTES) editCheck { it.copy(askAfterMinutes = minutes) }
+    }
+
+    fun setWakeCheckAnswer(seconds: Int) {
+        if (seconds in WakeCheckSettings.ANSWER_SECONDS) editCheck { it.copy(answerSeconds = seconds) }
+    }
+
+    fun setRecheck(on: Boolean) = editCheck { it.copy(recheckEnabled = on) }
+
+    fun setRecheckWait(minutes: Int) {
+        if (minutes in WakeCheckSettings.RECHECK_WAIT_MINUTES) editCheck { it.copy(recheckWaitMinutes = minutes) }
+    }
+
+    fun setRecheckCount(count: Int) {
+        if (count in WakeCheckSettings.RECHECK_COUNTS) editCheck { it.copy(recheckCount = count) }
+    }
+
+    private fun editCheck(transform: (WakeCheck) -> WakeCheck) =
+        edit { it.copy(wakeCheck = transform(it.wakeCheck).copy(enabled = true)) }
 
     /** S3 '간격'. 꺼져 있었으면 처음 횟수(3번)로 켜져요. */
     fun setRingAgainInterval(minutes: Int) {

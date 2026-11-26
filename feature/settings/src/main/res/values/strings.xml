@@ -168,26 +168,6 @@
     <string name="onboarding_motion_app_name" translatable="false">일어나</string>
     <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
     <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
-    <!-- T1 다시 잠들기 방지 카드: 묻는 때, 한 번 더 확인(결정 145, 이름은 결정 164) -->
-    <string name="settings_wake_check_card">다시 잠들기 방지</string>
-    <string name="settings_wake_check">묻는 때</string>
-    <!-- 3분 후, 1분 -->
-    <string name="settings_wake_check_value">%1$d분 후, %2$s</string>
-    <string name="settings_wake_check_sheet_desc">알람을 끈 뒤 깼는지 다시 물어요</string>
-    <string name="settings_wake_check_ask">다시 물어보기</string>
-    <string name="settings_wake_check_answer">대답할 시간</string>
-    <string name="settings_minutes_after">%1$d분 후</string>
-    <string name="settings_minutes">%1$d분</string>
-    <string name="settings_seconds">%1$d초</string>
-    <string name="settings_recheck">한 번 더 확인</string>
-    <string name="settings_recheck_desc">10초 동안 눌러야 완전히 꺼져요</string>
-    <!-- 대답할 시간은 1분 고정(결정 176, 시안 TSK-219) -->
-    <string name="settings_recheck_sheet_desc">\'깼어요\'를 누른 뒤 정말 깼는지 %1$d분 동안 물어요</string>
-    <string name="settings_recheck_count">묻는 횟수</string>
-    <string name="settings_times">%1$d번</string>
-    <string name="settings_wake_check_note">알람마다 켜고 끄기는 알람 편집에서 해요</string>
-    <!-- 켜진 알람 중 다시 잠들기 방지를 켠 알람이 없을 때(결정 164) -->
-    <string name="settings_wake_check_none">\'다시 잠들기 방지\'를 켠 알람이 없어요.\n알람 편집에서 켜야 깼는지 물어봐요</string>
     <!-- 실험실 '확실히 잠깨기'(결정 146 1절, 시안 TSK-171) -->
     <string name="settings_lab">실험실</string>
     <string name="settings_lab_title">확실히 잠깨기</string>

@@ -87,27 +87,37 @@ class DebugCommandReceiver : BroadcastReceiver() {
     }
 
     /**
-     * 다시 잠들기 방지 전체 설정을 바꿔요(결정 145). 시험을 빨리 하려고 화면에서 고를 수 없는 값(1분 등)도 받아요.
-     * 빠진 값은 그대로 둬요. 예: `--ei ask_minutes 1 --ei answer_seconds 30 --ez recheck true --ei recheck_wait 1
-     * --ei recheck_count 2`(W3까지 기다리는 시간과 묻는 횟수, 결정 176)
+     * 다시 잠들기 방지 값을 모든 알람에 넣어요(결정 180부터 알람마다). 켜고 끄기는 알람 것 그대로예요.
+     * 고를 수 없는 값은 울릴 때 처음 값으로 바뀌어요. 빠진 값은 그대로 둬요.
+     * 예: `--ei ask_minutes 5 --ei answer_seconds 30 --ez recheck true --ei recheck_wait 1 --ei recheck_count 2`
+     * 시간을 줄여 시험하려면 lab의 `minute_seconds`를 같이 써요.
      */
     private fun setWakeCheck(intent: Intent) {
-        wakeSettings.update { old ->
-            old.copy(
-                askAfterMinutes = intent.intOr(EXTRA_ASK_MINUTES, old.askAfterMinutes),
-                answerSeconds = intent.intOr(EXTRA_ANSWER_SECONDS, old.answerSeconds),
-                recheckEnabled = if (intent.hasExtra(EXTRA_RECHECK)) {
-                    intent.getBooleanExtra(EXTRA_RECHECK, old.recheckEnabled)
-                } else {
-                    old.recheckEnabled
-                },
-                recheckWaitMinutes = intent.intOr(EXTRA_RECHECK_WAIT, old.recheckWaitMinutes),
-                recheckCount = intent.intOr(EXTRA_RECHECK_COUNT, old.recheckCount),
-            )
+        val pending = goAsync()
+        scope.launch {
+            try {
+                val alarms = repository.all()
+                alarms.forEach { alarm ->
+                    val old = alarm.wakeCheck
+                    repository.save(
+                        alarm.copy(
+                            wakeCheck = old.copy(
+                                askAfterMinutes = intent.intOr(EXTRA_ASK_MINUTES, old.askAfterMinutes),
+                                answerSeconds = intent.intOr(EXTRA_ANSWER_SECONDS, old.answerSeconds),
+                                recheckEnabled = intent.boolOr(EXTRA_RECHECK, old.recheckEnabled),
+                                recheckWaitMinutes = intent.intOr(EXTRA_RECHECK_WAIT, old.recheckWaitMinutes),
+                                recheckCount = intent.intOr(EXTRA_RECHECK_COUNT, old.recheckCount),
+                            ),
+                        ),
+                    )
+                }
+                val result = "wake check ${alarms.size} alarms " + repository.all().map { it.id to it.wakeCheck }
+                FlowLog.event("debug_wake_check", detail = result)
+                pending.resultData = result
+            } finally {
+                pending.finish()
+            }
         }
-        val result = "wake check ${wakeSettings.settings.value}"
-        FlowLog.event("debug_wake_check", detail = result)
-        resultData = result
     }
 
     /**

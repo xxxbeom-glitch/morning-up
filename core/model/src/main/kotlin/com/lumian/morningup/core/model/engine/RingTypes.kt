@@ -28,7 +28,7 @@ data class RingPlan(
     val powerOffGuard: Boolean = false,
     /** S8 알람 화면 배경 id. null이면 기본 '시간대 하늘'이에요. */
     val background: String? = null,
-    /** W2 '깼어요' 뒤 한 번 더 확인(W3)을 할지(결정 145). 울리기 시작할 때의 전체 설정 값이에요. */
+    /** W2 '깼어요' 뒤 한 번 더 확인(W3)을 할지(결정 145). 울리기 시작할 때의 알람 값이에요(결정 180). */
     val recheckEnabled: Boolean = false,
     /** W3 대답할 시간(분). 1분 고정이에요(결정 176). */
     val recheckAnswerMinutes: Int = WakeCheckSettings.RECHECK_ANSWER_MINUTES,
@@ -55,8 +55,9 @@ data class RingPlan(
 
     companion object {
         /**
-         * 알람과 그때의 전체 설정([settings])으로 이번 울림 값을 정해요. 전체 설정을 바꿔도 이미 시작한 울림은
-         * 이 값대로 가고, 다음 알람부터 새 값을 써요(결정 145 7번). [shakeSupported]는 흔들기를 알아챌 센서가 있는지예요.
+         * 알람과 그때의 실험실 설정([settings])으로 이번 울림 값을 정해요. W2, W3 값은 알람 것이에요(결정 180).
+         * 값을 바꿔도 이미 시작한 울림은 이 값대로 가고, 다음 알람부터 새 값을 써요(결정 145 7번).
+         * [shakeSupported]는 흔들기를 알아챌 센서가 있는지예요.
          */
         fun from(
             alarm: Alarm,
@@ -69,13 +70,13 @@ data class RingPlan(
             intervalMinutes = alarm.ringAgain.intervalMinutes,
             ringAgainCount = alarm.ringAgain.count,
             wakeCheckEnabled = alarm.wakeCheck.enabled,
-            wakeCheckAskAfterMinutes = settings.askAfterMinutes,
-            wakeCheckAnswerSeconds = settings.answerSeconds,
+            wakeCheckAskAfterMinutes = alarm.wakeCheck.normalized().askAfterMinutes,
+            wakeCheckAnswerSeconds = alarm.wakeCheck.normalized().answerSeconds,
             powerOffGuard = alarm.powerOffGuard && alarm.missions.isNotEmpty(),
             background = alarm.background,
-            recheckEnabled = settings.recheckEnabled,
-            recheckWaitMinutes = settings.recheckWaitMinutes,
-            recheckCount = settings.recheckCount,
+            recheckEnabled = alarm.wakeCheck.recheckEnabled,
+            recheckWaitMinutes = alarm.wakeCheck.normalized().recheckWaitMinutes,
+            recheckCount = alarm.wakeCheck.normalized().recheckCount,
             minuteMillis = settings.lab.debugMinuteMillis,
             trick = settings.lab.trick,
             escapeHidden = settings.lab.escapeHidden &&

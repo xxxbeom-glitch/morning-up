@@ -78,8 +78,10 @@ class RingController @Inject constructor(
      * 지워진 알람이면 아무것도 하지 않고 false를 돌려줘요.
      */
     suspend fun fire(alarmId: Long): Boolean {
+        // 옛 전체 값을 알람에 옮기는 일(결정 180)을 먼저 끝내고 알람을 읽어요.
+        val settings = wakeSettings.current()
         val alarm = alarms.get(alarmId) ?: return false
-        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm, wakeSettings.current(), shake.available()))) }
+        mutex.withLock { apply(RingEvent.AlarmFired(RingPlan.from(alarm, settings, shake.available()))) }
         return true
     }
 

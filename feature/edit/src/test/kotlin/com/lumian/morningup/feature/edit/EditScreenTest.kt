@@ -75,17 +75,17 @@ class EditScreenTest {
     }
 
     @Test
-    fun ringAgainSheet_offersChoices_andWakeCheckRowOnlyToggles() {
+    fun ringAgainSheet_offersChoices_andWakeCheckRowOpensSheet() {
         var interval: Int? = null
         var count: Int? = -1
-        var wakeCheck: Boolean? = null
+        var ask: Int? = null
         val draft = EditViewModel.newAlarm()
         show(
             EditUiState(loading = false, draft = draft),
             EditActions(
                 onRingAgainInterval = { interval = it },
                 onRingAgainCount = { count = it },
-                onWakeCheck = { wakeCheck = it },
+                onWakeCheckAsk = { ask = it },
             ),
         )
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
@@ -95,11 +95,11 @@ class EditScreenTest {
         assertThat(count).isNull()
         compose.onNodeWithText("완료").performClick()
         compose.mainClock.advanceTimeBy(1_000)
-        // 결정 145: 다시 잠들기 방지 줄은 토글만 있어요. 글자를 눌러도 켜지고, 시트는 열리지 않아요.
-        compose.onNodeWithText("알람을 끈 뒤 깼는지 다시 물어요").assertExists()
+        // 결정 180: 다시 잠들기 방지 줄 글자를 누르면 S4 시트가 열려요(시안 TSK-226).
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
-        assertThat(wakeCheck).isTrue()
-        compose.onNodeWithText("10분 후").assertDoesNotExist()
+        compose.onNodeWithText("알람을 끈 뒤 깼는지 한 번 더 물어요").assertExists()
+        compose.onNodeWithText("10분 후").performClick()
+        assertThat(ask).isEqualTo(10)
     }
 
     @Test

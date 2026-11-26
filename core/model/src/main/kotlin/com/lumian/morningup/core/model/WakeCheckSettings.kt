@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * 다시 잠들기 방지 전체 설정(결정 145). 알람마다는 켜고 끄기([WakeCheck])만 두고, 값은 앱 전체에 한 번만 둬요.
+ * 앱 전체 설정. 결정 180부터 W2, W3 값은 알람마다([WakeCheck])라서 여기 W2, W3 값은 옛 전체 설정이에요.
+ * 한 번 모든 알람에 옮긴 뒤로는 울림이 읽지 않아요. 실험실([lab])은 그대로 앱 전체 값이에요.
  * - [askAfterMinutes]: '다시 물어보기'. 미션을 끝낸 뒤 W2까지예요(W3까지는 [recheckWaitMinutes], 결정 176).
  * - [answerSeconds]: W2 '대답할 시간'.
  * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.

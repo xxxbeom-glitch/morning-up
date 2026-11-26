@@ -119,6 +119,11 @@ fun AlarmEditRoute(
                 onMissions = viewModel::setMissionsEnabled,
                 onRingAgain = viewModel::setRingAgain,
                 onWakeCheck = viewModel::setWakeCheck,
+                onWakeCheckAsk = viewModel::setWakeCheckAsk,
+                onWakeCheckAnswer = viewModel::setWakeCheckAnswer,
+                onRecheck = viewModel::setRecheck,
+                onRecheckWait = viewModel::setRecheckWait,
+                onRecheckCount = viewModel::setRecheckCount,
                 onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,
                 onGentle = viewModel::setGentleWake,
@@ -163,6 +168,11 @@ data class EditActions(
     val onMissions: (Boolean) -> Unit = {},
     val onRingAgain: (Boolean) -> Unit = {},
     val onWakeCheck: (Boolean) -> Unit = {},
+    val onWakeCheckAsk: (Int) -> Unit = {},
+    val onWakeCheckAnswer: (Int) -> Unit = {},
+    val onRecheck: (Boolean) -> Unit = {},
+    val onRecheckWait: (Int) -> Unit = {},
+    val onRecheckCount: (Int) -> Unit = {},
     val onSoundId: (String) -> Unit = {},
     val onVibrate: (Boolean) -> Unit = {},
     val onGentle: (Boolean) -> Unit = {},
@@ -316,6 +326,7 @@ fun EditScreen(
             when (lastSheet) {
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
+                EditSheet.WakeCheck -> WakeCheckSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.MissionPick -> MissionPickSheetContent(
                     state = state,
                     onPick = { type ->
@@ -564,12 +575,17 @@ private fun MissionCard(
             },
             onClick = { onOpenSheet(EditSheet.RingAgain) },
         )
-        // 결정 145: 알람마다는 켜고 끄기만. 간격과 시간은 설정 탭 '깼는지 묻기'에 있어요. 글자를 눌러도 토글이 바뀌어요.
+        // 결정 180: W2, W3 값은 알람마다라 S4 시트에서 정해요. 다시 울림처럼 글자 쪽은 시트를 열고,
+        // 토글을 켜면 켜고 나서 시트도 바로 띄워요.
         MorningSettingRow(
             label = stringResource(R.string.edit_wake_check),
-            value = stringResource(R.string.edit_wake_check_desc),
+            value = if (alarm.wakeCheck.enabled) wakeCheckValue(alarm) else offValue(),
             state = onOff(alarm.wakeCheck.enabled),
-            onCheckedChange = actions.onWakeCheck,
+            onCheckedChange = { on ->
+                actions.onWakeCheck(on)
+                if (on) onOpenSheet(EditSheet.WakeCheck)
+            },
+            onClick = { onOpenSheet(EditSheet.WakeCheck) },
         )
     }
 }

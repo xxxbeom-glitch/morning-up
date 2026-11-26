@@ -24,10 +24,46 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
 }
 
 /**
- * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지. 알람마다는 켜고 끄기만 두고, 간격과 시간은 전체 설정
- * [WakeCheckSettings]에 있어요(결정 145). 낮잠, 주말 알람처럼 알람 하나만 끄는 길이에요.
+ * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지와 그 값(결정 180, 알람마다). 알람 편집 S4 시트에서 정해요.
+ * - [askAfterMinutes]: W2 '다시 물어보기'. 미션을 끝낸 뒤 W2까지예요.
+ * - [answerSeconds]: W2 '대답할 시간'.
+ * - [recheckEnabled]: '한 번 더 확인'(W3 '정말 깼어요?'). 처음 켜짐.
+ * - [recheckWaitMinutes]: W3 '확인까지'. W2 '깼어요' 뒤 W3까지, W3와 다음 W3 사이(결정 176).
+ * - [recheckCount]: W3 '묻는 횟수'(결정 176).
+ * 처음 값은 결정 145의 전체 설정 처음 값과 같아요. 옛 전체 설정 값은 한 번 모든 알람에 옮겨요(WakeCheckSettingsPrefs).
  */
-data class WakeCheck(val enabled: Boolean = false)
+data class WakeCheck(
+    val enabled: Boolean = false,
+    val askAfterMinutes: Int = WakeCheckSettings.DEFAULT_ASK_MINUTES,
+    val answerSeconds: Int = WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
+    val recheckEnabled: Boolean = true,
+    val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+    val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+) {
+    /** 고를 수 없는 값(옛 저장값)은 처음 값으로 바꿔요. */
+    fun normalized(): WakeCheck = copy(
+        askAfterMinutes = askAfterMinutes.takeIf { it in WakeCheckSettings.ASK_MINUTES }
+            ?: WakeCheckSettings.DEFAULT_ASK_MINUTES,
+        answerSeconds = answerSeconds.takeIf { it in WakeCheckSettings.ANSWER_SECONDS }
+            ?: WakeCheckSettings.DEFAULT_ANSWER_SECONDS,
+        recheckWaitMinutes = recheckWaitMinutes.takeIf { it in WakeCheckSettings.RECHECK_WAIT_MINUTES }
+            ?: WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
+        recheckCount = recheckCount.takeIf { it in WakeCheckSettings.RECHECK_COUNTS }
+            ?: WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+    )
+
+    companion object {
+        /** 옛 전체 설정 값을 알람에 옮길 때 써요(결정 180). 켜고 끄기([enabled])는 알람 것 그대로예요. */
+        fun valuesOf(settings: WakeCheckSettings, enabled: Boolean) = WakeCheck(
+            enabled = enabled,
+            askAfterMinutes = settings.askAfterMinutes,
+            answerSeconds = settings.answerSeconds,
+            recheckEnabled = settings.recheckEnabled,
+            recheckWaitMinutes = settings.recheckWaitMinutes,
+            recheckCount = settings.recheckCount,
+        ).normalized()
+    }
+}
 
 /**
  * 알람 하나. [repeatDays]가 비어 있으면 한 번 알람이에요.

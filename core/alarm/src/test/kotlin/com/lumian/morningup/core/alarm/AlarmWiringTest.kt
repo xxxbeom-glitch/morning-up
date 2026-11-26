@@ -193,8 +193,7 @@ class AlarmWiringTest {
     fun wakeCheck_closingW1_thenAskTimer_showsW2_withPlanSettings() = runTest {
         val sessions = sessionStore(tmp.newFile("w.preferences_pb").also { it.delete() })
         val alarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true))
-        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(askAfterMinutes = 1, answerSeconds = 60))
-        val controller = RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now, settings)
+        val controller = RingController(sessions, FakeAlarms(alarm), RecordingRunner(), now)
         controller.fire(3)
         assertThat(
             controller.session.value!!.plan.missionSetting(0),
@@ -207,7 +206,7 @@ class AlarmWiringTest {
         controller.clearScreen()
         assertThat(controller.screen.value).isEqualTo(RingScreen.None)
 
-        clock += 60_000L
+        clock += 3 * 60_000L
         controller.send(RingEvent.TimerFired(TimerKind.WakeCheckAsk))
         assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
         controller.clearScreen()
@@ -306,13 +305,13 @@ class AlarmWiringTest {
     private val checkAlarm = mathAlarm.copy(wakeCheck = WakeCheck(enabled = true))
 
     @Test
-    fun fire_usesGlobalWakeCheckSettings() = runTest {
+    fun fire_usesAlarmWakeCheckValues() = runTest {
+        // 결정 180: W2, W3 값은 알람마다예요. 전체 설정(3분, 60초)이 아니라 알람 값으로 울려요.
         val sessions = sessionStore(tmp.newFile("g.preferences_pb").also { it.delete() })
-        val settings =
-            InMemoryWakeCheckSettingsStore(
-                WakeCheckSettings(5, 30, recheckEnabled = true, recheckWaitMinutes = 1, recheckCount = 2),
-            )
-        RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now, settings).fire(3)
+        val check = WakeCheck(true, 5, 30, recheckEnabled = true, recheckWaitMinutes = 1, recheckCount = 2)
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings())
+        RingController(sessions, FakeAlarms(mathAlarm.copy(wakeCheck = check)), RecordingRunner(), now, settings)
+            .fire(3)
         val plan = sessions.load()!!.plan
         assertThat(plan.wakeCheckAskAfterMinutes).isEqualTo(5)
         assertThat(plan.wakeCheckAnswerSeconds).isEqualTo(30)
