@@ -25,13 +25,6 @@ interface AlarmDao {
 
     @Query("DELETE FROM alarms WHERE id = :id")
     suspend fun delete(id: Long)
-
-    /** 옛 전체 설정 W2, W3 값을 모든 알람에 한 번 옮겨요(결정 180). 켜고 끄기는 그대로예요. */
-    @Query(
-        "UPDATE alarms SET wakeCheckAskAfterMinutes = :ask, wakeCheckAnswerSeconds = :answer, " +
-            "recheckEnabled = :recheck, recheckWaitMinutes = :wait, recheckCount = :count",
-    )
-    suspend fun applyWakeCheckToAll(ask: Int, answer: Int, recheck: Boolean, wait: Int, count: Int)
 }
 
 /** 기기 안 진단 기록 한 줄(예약, 울림, 꺼짐, 놓침 같은 알람 사건). */
