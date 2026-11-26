@@ -217,3 +217,22 @@ TSK-202, 204, 205 승인.
 - 슬라이더에 1~10단계 눈금이 있고, 고른 단계가 T3 줄에 '속도 n단계, 20초 동안'으로 저장돼요.
 - 옛 저장값 '빠르게'는 9단계로 옮겨져 있었어요(완료 조건 1). 처음 값 6단계는 코드로 확인했어요(`TrickSpeed.Default`). 폰 데이터를 지워야 볼 수 있어서 폰에서는 보지 않았어요.
 - 끝난 뒤 속도는 처음 값인 9단계로 되돌렸어요.
+
+## [QA 2] TSK-210 미션 포기 M5, TSK-217 이번만 쉬기, TSK-218 W3 기다림과 횟수 (11-26)
+
+코드 검토와 단위 시험은 HEAD 2fb8a99의 깨끗한 복사본에서 했어요. 관련 모듈(core:model, core:alarm, core:data, feature:mission, home, ring, settings) 시험 506개 모두 통과.
+
+| 일 | 완료 조건 | 확인 방법 | 결과 |
+|---|---|---|---|
+| TSK-217 | 1 지금 뒤 다음 울림 날을 쉼, 울리는 중과 확인 대기 중은 울린 날 | 코드 | 통과 |
+| TSK-217 | 2 화 6:40 → 수 쉬고 목, 수 밤 → 금, 금 밤 → 화 | HomeRestOnceTest | 통과 |
+| TSK-217 | 3 누른 순간 쉬는 날과 다음 울림 토스트, 7일 뒤 이상이면 날짜 | HomeRestOnceTest, HomeScreenTest | 통과 |
+| TSK-217 | 4 단위 시험 | 3개 + HomeViewModelTest 37개 | 통과 → 승인 |
+| TSK-218 | 1 W3 대답 1분 고정, T1-2 확인할 시간 없앰 | 코드, WakeCheckCardTest | 통과 |
+| TSK-218 | 2, 3 기다리는 시간 1/3/5분(처음 3), 묻는 횟수 1/2/3번(처음 1), 둘째부터도 같은 기다림 | RecheckCountTest 9개 | 통과 |
+| TSK-218 | 4, 5 여러 번 묻기 없앰, 옛 값 버림, 옛 다시 물어보기 값 옮김(10분이면 3분) | WakeCheckSettingsPrefsTest 7개 | 통과 |
+| TSK-218 | 6, 7 W2 값 그대로, 단위 시험 | 코드, 시험 | 통과 → 승인 |
+| TSK-210 | 3 글자 칠 때마다 1분 다시, 1분 지나면 하던 미션으로 | 코드(EscapeViewModel, RingController.backToMission) | 코드 통과 |
+| TSK-210 | 4 예문 '테스트 문장 12345, @@$$' 맞으면 꺼짐 | MissionEscapeTest 33개 | 통과 |
+| TSK-210 | 5 바로 답장 칸 없고 누르면 M5 | EscapeNotificationTest 3개 | 통과 |
+| TSK-210 | 1 시안대로 화면, 2 화면에 있는 동안 소리 꺼짐 | Z플립5 | 폰 차례 기다림 |
