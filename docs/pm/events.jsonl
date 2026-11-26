@@ -732,3 +732,32 @@
 {"at": "2026-11-26 10:32:59", "by": "Leader", "id": "TSK-220", "action": "create", "changes": {"id": [null, "TSK-220"], "wbs": [null, "3.41"], "parent": [null, "TSK-003"], "title": [null, "권한 경고 시트, 허용 앱 안내 화면 T2-1, 홈 경고 배너 디자인"], "area": [null, "design"], "owner": [null, "[디자인 20]"], "reviewer": [null, "Leader"], "status": [null, "todo"], "start": [null, "2026-11-26"], "due": [null, "2026-11-28"], "relates": [[], ["TSK-177"]], "acceptance": [[], ["알림과 다른 앱 위에 표시 둘 다 꺼진 채 저장할 때 경고 시트('권한 켜기', '그래도 저장')", "T2-1 '방해 금지 중에도 울리게' 세 단계 안내(방해 금지 알람 켜기, 모드 및 루틴 알람 허용, 허용 앱에 일어나)와 '방해 금지 설정 열기'", "홈 경고 배너 하나 + '그 밖에 n개 더'", "밤 9시 '내일 알람 점검' 푸시, 강제 종료 흔적 알림 글", "기존 부품 유지, 라이트 다크"]]}}
 {"at": "2026-11-26 10:33:05", "by": "Leader", "id": "TSK-094", "action": "set", "changes": {"owner": ["[개발 18]", "[개발 21]"], "due": ["2026-11-26", "2026-11-30"], "decisions": [["143"], ["143", "152"]]}}
 {"at": "2026-11-26 10:33:06", "by": "Leader", "id": "TSK-094", "action": "comment", "changes": {"comments": [null, ["TSK-177 물을 것 8개 확정(11-26, docs/decisions-11-26.md 아래 표). 방해 금지 검사 다섯 때, 밤 9시 내일 알람 점검, 강제 종료 흔적 문구, 배너 순서, 12에서만 정확한 알람, 울리는 동안 방해 금지 바꾸기(켰을 때만)까지 이 일로. 화면은 TSK-220 시안 뒤"]]}}
+{"at": "2026-11-26 10:34:58", "by": "[개발 20]", "id": "TSK-210", "action": "claim", "changes": {"status": ["todo", "doing"], "start": ["2026-11-27", "2026-11-26"]}}
+{"at": "2026-11-26 10:34:59", "by": "[개발 20]", "id": "TSK-210", "action": "set", "changes": {"commits": [[], ["771f46f"]]}}
+{"at": "2026-11-26 10:35:00", "by": "[개발 20]", "id": "TSK-210", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["M5 미션 포기 화면 구현(771f46f). 알림을 누르면 M5가 열리고 소리를 끔, 쓰는 동안 미션 시간 유지, 1분 안 쓰면 미션으로 복귀, 예문은 시험용 하나. 다크 한 가지(디자인 19 추천). 폰 확인(키보드 가림, 잠금 화면 위 키보드, 알림에서 바로 M5)은 설치 지시 때."]]}}
+{"at": "2026-11-26 10:35:04", "by": "[개발 21]", "id": "TSK-217", "action": "set", "changes": {"owner": ["[개발 20]", "[개발 21]"]}}
+{"at": "2026-11-26 10:35:04", "by": "[개발 21]", "id": "TSK-218", "action": "set", "changes": {"owner": ["[개발 20]", "[개발 21]"]}}
+{"at": "2026-11-26 10:35:05", "by": "[개발 21]", "id": "TSK-217", "action": "claim", "changes": {"status": ["todo", "doing"]}}
+{"at": "2026-11-26 10:35:58", "by": "[디자인 20]", "id": "TSK-219", "action": "claim", "changes": {"status": ["todo", "doing"], "start": ["2026-11-27", "2026-11-26"]}}
+{"at": "2026-11-26 10:36:13", "by": "[디자인 20]", "id": "TSK-219", "action": "set", "changes": {"screens": [[], ["T1-2", "T3"]]}}
+{"at": "2026-11-26 10:36:14", "by": "[디자인 20]", "id": "TSK-219", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["T1-2 시트 라이트 1048:13216, 다크 1048:13553: '확인할 시간' 줄을 빼고(W3 대답 1분 고정, 머리 설명을 '…정말 깼는지 1분 동안 물어요'로) '다시 물어보기' 1분 후, 3분 후(처음), 5분 후 줄과 '묻는 횟수' 1번(처음), 2번, 3번 줄을 넣음. 줄 이름 추천은 '다시 물어보기': T1-1의 W2 줄과 같은 말, 같은 'N분 후' 칩이라 두 시트가 짝으로 읽힘. T1-1(1048:13080, 13418)은 W2 몫이라 그대로 둠(결정 176 'W2 다시 물어보기 그대로'). 실험실: T3 꺼짐/켬/미션 포기 줄과 T3-1, T3-4 뒤 화면 12장에서 '여러 번 묻기' 줄 빼고 T3-2 시트 2장(1070:14438, 14494) 지움. 기존 Choice Chip, Sheet Header 부품 그대로. 캡처 docs/exports/tsk-219/. 개발: settings_recheck_minutes 줄 대신 기다리는 시간과 횟수 두 줄, settings_recheck_sheet_desc 글 바뀜, settings_recheck_lab 글 없앰."]]}}
+{"at": "2026-11-26 10:36:17", "by": "[디자인 20]", "id": "TSK-220", "action": "claim", "changes": {"status": ["todo", "doing"]}}
+{"at": "2026-11-26 10:37:41", "by": "Leader", "id": "TSK-106", "action": "set", "changes": {"owner": ["[기획 6]", "[기획 8]"]}}
+{"at": "2026-11-26 10:37:41", "by": "Leader", "id": "TSK-120", "action": "set", "changes": {"owner": ["[기획 6]", "[기획 8]"]}}
+{"at": "2026-11-26 10:37:42", "by": "Leader", "id": "TSK-125", "action": "set", "changes": {"owner": ["[기획 6]", "[기획 8]"]}}
+{"at": "2026-11-26 10:37:42", "by": "Leader", "id": "TSK-126", "action": "set", "changes": {"owner": ["[기획 6]", "[기획 8]"]}}
+{"at": "2026-11-26 10:37:43", "by": "Leader", "id": "TSK-122", "action": "set", "changes": {"owner": ["[디자인 18]", "[디자인 20]"]}}
+{"at": "2026-11-26 10:37:43", "by": "Leader", "id": "TSK-123", "action": "set", "changes": {"owner": ["[디자인 18]", "[디자인 20]"]}}
+{"at": "2026-11-26 10:37:44", "by": "Leader", "id": "TSK-108", "action": "set", "changes": {"owner": ["[디자인 18]", "[디자인 20]"]}}
+{"at": "2026-11-26 10:37:44", "by": "Leader", "id": "TSK-113", "action": "set", "changes": {"owner": ["[디자인 18]", "[디자인 20]"]}}
+{"at": "2026-11-26 10:37:45", "by": "Leader", "id": "TSK-201", "action": "set", "changes": {"owner": ["[디자인 19]", "[디자인 20]"]}}
+{"at": "2026-11-26 10:37:45", "by": "Leader", "id": "TSK-178", "action": "set", "changes": {"owner": ["[개발 18]", "[개발 21]"]}}
+{"at": "2026-11-26 10:37:46", "by": "Leader", "id": "TSK-127", "action": "set", "changes": {"owner": ["[리서치 2]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:37:46", "by": "Leader", "id": "TSK-128", "action": "set", "changes": {"owner": ["[리서치 2]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:37:47", "by": "Leader", "id": "TSK-129", "action": "set", "changes": {"owner": ["[리서치 2]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:37:47", "by": "Leader", "id": "TSK-130", "action": "set", "changes": {"owner": ["[리서치 2]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:37:47", "by": "Leader", "id": "TSK-077", "action": "set", "changes": {"owner": ["[리서치 2]", "[리서치 5]"]}}
+{"at": "2026-11-26 10:37:57", "by": "Leader", "id": "TSK-106", "action": "set", "changes": {"owner": ["[기획 8]", "[기획 9]"]}}
+{"at": "2026-11-26 10:37:58", "by": "Leader", "id": "TSK-120", "action": "set", "changes": {"owner": ["[기획 8]", "[기획 9]"]}}
+{"at": "2026-11-26 10:37:58", "by": "Leader", "id": "TSK-125", "action": "set", "changes": {"owner": ["[기획 8]", "[기획 9]"]}}
+{"at": "2026-11-26 10:37:59", "by": "Leader", "id": "TSK-126", "action": "set", "changes": {"owner": ["[기획 8]", "[기획 9]"]}}
