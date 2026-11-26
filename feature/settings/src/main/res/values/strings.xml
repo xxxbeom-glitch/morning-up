@@ -185,7 +185,7 @@
     <string name="settings_lab_trick_desc">알람이 울리면 버튼이 화면 안을 공처럼 튕겨 다녀요. 화면을 만지고 %1$d초가 지나면 제자리에 멈춰요.</string>
     <string name="settings_lab_speed">속도</string>
     <string name="settings_lab_speed_slow">느리게</string>
-    <string name="settings_lab_speed_normal">보통</string>
+    <string name="settings_lab_speed_level">%1$d단계</string>
     <string name="settings_lab_speed_fast">빠르게</string>
     <string name="settings_lab_speed_desc">버튼이 튕겨 다니는 빠르기예요</string>
     <string name="settings_lab_preview">미리 해보기</string>

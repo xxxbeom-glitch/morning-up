@@ -371,19 +371,19 @@ private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit
     }
 }
 
-/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 보통, 20초 동안'. */
+/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 6단계, 20초 동안'. */
 @Composable
 private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(
         R.string.settings_lab_trick_on,
-        stringResource(lab.trickSpeed.labelRes()),
+        stringResource(R.string.settings_lab_speed_level, lab.trickSpeed.level),
         LabSettings.TRICK_SECONDS,
     )
 } else {
     stringResource(R.string.settings_lab_trick_off)
 }
 
-/** T3-1: 속도 칩과 설명, '미리 해보기', '완료'(결정 155로 강도 칩은 없앰). */
+/** T3-1: 속도 1~10단계 슬라이더와 설명(결정 174), '미리 해보기', '완료'. */
 @Composable
 private fun ColumnScope.TrickSheet(
     lab: LabSettings,
@@ -396,14 +396,7 @@ private fun ColumnScope.TrickSheet(
         description = stringResource(R.string.settings_lab_trick_desc, LabSettings.TRICK_SECONDS),
         onDone = onDone,
     ) {
-        FullChipGroup(
-            label = stringResource(R.string.settings_lab_speed),
-            options = TrickSpeed.entries,
-            selected = lab.trickSpeed,
-            optionLabel = { stringResource(it.labelRes()) },
-            onSelect = onSpeed,
-            note = stringResource(R.string.settings_lab_speed_desc),
-        )
+        TrickSpeedSlider(speed = lab.trickSpeed, onSpeed = onSpeed)
         Spacer(Modifier.height(MorningDimens.space20))
         MorningButton(
             text = stringResource(R.string.settings_lab_preview),
@@ -469,10 +462,4 @@ private fun <T> FullChipGroup(
             modifier = Modifier.padding(top = MorningDimens.space4),
         )
     }
-}
-
-private fun TrickSpeed.labelRes(): Int = when (this) {
-    TrickSpeed.Slow -> R.string.settings_lab_speed_slow
-    TrickSpeed.Normal -> R.string.settings_lab_speed_normal
-    TrickSpeed.Fast -> R.string.settings_lab_speed_fast
 }

@@ -3,11 +3,13 @@ package com.lumian.morningup.feature.settings
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performSemanticsAction
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.LabSettings
@@ -75,7 +77,7 @@ class LabPageTest {
     @Test
     fun t3_on_showsSpeedAndSeconds() {
         showPage(LabSettings(trickEnabled = true, multiAskEnabled = true, multiAskCount = 5))
-        compose.onNodeWithText("속도 보통, 20초 동안").assertExists()
+        compose.onNodeWithText("속도 6단계, 20초 동안").assertExists()
         compose.onNodeWithText("깼는지 5번 물어요").assertExists()
     }
 
@@ -87,9 +89,11 @@ class LabPageTest {
         // 결정 155로 강도 칩은 없어졌어요.
         compose.onNodeWithText("똑같은 가짜 버튼이 섞여요").assertDoesNotExist()
         compose.onNodeWithText("약하게").assertDoesNotExist()
-        compose.onNodeWithText("느리게").performClick()
+        // 결정 174: 세 칸 대신 1~10단계 슬라이더. 빠르게(9단계)에서 3단계로 옮겨요.
+        compose.onNodeWithText("9단계").assertExists()
+        compose.onNodeWithTag(LAB_TRICK_SPEED_TAG, useUnmergedTree = true).performSemanticsAction(SemanticsActions.SetProgress) { it(3f) }
         compose.onNodeWithText("미리 해보기").performClick()
-        assertThat(calls).containsExactly("speed:slow", "preview").inOrder()
+        assertThat(calls).containsExactly("speed:3", "preview").inOrder()
     }
 
     @Test
