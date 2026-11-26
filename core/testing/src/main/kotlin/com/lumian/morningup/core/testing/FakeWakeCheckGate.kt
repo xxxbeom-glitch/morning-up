@@ -18,6 +18,7 @@ class FakeWakeCheckGate(
 
     override val restingUntil = MutableStateFlow<Long?>(null)
     override val wakeCheckWaiting = MutableStateFlow(false)
+    override val wakeCheckAt = MutableStateFlow<Long?>(null)
 
     override fun isActive(alarmId: Long): Boolean = alarmId in pendingFor || alarmId in ringingFor
 

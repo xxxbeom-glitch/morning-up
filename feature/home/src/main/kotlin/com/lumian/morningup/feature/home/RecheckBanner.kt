@@ -15,8 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Timer
 import com.lumian.morningup.core.designsystem.motion.morningClickable
@@ -35,14 +38,14 @@ private val TextGap = 2.dp
  * H0 위쪽 띠에 무엇을 보일지. 울림 단계는 한 번에 하나라 띠도 하나예요.
  * - [Recheck]: 한 번 더 확인(W3)을 기다려요(결정 145).
  * - [Resting]: 다시 울림 사이에 쉬는 중이에요(결정 165). [at]에 다시 울려요.
- * - [WakeCheckSoon]: 미션 끝 뒤 W2를 기다려요(결정 168). 글만 보여요.
+ * - [WakeCheckSoon]: 미션 끝 뒤 W2를 기다려요(결정 168). 글만 보여요. [at]은 W2가 뜰 시각이에요(TSK-201).
  */
 sealed interface HomeStatus {
     data class Recheck(val left: Int? = null) : HomeStatus
 
     data class Resting(val at: LocalTime) : HomeStatus
 
-    data object WakeCheckSoon : HomeStatus
+    data class WakeCheckSoon(val at: LocalTime? = null) : HomeStatus
 }
 
 /**
@@ -57,6 +60,8 @@ internal fun StatusBanner(
     desc: String? = null,
     action: String? = null,
     onClick: (() -> Unit)? = null,
+    icon: ImageVector = Lucide.Timer,
+    iconTint: Color? = null,
 ) {
     val colors = MorningTheme.colors
     val shape = RoundedCornerShape(MorningDimens.radiusCard)
@@ -71,7 +76,7 @@ internal fun StatusBanner(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MorningDimens.space12),
     ) {
-        Icon(Lucide.Timer, null, tint = colors.primaryDefault, modifier = Modifier.size(BannerIcon))
+        Icon(icon, null, tint = iconTint ?: colors.primaryDefault, modifier = Modifier.size(BannerIcon))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(TextGap)) {
             Text(title, style = MorningTheme.typography.bodyMediumStrong, color = colors.textPrimary)
             if (desc != null) {
@@ -102,23 +107,31 @@ fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier, left: Int?
     )
 }
 
-/** 쉬는 중 띠 '오전 6:40에 다시 울려요'(결정 165). 누르면 쉬는 중 알림과 같이 울림 화면이 열려요. */
+/**
+ * 쉬는 중 띠 '오전 6:40에 다시 울려요 / 지금 미션을 하면 바로 끝나요 / 미션 하기'(결정 165, 시안 TSK-201).
+ * 누르면 쉬는 중 알림과 같이 울림 화면이 열려요.
+ */
 @Composable
 fun RestingBanner(at: LocalTime, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val time = AlarmText.time(alarmResources(), at)
     StatusBanner(
         title = stringResource(R.string.home_resting_band, time),
+        desc = stringResource(R.string.home_resting_band_desc),
+        action = stringResource(R.string.home_resting_band_action),
+        icon = Lucide.AlarmClock,
+        iconTint = MorningTheme.colors.statusError,
         onClick = onClick,
         tag = RESTING_BANNER_TAG,
         modifier = modifier,
     )
 }
 
-/** W2 대기 띠 '곧 깼는지 물어볼게요'(결정 168). 글만 보여 주고 눌러도 아무 일 없어요. */
+/** W2 대기 띠 '곧 깼는지 물어볼게요 / 오전 6:43쯤 확인 화면이 떠요'(결정 168, 시안 TSK-201). 눌러도 아무 일 없어요. */
 @Composable
-fun WakeCheckSoonBanner(modifier: Modifier = Modifier) {
+fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null) {
     StatusBanner(
         title = stringResource(R.string.home_wake_check_soon_band),
+        desc = at?.let { stringResource(R.string.home_wake_check_soon_desc, AlarmText.time(alarmResources(), it)) },
         tag = WAKE_CHECK_SOON_BANNER_TAG,
         modifier = modifier,
     )
@@ -137,7 +150,7 @@ internal fun withStatusBanner(
             when (status) {
                 is HomeStatus.Recheck -> RecheckBanner(onClick = onOpenRecheck, left = status.left)
                 is HomeStatus.Resting -> RestingBanner(at = status.at, onClick = onOpenRest)
-                HomeStatus.WakeCheckSoon -> WakeCheckSoonBanner()
+                is HomeStatus.WakeCheckSoon -> WakeCheckSoonBanner(at = status.at)
             }
             banner?.invoke()
         }

@@ -45,6 +45,10 @@ class RingWakeCheckGate @Inject constructor(
         .map { it?.phase == RingPhase.AwaitingWakeCheck }
         .distinctUntilChanged()
 
+    override val wakeCheckAt: Flow<Long?> = controller.session
+        .map { session -> session?.takeIf { it.phase == RingPhase.AwaitingWakeCheck }?.phaseEndsAt }
+        .distinctUntilChanged()
+
     override fun openRest() {
         if (controller.session.value?.phase != RingPhase.Resting) return
         val intent = screenIntent.create(context)

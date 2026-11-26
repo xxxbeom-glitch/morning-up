@@ -111,7 +111,7 @@ class OnboardingPageTest {
             }
         }
         compose.onNodeWithText("알림을 허용해 주세요").assertExists()
-        compose.onNodeWithText("알림 권한을 허용하지 않으면 정상적인\n알람 시간을 받아볼 수 없어요.\n미션을 못 할 때 끄는 길도 알림으로 와요.").assertExists()
+        compose.onNodeWithText("알림이 꺼져 있으면 알람 화면이 뜨지 않을 수 있어요.\n미션을 못 할 때 끄는 길도 알림으로 와요.").assertExists()
     }
 
     @Test

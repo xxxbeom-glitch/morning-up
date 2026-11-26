@@ -127,7 +127,7 @@ class WakeCheckCardTest {
     fun noGuardedAlarm_showsNotice_insteadOfNote() {
         noGuarded = true
         show()
-        compose.onNodeWithText("켜 둔 알람이 없어요. 알람 편집에서 '다시 잠들기 방지'를 켜야 물어요").assertExists()
+        compose.onNodeWithText("'다시 잠들기 방지'를 켠 알람이 없어요.\n알람 편집에서 켜야 깼는지 물어봐요").assertExists()
         compose.onNodeWithText("알람마다 켜고 끄기는 알람 편집에서 해요").assertDoesNotExist()
     }
 

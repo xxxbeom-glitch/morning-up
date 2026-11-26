@@ -562,9 +562,10 @@ class HomeViewModelTest {
             assertThat(awaitItem()).isEqualTo(HomeStatus.Resting(LocalTime.of(23, 15)))
             checks.restingUntil.value = null
             assertThat(awaitItem()).isNull()
-            // 결정 168: W2를 기다리는 동안은 글만 있는 띠예요.
+            // 결정 168: W2를 기다리는 동안은 글만 있는 띠예요. 둘째 줄에 W2가 뜰 시각을 보여요(TSK-201, 23:13).
+            checks.wakeCheckAt.value = clock.plusMinutes(3).toInstant().toEpochMilli()
             checks.wakeCheckWaiting.value = true
-            assertThat(awaitItem()).isEqualTo(HomeStatus.WakeCheckSoon)
+            assertThat(awaitItem()).isEqualTo(HomeStatus.WakeCheckSoon(LocalTime.of(23, 13)))
         }
         vm.openRest()
         assertThat(checks.calls).containsExactly("open_rest")

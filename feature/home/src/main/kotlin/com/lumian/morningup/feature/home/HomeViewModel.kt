@@ -138,17 +138,18 @@ class HomeViewModel @Inject constructor(
         checks.recheckLeft,
         checks.restingUntil,
         checks.wakeCheckWaiting,
-    ) { recheck, left, restUntil, waiting ->
+        checks.wakeCheckAt,
+    ) { recheck, left, restUntil, waiting, askAt ->
         when {
             recheck -> HomeStatus.Recheck(left)
-            restUntil != null -> HomeStatus.Resting(
-                java.time.Instant.ofEpochMilli(restUntil).atZone(now.now().zone).toLocalTime()
-                    .withSecond(0).withNano(0),
-            )
-            waiting -> HomeStatus.WakeCheckSoon
+            restUntil != null -> HomeStatus.Resting(localTime(restUntil))
+            waiting -> HomeStatus.WakeCheckSoon(askAt?.let(::localTime))
             else -> null
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
+
+    private fun localTime(epochMillis: Long): java.time.LocalTime =
+        java.time.Instant.ofEpochMilli(epochMillis).atZone(now.now().zone).toLocalTime().withSecond(0).withNano(0)
 
     /** 홈 띠 '확인하기'. W3를 지금 열어요. */
     fun openRecheck() = checks.openRecheck()

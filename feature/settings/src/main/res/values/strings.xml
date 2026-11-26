@@ -59,7 +59,7 @@
     <string name="banner_both">알람이 울려도 화면이 안 떠요</string>
     <string name="banner_both_desc">알림과 \'다른 앱 위에 표시\'를 켜 주세요. 미션을 못 할 때 끄는 길도 알림으로 와요</string>
     <string name="banner_notifications">알림이 꺼져 있어요</string>
-    <string name="banner_notifications_desc">알람이 울려도 화면이 뜨지 않을 수 있어요. 미션을 못 할 때 끄는 길도 알림으로 와요</string>
+    <string name="banner_notifications_desc">알람 화면이 안 뜰 수 있어요.\n미션을 못 할 때 끄는 길도 알림으로 와요</string>
     <string name="banner_overlay">\'다른 앱 위에 표시\'가 꺼져 있어요</string>
     <string name="banner_overlay_desc">홈 버튼을 누르면 알람 화면이 사라질 수 있어요</string>
     <string name="banner_full_screen">\'전체 화면 알림\'이 꺼져 있어요</string>
@@ -138,7 +138,7 @@
     <string name="onboarding_later">나중에 하기</string>
     <string name="onboarding_skip">건너뛰기</string>
     <string name="onboarding_notifications_title">알림을 허용해 주세요</string>
-    <string name="onboarding_notifications_sub">알림 권한을 허용하지 않으면 정상적인\n알람 시간을 받아볼 수 없어요.\n미션을 못 할 때 끄는 길도 알림으로 와요.</string>
+    <string name="onboarding_notifications_sub">알림이 꺼져 있으면 알람 화면이 뜨지 않을 수 있어요.\n미션을 못 할 때 끄는 길도 알림으로 와요.</string>
     <string name="onboarding_notifications_button">알림 허용하기</string>
     <string name="onboarding_full_screen_title">잠겨 있어도 알람이\n화면 위로 떠요</string>
     <string name="onboarding_full_screen_sub">화면이 꺼져 있을 때 알람이 울리면\n바로 화면으로 보여줘요.</string>
@@ -184,7 +184,7 @@
     <string name="settings_times">%1$d번</string>
     <string name="settings_wake_check_note">알람마다 켜고 끄기는 알람 편집에서 해요</string>
     <!-- 켜진 알람 중 다시 잠들기 방지를 켠 알람이 없을 때(결정 164) -->
-    <string name="settings_wake_check_none">켜 둔 알람이 없어요. 알람 편집에서 \'다시 잠들기 방지\'를 켜야 물어요</string>
+    <string name="settings_wake_check_none">\'다시 잠들기 방지\'를 켠 알람이 없어요.\n알람 편집에서 켜야 깼는지 물어봐요</string>
     <!-- 실험실 '확실히 잠깨기'(결정 146 1절, 시안 TSK-171) -->
     <string name="settings_lab">실험실</string>
     <string name="settings_lab_title">확실히 잠깨기</string>
