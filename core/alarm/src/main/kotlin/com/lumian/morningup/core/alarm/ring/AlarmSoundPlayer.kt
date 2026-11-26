@@ -35,6 +35,7 @@ import javax.inject.Singleton
  * 소리는 알람 소리 통로(USAGE_ALARM)로 내서 무음 모드와 미디어 볼륨에 상관없이 들려요.
  * 통화 중이면 [CallPolicy]대로 작은 소리와 진동으로 울리고, 통화가 끝나면 원래 크기로 돌아가요.
  * 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가 최소 크기로 올려요(결정 143).
+ * 사용자가 켰으면 울리는 동안 [AlarmDndOverride]가 방해 금지를 '알람만 허용'으로 잠깐 바꿔요(TSK-177 답 3).
  */
 @Singleton
 class AlarmSoundPlayer @Inject constructor(
@@ -42,6 +43,7 @@ class AlarmSoundPlayer @Inject constructor(
     private val diagnostics: AlarmDiagnostics,
     private val calls: CallMonitor,
     private val volumeGuard: AlarmVolumeGuard,
+    private val dnd: AlarmDndOverride,
 ) {
     private var requested: SoundOutput? = null
     private var volumeHeld = false
@@ -86,6 +88,7 @@ class AlarmSoundPlayer @Inject constructor(
         if (player == null && tone == null) {
             if (!volumeHeld) {
                 volumeHeld = true
+                dnd.hold()
                 volumeGuard.hold(null)
             }
             this.soundId = soundId
@@ -141,6 +144,7 @@ class AlarmSoundPlayer @Inject constructor(
         if (volumeHeld) {
             volumeHeld = false
             volumeGuard.release()
+            dnd.release()
         }
     }
 

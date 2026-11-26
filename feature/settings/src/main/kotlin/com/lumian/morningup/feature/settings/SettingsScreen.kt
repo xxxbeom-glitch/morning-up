@@ -85,6 +85,7 @@ fun SettingsRoute(
     val report by viewModel.report.collectAsStateWithLifecycle()
     val tryAt by viewModel.tryAlarmAt.collectAsStateWithLifecycle()
     val powerOn by viewModel.powerGuardEnabled.collectAsStateWithLifecycle()
+    val dndOn by viewModel.dndOverrideEnabled.collectAsStateWithLifecycle()
     var askPowerConsent by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     SettingsScreen(
@@ -109,6 +110,14 @@ fun SettingsRoute(
             viewModel.setPowerGuardEnabled(on)
             if (on && !report.isGranted(AlarmPermission.PowerGuard)) {
                 askPowerConsent = true
+            }
+        },
+        // 방해 금지 접근 권한이 있을 때만 켜진 모양이에요. 없으면 켤 때 그 권한 화면으로 보내요(TSK-177 답 3).
+        dndOverride = dndOn && report.isGranted(AlarmPermission.DoNotDisturb),
+        onDndOverride = { on ->
+            viewModel.setDndOverrideEnabled(on)
+            if (on && !report.isGranted(AlarmPermission.DoNotDisturb)) {
+                PermissionSettings.open(context, PermissionSettings.intentFor(context, AlarmPermission.DoNotDisturb))
             }
         },
     )
@@ -145,6 +154,8 @@ fun SettingsScreen(
     labCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
+    dndOverride: Boolean = false,
+    onDndOverride: (Boolean) -> Unit = {},
 ) {
     Box(modifier.fillMaxSize()) {
         Column(
@@ -182,6 +193,13 @@ fun SettingsScreen(
                         value = stringResource(R.string.settings_power_guard_desc),
                         state = if (powerGuard) SettingRowState.On else SettingRowState.Off,
                         onCheckedChange = onPowerGuard,
+                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+                    )
+                    MorningSettingRow(
+                        label = stringResource(R.string.settings_dnd_override),
+                        value = stringResource(R.string.settings_dnd_override_desc),
+                        state = if (dndOverride) SettingRowState.On else SettingRowState.Off,
+                        onCheckedChange = onDndOverride,
                         modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
                     )
                 }

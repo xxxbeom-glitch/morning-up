@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.guard.PowerGuardConsent
+import com.lumian.morningup.core.alarm.ring.AlarmDndOverride
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmPermission
@@ -32,6 +33,7 @@ class SettingsViewModel @Inject constructor(
     private val now: NowProvider,
     private val powerConsent: PowerGuardConsent,
     @ApplicationContext context: Context,
+    private val dndOverride: AlarmDndOverride? = null,
 ) : ViewModel() {
     /** P6 접근성 권한 동의를 받았는지. */
     val powerGuardAgreed: StateFlow<Boolean> = powerConsent.agreed
@@ -42,6 +44,13 @@ class SettingsViewModel @Inject constructor(
     val powerGuardEnabled: StateFlow<Boolean> = powerConsent.enabled
 
     fun setPowerGuardEnabled(on: Boolean) = powerConsent.setEnabled(on)
+
+    /** 설정 탭 '방해 금지 잠깐 풀기' 토글(TSK-177 답 3). 처음 꺼짐. */
+    val dndOverrideEnabled: StateFlow<Boolean> = dndOverride?.enabled ?: MutableStateFlow(false)
+
+    fun setDndOverrideEnabled(on: Boolean) {
+        dndOverride?.setEnabled(on)
+    }
 
     val report: StateFlow<PermissionReport> = permissions.report
 
