@@ -1,8 +1,5 @@
 package com.lumian.morningup.ui
 
-import androidx.compose.ui.platform.LocalContext
-import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
-import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
@@ -17,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -25,8 +24,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.lumian.morningup.BuildConfig
+import com.lumian.morningup.R
+import com.lumian.morningup.core.designsystem.component.MorningDialog
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
+import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
+import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionBanner as BannerKind
 import com.lumian.morningup.core.model.PermissionStep
@@ -39,17 +42,17 @@ import com.lumian.morningup.feature.edit.MissionTryRoute
 import com.lumian.morningup.feature.home.HomeRoute
 import com.lumian.morningup.feature.mission.MissionPreviewRouteScreen
 import com.lumian.morningup.feature.mission.play.MissionPreviewRoute
-import com.lumian.morningup.feature.settings.FaqPage
-import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.ring.TrickPreviewRoute
+import com.lumian.morningup.feature.settings.FaqPage
 import com.lumian.morningup.feature.settings.LabRoute
+import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
 import com.lumian.morningup.feature.settings.PermissionStepSheet
-import com.lumian.morningup.feature.settings.openBannerTarget
 import com.lumian.morningup.feature.settings.SettingsRoute
 import com.lumian.morningup.feature.settings.SettingsViewModel
+import com.lumian.morningup.feature.settings.openBannerTarget
 import com.lumian.morningup.feature.sleep.SleepPlayerPage
 import com.lumian.morningup.feature.sleep.SleepPlayerRoute
 import com.lumian.morningup.feature.sleep.SleepScreen
@@ -114,6 +117,8 @@ fun MorningNavHost(
     modifier: Modifier = Modifier,
     permissionRequests: StateFlow<PermissionStep?> = MutableStateFlow(null),
     onPermissionRequestHandled: () -> Unit = {},
+    silencedRingNotice: StateFlow<Boolean> = MutableStateFlow(false),
+    onSilencedRingNoticeHandled: () -> Unit = {},
     showOnboarding: Boolean = false,
     onOnboardingFinished: () -> Unit = {},
     onboardingOnly: Boolean = false,
@@ -240,6 +245,16 @@ fun MorningNavHost(
             permissionSheet?.let { step ->
                 PermissionStepSheet(requested = step, onClose = { permissionSheet = null }, viewModel = settings)
             }
+            val silencedNotice by silencedRingNotice.collectAsStateWithLifecycle()
+            if (silencedNotice) {
+                SilencedRingDialog(
+                    onClose = onSilencedRingNoticeHandled,
+                    onOpenSettings = {
+                        onSilencedRingNoticeHandled()
+                        openBannerTarget(fixContext, BannerKind.AlarmsSilenced)
+                    },
+                )
+            }
         }
         composable<OnboardingDestination>(
             enterTransition = { EnterTransition.None },
@@ -344,3 +359,19 @@ private fun pagePopExit(reduceMotion: Boolean): ExitTransition =
 
 /** 아래 화면이 비켜나는 비율(폭의 1/4). */
 private const val PARALLAX = 4
+
+/**
+ * 지난 알람이 방해 금지 때문에 소리 없이 울렸다고 한 번 알려요(TSK-177 R2 '울린 뒤'). 시안이 없어 기존 Dialog 부품과
+ * 추천 문구로 채웠어요(디자인 확인 필요). '설정 열기'는 방해 금지 안내로 가요.
+ */
+@Composable
+private fun SilencedRingDialog(onClose: () -> Unit, onOpenSettings: () -> Unit) {
+    MorningDialog(
+        title = stringResource(R.string.silenced_ring_title),
+        message = stringResource(R.string.silenced_ring_message),
+        dismissLabel = stringResource(R.string.silenced_ring_close),
+        confirmLabel = stringResource(R.string.silenced_ring_open),
+        onDismiss = onClose,
+        onConfirm = onOpenSettings,
+    )
+}

@@ -15,8 +15,6 @@ import androidx.core.content.ContextCompat
 import com.lumian.morningup.core.alarm.guard.PowerGuardService
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.model.AlarmPermission
-import com.lumian.morningup.core.model.AlarmSilence
-import com.lumian.morningup.core.model.DndMode
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.PermissionReport
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,6 +36,7 @@ class AndroidPermissionChecker @Inject constructor(
     private val exact: ExactAlarms,
     private val notifications: RingNotifications,
     private val diagnostics: AlarmDiagnostics,
+    private val silence: AlarmSilenceReader = AlarmSilenceReader(context),
 ) : PermissionChecker {
     private val state = MutableStateFlow(PermissionReport.Unknown)
     override val report: StateFlow<PermissionReport> = state.asStateFlow()
@@ -46,7 +45,7 @@ class AndroidPermissionChecker @Inject constructor(
         val next = PermissionReport(
             granted = AlarmPermission.entries.associateWith(::read),
             backgroundRestricted = backgroundRestricted(),
-            alarmsSilenced = alarmsSilenced(),
+            alarmsSilenced = silence.silenced(),
         )
         val before = state.value
         state.value = next
@@ -61,34 +60,6 @@ class AndroidPermissionChecker @Inject constructor(
     /** 앱 배터리 사용이 '제한'(안드로이드 9부터 읽을 수 있어요). */
     private fun backgroundRestricted(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.P &&
         context.getSystemService(ActivityManager::class.java)?.isBackgroundRestricted == true
-
-    /** 지금 방해 금지가 알람 소리를 막는지. 갤럭시 모드도 합쳐진 정책으로 봐요(TSK-214). */
-    private fun alarmsSilenced(): Boolean {
-        val manager = context.getSystemService(NotificationManager::class.java) ?: return false
-        val mode = when (manager.currentInterruptionFilter) {
-            NotificationManager.INTERRUPTION_FILTER_ALL -> DndMode.Off
-            NotificationManager.INTERRUPTION_FILTER_PRIORITY -> DndMode.Priority
-            NotificationManager.INTERRUPTION_FILTER_ALARMS -> DndMode.AlarmsOnly
-            NotificationManager.INTERRUPTION_FILTER_NONE -> DndMode.Total
-            else -> DndMode.Unknown
-        }
-        val policy = if (mode == DndMode.Priority) {
-            // 합친 정책을 못 읽으면 기본 정책으로 봐요.
-            val consolidated = runCatching {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.VANILLA_ICE_CREAM) {
-                    manager.consolidatedNotificationPolicy
-                } else {
-                    null
-                }
-            }.getOrNull()
-            consolidated ?: runCatching { manager.notificationPolicy }.getOrNull()
-        } else {
-            null
-        }
-        val alarmsAllowed = policy == null ||
-            policy.priorityCategories and NotificationManager.Policy.PRIORITY_CATEGORY_ALARMS != 0
-        return AlarmSilence.blocks(mode, alarmsAllowed)
-    }
 
     private fun read(permission: AlarmPermission): Boolean = when (permission) {
         AlarmPermission.ExactAlarm -> exact.canScheduleExact()

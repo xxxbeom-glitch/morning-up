@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
+import com.lumian.morningup.core.alarm.SilencedRingLog
 import com.lumian.morningup.core.alarm.sleep.SleepPlayer
 import com.lumian.morningup.core.model.engine.RingEvent
 import com.lumian.morningup.core.model.engine.RingPhase
@@ -48,6 +49,8 @@ class RingService : LifecycleService() {
     @Inject lateinit var calls: CallMonitor
 
     @Inject lateinit var chime: ChimePlayer
+
+    @Inject lateinit var silencedRings: SilencedRingLog
 
     @Inject
     @AlarmScope
@@ -170,7 +173,8 @@ class RingService : LifecycleService() {
             AlarmIntents.ACTION_FIRE -> {
                 val id = intent.getLongExtra(AlarmIntents.EXTRA_ALARM_ID, -1)
                 diagnostics.record("fired", id)
-                if (!controller.fire(id)) diagnostics.record("fired_unknown", id)
+                // 방해 금지가 소리를 막는 채 울렸으면 다음에 앱을 열 때 알려요(TSK-177 R2 '울린 뒤').
+                if (controller.fire(id)) silencedRings.onRing(id) else diagnostics.record("fired_unknown", id)
             }
             AlarmIntents.ACTION_TIMER ->
                 AlarmIntents.timerKindOf(intent)?.let { controller.send(RingEvent.TimerFired(it)) }

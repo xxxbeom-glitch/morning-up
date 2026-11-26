@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.Flow
 /**
  * 화면용 알람 창구. 저장소에 쓰고 나면 늘 [AlarmRescheduler]로 그 알람의 예약을 맞춰요.
  * 화면(feature)은 저장소와 예약기를 직접 부르지 않고 이것만 써요.
+ * 다음 알람이 바뀔 수 있어서 쓸 때마다 울리기 10분 전 점검([PreRingCheck])도 다시 잡아요.
  */
 @Singleton
 class SchedulingAlarmBook @Inject constructor(
@@ -21,6 +22,7 @@ class SchedulingAlarmBook @Inject constructor(
     private val scheduler: AlarmScheduler,
     private val now: NowProvider,
     private val checks: WakeCheckGate? = null,
+    private val preRing: PreRingCheck? = null,
 ) : AlarmBook {
     override val alarms: Flow<List<Alarm>> = repository.alarms
 
@@ -30,6 +32,7 @@ class SchedulingAlarmBook @Inject constructor(
         // 예약 시각은 rescheduler가 새로 계산해 넣어요. 옛 값을 남기면 놓친 알람으로 잘못 볼 수 있어요.
         val stored = repository.insert(alarm.copy(nextTriggerAt = null))
         rescheduler.reschedule(stored, now.now())
+        preRing?.schedule()
         return repository.get(stored.id) ?: stored
     }
 
@@ -38,6 +41,7 @@ class SchedulingAlarmBook @Inject constructor(
         // 알람을 끄면 그 알람의 남은 확인(W2, W3)도 멈춰요(결정 145).
         if (!enabled) checks?.cancelFor(id)
         rescheduler.reschedule(alarm.copy(enabled = enabled, nextTriggerAt = null), now.now())
+        preRing?.schedule()
     }
 
     override suspend fun delete(id: Long): Alarm? {
@@ -45,6 +49,7 @@ class SchedulingAlarmBook @Inject constructor(
         scheduler.cancel(id)
         checks?.cancelFor(id)
         repository.delete(id)
+        preRing?.schedule()
         return alarm
     }
 
@@ -52,5 +57,6 @@ class SchedulingAlarmBook @Inject constructor(
         val restored = alarm.copy(nextTriggerAt = null)
         repository.save(restored)
         rescheduler.reschedule(restored, now.now())
+        preRing?.schedule()
     }
 }

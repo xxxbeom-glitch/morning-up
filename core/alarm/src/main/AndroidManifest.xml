@@ -71,6 +71,11 @@
             android:name=".BatteryReminderReceiver"
             android:exported="false" />
 
+        <!-- 울리기 10분 전 방해 금지 점검(TSK-177 답 2). -->
+        <receiver
+            android:name=".PreRingCheckReceiver"
+            android:exported="false" />
+
         <receiver
             android:name=".receiver.SystemEventReceiver"
             android:directBootAware="true"

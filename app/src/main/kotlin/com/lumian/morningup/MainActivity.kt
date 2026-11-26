@@ -16,6 +16,8 @@ import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.BatteryReminder
+import com.lumian.morningup.core.alarm.PreRingCheck
+import com.lumian.morningup.core.alarm.SilencedRingLog
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
@@ -53,6 +55,13 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var onboarding: OnboardingStore
 
     @Inject lateinit var batteryReminder: BatteryReminder
+
+    @Inject lateinit var preRing: PreRingCheck
+
+    @Inject lateinit var silencedRings: SilencedRingLog
+
+    /** 지난 알람이 방해 금지 때문에 소리 없이 울렸으면 true(TSK-177 R2). 홈이 창을 한 번 띄우고 비워요. */
+    private val silencedRingNotice = MutableStateFlow(false)
 
     /** 열어 달라는 편집 화면의 알람 id. 화면 길이 받아 열면 비워요. */
     private val editRequests = MutableStateFlow<Long?>(null)
@@ -93,6 +102,8 @@ class MainActivity : ComponentActivity() {
                             onEditRequestHandled = { editRequests.value = null },
                             permissionRequests = permissionRequests,
                             onPermissionRequestHandled = { permissionRequests.value = null },
+                            silencedRingNotice = silencedRingNotice,
+                            onSilencedRingNoticeHandled = { silencedRingNotice.value = false },
                             showOnboarding = showOnboarding,
                             onOnboardingFinished = {
                                 onboarding.markDone()
@@ -125,6 +136,8 @@ class MainActivity : ComponentActivity() {
             }
             // 앱을 열 때마다 예약을 맞춰요. 시스템 신호를 놓쳤거나 예약이 지워진 경우를 메워요.
             rescheduler.rescheduleAll(now.now())
+            // 울리기 10분 전 방해 금지 점검을 다음 알람에 맞춰 잡아요(TSK-177 답 2).
+            preRing.schedule()
         }
         // 배터리 전날 밤 확인을 예약해요(결정 113, 119). 밤마다 스스로 다음 날을 다시 잡아요.
         // 온보딩 전용 확인 앱은 배터리 알림을 보내지 않아요(원래 앱과 겹치지 않게).
@@ -136,6 +149,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         permissions.refresh()
+        if (!BuildConfig.MISSION_ONLY && silencedRings.takePending()) silencedRingNotice.value = true
     }
 
     override fun onNewIntent(intent: Intent) {

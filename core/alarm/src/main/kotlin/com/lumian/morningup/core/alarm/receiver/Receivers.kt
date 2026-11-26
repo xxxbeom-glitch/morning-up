@@ -8,6 +8,7 @@ import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
 import com.lumian.morningup.core.alarm.AlarmScope
 import com.lumian.morningup.core.alarm.BatteryReminder
+import com.lumian.morningup.core.alarm.PreRingCheck
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.data.session.RingSessionStore
@@ -83,6 +84,8 @@ class SystemEventReceiver : BroadcastReceiver() {
 
     @Inject lateinit var batteryReminder: BatteryReminder
 
+    @Inject lateinit var preRing: PreRingCheck
+
     @Inject
     @AlarmScope
     lateinit var scope: CoroutineScope
@@ -96,6 +99,7 @@ class SystemEventReceiver : BroadcastReceiver() {
             try {
                 rescheduler.rescheduleAll(now.now())
                 batteryReminder.schedule()
+                preRing.schedule()
                 // 하던 울림이 있으면 이어가요(재부팅 직전에 울리던 알람).
                 if (sessions.load() != null) {
                     val resume = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_RESUME)
