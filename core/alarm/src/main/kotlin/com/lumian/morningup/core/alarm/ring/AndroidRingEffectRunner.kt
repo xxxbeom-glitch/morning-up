@@ -8,6 +8,7 @@ import com.lumian.morningup.core.model.engine.AlarmRescheduler
 import com.lumian.morningup.core.model.engine.AlarmStore
 import com.lumian.morningup.core.model.engine.RingEffect
 import com.lumian.morningup.core.model.engine.RingOutcome
+import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.core.model.engine.RingSession
 import java.time.Instant
 import java.time.ZoneId
@@ -62,7 +63,7 @@ class AndroidRingEffectRunner @Inject constructor(
             -> notifications.showRinging(session?.phase)
             RingEffect.ShowWakeUp -> Unit
             is RingEffect.ShowEscape, RingEffect.ClearEscape, is RingEffect.EscapeUsed -> runEscape(session, effect)
-            RingEffect.PlayChime -> chime.play(session?.plan?.alarmId)
+            RingEffect.PlayChime -> chime.play(session?.plan?.alarmId, session?.phase == RingPhase.RecheckAsking)
             RingEffect.PausedForCall -> diagnostics.record("check_paused_for_call", session?.plan?.alarmId)
             is RingEffect.RecheckScheduled -> {
                 diagnostics.record("recheck_scheduled", session?.plan?.alarmId, "at=${clock(effect.askAt)}")

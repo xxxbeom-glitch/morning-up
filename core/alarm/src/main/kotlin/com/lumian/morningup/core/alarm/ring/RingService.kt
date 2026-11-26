@@ -84,7 +84,7 @@ class RingService : LifecycleService() {
         val session = controller.session.value
         if (session?.phase == RingPhase.RecheckAsking && session.pausedLeftMillis == null) {
             diagnostics.record("recheck_nudge", session.plan.alarmId)
-            chime.play(session.plan.alarmId)
+            chime.play(session.plan.alarmId, recheck = true)
             notifications.openScreenNow()
         }
     }

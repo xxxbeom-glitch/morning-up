@@ -1,5 +1,6 @@
 package com.lumian.morningup.core.alarm.ring
 
+import android.content.ContentResolver
 import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
@@ -9,7 +10,9 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.core.net.toUri
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
+import com.lumian.morningup.core.alarm.R
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,6 +21,8 @@ import javax.inject.Singleton
  * W2, W3가 뜰 때 짧은 알림음과 진동 2번(결정 145 3번). 알람 소리 통로(USAGE_ALARM)로 알람 볼륨의 30% 크기로
  * 한 번만 울려요. 무음 모드에서도 들려요. 폰 알람 볼륨이 0이면 울리는 동안 [AlarmVolumeGuard]가
  * 최소 크기로 올리고 끝나면 돌려요(결정 143 대책을 W3에도).
+ * W2는 폰 기본 알림음, W3 '정말 깼어요?'는 앱에 넣은 증기 사이렌 소리(`res/raw/w3_recheck`, 사용자 지시 11-26)예요.
+ * 채널 소리가 아니라 직접 울려서 알림 채널을 바꿀 필요는 없어요.
  */
 @Singleton
 class ChimePlayer @Inject constructor(
@@ -34,14 +39,18 @@ class ChimePlayer @Inject constructor(
     private var volumeHeld = false
 
     @Synchronized
-    fun play(alarmId: Long?) {
+    fun play(alarmId: Long?, recheck: Boolean = false) {
         val audio = context.getSystemService(AudioManager::class.java)
         if (audio?.getStreamVolume(AudioManager.STREAM_ALARM) == 0) diagnostics.record("chime_volume_zero", alarmId)
         vibrateTwice()
         release()
         volumeHeld = true
         volumeGuard.hold(alarmId)
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: return release()
+        val uri = if (recheck) {
+            "${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.w3_recheck}".toUri()
+        } else {
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        } ?: return release()
         val mp = MediaPlayer()
         player = try {
             mp.setAudioAttributes(attributes)
@@ -51,7 +60,7 @@ class ChimePlayer @Inject constructor(
             mp.setVolume(volume, volume)
             mp.setOnCompletionListener { done -> synchronized(this) { if (player === done) release() } }
             mp.start()
-            diagnostics.record("chime", alarmId)
+            diagnostics.record("chime", alarmId, if (recheck) "w3" else "w2")
             mp
         } catch (@Suppress("TooGenericExceptionCaught") e: Exception) {
             diagnostics.record("chime_failed", alarmId, e.javaClass.simpleName)
