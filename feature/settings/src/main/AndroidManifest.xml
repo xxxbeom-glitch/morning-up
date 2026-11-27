@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- 문의 메일: 첨부를 받는 메일 앱을 찾으려면 mailto 앱 목록이 보여야 해요(ISS-067). -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.SENDTO" />
+            <data android:scheme="mailto" />
+        </intent>
+    </queries>
+
     <application>
         <!-- 문의하기 앱 기록 zip을 메일 앱에 넘겨요(TSK-289). -->
         <provider
