@@ -1,8 +1,6 @@
 package com.lumian.morningup.feature.settings
 
-import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -98,7 +96,7 @@ fun SettingsRoute(
         tryAlarmAt = tryAt,
         onOpenPermissions = onOpenPermissions,
         onTryAlarm = viewModel::tryAlarm,
-        onFeedback = onOpenSupport ?: { sendFeedback(context, versionName, report) },
+        onFeedback = onOpenSupport ?: { openSupportMail(context, versionName, report) },
         onFaq = onOpenFaq,
         onLicenses = onOpenLicenses,
         modifier = modifier,
@@ -429,22 +427,4 @@ internal fun NavRow(
             Icon(Lucide.ChevronRight, null, Modifier.size(ChevronSize), tint = colors.textTertiary)
         }
     }
-}
-
-/** 메일 앱을 열고 기기 정보와 꺼진 권한을 본문에 미리 채워요. 로그인은 없어요. */
-private fun sendFeedback(context: Context, versionName: String, report: PermissionReport) {
-    val missing = report.missingRequired.joinToString { it.name }
-        .ifEmpty { context.getString(R.string.settings_feedback_none) }
-    val body = context.getString(
-        R.string.settings_feedback_body,
-        "${Build.MANUFACTURER} ${Build.MODEL}",
-        Build.VERSION.RELEASE,
-        versionName,
-        missing,
-    )
-    val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri())
-        .putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
-        .putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_subject))
-        .putExtra(Intent.EXTRA_TEXT, body)
-    PermissionSettings.open(context, intent)
 }

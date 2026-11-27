@@ -26,9 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** 문의하기 받는 주소(사업자 대표 메일, 문서와 관리판에는 적지 않아요). */
-internal const val SUPPORT_EMAIL = "lumianthecompany@gmail.com"
-
 /** 보내기 결과. 화면이 토스트로 알려요. */
 enum class SupportSendResult { MailOpened, NoMailApp }
 
@@ -99,7 +96,7 @@ class SupportViewModel @Inject constructor(
     }
 
     private fun openMail(subject: String, body: String, uris: List<Uri>): Boolean {
-        val intent = SupportMail.intent(appContext.packageManager, SUPPORT_EMAIL, subject, body, uris)
+        val intent = SupportMail.intent(appContext.packageManager, BuildConfig.SUPPORT_EMAIL, subject, body, uris)
             ?: return false
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         return try {

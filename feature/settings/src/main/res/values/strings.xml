@@ -263,4 +263,20 @@
     <string name="support_exit_message">지우면 쓴 내용과 붙인 사진이 사라져요</string>
     <string name="support_exit_keep">계속 쓰기</string>
     <string name="support_exit_discard">지우기</string>
+    <!-- 문의하기 메일 양식(결정 201) -->
+    <string name="contact_mail_subject">[일어나 문의]</string>
+    <string name="contact_mail_intro">문의 내용을 적어 주세요.</string>
+    <string name="contact_mail_divider">아래는 문제를 찾는 데 쓰는 정보예요.</string>
+    <string name="contact_mail_version">앱 버전: %1$s</string>
+    <string name="contact_mail_device">폰 기종: %1$s</string>
+    <string name="contact_mail_android">안드로이드 버전: %1$s</string>
+    <string name="contact_mail_on">켜짐</string>
+    <string name="contact_mail_off">꺼짐</string>
+    <string name="contact_mail_exact_alarm">정확한 알람</string>
+    <string name="contact_mail_battery">배터리 최적화 예외</string>
+    <string name="contact_mail_notifications">알림</string>
+    <string name="contact_mail_full_screen">전체 화면 알림</string>
+    <string name="contact_mail_overlay">다른 앱 위에 표시</string>
+    <string name="contact_mail_no_app">메일 앱이 없어 문의 주소를 복사했어요. 쓰시는 메일에 붙여 넣어 보내 주세요.</string>
+    <string name="contact_mail_not_ready">문의 메일 주소를 준비하고 있어요. 잠시 뒤 다시 시도해 주세요.</string>
 </resources>
