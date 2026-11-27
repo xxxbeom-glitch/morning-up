@@ -28,7 +28,14 @@ abstract class MorningDatabase : RoomDatabase() {
          * 다시 잠들기 방지 값이에요(앱은 설정 저장소에서 읽어요, 결정 180).
          */
         fun migrations(legacyWakeCheck: () -> LegacyWakeCheck = { LegacyWakeCheck() }): List<Migration> =
-            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5(legacyWakeCheck), Migration5To6, Migration6To7)
+            listOf(
+                Migration1To2,
+                Migration2To3,
+                Migration3To4,
+                Migration4To5(legacyWakeCheck),
+                Migration5To6,
+                Migration6To7,
+            )
     }
 }
 

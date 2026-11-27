@@ -240,7 +240,8 @@ private const val NOT_SELECTED = -1
 
 /**
  * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안, 결정 186). ① '간격' 1, 3, 5, 10분 후 ② '횟수' +, -(최소 1, 최대 없음).
- * ② 줄은 설정 > 실험실 '좀비모드'를 켰을 때만 보여요(결정 184, 188). 줄 아래 설명 글은 없어요(TSK-247). 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
+ * ② 줄은 설정 > 실험실 '좀비모드'를 켰을 때만 보여요(결정 184, 188). 줄 아래 설명 글은 없어요(TSK-247).
+ * 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
  */
 @Composable
 internal fun WakeCheckSheetContent(alarm: Alarm, labRecheck: Boolean, actions: EditActions, onDone: () -> Unit) {
