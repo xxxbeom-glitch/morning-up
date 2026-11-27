@@ -1244,3 +1244,7 @@
 {"at": "2026-11-27 11:44:05", "by": "Leader", "id": "ISS-062", "action": "set", "changes": {"owner": [null, "[개발 30]"]}}
 {"at": "2026-11-27 11:44:06", "by": "Leader", "id": "TSK-286", "action": "set", "changes": {"owner": ["[개발 27]", "[개발 30]"]}}
 {"at": "2026-11-27 11:44:07", "by": "Leader", "id": "TSK-293", "action": "set", "changes": {"owner": ["[개발 29]", "[개발 30]"]}}
+{"at": "2026-11-27 11:45:04", "by": "[개발 30]", "id": "ISS-061", "action": "claim", "changes": {"status": ["open", "doing"]}}
+{"at": "2026-11-27 11:45:13", "by": "Leader", "id": "TSK-294", "action": "create", "changes": {"id": [null, "TSK-294"], "wbs": [null, "4.108"], "parent": [null, "TSK-004"], "title": [null, "권한 점검 화면 맨 아래 문의하기 버튼과 FAQ A8, B4 문장 확인"], "area": [null, "dev"], "owner": [null, "[개발 30]"], "reviewer": [null, "Leader"], "status": [null, "todo"], "relates": [[], ["TSK-288", "TSK-289"]], "acceptance": [[], ["T2 맨 아래 '그래도 알람이 안 울리면 문의하기'", "FAQ A8, B4 사실 확인 뒤 문장 고침"]]}}
+{"at": "2026-11-27 11:45:14", "by": "Leader", "id": "TSK-295", "action": "create", "changes": {"id": [null, "TSK-295"], "wbs": [null, "5.16"], "parent": [null, "TSK-005"], "title": [null, "개인정보 처리방침 주소 정하고 설정에 연결"], "area": [null, "release"], "owner": [null, "Leader"], "reviewer": [null, "Leader"], "status": [null, "todo"], "relates": [[], ["TSK-287"]], "acceptance": [[], ["처리방침 글과 올릴 주소(앱 한 장 사이트)", "설정 줄에 연결"]]}}
+{"at": "2026-11-27 11:45:15", "by": "Leader", "id": "TSK-273", "action": "set", "changes": {"owner": ["Leader", "[개발 28]"]}}
