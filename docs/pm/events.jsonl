@@ -1376,3 +1376,4 @@
 {"at": "2026-11-27 16:04:23", "by": "Leader", "id": "TSK-304", "action": "set", "changes": {"owner": [null, "[개발 30]"], "start": [null, "2026-11-27"], "due": [null, "2026-11-27"], "relates": [[], ["ISS-069", "TSK-303"]], "decisions": [[], ["200"]], "acceptance": [[], ["결정 200의 1~5 규칙을 RingStateMachine에 반영하고 단위 시험으로 다섯 경우 모두 확인, 빌드 통과. 그 뒤 QA가 Z플립5에서 소리 없이 다시 확인"]]}}
 {"at": "2026-11-27 16:04:26", "by": "[디자인 27]", "id": "TSK-302", "action": "set", "changes": {"refs": [[], ["docs/references/bottom-sheet-refs.md"]], "figma": [[], ["1239:22297"]]}}
 {"at": "2026-11-27 16:04:27", "by": "[디자인 27]", "id": "TSK-302", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["레퍼런스 39장 6묶음, 피그마 구역 1239:22297, docs/references/bottom-sheet-refs.md, 맞는 패턴 3가지"]]}}
+{"at": "2026-11-27 16:04:45", "by": "Leader", "id": "TSK-303", "action": "set", "changes": {"verify": [null, "agent"]}}
