@@ -39,19 +39,6 @@ class PowerGuardServiceTest {
         assertThat(PowerGuardService.isPowerMenu(null, null)).isFalse()
     }
 
-    /** ISS-060: 삼성 전원 메뉴는 뒤로만으로 안 닫혀서 뒤로 → 홈 → 울림 화면 다시 맨 앞 순서로 닫아요. */
-    @Test
-    fun closeSteps_backThenHomeThenReopen_inTimeOrder() {
-        val steps = PowerGuardService.CLOSE_STEPS
-        assertThat(steps.map { it.action }).containsExactly(
-            PowerGuardService.CloseAction.Back,
-            PowerGuardService.CloseAction.Home,
-            PowerGuardService.CloseAction.ReopenScreen,
-        ).inOrder()
-        assertThat(steps.map { it.delayMillis }).isInStrictOrder()
-        assertThat(PowerGuardService.CLOSE_DEBOUNCE_MILLIS).isGreaterThan(steps.last().delayMillis)
-    }
-
     @Test
     fun reopensRingScreen_onlyWhileRingingOrInMission() {
         assertThat(PowerGuardService.REOPEN_PHASES).containsExactly(RingPhase.Ringing, RingPhase.InMission)

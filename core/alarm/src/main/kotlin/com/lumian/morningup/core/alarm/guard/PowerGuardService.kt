@@ -45,7 +45,11 @@ class PowerGuardService : AccessibilityService() {
     @Volatile private var reopenScreen = false
 
     private val main = Handler(Looper.getMainLooper())
-    private var lastCloseAt = 0L
+
+    /** 메인 스레드에서만 만져요(이벤트와 [main] 예약 모두 메인 스레드). */
+    private val closer = PowerMenuCloser()
+    private var closeDetail = ""
+    private val tick = Runnable { closeStep() }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -68,33 +72,39 @@ class PowerGuardService : AccessibilityService() {
         val cls = event.className?.toString()
         if (!isPowerMenu(pkg, cls)) {
             // 기종마다 전원 메뉴 창 이름이 달라요. 시스템 창이 바뀌면 앱 이름과 창 종류만 남겨 실기기에서 맞춰요(글은 안 읽어요).
-            if (isSystemWindow(pkg)) diagnostics.record("power_guard_window", detail = "pkg=$pkg cls=$cls")
+            if (isSystemWindow(pkg)) {
+                diagnostics.record("power_guard_window", detail = "pkg=$pkg cls=$cls")
+            } else {
+                // 홈 화면 같은 다른 창으로 바뀌었으면 전원 메뉴는 닫힌 거예요(ISS-060).
+                closer.onOtherWindow()
+            }
             return
         }
-        val now = SystemClock.elapsedRealtime()
-        if (now - lastCloseAt < CLOSE_DEBOUNCE_MILLIS) return
-        lastCloseAt = now
-        closePowerMenu("pkg=$pkg cls=$cls")
+        if (closer.onMenuSeen(SystemClock.elapsedRealtime())) {
+            closeDetail = "pkg=$pkg cls=$cls"
+            main.removeCallbacks(tick)
+            main.post(tick)
+        }
     }
 
     /**
-     * 삼성 전원 메뉴는 '뒤로'만으로는 안 닫혀요(ISS-060). 알라미처럼 여러 겹으로 닫아요.
-     * 1) 뒤로와 시스템 대화 닫기 신호, 2) 홈(시스템이 홈으로 갈 때 전원 메뉴 같은 시스템 대화를 모두 닫아요),
-     * 3) 울리는 중이나 미션 중이면 울림 화면을 다시 맨 앞으로. 순서와 시간은 [CLOSE_STEPS].
+     * 삼성 전원 메뉴는 버튼을 누르고 있는 동안 '뒤로', '홈'을 무시해요(ISS-060). 그래서 메뉴가 사라질 때까지
+     * 처음엔 뒤로(+시스템 대화 닫기 신호), 그 뒤 [PowerMenuCloser.RETRY_MILLIS]마다 홈을 보내요.
+     * 닫히면 울리는 중이나 미션 중일 때 울림 화면을 다시 맨 앞으로 가져와요. 쉬는 중에는 메뉴만 닫아요.
      */
-    private fun closePowerMenu(detail: String) {
-        CLOSE_STEPS.forEach { step ->
-            main.postDelayed({ if (guarding) run(step, detail) }, step.delayMillis)
+    private fun closeStep() {
+        if (!guarding) {
+            closer.stop()
+            return
         }
-    }
-
-    private fun run(step: CloseStep, detail: String) {
-        val ok = when (step.action) {
-            CloseAction.Back -> closeSystemDialogs().let { performGlobalAction(GLOBAL_ACTION_BACK) }
-            CloseAction.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
-            CloseAction.ReopenScreen -> !reopenScreen || reopenRingScreen()
+        val action = closer.next(SystemClock.elapsedRealtime())
+        val ok = when (action) {
+            PowerMenuCloser.Action.Back -> closeSystemDialogs().let { performGlobalAction(GLOBAL_ACTION_BACK) }
+            PowerMenuCloser.Action.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
+            PowerMenuCloser.Action.Done, PowerMenuCloser.Action.GiveUp -> !reopenScreen || reopenRingScreen()
         }
-        diagnostics.record("power_menu_closed", detail = "$detail step=${step.action} ok=$ok")
+        diagnostics.record("power_menu_closed", detail = "$closeDetail step=$action try=${closer.tries} ok=$ok")
+        if (closer.active) main.postDelayed(tick, PowerMenuCloser.RETRY_MILLIS)
     }
 
     /** 안드로이드 12부터 막힌 기종이 많아서 실패해도 넘어가요. */
@@ -122,16 +132,6 @@ class PowerGuardService : AccessibilityService() {
         /** 메뉴를 닫은 뒤 울림 화면을 다시 띄우는 때. */
         val REOPEN_PHASES = setOf(RingPhase.Ringing, RingPhase.InMission)
 
-        /** 닫는 순서(ISS-060): 뒤로 → 0.2초 뒤 홈 → 0.5초 뒤 울림 화면 다시 맨 앞. */
-        val CLOSE_STEPS = listOf(
-            CloseStep(0L, CloseAction.Back),
-            CloseStep(200L, CloseAction.Home),
-            CloseStep(500L, CloseAction.ReopenScreen),
-        )
-
-        /** 한 번 닫는 동안 같은 메뉴 신호가 겹쳐 와도 다시 시작하지 않아요. 다시 열면 이 시간 뒤부터 또 닫아요. */
-        const val CLOSE_DEBOUNCE_MILLIS = 700L
-
         /** 전원 메뉴 창 종류에 흔히 들어가는 이름(AOSP GlobalActionsDialog(Lite), 삼성 SecGlobalActions 등). */
         private val POWER_MENU_CLASS_HINTS = listOf("GlobalActions", "PowerMenu", "PowerOptions", "Shutdown")
 
@@ -151,8 +151,4 @@ class PowerGuardService : AccessibilityService() {
                 (isSystemWindow(pkg) && POWER_MENU_CLASS_HINTS.any { cls.contains(it, ignoreCase = true) })
         }
     }
-
-    enum class CloseAction { Back, Home, ReopenScreen }
-
-    data class CloseStep(val delayMillis: Long, val action: CloseAction)
 }
