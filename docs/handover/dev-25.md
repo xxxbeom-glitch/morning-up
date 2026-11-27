@@ -14,7 +14,7 @@
 - 설정 설명 '미션 중 전원 메뉴를 막아요'는 TSK-285 문구 적용 때 바꿈(Leader).
 - 삼성 전원 메뉴 실제 창 이름은 미확인. [QA 5] 로그의 `power_guard_window`, `power_menu_closed` 줄로 `PowerGuardService.POWER_MENU_CLASS_HINTS` 맞추기.
 - 잠들기 타이머 '끄기'를 '아침 알람까지'로 바꿀지 기획 판단.
-- TSK-286, TSK-282는 손대지 않음([개발 28]이 맡음).
+- TSK-286은 [개발 27], TSK-282는 [개발 26]이 이어받음. 둘 다 손대지 않음.
 
 ## 주의할 점
 - 같은 폴더에서 다른 방이 Gradle을 돌리면 KSP 캐시가 깨지거나(`Storage corrupted ... kspCaches`) 파일 잠금(`Could not delete ... caches-jvm`)이 나요. 빌드 전에 java 프로세스를 보고, 깨지면 그 모듈 `build/kspCaches`를 지우고 다시 빌드.
