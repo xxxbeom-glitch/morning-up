@@ -92,7 +92,7 @@
 **타입 2 값 조절** (EX3 h348, EX4 h580)
 - Sheet Header(제목만) → content 4~8/24/0/24 → footer '완료' → Nav Bar
 - **기준: 숫자와 단계는 카운트, 미리보기를 보며 정하는 속도만 슬라이더** (11-27 사용자 결정: 문제 수, 횟수, 분, 미션 난이도 모두 카운트).
-- 카운트는 Count Stepper(예제용) 1257:29055: 줄 높이 56, 왼쪽 이름(`Body/Medium`), 오른쪽 한 덩어리 바탕(`background/raised`, 안 여백 `space/4`, 사이 `space/8`, `radius/full`, 높이 44) 안에 흰 원 -, 숫자(`Title/Medium`), 흰 원 +(`size/row` 36, 아이콘 `icon/md` 20). 처음 Value Switch Row보다 버튼만 32→36 한 단계 키웠어요.
+- 카운트는 Count Stepper(예제용) 1257:29055: 줄 높이 56, 왼쪽 이름(`Body/Medium`), 오른쪽 한 덩어리 바탕(`background/raised`, 안 여백 `space/4`, 사이 `space/8`, `radius/button` 16, 높이 44) 안에 흰 -, 숫자(`Title/Medium`), 흰 +(`size/row` 36, `radius/chip` 12, 아이콘 `icon/md` 20). 처음 Value Switch Row보다 버튼만 32→36 한 단계 키웠어요.
 - 시안 안에는 범위 글 같은 안내 글을 넣지 않아요 (11-27 사용자 지시).
 - 카운트 동작(개발에 넘길 것, 시안에는 안 그림): 길게 누르면 빠르게 올라가고, 가운데 숫자를 누르면 키패드로 바로 입력해요. 문제 수는 30개까지.
 - 슬라이더(1244:22321)는 Crazy Mode 속도 한 곳에만, 미리보기 그림과 함께 써요 (EX4). 트랙 6→8, 손잡이 24, 단계 점은 흰색으로 연하게.
