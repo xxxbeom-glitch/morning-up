@@ -52,8 +52,7 @@ import com.lumian.morningup.core.designsystem.component.MorningMissionCheck
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningToast
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
-import com.lumian.morningup.core.designsystem.component.MorningValueSwitchRow
-import com.lumian.morningup.core.designsystem.component.ValueSwitchType
+import com.lumian.morningup.core.designsystem.component.MorningWheelPicker
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
@@ -215,18 +214,17 @@ internal fun missionValue(setting: MissionSetting): String = when (setting.type)
 internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onStart: (() -> Unit)? = null) {
     val setting = sheet.setting
     val typography = MorningTheme.typography
-    val levelLabel = stringResource(R.string.edit_mission_level)
     Text(
         text = AlarmText.missionName(alarmResources(), setting.type),
         style = typography.titleMedium,
         color = MorningTheme.colors.textPrimary,
         modifier = Modifier.padding(top = MorningDimens.space4, bottom = MorningDimens.space8),
     )
-    // 결정 87: 머리 아래 예제 영역(312x260). 미션 화면을 덩어리로 그린 스켈레톤 예제가 움직여요(11-18 사용자 지시).
+    // 결정 87: 머리 아래 예제 영역(TSK-264로 높이 160, 흔들기만 그림에 맞춰 216). 미션 화면을 덩어리로 그린 스켈레톤 예제가 움직여요(11-18 사용자 지시).
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(ExampleAreaHeight)
+            .height(if (setting.type == MissionType.ShakeShake) ShakeExampleHeight else ExampleAreaHeight)
             .clip(RoundedCornerShape(MorningDimens.radiusTile))
             .background(MorningTheme.colors.backgroundRaised)
             .testTag(SHEET_EXAMPLE_TAG),
@@ -239,49 +237,9 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onSt
             modifier = Modifier.fillMaxSize(),
         )
     }
-    Spacer(Modifier.height(MorningDimens.space8))
-    if (setting.type != MissionType.ShakeShake) {
-        MorningValueSwitchRow(
-            label = levelLabel,
-            value = stringResource(R.string.edit_mission_level_value, setting.level),
-            type = ValueSwitchType.Level,
-            canDecrease = sheet.canLevelDown,
-            canIncrease = sheet.canLevelUp,
-            onDecrease = { actions.onMissionLevel(-1) },
-            onIncrease = { actions.onMissionLevel(1) },
-            decreaseDescription = stringResource(R.string.edit_mission_decrease, levelLabel),
-            increaseDescription = stringResource(R.string.edit_mission_increase, levelLabel),
-            tag = SHEET_LEVEL_TAG,
-        )
-    }
-    if (setting.type == MissionType.DropWords) {
-        val speedLabel = stringResource(R.string.edit_mission_speed)
-        MorningValueSwitchRow(
-            label = speedLabel,
-            value = setting.speed.toString(),
-            type = ValueSwitchType.Level,
-            canDecrease = sheet.canSpeedDown,
-            canIncrease = sheet.canSpeedUp,
-            onDecrease = { actions.onMissionSpeed(-1) },
-            onIncrease = { actions.onMissionSpeed(1) },
-            decreaseDescription = stringResource(R.string.edit_mission_decrease, speedLabel),
-            increaseDescription = stringResource(R.string.edit_mission_increase, speedLabel),
-            tag = SHEET_SPEED_TAG,
-        )
-    }
-    val countLabel = stringResource(countLabelOf(setting.type))
-    MorningValueSwitchRow(
-        label = countLabel,
-        value = stringResource(countValueOf(setting.type), setting.count),
-        type = ValueSwitchType.Count,
-        canDecrease = sheet.canCountDown,
-        canIncrease = sheet.canCountUp,
-        onDecrease = { actions.onMissionCount(-1) },
-        onIncrease = { actions.onMissionCount(1) },
-        decreaseDescription = stringResource(R.string.edit_mission_decrease, countLabel),
-        increaseDescription = stringResource(R.string.edit_mission_increase, countLabel),
-        tag = SHEET_COUNT_TAG,
-    )
+    Spacer(Modifier.height(MorningDimens.space16))
+    // TSK-293(시안 TSK-264): 값 줄 대신 큰 드럼롤을 나란히. 위에 이름, 세 줄 56, 가운데 띠, 숫자 40 + 단위 16. 설명 글 없음.
+    MissionWheels(missionWheelsOf(setting, actions))
     if (setting.type == MissionType.PopQuiz) {
         QuizCategoryRow(setting.quizCategories, actions.onQuizCategory)
     }
@@ -412,17 +370,76 @@ internal fun descriptionOf(type: MissionType): Int = when (type) {
     MissionType.ShakeShake -> R.string.edit_mission_desc_shake_shake
 }
 
-private fun countLabelOf(type: MissionType): Int = when (type) {
-    MissionType.DropWords, MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions
-    MissionType.ShakeShake -> R.string.edit_mission_shakes
+/** 미션 설정 시트 예제 영역 높이(피그마 S1-3A 등, TSK-264로 260 → 160). 흔들기는 폰 그림에 맞춰 216. */
+private val ExampleAreaHeight = 160.dp
+private val ShakeExampleHeight = 216.dp
+
+/** 미션 설정 드럼롤 칸 높이(TSK-264). 세 줄 모두 같아요. */
+private val MissionWheelItemHeight = 56.dp
+
+/** 미션 설정 드럼롤 한 칸: 위 이름, 고를 수 있는 값 [range], 지금 값 [value], 숫자 뒤 [unit]. */
+internal data class MissionWheel(
+    val label: Int,
+    val unit: Int,
+    val range: IntRange,
+    val value: Int,
+    val tag: String,
+    val onDelta: (Int) -> Unit,
+)
+
+/** 미션 종류마다 보여 줄 드럼롤: 흔들기는 횟수만, Drop Words는 난이도, 속도, 단어 수, 나머지는 난이도와 문제 수. */
+internal fun missionWheelsOf(setting: MissionSetting, actions: EditActions): List<MissionWheel> {
+    val range = MissionSetting.rangeOf(setting.type)
+    val level = MissionWheel(
+        R.string.edit_mission_level, R.string.edit_mission_unit_level, range.levels, setting.level, SHEET_LEVEL_TAG,
+        actions.onMissionLevel,
+    )
+    val speed = MissionWheel(
+        R.string.edit_mission_speed, R.string.edit_mission_unit_level, MissionSetting.SPEEDS, setting.speed,
+        SHEET_SPEED_TAG, actions.onMissionSpeed,
+    )
+    val (countLabel, countUnit) = when (setting.type) {
+        MissionType.DropWords -> R.string.edit_mission_words to R.string.edit_mission_unit_words
+        MissionType.ShakeShake -> R.string.edit_mission_shakes to R.string.edit_mission_unit_shakes
+        MissionType.PopQuiz, MissionType.QuickMath ->
+            R.string.edit_mission_questions to R.string.edit_mission_unit_questions
+    }
+    val count = MissionWheel(
+        countLabel, countUnit, range.counts, setting.count, SHEET_COUNT_TAG, actions.onMissionCount,
+    )
+    return when (setting.type) {
+        MissionType.ShakeShake -> listOf(count)
+        MissionType.DropWords -> listOf(level, speed, count)
+        MissionType.PopQuiz, MissionType.QuickMath -> listOf(level, count)
+    }
 }
 
-private fun countValueOf(type: MissionType): Int = when (type) {
-    MissionType.DropWords, MissionType.PopQuiz, MissionType.QuickMath -> R.string.edit_mission_questions_value
-    MissionType.ShakeShake -> R.string.edit_mission_shakes_value
+/** 드럼롤 칸을 나란히(시안 TSK-264). 멈춘 칸의 값과 지금 값의 차이를 보내요(액션이 증감이라서). */
+@Composable
+private fun MissionWheels(wheels: List<MissionWheel>) {
+    val colors = MorningTheme.colors
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
+        wheels.forEach { wheel ->
+            val label = stringResource(wheel.label)
+            Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(text = label, style = MorningTheme.typography.bodyMedium, color = colors.textPrimary)
+                Spacer(Modifier.height(MorningDimens.space8))
+                MorningWheelPicker(
+                    items = wheel.range.map { it.toString() },
+                    selectedIndex = (wheel.value - wheel.range.first).coerceIn(0, wheel.range.count() - 1),
+                    onSelect = { index ->
+                        val delta = wheel.range.first + index - wheel.value
+                        if (delta != 0) wheel.onDelta(delta)
+                    },
+                    contentDescription = label,
+                    itemHeight = MissionWheelItemHeight,
+                    unit = stringResource(wheel.unit),
+                    bandColor = colors.backgroundRaised,
+                    modifier = Modifier.fillMaxWidth().testTag(wheel.tag),
+                )
+            }
+        }
+    }
 }
-
-/** 미션 설정 시트 예제 영역 높이(피그마 S1-3A 등, 312x260). */
-private val ExampleAreaHeight = 260.dp
 
 const val SHEET_EXAMPLE_TAG = "missionSheetExample"

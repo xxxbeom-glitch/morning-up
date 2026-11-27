@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.composables.icons.lucide.Check
@@ -174,8 +175,10 @@ private fun PopQuizExample(t: Float, level: Int) {
             style = MorningTheme.typography.titleMedium,
             color = colors.textPrimary,
             textAlign = TextAlign.Center,
-            maxLines = 2,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            // TSK-264로 예제 칸이 160이 되어 문제는 한 줄로 줄여요(넘치면 말줄임).
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(10.dp))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
