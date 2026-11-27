@@ -1167,3 +1167,5 @@
 {"at": "2026-11-27 10:33:48", "by": "Leader", "id": "TSK-292", "action": "set", "changes": {"owner": [null, "[QA 5]"]}}
 {"at": "2026-11-27 10:33:48", "by": "Leader", "id": "TSK-286", "action": "set", "changes": {"owner": ["[개발 25]", "[개발 28]"]}}
 {"at": "2026-11-27 10:33:49", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 25]", "[개발 28]"]}}
+{"at": "2026-11-27 10:34:09", "by": "Leader", "id": "TSK-286", "action": "set", "changes": {"owner": ["[개발 28]", "[개발 27]"]}}
+{"at": "2026-11-27 10:34:10", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 28]", "[개발 26]"]}}
