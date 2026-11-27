@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTouchInput
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
+import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.DayPart
 import com.lumian.morningup.core.model.WeatherKind
 import java.time.LocalDate
@@ -46,6 +47,33 @@ class RingScreensTest {
         compose.onNodeWithText("알람 해제").assertDoesNotExist()
         compose.onNodeWithText("미션 시작").performClick()
         assertThat(pressed).isTrue()
+    }
+
+    /** ISS-066: 움직이는 버튼을 켜도 미루기가 눌리고, 미션 시작으로 가지 않아요. */
+    @Test
+    fun trickOn_snoozeStillTappable() {
+        var snoozed = 0
+        var main = 0
+        compose.mainClock.autoAdvance = false
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                RingingScreen(
+                    date = date,
+                    time = LocalTime.of(6, 30),
+                    dayPart = DayPart.Morning,
+                    hasMissions = true,
+                    onMainButton = { main++ },
+                    trick = ButtonTrick(),
+                    snoozeMinutes = 1,
+                    onSnooze = { snoozed++ },
+                )
+            }
+        }
+        compose.mainClock.advanceTimeBy(500)
+        compose.onNodeWithTag(SNOOZE_BUTTON_TAG).performClick()
+        compose.mainClock.advanceTimeBy(100)
+        assertThat(snoozed).isEqualTo(1)
+        assertThat(main).isEqualTo(0)
     }
 
     @Test

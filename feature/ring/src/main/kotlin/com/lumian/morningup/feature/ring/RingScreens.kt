@@ -21,9 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -33,6 +35,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.component.MorningButton
@@ -156,17 +159,67 @@ private fun BoxScope.RingingContent(
     snoozeMinutes: Int?,
     onSnooze: () -> Unit,
 ) {
+    val label = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss)
+    val currentListener by rememberUpdatedState(trickListener)
+    // 버튼 속이기 중에는 원래 자리를 비워 두고 위 층([TrickLayer])에서 그려요.
+    // 미루기 버튼은 움직이는 버튼보다 위에 같은 자리로 한 번 더 그려서, 버튼이 지나가도 미루기가 눌려요(ISS-066).
+    Box(
+        Modifier
+            .matchParentSize()
+            .then(if (trickRun != null) Modifier.trickTouchWatch(trickRun) { currentListener } else Modifier),
+    ) {
+        RingColumn(date, time, showHeader = true, snoozeMinutes, snoozeActive = trickRun == null, onSnooze) {
+            if (trickRun != null) {
+                Spacer(Modifier.size(MorningDimens.sizeButtonCircle))
+            } else {
+                MorningButton(
+                    text = label,
+                    onClick = onMainButton,
+                    size = MorningButtonSize.Circle,
+                    haptic = MorningHaptic.Confirm,
+                    modifier = Modifier.onGloballyPositioned { onButtonCenter(it.boundsInRoot().center) },
+                )
+            }
+        }
+        if (trickRun != null) {
+            TrickLayer(trickRun, label, trickListener) { center ->
+                onButtonCenter(center)
+                onMainButton()
+            }
+            if (snoozeMinutes != null) {
+                RingColumn(date, time, showHeader = false, snoozeMinutes, snoozeActive = true, onSnooze) {
+                    Spacer(Modifier.size(MorningDimens.sizeButtonCircle))
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 날짜, 시각, 가운데 버튼, 미루기를 세로로. [showHeader]가 false면 날짜와 시각은 자리만 차지해요(투명).
+ * [snoozeActive]가 false면 미루기도 자리만 차지하고 눌리지 않아요. 위 층에 같은 자리로 다시 그릴 때 써요.
+ */
+@Composable
+private fun BoxScope.RingColumn(
+    date: LocalDate,
+    time: LocalTime,
+    showHeader: Boolean,
+    snoozeMinutes: Int?,
+    snoozeActive: Boolean,
+    onSnooze: () -> Unit,
+    main: @Composable () -> Unit,
+) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val resources = LocalContext.current.resources
-    val label = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss)
-    // 버튼 속이기 중에는 원래 자리를 비워 두고 위 층([TrickLayer])에서 그려요.
-    val tricking = trickRun != null
     Column(
         modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = if (showHeader) Modifier else Modifier.alpha(0f).clearAndSetSemantics {},
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
             Text(text = AlarmText.dateLong(resources, date), style = typography.bodySmall, color = colors.textBody)
             Spacer(Modifier.height(MorningDimens.space4))
             FixedFontScale {
@@ -179,28 +232,9 @@ private fun BoxScope.RingingContent(
             }
         }
         Spacer(Modifier.height(MorningDimens.space40))
-        if (tricking) {
-            Spacer(Modifier.size(MorningDimens.sizeButtonCircle))
-        } else {
-            MorningButton(
-                text = label,
-                onClick = {
-                    trickRun?.finish(trickListener)
-                    onMainButton()
-                },
-                size = MorningButtonSize.Circle,
-                haptic = MorningHaptic.Confirm,
-                modifier = Modifier.onGloballyPositioned { onButtonCenter(it.boundsInRoot().center) },
-            )
-        }
+        main()
         // 미루기 버튼은 '움직이는 버튼' 중에도 제자리예요(`docs/plan-11-snooze.md` 2절).
-        if (snoozeMinutes != null) SnoozeButton(snoozeMinutes, onSnooze)
-    }
-    if (tricking && trickRun != null) {
-        TrickLayer(trickRun, label, trickListener) { center ->
-            onButtonCenter(center)
-            onMainButton()
-        }
+        if (snoozeMinutes != null) SnoozeButton(snoozeMinutes, snoozeActive, onSnooze)
     }
 }
 
@@ -209,16 +243,19 @@ const val SNOOZE_BUTTON_TAG = "ringSnooze"
 
 /** '미션 시작' 아래 16dp의 작은 글자 버튼 'n분 뒤 다시'(시안 TSK-281). 누르는 칸은 글자보다 넓게 잡아요. */
 @Composable
-private fun SnoozeButton(minutes: Int, onClick: () -> Unit) {
+private fun SnoozeButton(minutes: Int, active: Boolean, onClick: () -> Unit) {
     Spacer(Modifier.height(MorningDimens.space4))
     Text(
         text = stringResource(R.string.ring_snooze, minutes),
         style = MorningTheme.typography.bodySmall,
         color = MorningTheme.colors.textBody,
-        modifier = Modifier
-            .testTag(SNOOZE_BUTTON_TAG)
-            .morningClickable(haptic = MorningHaptic.Press, onClick = onClick)
-            .padding(horizontal = MorningDimens.space16, vertical = SnoozeTouchPadding),
+        modifier = if (active) {
+            Modifier
+                .testTag(SNOOZE_BUTTON_TAG)
+                .morningClickable(haptic = MorningHaptic.Press, onClick = onClick)
+        } else {
+            Modifier.alpha(0f).clearAndSetSemantics {}
+        }.padding(horizontal = MorningDimens.space16, vertical = SnoozeTouchPadding),
     )
 }
 

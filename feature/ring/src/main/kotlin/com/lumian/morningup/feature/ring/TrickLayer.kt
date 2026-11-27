@@ -198,7 +198,19 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
 }
 
 /**
- * 버튼 속이기 층. 울림 화면 위에 꽉 차게 덮고 버튼 하나를 맨 위에 그려요(하늘, 날짜, 시각 위로도 지나가요).
+ * 화면 어디든 처음 닿은 때를 알려요(속이기 시작 기록). 울림 화면 내용을 감싼 부모에 달아요.
+ * 부모에서 앞 단계(Initial)로 보기만 하고 소비하지 않아서, 아래 미루기 버튼과 움직이는 버튼이 그대로 눌려요(ISS-066).
+ */
+fun Modifier.trickTouchWatch(run: TrickRun, listener: () -> TrickListener): Modifier = pointerInput(run) {
+    awaitEachGesture {
+        awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+        run.touched(listener())
+    }
+}
+
+/**
+ * 버튼 속이기 층. 울림 화면 위에 꽉 차게 놓고 버튼 하나를 그려요(하늘, 날짜, 시각 위로도 지나가요).
+ * 층 자체는 터치를 받지 않고 버튼 자리만 받아요. 그래서 버튼이 없는 곳의 미루기 버튼이 눌려요(ISS-066).
  * 원래 버튼 자리는 비워 두고, 버튼은 울리는 내내 튕겨요(결정 190).
  * 움직임은 프레임마다(애니메이션 시계) 계산해요. 빠르기는 1초에 통 너비의 [ButtonTrick.speed] 배예요.
  */
@@ -211,16 +223,7 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
     val maxSize = with(density) { MorningDimens.sizeButtonCircle.toPx() }
     val touchMin = with(density) { TrickTouchMin.toPx() }
 
-    Box(
-        Modifier
-            .fillMaxSize()
-            .pointerInput(run) {
-                awaitEachGesture {
-                    awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
-                    run.touched(currentListener)
-                }
-            },
-    ) {
+    Box(Modifier.fillMaxSize()) {
         Box(
             Modifier
                 .fillMaxSize()
