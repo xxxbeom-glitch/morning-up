@@ -118,7 +118,7 @@ class MissionRunner(
         }
     private val quiz: PopQuizGame? =
         if (normalized.type == MissionType.PopQuiz) {
-            PopQuizGame(normalized.level, normalized.count, content.popQuiz, random)
+            PopQuizGame(normalized.level, normalized.count, content.popQuiz, random, normalized.quizCategories)
         } else {
             null
         }

@@ -5,7 +5,7 @@ import com.lumian.morningup.core.model.MissionType
 import kotlin.random.Random
 import kotlinx.serialization.Serializable
 
-/** Pop Quiz 분야(11-16 사용자 확정: 고르는 줄 없이 섞어서 무작위). 화면 이름은 feature 쪽 글자 파일에 있어요. */
+/** Pop Quiz 분야. 미션 설정 시트에서 여러 개 골라요(TSK-284). 화면 이름은 core/ui 글자 파일(ui_quiz_category_*)에 있어요. */
 @Serializable
 enum class QuizCategory { Economy, Society, KoreanHistory, WorldHistory, Science, People, Issues }
 
@@ -40,12 +40,20 @@ enum class QuizResult { Correct, Wrong, Finished, Ignored }
  * - 4지선다예요. [target]개 맞히면 끝나요(최소 1문제, 결정 187).
  * - 틀려도 맞힌 수는 그대로이고 새 문제로 바뀌어요(결정 92). 정답은 보여 주지 않아요.
  * - 그 단계 문제를 섞어 차례로 내요. 다 내기 전에는 같은 문제가 다시 나오지 않고, 연달아 같은 문제도 없어요.
+ * - 고른 분야([categories])의 문제만 내요. 그 단계 문제가 [MIN_POOL]개보다 적으면 같은 분야의 한 단계 아래, 위를,
+ *   그래도 적으면 두 단계 아래, 위까지 더해요(docs/plan-11-quiz-category.md 2절).
  */
-class PopQuizGame(level: Int, target: Int, questions: List<QuizQuestion>, private val random: Random) {
+class PopQuizGame(
+    level: Int,
+    target: Int,
+    questions: List<QuizQuestion>,
+    private val random: Random,
+    categories: Set<QuizCategory> = MissionSetting.ALL_QUIZ_CATEGORIES,
+) {
     private val range = MissionSetting.rangeOf(MissionType.PopQuiz)
     private val level = level.coerceIn(range.levels)
     private val target = target.coerceIn(range.counts)
-    private val pool = questions.filter { it.level == this.level }.ifEmpty { questions }.ifEmpty { error("문제가 없어요") }
+    private val pool = poolOf(questions, this.level, categories)
     private var deck = ArrayDeque<QuizQuestion>()
 
     fun start(): PopQuizState = PopQuizState(level = level, target = target, correct = 0, round = nextRound(null))
@@ -70,7 +78,22 @@ class PopQuizGame(level: Int, target: Int, questions: List<QuizQuestion>, privat
         return QuizRound(question, (question.wrong.take(WRONG_CHOICES) + question.answer).shuffled(random))
     }
 
-    private companion object {
-        const val WRONG_CHOICES = 3
+    companion object {
+        private const val WRONG_CHOICES = 3
+
+        /** 문제 묶음이 이보다 적으면 옆 단계에서 빌려 채워요. */
+        const val MIN_POOL = 10
+        private const val MAX_BORROW = 2
+
+        /** 2절 규칙의 문제 묶음. 고른 분야에 문제가 하나도 없으면 전체 분야로 내요. */
+        fun poolOf(questions: List<QuizQuestion>, level: Int, categories: Set<QuizCategory>): List<QuizQuestion> {
+            val chosen = questions.filter { it.category in categories }.ifEmpty { questions }
+            val pool = chosen.filter { it.level == level }.toMutableList()
+            for (step in 1..MAX_BORROW) {
+                if (pool.size >= MIN_POOL) break
+                pool += chosen.filter { it.level == level - step || it.level == level + step }
+            }
+            return pool.ifEmpty { chosen }.ifEmpty { error("문제가 없어요") }
+        }
     }
 }

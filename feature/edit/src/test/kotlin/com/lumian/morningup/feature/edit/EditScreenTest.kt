@@ -23,6 +23,7 @@ import com.lumian.morningup.core.designsystem.component.VALUE_INC_SUFFIX
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.mission.QuizCategory
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.WakeCheck
 import org.junit.Rule
@@ -314,5 +315,36 @@ class EditScreenTest {
         compose.onNodeWithText("선택 해제").performClick()
         assertThat(previewed).containsExactly(setting)
         assertThat(deselected).isEqualTo(1)
+    }
+
+    /** TSK-284: Pop Quiz 시트 맨 아래 '분야' 줄. 마지막 하나는 빠지지 않고 토스트를 띄워요. */
+    @Test
+    fun popQuizSheet_categoryRow_countAndLastOneShowsNotice() {
+        val picked = mutableListOf<QuizCategory?>()
+        val setting = MissionSetting(MissionType.PopQuiz, quizCategories = setOf(QuizCategory.Science))
+        show(
+            EditUiState(
+                loading = false,
+                detail = EditDetail.Mission,
+                missionSheet = MissionSheet(setting, selected = false),
+            ),
+            EditActions(onQuizCategory = { picked += it }),
+        )
+        compose.onNodeWithTag(SHEET_CATEGORY_TAG, useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("분야", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("1개 골랐어요", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("과학 용어").performClick()
+        assertThat(picked).isEmpty()
+        compose.onNodeWithText("분야를 하나 이상 골라 주세요", useUnmergedTree = true).assertExists()
+        compose.onNodeWithText("국사").performClick()
+        compose.onNodeWithText("전체").performClick()
+        assertThat(picked).containsExactly(QuizCategory.KoreanHistory, null).inOrder()
+    }
+
+    @Test
+    fun quickMathSheet_hasNoCategoryRow() {
+        val sheet = MissionSheet(MissionSetting.default(MissionType.QuickMath), selected = false)
+        show(EditUiState(loading = false, detail = EditDetail.Mission, missionSheet = sheet))
+        compose.onNodeWithTag(SHEET_CATEGORY_TAG, useUnmergedTree = true).assertDoesNotExist()
     }
 }

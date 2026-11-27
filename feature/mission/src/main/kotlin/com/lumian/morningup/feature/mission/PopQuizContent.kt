@@ -1,5 +1,6 @@
 package com.lumian.morningup.feature.mission
 
+import com.lumian.morningup.core.ui.AlarmText
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
@@ -219,12 +220,4 @@ private fun AnswerRow(text: String, kind: FeedbackKind?, onClick: (() -> Unit)?,
     }
 }
 
-internal fun categoryName(category: QuizCategory): Int = when (category) {
-    QuizCategory.Economy -> R.string.mission_quiz_category_economy
-    QuizCategory.Society -> R.string.mission_quiz_category_society
-    QuizCategory.KoreanHistory -> R.string.mission_quiz_category_korean_history
-    QuizCategory.WorldHistory -> R.string.mission_quiz_category_world_history
-    QuizCategory.Science -> R.string.mission_quiz_category_science
-    QuizCategory.People -> R.string.mission_quiz_category_people
-    QuizCategory.Issues -> R.string.mission_quiz_category_issues
-}
+internal fun categoryName(category: QuizCategory): Int = AlarmText.quizCategoryRes(category)

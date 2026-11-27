@@ -85,4 +85,19 @@ class PopQuizGameTest {
         // 결정 187로 최소가 1문제예요.
         assertThat(PopQuizGame(1, 0, bank, Random(1)).start().target).isEqualTo(1)
     }
+
+    @Test
+    fun categories_filterQuestions_andEnoughLevelPoolDoesNotBorrow() {
+        val g = PopQuizGame(1, 3, bank, Random(2), categories = setOf(QuizCategory.Science))
+        val asked = generateSequence(g.start()) { g.answer(it, (it.round.answerIndex + 1) % 4).first }
+            .take(10).map { it.round.question }.toList()
+        // 과학 1단계는 1문제뿐이라 2단계 'other'까지 빌려요. 다른 분야는 나오지 않아요.
+        assertThat(asked.map { it.category }.toSet()).containsExactly(QuizCategory.Science)
+        assertThat(asked.map { it.question }.toSet()).contains("other")
+        assertThat(PopQuizGame.poolOf(bank, 1, MissionSettingAll)).hasSize(10)
+    }
+
+    private companion object {
+        val MissionSettingAll = QuizCategory.entries.toSet()
+    }
 }

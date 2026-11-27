@@ -19,14 +19,7 @@
 
     <!-- M1 Drop Words -->
 
-    <!-- M2 Pop Quiz 분야 -->
-    <string name="mission_quiz_category_economy">경제 용어</string>
-    <string name="mission_quiz_category_society">사회 용어</string>
-    <string name="mission_quiz_category_korean_history">국사</string>
-    <string name="mission_quiz_category_world_history">세계사</string>
-    <string name="mission_quiz_category_science">과학 용어</string>
-    <string name="mission_quiz_category_people">인물</string>
-    <string name="mission_quiz_category_issues">사회 이슈</string>
+    <!-- M2 Pop Quiz 분야 이름은 core/ui ui_quiz_category_* (TSK-284) -->
 
     <!-- M4 Shake Shake -->
     <string name="mission_shake_guide">폰을 세게 흔들어요</string>

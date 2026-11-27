@@ -7,12 +7,15 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -22,7 +25,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,10 +43,14 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonStyle
+import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
+import com.lumian.morningup.core.designsystem.component.MorningMessageHost
 import com.lumian.morningup.core.designsystem.component.MorningMissionCheck
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
+import com.lumian.morningup.core.designsystem.component.MorningToast
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
 import com.lumian.morningup.core.designsystem.component.MorningValueSwitchRow
 import com.lumian.morningup.core.designsystem.component.ValueSwitchType
@@ -48,8 +59,10 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.mission.QuizCategory
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
+import kotlinx.coroutines.delay
 
 /** 이름표(테스트용). 카드는 `"$MISSION_CARD_TAG${type.name}"`. */
 const val MISSION_CARD_TAG = "missionCard"
@@ -179,8 +192,17 @@ internal fun missionValue(setting: MissionSetting): String = when (setting.type)
         setting.speed,
         setting.count,
     )
-    MissionType.PopQuiz, MissionType.QuickMath ->
+    MissionType.PopQuiz -> if (setting.allQuizCategories) {
         stringResource(R.string.edit_mission_value_questions, setting.level, setting.count)
+    } else {
+        stringResource(
+            R.string.edit_mission_value_questions_category,
+            setting.level,
+            setting.count,
+            AlarmText.quizCategories(alarmResources(), setting.quizCategories),
+        )
+    }
+    MissionType.QuickMath -> stringResource(R.string.edit_mission_value_questions, setting.level, setting.count)
     MissionType.ShakeShake -> stringResource(R.string.edit_mission_value_shakes, setting.count)
 }
 
@@ -260,6 +282,9 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onSt
         increaseDescription = stringResource(R.string.edit_mission_increase, countLabel),
         tag = SHEET_COUNT_TAG,
     )
+    if (setting.type == MissionType.PopQuiz) {
+        QuizCategoryRow(setting.quizCategories, actions.onQuizCategory)
+    }
     Spacer(Modifier.height(MorningDimens.space24))
     if (onStart != null) {
         MorningButton(
@@ -292,6 +317,82 @@ internal fun MissionSheetContent(sheet: MissionSheet, actions: EditActions, onSt
         }
     }
 }
+
+/**
+ * Pop Quiz '분야' 줄(TSK-284, 시안 S1-6). 제목 오른쪽에 '전체' 또는 'n개 골랐어요', 아래 '전체' 칩과 분야 칩 7개가 감겨요.
+ * 마지막 하나를 빼려 하면 빠지지 않고 토스트 '분야를 하나 이상 골라 주세요'.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun QuizCategoryRow(selected: Set<QuizCategory>, onToggle: (QuizCategory?) -> Unit) {
+    val colors = MorningTheme.colors
+    val typography = MorningTheme.typography
+    val all = selected.containsAll(MissionSetting.ALL_QUIZ_CATEGORIES)
+    var minNotice by remember { mutableIntStateOf(0) }
+    LaunchedEffect(minNotice) {
+        if (minNotice > 0) {
+            delay(CATEGORY_NOTICE_MILLIS)
+            minNotice = 0
+        }
+    }
+    Box(Modifier.zIndex(1f).testTag(SHEET_CATEGORY_TAG)) {
+        Column(Modifier.padding(top = MorningDimens.space16)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.edit_mission_category),
+                    style = typography.bodySmallStrong,
+                    color = colors.textSecondary,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = if (all) {
+                        stringResource(R.string.edit_mission_category_all)
+                    } else {
+                        stringResource(R.string.edit_mission_category_count, selected.size)
+                    },
+                    style = typography.bodySmall,
+                    color = colors.textSecondary,
+                )
+            }
+            Spacer(Modifier.height(MorningDimens.space12))
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8),
+                verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
+            ) {
+                MorningChoiceChip(
+                    label = stringResource(R.string.edit_mission_category_all),
+                    selected = all,
+                    onClick = { onToggle(null) },
+                )
+                QuizCategory.entries.forEach { category ->
+                    MorningChoiceChip(
+                        label = stringResource(AlarmText.quizCategoryRes(category)),
+                        selected = category in selected,
+                        onClick = {
+                            if (MissionSetting.toggleQuizCategory(selected, category) == null) {
+                                minNotice++
+                            } else {
+                                onToggle(category)
+                            }
+                        },
+                    )
+                }
+            }
+        }
+        MorningMessageHost(
+            message = minNotice.takeIf { it > 0 },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .offset(y = CategoryNoticeOffset),
+        ) {
+            MorningToast(text = stringResource(R.string.edit_mission_category_min))
+        }
+    }
+}
+
+private const val CATEGORY_NOTICE_MILLIS = 2_000L
+private val CategoryNoticeOffset = 64.dp
+const val SHEET_CATEGORY_TAG = "missionSheetCategory"
 
 /** 미션 섬네일 모서리. 크기와 상관없이 한 변의 22%예요(TSK-233: 56은 12, 40은 9). */
 internal val MissionThumbShape = RoundedCornerShape(percent = 22)

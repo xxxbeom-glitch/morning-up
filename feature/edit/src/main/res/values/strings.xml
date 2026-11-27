@@ -59,6 +59,8 @@
     <string name="edit_mission_value_drop_words">%1$d단계, 속도 %2$d, %3$d문제</string>
     <string name="edit_mission_value_questions">%1$d단계, %2$d문제</string>
     <string name="edit_mission_value_shakes">%1$d번</string>
+    <!-- Pop Quiz 분야가 '전체'가 아닐 때: 1단계, 3문제, 과학 용어 외 1개 (TSK-284) -->
+    <string name="edit_mission_value_questions_category">%1$d단계, %2$d문제, %3$s</string>
 
     <!-- S1-3~S1-7 미션 설정 시트 -->
     <string name="edit_mission_level">난이도</string>
@@ -69,6 +71,11 @@
     <string name="edit_mission_questions_value">%1$d문제</string>
     <string name="edit_mission_shakes">흔드는 횟수</string>
     <string name="edit_mission_shakes_value">%1$d번</string>
+    <!-- Pop Quiz 분야 줄(TSK-284, docs/plan-11-quiz-category.md 3절) -->
+    <string name="edit_mission_category">분야</string>
+    <string name="edit_mission_category_all">전체</string>
+    <string name="edit_mission_category_count">%1$d개 골랐어요</string>
+    <string name="edit_mission_category_min">분야를 하나 이상 골라 주세요</string>
     <!-- 값 버튼 읽기: 난이도 낮추기 -->
     <string name="edit_mission_decrease">%1$s 낮추기</string>
     <string name="edit_mission_increase">%1$s 높이기</string>

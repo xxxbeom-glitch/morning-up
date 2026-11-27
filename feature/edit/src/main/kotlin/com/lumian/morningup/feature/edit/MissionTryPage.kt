@@ -26,6 +26,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.mission.QuizCategory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -66,6 +67,10 @@ class MissionTryViewModel @Inject constructor(shakeSupport: ShakeSupport) : View
 
     fun stepCount(delta: Int) = change { it.copy(count = it.count + delta * MissionSetting.rangeOf(it.type).countStep) }
 
+    fun toggleQuizCategory(category: QuizCategory?) = change {
+        it.copy(quizCategories = MissionSetting.toggleQuizCategory(it.quizCategories, category) ?: it.quizCategories)
+    }
+
     /** '시작하기'. 값을 기억하고 시트를 닫은 뒤 시작할 설정을 돌려줘요. */
     fun start(): MissionSetting? {
         val setting = state.value.sheet?.setting ?: return null
@@ -95,6 +100,7 @@ fun MissionTryRoute(
             onMissionLevel = viewModel::stepLevel,
             onMissionSpeed = viewModel::stepSpeed,
             onMissionCount = viewModel::stepCount,
+            onQuizCategory = viewModel::toggleQuizCategory,
         )
     }
     MissionTryPage(

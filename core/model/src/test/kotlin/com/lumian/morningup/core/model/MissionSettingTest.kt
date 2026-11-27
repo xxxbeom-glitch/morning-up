@@ -1,6 +1,8 @@
 package com.lumian.morningup.core.model
 
 import com.google.common.truth.Truth.assertThat
+import com.lumian.morningup.core.model.mission.QuizCategory
+import kotlinx.serialization.json.Json
 import org.junit.Test
 
 /** mission-levels.md 2번 표의 범위와 처음 값. */
@@ -51,5 +53,39 @@ class MissionSettingTest {
             missions = listOf(MissionSetting(MissionType.ShakeShake), MissionSetting(MissionType.QuickMath)),
         )
         assertThat(alarm.missionTypes).containsExactly(MissionType.ShakeShake, MissionType.QuickMath).inOrder()
+    }
+
+    @Test
+    fun quizCategories_allIsNotSaved_andOldValueReadsAsAll() {
+        val json = Json { ignoreUnknownKeys = true }
+        val saved = json.encodeToString(MissionSetting.serializer(), MissionSetting(MissionType.PopQuiz))
+        assertThat(saved).doesNotContain("quizCategories")
+        val old = json.decodeFromString(MissionSetting.serializer(), """{"type":"PopQuiz","level":2,"count":3}""")
+        assertThat(old.allQuizCategories).isTrue()
+        val two = MissionSetting(MissionType.PopQuiz, quizCategories = setOf(QuizCategory.Science, QuizCategory.Issues))
+        val encoded = json.encodeToString(MissionSetting.serializer(), two)
+        val back = json.decodeFromString(MissionSetting.serializer(), encoded)
+        assertThat(back).isEqualTo(two)
+    }
+
+    @Test
+    fun quizCategories_emptyOrOtherMission_normalizesToAll() {
+        val empty = MissionSetting(MissionType.PopQuiz, quizCategories = emptySet())
+        assertThat(empty.normalized().allQuizCategories).isTrue()
+        val math = MissionSetting(MissionType.QuickMath, quizCategories = setOf(QuizCategory.People))
+        assertThat(math.normalized().allQuizCategories).isTrue()
+    }
+
+    @Test
+    fun toggleQuizCategory_followsPlanRules() {
+        val all = MissionSetting.ALL_QUIZ_CATEGORIES
+        // 다 골라진 상태에서 하나를 누르면 그 하나만 빠져요.
+        assertThat(MissionSetting.toggleQuizCategory(all, QuizCategory.Economy)).isEqualTo(all - QuizCategory.Economy)
+        assertThat(MissionSetting.toggleQuizCategory(setOf(QuizCategory.Science), QuizCategory.Issues))
+            .containsExactly(QuizCategory.Science, QuizCategory.Issues)
+        // 마지막 하나는 빠지지 않아요.
+        assertThat(MissionSetting.toggleQuizCategory(setOf(QuizCategory.Science), QuizCategory.Science)).isNull()
+        // '전체' 칩은 모두 골라요.
+        assertThat(MissionSetting.toggleQuizCategory(setOf(QuizCategory.Science), null)).isEqualTo(all)
     }
 }
