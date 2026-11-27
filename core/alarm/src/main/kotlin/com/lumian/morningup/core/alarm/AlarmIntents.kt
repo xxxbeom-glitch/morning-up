@@ -16,6 +16,9 @@ object AlarmIntents {
     const val EXTRA_ALARM_ID = "alarmId"
     const val EXTRA_TIMER_KIND = "timerKind"
 
+    /** 이어가기([ACTION_RESUME])에 붙여요. 폰을 다시 켠 뒤라 울림 화면을 맨 앞으로 띄워야 해요(TSK-255). */
+    const val EXTRA_AFTER_BOOT = "afterBoot"
+
     /** 상태 표시줄 알람 아이콘 → 앱. 이 ID의 편집 화면을 열어요. */
     const val EXTRA_EDIT_ALARM_ID = "com.lumian.morningup.extra.EDIT_ALARM_ID"
 

@@ -139,10 +139,11 @@ class RingService : LifecycleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
         // 알람 시각이나 타이머로 깨어났으면 첫 알림부터 전체 화면 Intent를 달아요(새 알림일 때만 화면이 떠요).
-        val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        val wakeUp = intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER ||
+            afterBoot(intent)
         // 잠들기 소리를 틀어 둔 채 잠들었어도 알람이 이겨요.
         if (intent?.action == AlarmIntents.ACTION_FIRE) sleepPlayer.stopForAlarm()
-        if (!goForeground(if (wakeUp) RingPhase.Ringing else controller.session.value?.phase)) {
+        if (!goForeground(if (wakeUp && !afterBoot(intent)) RingPhase.Ringing else controller.session.value?.phase)) {
             if (wakeUp) notifications.fallbackAlert()
             stopSelf(startId)
             return START_NOT_STICKY
@@ -198,13 +199,22 @@ class RingService : LifecycleService() {
         }
     }
 
+    /** 폰을 다시 켠 뒤 하던 울림을 이어가는 신호인지(TSK-255). */
+    private fun afterBoot(intent: Intent?): Boolean =
+        intent?.action == AlarmIntents.ACTION_RESUME && intent.getBooleanExtra(AlarmIntents.EXTRA_AFTER_BOOT, false)
+
     private suspend fun openScreenIfNeeded(intent: Intent?, force: Boolean = false) {
-        val wakeUp = force || intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
+        val boot = afterBoot(intent)
+        val wakeUp = force || boot ||
+            intent?.action == AlarmIntents.ACTION_FIRE || intent?.action == AlarmIntents.ACTION_TIMER
         // 울림(D0)과 깨어 있나요 확인(W2, W3) 모두 폰을 쓰는 중이어도 맨 앞에 바로 떠야 해요. 통화 중이면 미뤄요.
+        // 폰을 다시 켠 뒤 이어가는 울림은 전에 그냥 이어가기로 쳐서 화면을 안 띄웠어요(TSK-255). 미션 중이었으면 미션 화면도 띄워요.
         val session = controller.session.value
         val phase = session?.phase
-        val show = phase == RingPhase.Ringing || (phase?.isAsking == true && session.pausedLeftMillis == null)
+        val show = phase == RingPhase.Ringing || (boot && phase == RingPhase.InMission) ||
+            (phase?.isAsking == true && session.pausedLeftMillis == null)
         if (wakeUp && show) {
+            if (boot) diagnostics.record("screen_after_boot", session?.plan?.alarmId, phase?.name.orEmpty())
             withContext(Dispatchers.Main) {
                 // 화면을 맨 앞에 띄웠으면 알림은 조용히 두고, 막혔거나 잠금 화면이면 배너와 전체 화면 알림으로 깨워요.
                 val opened = notifications.openScreenNow()

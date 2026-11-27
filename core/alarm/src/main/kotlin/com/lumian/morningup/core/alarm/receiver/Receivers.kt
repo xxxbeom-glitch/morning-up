@@ -110,7 +110,9 @@ class SystemEventReceiver : BroadcastReceiver() {
                 dndOverride.recoverLeftover()
                 // 하던 울림이 있으면 이어가요(재부팅 직전에 울리던 알람).
                 if (sessions.load() != null) {
+                    // 폰을 다시 켠 뒤면 울림 화면도 맨 앞으로 띄워요(TSK-255). 앱 업데이트, 시간 변경 때는 그대로예요.
                     val resume = AlarmIntents.serviceIntent(context, AlarmIntents.ACTION_RESUME)
+                        .putExtra(AlarmIntents.EXTRA_AFTER_BOOT, action in BOOT_ACTIONS)
                     startRingService(context, resume, diagnostics, notifications)
                 } else {
                     // 울리던 알람이 없는데 앱을 새로 깔기 전 알림('울리고 있어요', '미션을 마쳤어요')이 남아 있으면 지워요.
@@ -123,6 +125,8 @@ class SystemEventReceiver : BroadcastReceiver() {
     }
 
     companion object {
+        val BOOT_ACTIONS = setOf(Intent.ACTION_LOCKED_BOOT_COMPLETED, Intent.ACTION_BOOT_COMPLETED)
+
         val ACTIONS = setOf(
             Intent.ACTION_LOCKED_BOOT_COMPLETED,
             Intent.ACTION_BOOT_COMPLETED,
