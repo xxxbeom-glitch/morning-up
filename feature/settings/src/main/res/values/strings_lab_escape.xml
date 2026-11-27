@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 실험실 T3 미션 포기 알림 숨기기 줄과 T3-4 확인 시트(결정 151, 시안 TSK-181). 문구는 피그마 1084:13841, 1084:13939 -->
-    <string name="settings_lab_escape">\'미션 포기\' 알림 숨기기</string>
+    <!-- 실험실 T3 '미션 포기 사용하기' 줄(결정 188, 옛 '미션 포기' 알림 숨기기)과 T3-4 확인 시트(결정 151, 시안 TSK-181). 문구는 피그마 1084:13841, 1084:13939 -->
+    <string name="settings_lab_escape">미션 포기 사용하기</string>
     <string name="settings_lab_escape_value">미션을 못 할 때 뜨는 알림이에요</string>
-    <string name="settings_lab_escape_note">숨겨도 흔들기 센서가 없는 폰이나 마지막 다시 울림에서는 떠요.</string>
-    <string name="settings_lab_escape_sheet_title">\'미션 포기\' 알림을 숨길까요?</string>
-    <string name="settings_lab_escape_sheet_desc">숨기면 몸이 아프거나 흔들 수 없을 때도 미션을 끝내야 꺼져요. 그래도 숨길까요?</string>
-    <string name="settings_lab_escape_sheet_label">숨겨도 이럴 때는 떠요</string>
+    <string name="settings_lab_escape_note">사용하지 않아도 흔들기 센서가 없는 폰이나 마지막 다시 울림에서는 떠요.</string>
+    <string name="settings_lab_escape_sheet_title">미션 포기를 사용하지 않을까요?</string>
+    <string name="settings_lab_escape_sheet_desc">사용하지 않으면 몸이 아프거나 흔들 수 없을 때도 미션을 끝내야 알람이 꺼져요.</string>
+    <string name="settings_lab_escape_sheet_label">사용하지 않아도 이럴 때는 떠요</string>
     <string name="settings_lab_escape_sheet_item1">1. 흔들기 센서가 없는 폰에서 흔들기 미션을 할 때</string>
     <string name="settings_lab_escape_sheet_item2">2. 다시 울림이 마지막 바퀴일 때, 첫 미션에서</string>
     <string name="settings_lab_escape_cancel">취소</string>
-    <string name="settings_lab_escape_hide">숨기기</string>
-    <!-- 접근성 기능 때문에 버튼 속이기가 꺼질 때 T3 버튼 속이기 줄 둘째 줄(ISS-041) -->
-    <string name="settings_lab_trick_a11y">접근성 기능이 켜져 있어 버튼 속이기가 꺼져요</string>
+    <string name="settings_lab_escape_hide">사용 안 하기</string>
+    <!-- 접근성 기능 때문에 움직이는 버튼이 꺼질 때 T3 움직이는 버튼 줄 둘째 줄(ISS-041) -->
+    <string name="settings_lab_trick_a11y">접근성 기능이 켜져 있어 움직이는 버튼이 꺼져요</string>
 </resources>

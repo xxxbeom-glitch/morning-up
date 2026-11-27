@@ -85,11 +85,12 @@ internal object TrickSpeedSerializer : KSerializer<TrickSpeed> {
 data class ButtonTrick(val speed: TrickSpeed = TrickSpeed.Default)
 
 /**
- * '확실히 잠깨기' 실험실(결정 146). 모두 처음 꺼짐이에요.
- * - 버튼 속이기: [trickEnabled], [trickSpeed]. 버튼 하나가 울림 화면 안에서 공처럼 튕겨요(결정 155).
- *   화면을 처음 만진 때부터 [TRICK_SECONDS]초 동안만 해요.
+ * 'Crazy Mode' 실험실(결정 146, 이름은 결정 188). 모두 처음 꺼짐이에요.
+ * - 움직이는 버튼(옛 버튼 속이기): [trickEnabled], [trickSpeed]. 버튼 하나가 울림 화면 안에서 공처럼 튕겨요(결정 155).
+ *   울리는 내내 튕겨요(결정 190, 옛 20초 제한을 없앰).
  * - 여러 번 묻기는 없앴어요(결정 177). 묻는 횟수는 전체 설정 [WakeCheckSettings.recheckCount]예요.
  * - [escapeHidden]: 미션을 못 할 때 알림(미션 비상구, 결정 151) 숨기기. 처음 꺼짐(= 알림 뜸)이에요.
+ *   화면에서는 거꾸로 '미션 포기 사용하기' 토글이라 켜짐이 [escapeHidden] 꺼짐이에요(결정 188).
  * - [debugMinuteMillis]: 시험용 시간 배율(디버그 빌드의 adb 명령으로만 바뀌어요). W3 기다리는 시간과 대답할
  *   시간에만 써요. 출시 빌드에서는 늘 1분 = 60초예요.
  */
@@ -99,8 +100,8 @@ data class LabSettings(
     val escapeHidden: Boolean = false,
     val debugMinuteMillis: Long = MINUTE_MILLIS,
     /**
-     * '한 번 더 확인'(W3 '정말 깼어요?', 결정 184). 유료 후보라 실험실에서 켜요. 처음 꺼짐.
-     * 꺼져 있으면 알람마다 저장된 횟수가 있어도 W3를 묻지 않고, 편집 시트에 그 줄이 안 보여요.
+     * '좀비모드'(옛 '한 번 더 확인', W3 '정말 깼어요?', 결정 184, 188). 유료 후보라 실험실에서 켜요. 처음 꺼짐.
+     * 꺼져 있으면 알람마다 저장된 횟수가 있어도 W3를 묻지 않고, 편집 시트에 '횟수' 줄이 안 보여요.
      */
     val recheckEnabled: Boolean = false,
 ) {
@@ -109,8 +110,5 @@ data class LabSettings(
 
     companion object {
         const val MINUTE_MILLIS = 60_000L
-
-        /** 버튼 속이기 시간 상한(초). 고정이에요(사용자 확정 11-24). */
-        const val TRICK_SECONDS = 20
     }
 }
