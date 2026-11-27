@@ -6,23 +6,24 @@ import androidx.lifecycle.viewModelScope
 import com.lumian.morningup.core.alarm.MinuteTicker
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ShakeSupport
-import com.lumian.morningup.core.model.WakeCheckSettings
-import com.lumian.morningup.core.model.WakeCheckSettingsStore
-import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmBook
-import com.lumian.morningup.core.model.WakeCheckGate
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.PermissionChecker
-import com.lumian.morningup.core.model.SaveWarning
-import com.lumian.morningup.core.model.saveWarning
 import com.lumian.morningup.core.model.RingAgain
 import com.lumian.morningup.core.model.Ringtones
+import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.VibrationPattern
+import com.lumian.morningup.core.model.WakeCheck
+import com.lumian.morningup.core.model.WakeCheckGate
+import com.lumian.morningup.core.model.WakeCheckSettings
+import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.HolidayCalendar
 import com.lumian.morningup.core.model.engine.NextAlarm
 import com.lumian.morningup.core.model.engine.TimeUntil
+import com.lumian.morningup.core.model.mission.QuizCategory
+import com.lumian.morningup.core.model.saveWarning
 import com.lumian.morningup.core.ui.AlarmBackgrounds
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
@@ -242,6 +243,11 @@ class EditViewModel @Inject constructor(
     /** 시트 개수 − +. 한 번에 [MissionSetting.Range.countStep]씩(11-19 사용자 결정으로 모든 미션 1씩). */
     fun stepMissionCount(delta: Int) = changeSheet {
         it.copy(count = it.count + delta * MissionSetting.rangeOf(it.type).countStep)
+    }
+
+    /** 시트 '분야' 칩(Pop Quiz, TSK-284). null은 '전체' 칩. 마지막 하나는 빠지지 않아요(화면이 토스트를 띄워요). */
+    fun toggleQuizCategory(category: QuizCategory?) = changeSheet {
+        it.copy(quizCategories = MissionSetting.toggleQuizCategory(it.quizCategories, category) ?: it.quizCategories)
     }
 
     /** 범위 밖은 끝 값으로 맞춰요. 고른 미션이면 값이 바로 저장돼요. */

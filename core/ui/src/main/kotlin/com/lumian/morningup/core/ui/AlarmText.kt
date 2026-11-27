@@ -1,5 +1,6 @@
 package com.lumian.morningup.core.ui
 
+import com.lumian.morningup.core.model.mission.QuizCategory
 import android.content.res.Resources
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
@@ -109,6 +110,24 @@ object AlarmText {
             missionName(resources, missions.first()),
             missions.size - 1,
         )
+    }
+
+    /** Pop Quiz 분야 이름 리소스. */
+    fun quizCategoryRes(category: QuizCategory): Int = when (category) {
+        QuizCategory.Economy -> R.string.ui_quiz_category_economy
+        QuizCategory.Society -> R.string.ui_quiz_category_society
+        QuizCategory.KoreanHistory -> R.string.ui_quiz_category_korean_history
+        QuizCategory.WorldHistory -> R.string.ui_quiz_category_world_history
+        QuizCategory.Science -> R.string.ui_quiz_category_science
+        QuizCategory.People -> R.string.ui_quiz_category_people
+        QuizCategory.Issues -> R.string.ui_quiz_category_issues
+    }
+
+    /** 고른 분야 요약: '과학 용어', '과학 용어 외 1개'. 순서는 분야 목록 순서예요. */
+    fun quizCategories(resources: Resources, categories: Set<QuizCategory>): String {
+        val sorted = QuizCategory.entries.filter { it in categories }
+        val first = resources.getString(quizCategoryRes(sorted.first()))
+        return if (sorted.size == 1) first else resources.getString(R.string.ui_mission_more, first, sorted.size - 1)
     }
 }
 

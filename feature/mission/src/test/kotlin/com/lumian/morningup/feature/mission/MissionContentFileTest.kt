@@ -3,6 +3,8 @@ package com.lumian.morningup.feature.mission
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.model.mission.Hangul
 import com.lumian.morningup.core.model.mission.MissionContent
+import com.lumian.morningup.core.model.mission.PopQuizGame
+import com.lumian.morningup.core.model.mission.QuizCategory
 import java.io.File
 import kotlinx.serialization.json.Json
 import org.junit.Test
@@ -26,6 +28,25 @@ class MissionContentFileTest {
                 assertThat(q.question).isNotEmpty()
             }
         }
+    }
+
+    /** TSK-284 2절: 한 분야만 골라도 단계마다 문제 묶음이 10개 이상이에요(옆 단계에서 빌려 채움). */
+    @Test
+    fun popQuiz_singleCategory_poolHasAtLeastTenEveryLevel() {
+        QuizCategory.entries.forEach { category ->
+            (1..7).forEach { level ->
+                val pool = PopQuizGame.poolOf(content.popQuiz, level, setOf(category))
+                assertThat(pool.size).isAtLeast(PopQuizGame.MIN_POOL)
+                assertThat(pool.map { it.category }.toSet()).containsExactly(category)
+            }
+        }
+    }
+
+    @Test
+    fun popQuiz_issuesOnlyLevel3_borrowsNeighbourLevels() {
+        val pool = PopQuizGame.poolOf(content.popQuiz, 3, setOf(QuizCategory.Issues))
+        assertThat(pool.size).isAtLeast(PopQuizGame.MIN_POOL)
+        assertThat(pool.map { it.level }.toSet()).containsAtLeast(2, 3, 4)
     }
 
     @Test

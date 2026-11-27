@@ -63,4 +63,12 @@
     <string name="ui_bg_sand">모래</string>
     <string name="ui_bg_ink">먹색</string>
     <string name="ui_bg_my_photo">내 사진</string>
+    <!-- Pop Quiz 분야 이름(미션 화면 위 글자, 편집 시트 '분야' 칩, TSK-284) -->
+    <string name="ui_quiz_category_economy">경제 용어</string>
+    <string name="ui_quiz_category_society">사회 용어</string>
+    <string name="ui_quiz_category_korean_history">국사</string>
+    <string name="ui_quiz_category_world_history">세계사</string>
+    <string name="ui_quiz_category_science">과학 용어</string>
+    <string name="ui_quiz_category_people">인물</string>
+    <string name="ui_quiz_category_issues">사회 이슈</string>
 </resources>

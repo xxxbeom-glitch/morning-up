@@ -1,5 +1,6 @@
 package com.lumian.morningup.core.model
 
+import com.lumian.morningup.core.model.mission.QuizCategory
 import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -24,7 +25,15 @@ data class MissionSetting(
      * 사용자 화면에서는 늘 false이고, false면 저장할 때 적지 않아요.
      */
     @EncodeDefault(EncodeDefault.Mode.NEVER) val forTest: Boolean = false,
+    /**
+     * Pop Quiz만 쓰는 분야(TSK-284, docs/plan-11-quiz-category.md). 처음 값은 전체이고 전체면 저장하지 않아요.
+     * 옛 저장값은 전체로 읽혀요. 비어 있으면 [normalized]가 전체로 되돌려요.
+     */
+    @EncodeDefault(EncodeDefault.Mode.NEVER) val quizCategories: Set<QuizCategory> = ALL_QUIZ_CATEGORIES,
 ) {
+    /** 분야를 모두 고른 상태(처음 값). */
+    val allQuizCategories: Boolean get() = quizCategories.containsAll(ALL_QUIZ_CATEGORIES)
+
     /** 범위 안으로 맞춘 값. */
     fun normalized(): MissionSetting {
         val range = rangeOf(type)
@@ -33,6 +42,11 @@ data class MissionSetting(
             level = level.coerceIn(range.levels),
             count = count.coerceIn(counts),
             speed = if (type == MissionType.DropWords) speed.coerceIn(SPEEDS) else DEFAULT_SPEED,
+            quizCategories = if (type == MissionType.PopQuiz && quizCategories.isNotEmpty()) {
+                quizCategories
+            } else {
+                ALL_QUIZ_CATEGORIES
+            },
         )
     }
 
@@ -50,6 +64,7 @@ data class MissionSetting(
         const val MAX_MISSIONS = 4
         const val DEFAULT_SPEED = 1
         val SPEEDS = 1..4
+        val ALL_QUIZ_CATEGORIES: Set<QuizCategory> = QuizCategory.entries.toSet()
         private val LEVELS = 1..7
 
         /** mission-levels.md 2번 표의 개수 범위. 결정 187로 처음 값이 모두 1이라 최소도 모두 1이에요. */
@@ -66,6 +81,17 @@ data class MissionSetting(
             MissionType.QuickMath -> Range(LEVELS, QUICK_MATH_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
             MissionType.ShakeShake ->
                 Range(SINGLE_LEVEL, SHAKE_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
+        }
+
+        /**
+         * 분야 칩을 누른 뒤의 분야(docs/plan-11-quiz-category.md 3절). [category]가 null이면 '전체' 칩이에요.
+         * 다 골라진 상태에서 분야 하나를 누르면 그 하나만 빠져요. 마지막 하나를 빼려 하면 null(막음)이에요.
+         */
+        fun toggleQuizCategory(current: Set<QuizCategory>, category: QuizCategory?): Set<QuizCategory>? = when {
+            category == null -> ALL_QUIZ_CATEGORIES
+            category !in current -> current + category
+            current.size == 1 -> null
+            else -> current - category
         }
 
         /** 처음 값으로 만든 설정. */

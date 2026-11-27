@@ -26,9 +26,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,6 +57,7 @@ import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.VibrationPattern
+import com.lumian.morningup.core.model.mission.QuizCategory
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
@@ -140,6 +141,7 @@ fun AlarmEditRoute(
                 onMissionLevel = viewModel::stepMissionLevel,
                 onMissionSpeed = viewModel::stepMissionSpeed,
                 onMissionCount = viewModel::stepMissionCount,
+                onQuizCategory = viewModel::toggleQuizCategory,
                 onConfirmMission = viewModel::confirmMissionSheet,
                 onDeselectMission = viewModel::deselectMission,
                 onRemoveMission = viewModel::removeMission,
@@ -186,6 +188,8 @@ data class EditActions(
     val onMissionLevel: (Int) -> Unit = {},
     val onMissionSpeed: (Int) -> Unit = {},
     val onMissionCount: (Int) -> Unit = {},
+    /** Pop Quiz '분야' 칩. null은 '전체' 칩(TSK-284). */
+    val onQuizCategory: (QuizCategory?) -> Unit = {},
     val onConfirmMission: () -> Unit = {},
     val onDeselectMission: () -> Unit = {},
     val onRemoveMission: (MissionType) -> Unit = {},
