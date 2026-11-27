@@ -44,6 +44,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.alarm.ring.RingtonePreviewer
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
@@ -108,9 +109,9 @@ fun SoundPage(
             ),
         ) {
             groups.forEachIndexed { groupIndex, group ->
-                item(key = "group-${group.name}") {
+                item(key = "group-${group.key}") {
                     Text(
-                        text = group.name,
+                        text = stringResource(SoundNames.ringtoneGroup(group.key)),
                         style = MorningTheme.typography.bodySmallStrong,
                         color = colors.textSecondary,
                         modifier = Modifier.padding(
@@ -121,7 +122,7 @@ fun SoundPage(
                 group.ringtones.forEach { tone ->
                     item(key = tone.id) {
                         MorningRadioRow(
-                            label = tone.name,
+                            label = stringResource(SoundNames.ringtone(tone.id)),
                             selected = tone.id == selected,
                             onClick = {
                                 onSelect(tone.id)
@@ -179,7 +180,7 @@ internal fun GroupTabs(groups: List<RingtoneGroup>, headerIndexes: List<Int>, li
                         .padding(start = TabSidePadding, end = TabSidePadding, top = TabTopPadding),
                 ) {
                     Text(
-                        text = group.name,
+                        text = stringResource(SoundNames.ringtoneGroup(group.key)),
                         style = with(MorningTheme.typography) { if (on) bodyMediumStrong else bodyMedium },
                         color = if (on) colors.textPrimary else colors.textSecondary,
                     )

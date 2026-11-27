@@ -14,6 +14,7 @@ import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.core.alarm.R
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.model.SleepTracks
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -77,8 +78,8 @@ class SleepPlaybackService : LifecycleService() {
 
     private fun show(trackId: String, playing: Boolean) {
         val track = SleepTracks.find(trackId)
-        val title = track?.name.orEmpty()
-        val group = SleepTracks.groupOf(trackId)?.name.orEmpty()
+        val title = track?.let { getString(SoundNames.sleepTrack(it.id)) }.orEmpty()
+        val group = SleepTracks.groupOf(trackId)?.let { getString(SoundNames.sleepGroup(it.key)) }.orEmpty()
         session.setMetadata(
             MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, title)

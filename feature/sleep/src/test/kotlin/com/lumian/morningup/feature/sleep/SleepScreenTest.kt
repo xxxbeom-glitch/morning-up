@@ -57,7 +57,7 @@ class SleepScreenTest {
         var opened: String? = null
         show { opened = it }
         val last = SleepTracks.groups.last()
-        compose.onAllNodesWithText(last.name)[0].performClick()
+        compose.onAllNodesWithText("아침 5분 명상")[0].performClick()
         compose.waitForIdle()
         compose.onNodeWithTag("${SLEEP_GROUP_TAG}${SleepTracks.groups.lastIndex}").assertIsDisplayed()
         compose.onNodeWithTag("$SLEEP_TILE_TAG${last.tracks[0].id}").performClick()

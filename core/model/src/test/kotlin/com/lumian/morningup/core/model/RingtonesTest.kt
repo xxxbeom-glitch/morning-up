@@ -9,7 +9,6 @@ class RingtonesTest {
     fun randomFirst_thenDefault() {
         assertThat(Ringtones.all.take(2).map { it.id })
             .containsExactly(Alarm.RANDOM_SOUND_ID, Alarm.DEFAULT_SOUND_ID).inOrder()
-        assertThat(Ringtones.find(Alarm.RANDOM_SOUND_ID).name).isEqualTo("랜덤")
     }
 
     @Test
@@ -34,7 +33,7 @@ class RingtonesTest {
     fun find_unknownId_fallsBackToDefault() {
         assertThat(Ringtones.find("deleted_sound").id).isEqualTo(Alarm.DEFAULT_SOUND_ID)
         assertThat(Ringtones.find(Alarm.SILENT_SOUND_ID).id).isEqualTo(Alarm.DEFAULT_SOUND_ID)
-        assertThat(Ringtones.find("petits_rebonds").name).isEqualTo("말랑 통통")
+        assertThat(Ringtones.find("petits_rebonds").id).isEqualTo("petits_rebonds")
         assertThat(Ringtones.find("morning").id).isEqualTo("petits_rebonds")
     }
 }

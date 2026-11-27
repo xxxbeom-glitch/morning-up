@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.SleepGroup
@@ -178,7 +179,7 @@ private fun GroupTabs(selected: Int, onSelect: (Int) -> Unit) {
             )
             Column(Modifier.width(IntrinsicSize.Max).morningClickable(onClick = { onSelect(i) })) {
                 Text(
-                    group.name,
+                    stringResource(SoundNames.sleepGroup(group.key)),
                     style = if (on) MorningTheme.typography.bodyMediumStrong else MorningTheme.typography.bodyMedium,
                     color = textColor,
                     modifier = Modifier.padding(vertical = 10.dp),
@@ -198,7 +199,7 @@ private fun rowCount(group: SleepGroup): Int = (group.tracks.size + GRID_COLUMNS
 private fun LazyListScope.groupSection(index: Int, group: SleepGroup, onOpenTrack: (String) -> Unit) {
     item(key = "header_$index") {
         Text(
-            group.name,
+            stringResource(SoundNames.sleepGroup(group.key)),
             style = MorningTheme.typography.bodySmallStrong,
             color = MorningTheme.colors.textSecondary,
             modifier = Modifier
@@ -241,7 +242,7 @@ private fun SleepTile(track: SleepTrack, modifier: Modifier = Modifier, onClick:
                 .padding(start = 12.dp, end = 12.dp, top = 24.dp, bottom = 12.dp),
         ) {
             Text(
-                track.name,
+                stringResource(SoundNames.sleepTrack(track.id)),
                 // 피그마 Z1 트랙 칸: 제목 `Body/Medium` `text/body`, 재생 시간 `Caption/Medium` `text/tertiary`.
                 style = MorningTheme.typography.bodyMedium,
                 color = MorningTheme.colors.textBody,

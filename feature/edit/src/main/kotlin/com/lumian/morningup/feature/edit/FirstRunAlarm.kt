@@ -55,6 +55,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.alarm.ring.RingtonePreviewer
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
@@ -382,9 +383,9 @@ private fun ColumnScope.SoundStep(selectedId: String, onSelect: (String) -> Unit
         ),
     ) {
         groups.forEachIndexed { index, group ->
-            item(key = "group-${group.name}") {
+            item(key = "group-${group.key}") {
                 Text(
-                    text = group.name,
+                    text = stringResource(SoundNames.ringtoneGroup(group.key)),
                     style = MorningTheme.typography.bodySmallStrong,
                     color = MorningTheme.colors.textSecondary,
                     modifier = Modifier.padding(top = if (index == 0) 0.dp else MorningDimens.space24),
@@ -392,7 +393,7 @@ private fun ColumnScope.SoundStep(selectedId: String, onSelect: (String) -> Unit
             }
             items(group.ringtones, key = { it.id }) { tone ->
                 MorningRadioRow(
-                    label = tone.name,
+                    label = stringResource(SoundNames.ringtone(tone.id)),
                     selected = tone.id == selected,
                     onClick = {
                         onSelect(tone.id)

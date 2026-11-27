@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 알람음, 잠들기 콘텐츠 화면 이름(TSK-273). id는 core/model의 Ringtones, SleepTracks와 같아요. 고르는 코드는 SoundNames예요. -->
+    <string name="ringtone_group_basic">기본</string>
+    <string name="ringtone_group_calm">잔잔한</string>
+    <string name="ringtone_group_upbeat">경쾌한</string>
+    <string name="ringtone_group_loud">시끄러운</string>
+    <string name="ringtone_group_grand">웅장한</string>
+    <string name="ringtone_group_mystic">신비로운</string>
+    <string name="ringtone_group_christmas">크리스마스</string>
+    <string name="ringtone_random">랜덤</string>
+    <string name="ringtone_default">기본 알람음</string>
+    <string name="ringtone_aube_paisible">고요한 새벽빛</string>
+    <string name="ringtone_douceur">보드라운 아침</string>
+    <string name="ringtone_primavera">봄날의 창가</string>
+    <string name="ringtone_petit_bois">아침 숲 산책</string>
+    <string name="ringtone_gouttes_de_bois">나뭇잎 이슬</string>
+    <string name="ringtone_bonjour_soleil">햇살 인사</string>
+    <string name="ringtone_buongiorno">굿모닝 카페</string>
+    <string name="ringtone_joie_de_vivre">콧노래</string>
+    <string name="ringtone_allegro_vivace">가벼운 발걸음</string>
+    <string name="ringtone_presto">바쁜 아침</string>
+    <string name="ringtone_petits_rebonds">말랑 통통</string>
+    <string name="ringtone_route_de_campagne">시골길 드라이브</string>
+    <string name="ringtone_soleil_mineur">구름 낀 햇살</string>
+    <string name="ringtone_fortissimo">정신 번쩍</string>
+    <string name="ringtone_nuit_blanche">벌떡 기상</string>
+    <string name="ringtone_tambour_battant">북소리 행진</string>
+    <string name="ringtone_neon_rouge">빨간 경보</string>
+    <string name="ringtone_maestoso">왕의 아침</string>
+    <string name="ringtone_marche_triomphale">개선 행진</string>
+    <string name="ringtone_grandeur">장엄한 서막</string>
+    <string name="ringtone_reverie">꿈결</string>
+    <string name="ringtone_danse_des_ombres">그림자 왈츠</string>
+    <string name="ringtone_joyeux_noel">산타의 종소리</string>
+    <string name="ringtone_nuit_de_noel">눈 내리는 밤</string>
+    <string name="sleep_group_hard_to_sleep">잠에 들기 어려울 때</string>
+    <string name="sleep_group_heavy_heart">마음이 답답할 때</string>
+    <string name="sleep_group_busy_mind">생각이 복잡할 때</string>
+    <string name="sleep_group_morning_meditation">아침 5분 명상</string>
+    <string name="sleep_track_night_rain">창문을 두드리는 밤비</string>
+    <string name="sleep_track_waves">멀리서 밀려오는 파도</string>
+    <string name="sleep_track_forest_birds">새벽 숲의 새소리</string>
+    <string name="sleep_track_campfire">타닥이는 모닥불</string>
+    <string name="sleep_track_deep_night">깊은 밤, 고요한 숨</string>
+    <string name="sleep_track_cloud_walk">구름 위를 천천히 걷기</string>
+    <string name="sleep_track_slow_breath">느리게 쉬는 숨</string>
+    <string name="sleep_track_starry_field">별빛 아래 들판</string>
+    <string name="sleep_track_quiet_room">고요한 방</string>
+    <string name="sleep_track_moon_walk">달빛 산책</string>
+    <string name="sleep_track_dawn_waltz">새벽 왈츠</string>
+    <string name="sleep_track_rain_sonata">빗방울 소나타</string>
+    <string name="sleep_track_two_am">새벽 2시</string>
+    <string name="sleep_track_alley_cafe">골목 카페</string>
+    <string name="sleep_track_night_bus">밤 버스</string>
+    <string name="sleep_track_slow_afternoon">느린 오후</string>
+</resources>

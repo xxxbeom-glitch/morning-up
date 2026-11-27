@@ -51,6 +51,7 @@ import com.composables.icons.lucide.Pause
 import com.composables.icons.lucide.Play
 import com.composables.icons.lucide.Timer
 import com.composables.icons.lucide.X
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.alarm.sleep.SleepPlayback
 import com.lumian.morningup.core.alarm.sleep.SleepPlayer
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
@@ -151,14 +152,14 @@ internal fun SleepPlayerScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    track.name,
+                    stringResource(SoundNames.sleepTrack(track.id)),
                     style = MorningTheme.typography.headlineLarge,
                     color = MorningTheme.colors.textPrimary,
                     textAlign = TextAlign.Center,
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    stringResource(R.string.sleep_meta, SleepTracks.groupOf(track.id)?.name.orEmpty(), track.minutes),
+                    stringResource(R.string.sleep_meta, SleepTracks.groupOf(track.id)?.let { stringResource(SoundNames.sleepGroup(it.key)) }.orEmpty(), track.minutes),
                     style = MorningTheme.typography.bodySmall,
                     color = MorningTheme.colors.textSecondary,
                 )

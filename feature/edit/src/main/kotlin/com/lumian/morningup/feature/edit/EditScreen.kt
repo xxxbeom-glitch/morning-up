@@ -36,6 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lumian.morningup.core.alarm.SoundNames
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningDayChip
 import com.lumian.morningup.core.designsystem.component.MorningDialog
@@ -609,7 +610,7 @@ private fun SoundCard(alarm: Alarm, onOpenDetail: (EditDetail) -> Unit, onOpenSh
         val soundOn = alarm.soundId != Alarm.SILENT_SOUND_ID
         MorningSettingRow(
             label = stringResource(R.string.edit_sound),
-            value = if (soundOn) Ringtones.find(alarm.soundId).name else offValue(),
+            value = if (soundOn) stringResource(SoundNames.ringtone(Ringtones.find(alarm.soundId).id)) else offValue(),
             // 알람음은 토글 없이 '>'로 들어가서 골라요. S5에 '사용 안 함'은 없어요(11-19). 시험 알람 F(진동만)만 '사용 안 함'으로 보여요.
             state = SettingRowState.Navigate,
             onCheckedChange = {},

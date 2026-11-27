@@ -5,74 +5,75 @@ package com.lumian.morningup.core.model
  * [Ringtone.id]는 알람에 저장되는 값이에요. 맨 위는 '랜덤'([Alarm.RANDOM_SOUND_ID], 새 알람의 처음 값)이고,
  * 그다음이 앱 기본음 [Alarm.DEFAULT_SOUND_ID]예요.
  * 소리 파일 이름은 `:core:alarm`의 `RingtoneFiles`가 id로 찾아요.
- * [name]은 화면에 보이는 한글 이름이에요(11-18 사용자 지시). 원래 프랑스어, 이탈리아어 제목은 파일 이름과 id에 남아요.
+ * 화면 이름은 `:core:alarm`의 `res/values/sound_names.xml`에 있어요
+ * (11-18 사용자 지시, TSK-273). `SoundNames`가 id로 찾아요. 원래 프랑스어, 이탈리아어 제목은 파일 이름과 id에 남아요.
  */
-data class Ringtone(val id: String, val name: String)
+data class Ringtone(val id: String)
 
-/** S5의 묶음. 탭 줄 이름과 목록 묶음 제목이 같아요. 비어 있는 묶음은 보여 주지 않아요. */
-data class RingtoneGroup(val name: String, val ringtones: List<Ringtone>)
+/** S5의 묶음. [key]로 화면 이름(탭 줄, 묶음 제목)을 찾아요. 비어 있는 묶음은 보여 주지 않아요. */
+data class RingtoneGroup(val key: String, val ringtones: List<Ringtone>)
 
 object Ringtones {
     val groups: List<RingtoneGroup> = listOf(
         RingtoneGroup(
-            name = "기본",
+            key = "basic",
             ringtones = listOf(
-                Ringtone(Alarm.RANDOM_SOUND_ID, "랜덤"),
-                Ringtone(Alarm.DEFAULT_SOUND_ID, "기본 알람음"),
+                Ringtone(Alarm.RANDOM_SOUND_ID),
+                Ringtone(Alarm.DEFAULT_SOUND_ID),
             ),
         ),
         RingtoneGroup(
-            name = "잔잔한",
+            key = "calm",
             ringtones = listOf(
-                Ringtone("aube_paisible", "고요한 새벽빛"),
-                Ringtone("douceur", "보드라운 아침"),
-                Ringtone("primavera", "봄날의 창가"),
-                Ringtone("petit_bois", "아침 숲 산책"),
-                Ringtone("gouttes_de_bois", "나뭇잎 이슬"),
+                Ringtone("aube_paisible"),
+                Ringtone("douceur"),
+                Ringtone("primavera"),
+                Ringtone("petit_bois"),
+                Ringtone("gouttes_de_bois"),
             ),
         ),
         RingtoneGroup(
-            name = "경쾌한",
+            key = "upbeat",
             ringtones = listOf(
-                Ringtone("bonjour_soleil", "햇살 인사"),
-                Ringtone("buongiorno", "굿모닝 카페"),
-                Ringtone("joie_de_vivre", "콧노래"),
-                Ringtone("allegro_vivace", "가벼운 발걸음"),
-                Ringtone("presto", "바쁜 아침"),
-                Ringtone("petits_rebonds", "말랑 통통"),
-                Ringtone("route_de_campagne", "시골길 드라이브"),
-                Ringtone("soleil_mineur", "구름 낀 햇살"),
+                Ringtone("bonjour_soleil"),
+                Ringtone("buongiorno"),
+                Ringtone("joie_de_vivre"),
+                Ringtone("allegro_vivace"),
+                Ringtone("presto"),
+                Ringtone("petits_rebonds"),
+                Ringtone("route_de_campagne"),
+                Ringtone("soleil_mineur"),
             ),
         ),
         RingtoneGroup(
-            name = "시끄러운",
+            key = "loud",
             ringtones = listOf(
-                Ringtone("fortissimo", "정신 번쩍"),
-                Ringtone("nuit_blanche", "벌떡 기상"),
-                Ringtone("tambour_battant", "북소리 행진"),
-                Ringtone("neon_rouge", "빨간 경보"),
+                Ringtone("fortissimo"),
+                Ringtone("nuit_blanche"),
+                Ringtone("tambour_battant"),
+                Ringtone("neon_rouge"),
             ),
         ),
         RingtoneGroup(
-            name = "웅장한",
+            key = "grand",
             ringtones = listOf(
-                Ringtone("maestoso", "왕의 아침"),
-                Ringtone("marche_triomphale", "개선 행진"),
-                Ringtone("grandeur", "장엄한 서막"),
+                Ringtone("maestoso"),
+                Ringtone("marche_triomphale"),
+                Ringtone("grandeur"),
             ),
         ),
         RingtoneGroup(
-            name = "신비로운",
+            key = "mystic",
             ringtones = listOf(
-                Ringtone("reverie", "꿈결"),
-                Ringtone("danse_des_ombres", "그림자 왈츠"),
+                Ringtone("reverie"),
+                Ringtone("danse_des_ombres"),
             ),
         ),
         RingtoneGroup(
-            name = "크리스마스",
+            key = "christmas",
             ringtones = listOf(
-                Ringtone("joyeux_noel", "산타의 종소리"),
-                Ringtone("nuit_de_noel", "눈 내리는 밤"),
+                Ringtone("joyeux_noel"),
+                Ringtone("nuit_de_noel"),
             ),
         ),
     )
