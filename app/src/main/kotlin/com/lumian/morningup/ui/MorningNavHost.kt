@@ -45,7 +45,6 @@ import com.lumian.morningup.feature.settings.DndGuideRoute
 import com.lumian.morningup.feature.settings.FaqPage
 import com.lumian.morningup.feature.settings.LabRoute
 import com.lumian.morningup.feature.settings.LicensesPage
-import com.lumian.morningup.feature.settings.OnboardingRoute
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
 import com.lumian.morningup.feature.settings.PermissionStepSheet
@@ -63,7 +62,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data object MainRoute
 
-/** 첫 실행 온보딩(스플래시와 권한 장, 결정 129, 131). */
+/** 첫 실행(스플래시, 첫 알람 4단계, 필수 권한 목록, 결정 191). */
 @Serializable
 data object OnboardingDestination
 
@@ -104,6 +103,18 @@ private const val REST_RELEASED_KEY = "restReleased"
 
 /** 저장 경고 창에서 고치기를 눌렀을 때 홈이 열 곳([SaveWarning] 이름). */
 private const val SAVE_FIX_KEY = "saveFix"
+
+/**
+ * 첫 실행을 마치고 홈으로 가요. 첫 알람을 저장했으면([savedId]) 홈이 '알람을 저장했어요' 토스트를 띄워요(편집 저장과 같은 길).
+ * 첫 실행 확인용 앱([onboardingOnly])은 홈으로 가지 않고 스플래시부터 다시 시작해요.
+ */
+private fun NavHostController.leaveFirstRun(onboardingOnly: Boolean, savedId: Long?) {
+    navigate(if (onboardingOnly) OnboardingDestination else MainRoute) {
+        popUpTo(OnboardingDestination) { inclusive = true }
+        launchSingleTop = !onboardingOnly
+    }
+    if (!onboardingOnly && savedId != null) currentBackStackEntry?.savedStateHandle?.set(SAVED_ALARM_KEY, savedId)
+}
 
 /**
  * 앱 화면 길. 첫 화면(탭) 위로 알람 편집이, 그 위로 미션 미리보기가 옆에서 밀려 들어와요(spatialSlow + 페이드).
@@ -265,16 +276,13 @@ fun MorningNavHost(
             enterTransition = { EnterTransition.None },
             exitTransition = { fadeOut(MorningMotion.effects(MorningMotion.EffectsDefault)) },
         ) {
-            OnboardingRoute(
-                onFinished = {
+            FirstRunHost(
+                onFinished = { savedId ->
+                    // 끝났다고 표시하는 때는 홈에 도착한 순간이에요(기획 1절). 중간에 닫으면 다음에 O4-1부터예요.
                     onOnboardingFinished()
-                    // 온보딩 전용 확인 앱은 홈으로 가지 않고 스플래시부터 다시 시작해요.
-                    navController.navigate(if (onboardingOnly) OnboardingDestination else MainRoute) {
-                        popUpTo(OnboardingDestination) { inclusive = true }
-                        launchSingleTop = !onboardingOnly
-                    }
+                    navController.leaveFirstRun(onboardingOnly, savedId)
                 },
-                showAll = onboardingOnly,
+                demo = onboardingOnly,
                 onLightRoundFinished = onOnboardingLightRoundFinished,
             )
         }

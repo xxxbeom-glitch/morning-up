@@ -131,38 +131,25 @@
     <string name="faq_a6">홈에서 반복 알람을 끄면 카드에 \'이번만 쉬기\'가 나와요. 누르면 다음 한 번만 쉬고 그다음부터는 다시 울려요.</string>
     <string name="faq_q7">미션 중에 전원을 꺼 버리면요?</string>
     <string name="faq_a7">설정에서 \'전원 종료 방지\'를 켜면 미션을 하는 동안 전원 메뉴가 열려도 바로 닫혀요. 처음 켤 때 접근성 권한을 켜는 방법을 안내해 드려요.</string>
-    <!-- 온보딩(결정 129, 131). 문구는 피그마 온보딩 (O) 구역 11-20 최신본 -->
+    <!-- O1 스플래시(결정 131) -->
     <string name="onboarding_splash_desc" translatable="false">일어나</string>
-    <string name="onboarding_later">나중에 하기</string>
     <string name="onboarding_skip">건너뛰기</string>
-    <string name="onboarding_notifications_title">알림을 허용해 주세요</string>
-    <string name="onboarding_notifications_sub">알림이 꺼져 있으면 알람 화면이 뜨지 않을 수 있어요.\n미션을 못 할 때 끄는 길도 알림으로 와요.</string>
-    <string name="onboarding_notifications_button">알림 허용하기</string>
-    <string name="onboarding_full_screen_title">잠겨 있어도 알람이\n화면 위로 떠요</string>
-    <string name="onboarding_full_screen_sub">화면이 꺼져 있을 때 알람이 울리면\n바로 화면으로 보여줘요.</string>
-    <string name="onboarding_full_screen_button">전체 화면 알림 허용하기</string>
-    <string name="onboarding_battery_title">배터리 사용 제한을\n해제해 주세요</string>
-    <string name="onboarding_battery_sub">안드로이드는 백그라운드에 있는 앱을\n자동으로 절전 기능으로 전환해요.\n절전 기능 때문에 알람이 늦게 울릴 수 있어요.</string>
-    <string name="onboarding_battery_button">배터리 사용 제한 해제하기</string>
-    <string name="onboarding_overlay_title">다른 앱 위에 표시를\n허용해 주세요</string>
-    <string name="onboarding_overlay_sub">알람이 울리는 동안 알람 해제 화면을\n가장 앞으로 띄울 수 있어요.</string>
-    <string name="onboarding_overlay_button">다른 앱 위에 표시 허용하기</string>
-    <string name="onboarding_location_title">날씨에 따라\n앱 테마가 자동으로 변해요</string>
-    <string name="onboarding_location_sub">오늘의 날씨에 따라 앱 화면이 바뀌어요.\n단, 허용하지 않아도 앱을 사용하는 데 문제는 없어요.</string>
-    <string name="onboarding_location_button">위치 허용하기</string>
-    <!-- 온보딩 그림 속 글자(피그마 Motion Fullscreen, Motion Battery Dialog, Motion Overlay Toggle). -->
-    <string name="onboarding_motion_clock_before" translatable="false">06:59</string>
-    <string name="onboarding_motion_clock_after" translatable="false">07:00</string>
-    <string name="onboarding_motion_date">11월 18일 수요일</string>
-    <string name="onboarding_motion_time" translatable="false">7:00</string>
-    <string name="onboarding_motion_mission_start">미션 시작</string>
-    <string name="onboarding_motion_dialog_title">배터리 최적화를 해제할까요?</string>
-    <string name="onboarding_motion_dialog_body">\'일어나\'는 백그라운드에서\n실행될 수 있으며, 배터리를\n제한 없이 사용할 수 있습니다.</string>
-    <string name="onboarding_motion_dialog_deny">거부</string>
-    <string name="onboarding_motion_dialog_allow">허용</string>
-    <string name="onboarding_motion_app_name" translatable="false">일어나</string>
-    <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
-    <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
+    <!-- 첫 실행 O4-1a 알림 권한 카드, O5 필수 권한 목록(결정 191, docs/plan-11-first-run.md) -->
+    <string name="first_run_notif_title">알람이 울릴 때 화면을 띄우려면 알림 권한이 필요해요</string>
+    <string name="first_run_notif_desc">허용하지 않으면 소리만 나고 해제 화면이 안 뜰 수 있어요</string>
+    <string name="first_run_perm_title">알람이 제때 울리도록\n아래 권한을 켜 주세요</string>
+    <string name="first_run_perm_alarm">알람</string>
+    <string name="first_run_perm_alarm_desc">잠금 화면에서도 알람 화면을 바로 띄워요</string>
+    <string name="first_run_perm_battery">배터리 사용 제한 해제</string>
+    <string name="first_run_perm_battery_desc">절전 모드에서도 알람이 늦지 않게 해요</string>
+    <string name="first_run_perm_overlay">다른 앱 위에 표시</string>
+    <string name="first_run_perm_overlay_desc">다른 앱을 쓰는 중에도 알람 화면을 띄워요</string>
+    <string name="first_run_perm_power">전원 종료 방지</string>
+    <string name="first_run_perm_power_desc">미션 중 전원 메뉴가 열리면 바로 닫아요</string>
+    <string name="first_run_perm_set">설정하기</string>
+    <string name="first_run_perm_done">켜짐</string>
+    <string name="first_run_start">시작하기</string>
+    <string name="first_run_close">닫기</string>
     <!-- 실험실 'Crazy Mode'(결정 146 1절, 시안 TSK-171, 이름은 결정 188) -->
     <string name="settings_lab">실험실</string>
     <string name="settings_lab_title">Crazy Mode</string>

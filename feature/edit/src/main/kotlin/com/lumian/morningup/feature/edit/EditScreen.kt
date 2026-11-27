@@ -395,7 +395,7 @@ private fun UntilLine(state: EditUiState) {
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit, input: TimeInputState) {
+internal fun TimeWheels(alarm: Alarm, onTime: (Int, Int) -> Unit, input: TimeInputState) {
     val resources = alarmResources()
     val periods = remember(resources) {
         listOf(AlarmText.period(resources, pm = false), AlarmText.period(resources, pm = true))

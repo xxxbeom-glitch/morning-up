@@ -198,7 +198,7 @@ fun BackgroundPage(
 }
 
 @Composable
-private fun NamedTile(bg: AlarmBackground, selected: Boolean, onClick: () -> Unit) {
+internal fun NamedTile(bg: AlarmBackground, selected: Boolean, onClick: () -> Unit) {
     TileFrame(name = stringResource(bg.name), selected = selected, onClick = onClick) {
         Box(
             modifier = Modifier
