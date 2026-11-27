@@ -1343,3 +1343,6 @@
 {"at": "2026-11-27 14:26:14", "by": "[QA 6]", "id": "TSK-294", "action": "comment", "changes": {"comments": [null, ["[QA 6] Z플립5(257f1dd 빌드): T2 맨 아래 '그래도 알람이 안 울리면 문의하기' → '오류 신고' 골라진 문의하기 열림 통과. A8: 소리 없는 시험 알람을 2분 뒤로 걸고 최근 앱에서 '일어나'를 위로 밀어 닫음(프로세스 꺼짐 확인) → 14:26:00 제시각에 울림 화면 뜸 통과. B4 문장은 ISS-068(low) 남음."]]}}
 {"at": "2026-11-27 14:26:40", "by": "Leader", "id": "TSK-293", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"], "comments": [null, ["QA 6 폰 통과(9d918de). Pop Quiz 예제 보기 개수 차이는 작아서 그대로"]]}}
 {"at": "2026-11-27 14:26:40", "by": "Leader", "id": "TSK-294", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"], "comments": [null, ["QA 6 폰 통과. B4 문장은 ISS-068로 따로"]]}}
+{"at": "2026-11-27 14:27:36", "by": "[개발 30]", "id": "ISS-068", "action": "resolve", "changes": {"status": ["open", "resolved"], "resolved": [null, "2026-11-27"], "fix": [null, "faq_b4_a에서 잠들기 소리 문장 뺌. 커밋 5d894ec"]}}
+{"at": "2026-11-27 14:27:49", "by": "[QA 6]", "id": "ISS-068", "action": "comment", "changes": {"comments": [null, ["[QA 6] 5d894ec 확인: faq_b4_a에서 잠들기 소리 문장이 빠졌고 나머지 문장은 그대로예요. 문구만 바뀐 것이라 폰 확인은 필요 없어요. 통과 의견."]]}}
+{"at": "2026-11-27 14:27:59", "by": "Leader", "id": "ISS-068", "action": "approve", "changes": {"status": ["resolved", "closed"], "comments": [null, ["QA 6 통과(5d894ec, 문구만)"]]}}
