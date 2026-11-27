@@ -731,7 +731,7 @@ private fun ActionItem(icon: ImageVector, label: String, enabled: Boolean, onCli
 }
 
 /**
- * 정해진 요일만 적어요(결정 75). 모두 `Caption/Strong` `primary/text`, 사이 8.
+ * 정해진 요일만 적어요(결정 75). 모두 `Caption/Strong` `primary/text`, 사이 [DayGap](TSK-259, 8에서 조금 좁힘).
  * 반복 없는 알람은 다음에 울릴 날을 '오늘' 또는 '내일'로 적어요(결정 75 추천안).
  */
 @Composable
@@ -739,7 +739,7 @@ private fun DaysRow(days: Set<DayOfWeek>, ringsToday: Boolean) {
     val res = alarmResources()
     val style = MorningTheme.typography.captionStrong
     val color = MorningTheme.colors.primaryText
-    Row(horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
+    Row(horizontalArrangement = Arrangement.spacedBy(DayGap)) {
         if (days.isEmpty()) {
             Text(
                 text = stringResource(if (ringsToday) R.string.home_once_today else R.string.home_once_tomorrow),
@@ -753,6 +753,9 @@ private fun DaysRow(days: Set<DayOfWeek>, ringsToday: Boolean) {
         }
     }
 }
+
+/** 알람 카드 요일 글자 사이(TSK-259). 8은 넓어 보여서 조금 좁혔어요. */
+private val DayGap = 5.dp
 
 /** H1 빈 홈. 플러스와 더보기를 숨기고 가운데 안내와 '알람 만들기'만 둬요. */
 @Composable
