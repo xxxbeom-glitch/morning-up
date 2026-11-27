@@ -51,8 +51,8 @@ class MigrationTest {
 
         assertThat(alarms.keys).containsExactly(1L, 2L, 3L)
         assertThat(alarms.getValue(1).missions).containsExactly(
-            MissionSetting(MissionType.QuickMath, 1, 3),
-            MissionSetting(MissionType.DropWords, 1, 10, 1),
+            MissionSetting.default(MissionType.QuickMath),
+            MissionSetting.default(MissionType.DropWords),
         ).inOrder()
         assertThat(alarms.getValue(2).missions).isEmpty()
         assertThat(alarms.getValue(3).missions).containsExactly(MissionSetting.default(MissionType.ShakeShake))

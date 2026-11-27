@@ -60,7 +60,7 @@ class ShakeShakeTest {
 
     @Test
     fun game_targetClampedToRange() {
-        assertThat(ShakeShake.start(3).target).isEqualTo(10)
+        assertThat(ShakeShake.start(0).target).isEqualTo(1)
         assertThat(ShakeShake.start(500).target).isEqualTo(200)
     }
 }

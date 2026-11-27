@@ -282,7 +282,7 @@ class EditScreenTest {
         compose.onNodeWithText("예: 사과, 나무").assertDoesNotExist()
         compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(SHEET_SPEED_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsEnabled()
+        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(
             SHEET_LEVEL_TAG + VALUE_INC_SUFFIX,
             useUnmergedTree = true,

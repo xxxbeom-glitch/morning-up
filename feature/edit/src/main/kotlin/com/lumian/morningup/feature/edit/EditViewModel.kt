@@ -464,10 +464,10 @@ class EditViewModel @Inject constructor(
         )
 
         /**
-         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 켬(5분, 3번, 결정 163. 옛 알람은 저장된 값 그대로),
+         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(결정 187, 켜면 5분 3번. 옛 알람은 저장된 값 그대로),
          * 다시 잠들기 방지 꺼짐(간격과 시간은 전체 설정, 결정 145),
          * 알람음 기본, 진동 켬, 배경 시간대 하늘. 시각은 오전 7:00.
          */
-        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = DEFAULT_RING_AGAIN_COUNT))
+        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = 0))
     }
 }

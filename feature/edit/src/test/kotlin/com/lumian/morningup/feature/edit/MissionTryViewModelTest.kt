@@ -19,7 +19,7 @@ class MissionTryViewModelTest {
         val started = vm.start()
 
         assertThat(started?.level).isEqualTo(2)
-        assertThat(started?.count).isEqualTo(4)
+        assertThat(started?.count).isEqualTo(2)
         assertThat(vm.uiState.value.sheet).isNull()
         // 다시 열면 마지막으로 시작한 값으로 열려요.
         vm.open(MissionType.QuickMath)

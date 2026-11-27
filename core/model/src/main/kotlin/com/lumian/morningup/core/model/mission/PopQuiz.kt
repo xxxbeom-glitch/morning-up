@@ -37,7 +37,7 @@ enum class QuizResult { Correct, Wrong, Finished, Ignored }
 
 /**
  * Pop Quiz 규칙(mission-levels.md Pop Quiz, dev-plan 모션 표).
- * - 4지선다예요. [target]개 맞히면 끝나요(최소 2문제).
+ * - 4지선다예요. [target]개 맞히면 끝나요(최소 1문제, 결정 187).
  * - 틀려도 맞힌 수는 그대로이고 새 문제로 바뀌어요(결정 92). 정답은 보여 주지 않아요.
  * - 그 단계 문제를 섞어 차례로 내요. 다 내기 전에는 같은 문제가 다시 나오지 않고, 연달아 같은 문제도 없어요.
  */
