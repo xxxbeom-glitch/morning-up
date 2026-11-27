@@ -3,7 +3,13 @@ package com.lumian.morningup.core.designsystem.component
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -20,6 +26,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.Role
@@ -32,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.theme.FixedFontScale
+import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
@@ -52,6 +60,8 @@ private const val LOOP_REPEAT = 1000
  * 손으로 튕기면 관성으로 돌다 가장 가까운 칸에 붙고, 한 칸 지날 때마다 틱 진동을 울려요.
  * 멈췄을 때만 [onSelect]로 알려요. [looping]이면 끝없이 돌아요(시, 분).
  * [onCenterTap]을 주면 가운데 줄 숫자를 눌렀을 때 불러요(숫자로 직접 고치기, 11-19 사용자 지시 5). 스크롤은 그대로예요.
+ * 미션 설정 시트(TSK-264)는 칸 높이 [itemHeight] 56, 숫자 뒤 작은 [unit](`Title/Medium` 16), 가운데 줄 뒤 [bandColor] 띠를 써요.
+ * 시각 드럼롤은 기본값 그대로라 바뀌지 않아요.
  */
 @Composable
 fun MorningWheelPicker(
@@ -64,11 +74,14 @@ fun MorningWheelPicker(
     textAlign: TextAlign = TextAlign.Center,
     contentDescription: String? = null,
     onCenterTap: (() -> Unit)? = null,
+    itemHeight: Dp = WheelItemHeight,
+    unit: String? = null,
+    bandColor: Color = Color.Unspecified,
 ) {
     val size = items.size
     val count = if (looping) size * LOOP_REPEAT else size + 2
     val state = rememberLazyListState(initialFirstVisibleItemIndex = topIndexFor(selectedIndex, size, looping))
-    val itemPx = with(LocalDensity.current) { WheelItemHeight.toPx() }
+    val itemPx = with(LocalDensity.current) { itemHeight.toPx() }
     val top by remember(state, itemPx) {
         derivedStateOf {
             state.firstVisibleItemIndex + if (state.firstVisibleItemScrollOffset > itemPx / 2) 1 else 0
@@ -96,16 +109,25 @@ fun MorningWheelPicker(
 
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
-    val label = items.getOrNull(selectedIndex).orEmpty()
+    val label = items.getOrNull(selectedIndex).orEmpty() + unit.orEmpty()
     Box(
         modifier = modifier
             .then(if (width != Dp.Unspecified) Modifier.width(width) else Modifier)
-            .height(WheelItemHeight * WHEEL_VISIBLE_ROWS)
+            .height(itemHeight * WHEEL_VISIBLE_ROWS)
             .semantics {
                 stateDescription = label
                 if (contentDescription != null) this.contentDescription = contentDescription
             },
     ) {
+        if (bandColor != Color.Unspecified) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(itemHeight)
+                    .offset(y = itemHeight)
+                    .background(bandColor, RoundedCornerShape(MorningDimens.radiusTile)),
+            )
+        }
         LazyColumn(
             state = state,
             flingBehavior = rememberSnapFlingBehavior(state, SnapPosition.Start),
@@ -117,7 +139,7 @@ fun MorningWheelPicker(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(WheelItemHeight)
+                        .height(itemHeight)
                         .then(
                             if (tap != null) {
                                 Modifier.clickable(
@@ -133,14 +155,19 @@ fun MorningWheelPicker(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (value != null) {
+                        val color = if (centered) colors.textPrimary else colors.textDisabled
                         FixedFontScale {
-                            Text(
-                                text = items[value],
-                                style = if (centered) typography.displayMedium else typography.displayMediumMuted,
-                                color = if (centered) colors.textPrimary else colors.textDisabled,
-                                textAlign = textAlign,
-                                modifier = Modifier.fillMaxWidth(),
-                            )
+                            if (unit == null) {
+                                Text(
+                                    text = items[value],
+                                    style = if (centered) typography.displayMedium else typography.displayMediumMuted,
+                                    color = color,
+                                    textAlign = textAlign,
+                                    modifier = Modifier.fillMaxWidth(),
+                                )
+                            } else {
+                                WheelNumberWithUnit(items[value], unit, centered, color)
+                            }
                         }
                     }
                 }
@@ -148,6 +175,24 @@ fun MorningWheelPicker(
         }
     }
 }
+
+/** 숫자 40 + 단위 16을 글자 바닥선에 맞춰 나란히(미션 설정 시트, TSK-264). */
+@Composable
+private fun WheelNumberWithUnit(number: String, unit: String, centered: Boolean, color: Color) {
+    val typography = MorningTheme.typography
+    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = number,
+            style = if (centered) typography.displayMedium else typography.displayMediumMuted,
+            color = color,
+            modifier = Modifier.alignByBaseline(),
+        )
+        Spacer(Modifier.width(UnitGap))
+        Text(text = unit, style = typography.titleMedium, color = color, modifier = Modifier.alignByBaseline())
+    }
+}
+
+private val UnitGap = 4.dp
 
 /** 목록 칸 [index]에 그릴 값. 끝없이 돌지 않는 목록은 위아래 빈 칸이 하나씩 있어요. */
 private fun itemValue(index: Int, size: Int, looping: Boolean): Int? = when {

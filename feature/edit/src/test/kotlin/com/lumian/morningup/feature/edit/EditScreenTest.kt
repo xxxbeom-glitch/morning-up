@@ -1,12 +1,17 @@
 package com.lumian.morningup.feature.edit
 
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasScrollToIndexAction
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.isNotEnabled
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -16,7 +21,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.text.TextLayoutResult
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.component.VALUE_DEC_SUFFIX
 import com.lumian.morningup.core.designsystem.component.VALUE_INC_SUFFIX
@@ -272,7 +279,7 @@ class EditScreenTest {
     }
 
     @Test
-    fun sheet_firstValues_disableLowerEnds_andSelectConfirms() {
+    fun sheet_wheelsStartAtOne_scrollSendsDelta_andSelectConfirms() {
         var confirmed = 0
         var level = 0
         val sheet = MissionSheet(MissionSetting.default(MissionType.DropWords), selected = false)
@@ -283,20 +290,23 @@ class EditScreenTest {
         // 11-18: 줄 아래 설명 글은 빼고, 머리 아래 예제 영역(스켈레톤 그림)으로 보여 줘요.
         compose.onNodeWithTag(SHEET_EXAMPLE_TAG, useUnmergedTree = true).assertExists()
         compose.onNodeWithText("예: 사과, 나무").assertDoesNotExist()
-        compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(SHEET_SPEED_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(
-            SHEET_LEVEL_TAG + VALUE_INC_SUFFIX,
-            useUnmergedTree = true,
-        ).assertIsEnabled().performClick()
+        // TSK-293: 값 줄 대신 드럼롤 세 칸. 처음 값은 모두 1, Drop Words 개수 이름은 '단어 수'예요.
+        compose.onNodeWithTag(SHEET_LEVEL_TAG, useUnmergedTree = true).assert(hasStateDescription("1단계"))
+        compose.onNodeWithTag(SHEET_SPEED_TAG, useUnmergedTree = true).assert(hasStateDescription("1단계"))
+        compose.onNodeWithTag(SHEET_COUNT_TAG, useUnmergedTree = true).assert(hasStateDescription("1개"))
+        compose.onNodeWithText("단어 수").assertExists()
+        // 난이도 드럼롤을 한 칸 돌리면 차이(+1)를 보내요.
+        val levelWheel = hasScrollToIndexAction() and hasAnyAncestor(hasTestTag(SHEET_LEVEL_TAG))
+        compose.onNode(levelWheel, useUnmergedTree = true)
+            .performScrollToIndex(1)
+        compose.waitForIdle()
         compose.onNodeWithText("선택 완료").performClick()
         assertThat(level).isEqualTo(1)
         assertThat(confirmed).isEqualTo(1)
     }
 
     @Test
-    fun sheet_topValues_disableUpperEnds_andSelectedShowsDeselect() {
+    fun sheet_wheelsShowTopValues_andSelectedShowsDeselect() {
         var deselected = 0
         var previewed: List<MissionSetting>? = null
         val setting = MissionSetting(MissionType.QuickMath, level = 7, count = 10)
@@ -309,8 +319,9 @@ class EditScreenTest {
             ),
             EditActions(onDeselectMission = { deselected++ }, onPreview = { previewed = it }),
         )
-        compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_INC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_INC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithTag(SHEET_LEVEL_TAG, useUnmergedTree = true).assert(hasStateDescription("7단계"))
+        compose.onNodeWithTag(SHEET_COUNT_TAG, useUnmergedTree = true).assert(hasStateDescription("10문제"))
+        compose.onNodeWithTag(SHEET_SPEED_TAG, useUnmergedTree = true).assertDoesNotExist()
         compose.onNodeWithText("선택 완료").assertDoesNotExist()
         compose.onNodeWithText("미리보기").performClick()
         compose.onNodeWithText("선택 해제").performClick()
@@ -348,4 +359,7 @@ class EditScreenTest {
         show(EditUiState(loading = false, detail = EditDetail.Mission, missionSheet = sheet))
         compose.onNodeWithTag(SHEET_CATEGORY_TAG, useUnmergedTree = true).assertDoesNotExist()
     }
+
+    private fun hasStateDescription(value: String) =
+        SemanticsMatcher.expectValue(SemanticsProperties.StateDescription, value)
 }

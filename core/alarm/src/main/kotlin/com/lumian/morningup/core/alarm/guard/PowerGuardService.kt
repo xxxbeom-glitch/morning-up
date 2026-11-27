@@ -37,6 +37,8 @@ class PowerGuardService : AccessibilityService() {
 
     @Inject lateinit var ringScreen: RingScreenIntentFactory
 
+    @Inject lateinit var ringFocus: RingWindowFocus
+
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     @Volatile private var guarding = false
@@ -72,15 +74,11 @@ class PowerGuardService : AccessibilityService() {
         val cls = event.className?.toString()
         if (!isPowerMenu(pkg, cls)) {
             // 기종마다 전원 메뉴 창 이름이 달라요. 시스템 창이 바뀌면 앱 이름과 창 종류만 남겨 실기기에서 맞춰요(글은 안 읽어요).
-            if (isSystemWindow(pkg)) {
-                diagnostics.record("power_guard_window", detail = "pkg=$pkg cls=$cls")
-            } else {
-                // 홈 화면 같은 다른 창으로 바뀌었으면 전원 메뉴는 닫힌 거예요(ISS-060).
-                closer.onOtherWindow()
-            }
+            if (isSystemWindow(pkg)) diagnostics.record("power_guard_window", detail = "pkg=$pkg cls=$cls")
             return
         }
-        if (closer.onMenuSeen(SystemClock.elapsedRealtime())) {
+        // 앱 안 팝업, 알림 창, 전화는 이 신호가 아니라서 막지 않아요(결정 198). 전원 메뉴 같은 시스템 창만 막아요.
+        if (closer.onMenuSeen(SystemClock.elapsedRealtime(), reopenScreen)) {
             closeDetail = "pkg=$pkg cls=$cls"
             main.removeCallbacks(tick)
             main.post(tick)
@@ -88,23 +86,32 @@ class PowerGuardService : AccessibilityService() {
     }
 
     /**
-     * 삼성 전원 메뉴는 버튼을 누르고 있는 동안 '뒤로', '홈'을 무시해요(ISS-060). 그래서 메뉴가 사라질 때까지
-     * 처음엔 뒤로(+시스템 대화 닫기 신호), 그 뒤 [PowerMenuCloser.RETRY_MILLIS]마다 홈을 보내요.
-     * 닫히면 울리는 중이나 미션 중일 때 울림 화면을 다시 맨 앞으로 가져와요. 쉬는 중에는 메뉴만 닫아요.
+     * 삼성 전원 메뉴는 버튼을 누르고 있는 동안 '뒤로', '홈'을 무시해요(ISS-060). 그래서 홈 → 뒤로 3번을 한 바퀴로
+     * 울림 화면이 초점을 되찾을 때까지 되풀이해요(순서와 시간은 [PowerMenuCloser]). 쉬는 중에는 메뉴만 닫아요.
+     * 기록은 바퀴 끝(Reopen, Wait)과 마지막(Done, GiveUp), 그리고 실패한 누름만 남겨요.
      */
     private fun closeStep() {
         if (!guarding) {
             closer.stop()
             return
         }
-        val action = closer.next(SystemClock.elapsedRealtime())
-        val ok = when (action) {
-            PowerMenuCloser.Action.Back -> closeSystemDialogs().let { performGlobalAction(GLOBAL_ACTION_BACK) }
-            PowerMenuCloser.Action.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
-            PowerMenuCloser.Action.Done, PowerMenuCloser.Action.GiveUp -> !reopenScreen || reopenRingScreen()
+        val step = closer.next(SystemClock.elapsedRealtime(), ringFocus.focused)
+        val ok = when (step.action) {
+            PowerMenuCloser.Action.Home -> closeSystemDialogs().let { performGlobalAction(GLOBAL_ACTION_HOME) }
+            PowerMenuCloser.Action.Back -> performGlobalAction(GLOBAL_ACTION_BACK)
+            PowerMenuCloser.Action.Reopen -> reopenRingScreen()
+            PowerMenuCloser.Action.Wait, PowerMenuCloser.Action.Done -> true
+            // 끝까지 초점이 안 돌아왔으면 울림 화면을 한 번 더 불러 둬요.
+            PowerMenuCloser.Action.GiveUp -> !reopenScreen || reopenRingScreen()
         }
-        diagnostics.record("power_menu_closed", detail = "$closeDetail step=$action try=${closer.tries} ok=$ok")
-        if (closer.active) main.postDelayed(tick, PowerMenuCloser.RETRY_MILLIS)
+        val press = step.action == PowerMenuCloser.Action.Home || step.action == PowerMenuCloser.Action.Back
+        if (!press || !ok) {
+            diagnostics.record(
+                "power_menu_closed",
+                detail = "$closeDetail step=${step.action} round=${closer.rounds} focus=${ringFocus.focused} ok=$ok",
+            )
+        }
+        if (closer.active) main.postDelayed(tick, step.waitMillis)
     }
 
     /** 안드로이드 12부터 막힌 기종이 많아서 실패해도 넘어가요. */
