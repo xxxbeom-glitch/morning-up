@@ -199,12 +199,12 @@ class RingViewModelTest {
         val vm = viewModel(FakeRingLink(trickSession(), RingScreen.Ringing))
         val listener = vm.trickListener(vm.uiState.value)
         listener.onStart()
-        listener.onEnd(seconds = 7, expired = false)
+        listener.onEnd(seconds = 7)
         assertThat(recorder.events.map { it.event to it.kept }).containsExactly(
             LabLog.TRICK_START to false,
             LabLog.TRICK_END to true,
         ).inOrder()
-        assertThat(recorder.events.last().detail).isEqualTo("seconds=7 expired=false")
+        assertThat(recorder.events.last().detail).isEqualTo("seconds=7")
     }
 
     @Test
