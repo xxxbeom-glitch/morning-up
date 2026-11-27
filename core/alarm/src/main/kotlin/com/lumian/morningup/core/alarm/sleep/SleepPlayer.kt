@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
 import com.lumian.morningup.core.alarm.AlarmScope
+import com.lumian.morningup.core.model.SleepTracks
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +52,11 @@ class SleepPlayer @Inject constructor(
     fun play(trackId: String) {
         val current = mutableState.value
         if (current?.trackId == trackId && current.playing) return
-        mutableState.value = (current?.copy(trackId = trackId, playing = true) ?: SleepPlayback(trackId))
+        mutableState.value = current?.copy(trackId = trackId, playing = true) ?: SleepPlayback(
+            trackId = trackId,
+            timerMinutes = SleepTracks.DEFAULT_TIMER_MINUTES,
+            remainingMillis = SleepTracks.DEFAULT_TIMER_MINUTES * MILLIS_PER_MINUTE,
+        )
         resumeTimer()
         startService()
     }

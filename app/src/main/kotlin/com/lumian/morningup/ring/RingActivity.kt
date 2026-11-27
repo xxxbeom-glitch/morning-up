@@ -32,6 +32,7 @@ import com.lumian.morningup.core.data.session.RingSessionStore
 import com.lumian.morningup.core.designsystem.theme.FitDesignWidth
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.engine.RingEvent
+import com.lumian.morningup.core.model.engine.RingPhase
 import com.lumian.morningup.feature.mission.RingEscapeRoute
 import com.lumian.morningup.feature.mission.RingMissionRoute
 import com.lumian.morningup.feature.ring.RingRoute
@@ -131,6 +132,7 @@ class RingActivity : ComponentActivity() {
                     }
                     loaded.value = true
                 }
+                keepScreenOn(it?.phase)
             }
         }
         setContent {
@@ -203,6 +205,19 @@ class RingActivity : ComponentActivity() {
                 delay(RESUME_WAIT_MILLIS)
             }
             loaded.value = true
+        }
+    }
+
+    /**
+     * 화면 켜 두기는 울리는 중, 미션 중, W2/W3를 묻는 중에만 걸어요. 쉬는 중, W2/W3 기다림, 끝난 뒤(W1) 화면이 남아 있으면
+     * 풀어서 폰 설정 시간대로 꺼지게 해요(TSK-278, 배터리 점검 5번). 다시 울리면 서비스가 화면을 새로 켜요.
+     */
+    private fun keepScreenOn(phase: RingPhase?) {
+        val keep = phase == RingPhase.Ringing || phase == RingPhase.InMission || phase?.isAsking == true
+        if (keep) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         }
     }
 

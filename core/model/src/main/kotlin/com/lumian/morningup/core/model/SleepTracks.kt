@@ -62,4 +62,7 @@ object SleepTracks {
 
     /** Z2-1 종료 타이머 고르기(분). null은 '끄기'. */
     val TIMER_MINUTES: List<Int?> = listOf(null, 15, 30, 45, 60, 90)
+
+    /** 새로 틀 때 처음 종료 타이머(TSK-278). 잠든 뒤 밤새 재생돼 배터리를 먹지 않게 해요. '끄기'는 사용자가 고를 때만. */
+    const val DEFAULT_TIMER_MINUTES = 30
 }
