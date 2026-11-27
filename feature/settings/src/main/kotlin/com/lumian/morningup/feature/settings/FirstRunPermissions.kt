@@ -319,14 +319,11 @@ private fun FirstRunPermissionRowItem(row: FirstRunPermissionRow, on: Boolean, o
                 modifier = Modifier.size(CheckSize),
             )
         } else {
-            // 버튼 모양(Soft 칠)이지만 줄 전체가 눌려서 따로 누름을 받지 않아요.
+            // 시안 O5: 파란 글자만. 줄 전체가 눌려서 따로 누름을 받지 않아요.
             Text(
                 text = stringResource(R.string.first_run_perm_set),
                 style = MorningTheme.typography.bodySmallStrong,
                 color = colors.primaryText,
-                modifier = Modifier
-                    .background(colors.primarySubtle, RoundedCornerShape(MorningDimens.radiusButton))
-                    .padding(horizontal = MorningDimens.space12, vertical = MorningDimens.space8),
             )
         }
     }

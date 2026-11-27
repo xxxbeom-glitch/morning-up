@@ -42,11 +42,11 @@ class FirstRunAlarmScreenTest {
     }
 
     @Test
-    fun backgroundStep_hasPreview_andNoMyPhotoGroup() {
+    fun backgroundStep_previewShowsAlarmTime_andNoMyPhotoGroup() {
         var back = false
         show(FirstRunUiState(step = FirstRunStep.Background), FirstRunActions(onBack = { back = true }))
         compose.onNodeWithText("알람 화면 배경을 골라 주세요").assertExists()
-        compose.onNodeWithText("미션 시작").assertExists()
+        compose.onNodeWithText("07:00").assertExists()
         compose.onNodeWithText("내 사진").assertDoesNotExist()
         compose.onNodeWithContentDescription("뒤로").performClick()
         assertThat(back).isTrue()

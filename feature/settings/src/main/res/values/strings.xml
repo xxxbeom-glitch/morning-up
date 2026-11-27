@@ -135,7 +135,7 @@
     <string name="onboarding_splash_desc" translatable="false">일어나</string>
     <string name="onboarding_skip">건너뛰기</string>
     <!-- 첫 실행 O4-1a 알림 권한 카드, O5 필수 권한 목록(결정 191, docs/plan-11-first-run.md) -->
-    <string name="first_run_notif_title">알람이 울릴 때 화면을 띄우려면 알림 권한이 필요해요</string>
+    <string name="first_run_notif_title">알람이 울릴 때 화면을 띄우려면\n알림 권한이 필요해요</string>
     <string name="first_run_notif_desc">허용하지 않으면 소리만 나고 해제 화면이 안 뜰 수 있어요</string>
     <string name="first_run_perm_title">알람이 제때 울리도록\n아래 권한을 켜 주세요</string>
     <string name="first_run_perm_alarm">알람</string>

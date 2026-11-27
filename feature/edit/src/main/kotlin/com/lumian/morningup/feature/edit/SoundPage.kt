@@ -138,7 +138,7 @@ fun SoundPage(
 
 /** 언더라인 탭 줄. 누르면 그 묶음으로 스크롤하고, 지금 보이는 묶음의 탭이 켜져요. */
 @Composable
-private fun GroupTabs(groups: List<RingtoneGroup>, headerIndexes: List<Int>, listState: LazyListState) {
+internal fun GroupTabs(groups: List<RingtoneGroup>, headerIndexes: List<Int>, listState: LazyListState) {
     val colors = MorningTheme.colors
     val scope = rememberCoroutineScope()
     // 탭을 누른 묶음. 끝 쪽 묶음은 맨 위까지 못 올라가서, 손으로 넘기기 전까지는 누른 탭을 켜 둬요.

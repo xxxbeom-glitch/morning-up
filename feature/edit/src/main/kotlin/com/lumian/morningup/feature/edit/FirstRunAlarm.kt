@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,7 +25,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -41,17 +44,21 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.AlarmClock
 import com.composables.icons.lucide.ChevronLeft
 import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.alarm.ring.RingtonePreviewer
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningIconButton
+import com.lumian.morningup.core.designsystem.component.MorningMissionCheck
 import com.lumian.morningup.core.designsystem.component.MorningRadioRow
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -63,11 +70,7 @@ import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.ui.AlarmBackground
 import com.lumian.morningup.core.ui.AlarmBackgrounds
-import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.BackgroundGroup
-import com.lumian.morningup.core.ui.alarmResources
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 /** O4-4 타일 순서(기획 O4-4). */
@@ -331,34 +334,26 @@ private fun ColumnScope.BackgroundStep(alarm: Alarm, onSelect: (String?) -> Unit
     }
 }
 
-/** 울림 화면 작은 미리보기: 고른 배경 위에 날짜, 시각, '미션 시작'. */
+/** 울림 화면 작은 미리보기(시안 O4-2): 폰 모양 칸에 고른 배경과 알람 시각만 보여 줘요. */
 @Composable
 private fun RingPreview(bg: AlarmBackground, alarm: Alarm, modifier: Modifier = Modifier) {
-    val resources = alarmResources()
     val ink = remember(bg.darkText) {
         if (bg.darkText) lightMorningColors().textPrimary else darkMorningColors().textPrimary
     }
-    val date = remember { LocalDate.now().format(DateTimeFormatter.ofPattern("M월 d일 EEEE", Locale.KOREAN)) }
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(PreviewHeight)
-            .clip(RoundedCornerShape(MorningDimens.radiusTile))
-            .background(Brush.verticalGradient(listOf(bg.top, bg.bottom))),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(text = date, style = MorningTheme.typography.bodySmall, color = ink)
-        Text(text = AlarmText.time(resources, alarm.time), style = MorningTheme.typography.displayMedium, color = ink)
-        Spacer(Modifier.height(MorningDimens.space8))
-        Text(
-            text = stringResource(R.string.first_run_preview_mission),
-            style = MorningTheme.typography.bodySmallStrong,
-            color = ink,
+    Box(modifier = modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(
             modifier = Modifier
-                .background(ink.copy(alpha = PILL_ALPHA), RoundedCornerShape(MorningDimens.radiusButton))
-                .padding(horizontal = MorningDimens.space16, vertical = MorningDimens.space8),
-        )
+                .size(width = PreviewWidth, height = PreviewHeight)
+                .clip(RoundedCornerShape(MorningDimens.radiusTile))
+                .background(Brush.verticalGradient(listOf(bg.top, bg.bottom))),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = String.format(Locale.ROOT, "%02d:%02d", alarm.time.hour, alarm.time.minute),
+                style = MorningTheme.typography.bodyMediumStrong,
+                color = ink,
+            )
+        }
     }
 }
 
@@ -369,15 +364,24 @@ private fun ColumnScope.SoundStep(selectedId: String, onSelect: (String) -> Unit
     val previewer = remember(context) { RingtonePreviewer(context.applicationContext) }
     DisposableEffect(previewer) { onDispose { previewer.stop() } }
     val selected = Ringtones.find(selectedId).id
+    val groups = Ringtones.groups
+    val listState = rememberLazyListState()
+    val headerIndexes = remember(groups) {
+        groups.runningFold(0) { index, group -> index + 1 + group.ringtones.size }.dropLast(1)
+    }
+    // 시안 O4-3: 알람 편집 '알람음'과 같은 묶음 탭 줄.
+    GroupTabs(groups = groups, headerIndexes = headerIndexes, listState = listState)
     LazyColumn(
+        state = listState,
         modifier = Modifier.weight(1f),
         contentPadding = PaddingValues(
             start = MorningDimens.space24,
             end = MorningDimens.space24,
+            top = MorningDimens.space24,
             bottom = MorningDimens.space16,
         ),
     ) {
-        Ringtones.groups.forEachIndexed { index, group ->
+        groups.forEachIndexed { index, group ->
             item(key = "group-${group.name}") {
                 Text(
                     text = group.name,
@@ -416,17 +420,6 @@ private fun ColumnScope.MissionStep(state: FirstRunUiState, onSelect: (MissionTy
         ),
         verticalArrangement = Arrangement.spacedBy(MorningDimens.space8),
     ) {
-        item(key = "none") {
-            MorningRadioRow(
-                label = stringResource(R.string.first_run_mission_none),
-                selected = state.mission == null,
-                onClick = { onSelect(null) },
-                modifier = Modifier
-                    .testTag(FIRST_RUN_MISSION_NONE_TAG)
-                    .background(colors.backgroundElevated, RoundedCornerShape(MorningDimens.radiusTile))
-                    .padding(horizontal = MorningDimens.space16),
-            )
-        }
         items(FIRST_RUN_MISSIONS, key = { it.name }) { type ->
             val usable = type != MissionType.ShakeShake || state.shakeAvailable
             Box {
@@ -448,11 +441,66 @@ private fun ColumnScope.MissionStep(state: FirstRunUiState, onSelect: (MissionTy
                 }
             }
         }
+        // 시안 O4-4: '미션 없이'는 맨 아래 카드. 고르면 연한 파랑 칠과 체크 원이에요.
+        item(key = "none") {
+            NoMissionCard(selected = state.mission == null, onClick = { onSelect(null) })
+        }
     }
 }
 
-private const val PILL_ALPHA = 0.16f
+@Composable
+private fun NoMissionCard(selected: Boolean, onClick: () -> Unit) {
+    val colors = MorningTheme.colors
+    val typography = MorningTheme.typography
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(FIRST_RUN_MISSION_NONE_TAG)
+            .semantics { this.selected = selected }
+            .morningClickable(role = Role.Button, onClick = onClick)
+            .background(
+                if (selected) colors.primarySubtle else colors.backgroundElevated,
+                RoundedCornerShape(MorningDimens.radiusTile),
+            )
+            .padding(MorningDimens.space16),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(NoMissionThumb)
+                .background(colors.backgroundElevated, RoundedCornerShape(MorningDimens.space12)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Lucide.AlarmClock,
+                contentDescription = null,
+                tint = colors.primaryDefault,
+                modifier = Modifier.size(MorningDimens.space24),
+            )
+        }
+        Spacer(Modifier.width(MorningDimens.space16))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.first_run_mission_none),
+                style = typography.bodyMediumStrong,
+                color = colors.textPrimary,
+            )
+            Spacer(Modifier.height(MorningDimens.space4))
+            Text(
+                text = stringResource(R.string.first_run_mission_none_desc),
+                style = typography.bodySmall,
+                color = colors.textSecondary,
+            )
+        }
+        Spacer(Modifier.width(MorningDimens.space12))
+        MorningMissionCheck(selected = selected)
+    }
+}
+
+private val NoMissionThumb = 56.dp
+
 private val TopRowHeight = 56.dp
 private val SideSlot = 88.dp
 private val ProgressHeight = 4.dp
-private val PreviewHeight = 180.dp
+private val PreviewWidth = 96.dp
+private val PreviewHeight = 132.dp

@@ -182,10 +182,10 @@
     <string name="first_run_sound_title">어떤 소리로 깨워 드릴까요?</string>
     <string name="first_run_mission_title">알람을 해제할 미션을 골라 주세요</string>
     <string name="first_run_mission_none">미션 없이</string>
+    <string name="first_run_mission_none_desc">버튼을 눌러 알람을 해제해요</string>
     <string name="first_run_mission_no_sensor">이 폰에서는 쓸 수 없는 미션이에요</string>
     <string name="first_run_next">다음</string>
     <string name="first_run_done">완료</string>
     <string name="first_run_skip">건너뛰기</string>
     <string name="first_run_progress">%1$d / %2$d 단계</string>
-    <string name="first_run_preview_mission">미션 시작</string>
 </resources>
