@@ -125,6 +125,7 @@ class SettingsScreensTest {
         report: PermissionReport,
         samsung: Boolean,
         exactAlarm: Boolean = false,
+        onOpenSupport: (() -> Unit)? = null,
         onOpen: (AlarmPermission) -> Unit = {},
     ) {
         compose.setContent {
@@ -136,9 +137,25 @@ class SettingsScreensTest {
                     onOpen = onOpen,
                     onOpenSamsungSleep = {},
                     showExactAlarm = exactAlarm,
+                    onOpenSupport = onOpenSupport,
                 )
             }
         }
+    }
+
+    /** TSK-294: T2 맨 아래 '그래도 알람이 안 울리면 문의하기'. 길이 없으면 줄도 없어요. */
+    @Test
+    fun page_bottomSupportRow_opensSupport() {
+        var opened = 0
+        setPage(report(AlarmPermission.Battery), samsung = false, onOpenSupport = { opened++ })
+        compose.onNodeWithText("그래도 알람이 안 울리면 문의하기").performScrollTo().performClick()
+        assertThat(opened).isEqualTo(1)
+    }
+
+    @Test
+    fun page_withoutSupport_hidesSupportRow() {
+        setPage(report(AlarmPermission.Battery), samsung = false)
+        compose.onNodeWithText("그래도 알람이 안 울리면 문의하기").assertDoesNotExist()
     }
 
     @Test
