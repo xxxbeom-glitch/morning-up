@@ -28,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
@@ -135,7 +136,8 @@ internal fun TimeInputField(
                 },
                 singleLine = true,
                 textStyle = typography.displayMedium.copy(color = colors.primaryText, textAlign = TextAlign.Center),
-                cursorBrush = SolidColor(colors.primaryDefault),
+                // 드럼롤을 눌러 숫자를 고칠 때 깜박이는 커서를 보이지 않아요(TSK-253). 입력 중은 글자색(primary/text)으로 알려요.
+                cursorBrush = SolidColor(Color.Transparent),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.NumberPassword,
                     imeAction = if (field == TimeField.Hour) ImeAction.Next else ImeAction.Done,
