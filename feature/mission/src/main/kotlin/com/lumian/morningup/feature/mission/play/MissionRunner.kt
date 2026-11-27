@@ -38,7 +38,8 @@ data class MissionFeedback(
 /**
  * 지금 하는 미션 한 판의 화면 상태.
  * 틀리면 약 1초(결정 93) 틀린 모습을 그대로 보여 줘요. 그동안 [Math.hold], [Quiz.hold]는 틀리기 직전 판,
- * [Drop.wrongInput]은 틀린 글자예요. 화면은 이 값이 있으면 그것을 그리고, 그동안 누르는 것은 무시해요.
+ * [Drop.wrongInput]은 틀린 글자예요. 화면은 이 값이 있으면 그것을 그려요. 그동안 Quick Math, Pop Quiz는 누르는 것을
+ * 무시하지만, Drop Words는 바로 다음 글자를 칠 수 있어요(누르면 빨간 글자를 지우고 새 글자를 넣어요, TSK-252).
  */
 sealed interface MissionPlay {
     val type: MissionType
@@ -195,8 +196,7 @@ class MissionRunner(
 
     fun dropKey(syllable: String, nowMillis: Long): Outcome {
         val game = drop ?: return Outcome.Ignored
-        val current = play as MissionPlay.Drop
-        if (current.holding) return Outcome.Ignored
+        val current = released(play as MissionPlay.Drop)
         val (next, result) = game.type(current.game, syllable, nowMillis)
         play = when (result) {
             is DropInput.Correct ->
@@ -205,10 +205,18 @@ class MissionRunner(
                 current.copy(game = next, feedback = feedback(FeedbackKind.Finished, word = hit(current, result.word)))
             DropInput.Wrong -> dropWrong(current, next, current.game.input + syllable, nowMillis)
             DropInput.Typing -> current.copy(game = next)
-            DropInput.Ignored -> return Outcome.Ignored
+            DropInput.Ignored -> {
+                // 틀린 글자를 보이는 중에 무시된 키여도 빨간 글자는 지워요.
+                if (current !== play) play = current
+                return Outcome.Ignored
+            }
         }
         return if (result is DropInput.Finished) Outcome.Finished else Outcome.Interacted
     }
+
+    /** 틀린 글자를 보이는 중이면 빨간 글자를 지운 판. 게임 쪽 입력은 이미 비어 있어서 바로 다음 글자를 받아요. */
+    private fun released(current: MissionPlay.Drop): MissionPlay.Drop =
+        if (current.holding) current.copy(wrongInput = null) else current
 
     private fun hit(current: MissionPlay.Drop, text: String): FallingWord? =
         current.game.words.filter { it.text == text }.minByOrNull { it.spawnedAt }
@@ -226,8 +234,8 @@ class MissionRunner(
 
     fun dropDelete(): Outcome {
         val game = drop ?: return Outcome.Ignored
-        val current = play as MissionPlay.Drop
-        if (current.finished || current.holding) return Outcome.Ignored
+        val current = released(play as MissionPlay.Drop)
+        if (current.finished) return Outcome.Ignored
         play = current.copy(game = game.delete(current.game))
         return Outcome.Interacted
     }

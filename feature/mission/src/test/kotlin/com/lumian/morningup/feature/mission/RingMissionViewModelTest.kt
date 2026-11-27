@@ -132,6 +132,23 @@ class RingMissionViewModelTest {
     }
 
     @Test
+    fun dropWords_afterWrong_nextKeyIsTypedRightAway() = runTest {
+        val link = FakeRingLink(session(drop))
+        val vm = viewModel(link)
+        val word = (vm.play() as MissionPlay.Drop).game.words.single().text
+        val wrong = (vm.play() as MissionPlay.Drop).game.keypad.first { !word.startsWith(it) }
+        vm.onDropKey(wrong)
+        assertThat((vm.play() as MissionPlay.Drop).wrongInput).isEqualTo(wrong)
+        // TSK-252: 1초를 기다리지 않고 바로 다음 글자가 들어가요.
+        vm.onDropKey(word.first().toString())
+        val typed = vm.play() as MissionPlay.Drop
+        assertThat(typed.wrongInput).isNull()
+        assertThat(typed.game.input).isEqualTo(word.first().toString())
+        word.drop(1).forEach { vm.onDropKey(it.toString()) }
+        assertThat((vm.play() as MissionPlay.Drop).game.correct).isEqualTo(1)
+    }
+
+    @Test
     fun dropWords_frameMovesTime_wordReachesFloorWithoutPenalty() = runTest {
         val vm = viewModel(FakeRingLink(session(drop)))
         val first = (vm.play() as MissionPlay.Drop).game.words.single()
