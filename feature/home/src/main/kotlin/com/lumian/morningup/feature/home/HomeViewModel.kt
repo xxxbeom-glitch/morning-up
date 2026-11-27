@@ -116,6 +116,7 @@ data class HomeUiState(
 }
 
 /** 알람 탭 홈(H0, H1, H3, H5~H8). */
+@Suppress("TooManyFunctions")
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val book: AlarmBook,
@@ -153,6 +154,9 @@ class HomeViewModel @Inject constructor(
 
     /** 홈 띠 '확인하기'. W3를 지금 열어요. */
     fun openRecheck() = checks.openRecheck()
+
+    /** 홈 W2, W3 기다림 띠 '해제'. W4 재확인 해제 화면을 열어요(TSK-266). */
+    fun openRelease() = checks.openRelease()
 
     /** 쉬는 중 띠를 눌렀어요. 쉬는 중 알림과 같이 울림 화면을 열어요(결정 165). */
     fun openRest() = checks.openRest()
@@ -269,6 +273,18 @@ class HomeViewModel @Inject constructor(
 
     /** 홈이 앞으로 나올 때. 날씨가 오래됐으면 새로 받아요. */
     fun refreshWeather() = weatherSource.refresh()
+
+    init {
+        // W4로 재확인을 해제하고 홈에 오면 '재확인을 해제했어요'를 한 번 띄워요(TSK-266).
+        viewModelScope.launch {
+            checks.releaseNotice.collect { released ->
+                if (released) {
+                    checks.consumeReleaseNotice()
+                    showChecksStopped()
+                }
+            }
+        }
+    }
 
     /** 편집 화면에서 저장하고 돌아왔어요(H6 토스트). 남은 확인을 멈췄으면([checksStopped]) 그 토스트예요. */
     fun onAlarmSaved(id: Long, checksStopped: Boolean = false, restReleased: Boolean = false) {

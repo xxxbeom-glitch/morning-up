@@ -366,6 +366,65 @@ class AlarmWiringTest {
     }
 
     @Test
+    fun release_duringWakeCheckWait_opensW4_andEndsAllChecks() = runTest {
+        val sessions = sessionStore(tmp.newFile("r1.preferences_pb").also { it.delete() })
+        val settings = InMemoryWakeCheckSettingsStore(
+            WakeCheckSettings(askAfterMinutes = 3, answerSeconds = 60, lab = LabSettings(recheckEnabled = true)),
+        )
+        val runner = RecordingRunner()
+        val controller = RingController(sessions, FakeAlarms(checkAlarm), runner, now, settings)
+        controller.fire(3)
+        controller.send(RingEvent.MissionStarted)
+        controller.send(RingEvent.MissionCompleted)
+        assertThat(controller.session.value!!.phase).isEqualTo(RingPhase.AwaitingWakeCheck)
+
+        // 홈 띠 '해제'나 알림 '재확인 해제'를 누르면 W4가 열려요. X로 닫으면 기다림이 그대로예요.
+        assertThat(controller.openRelease()).isTrue()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.Release)
+        controller.closeRelease()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+        assertThat(controller.session.value!!.phase).isEqualTo(RingPhase.AwaitingWakeCheck)
+
+        // 10초를 다 누르면 W2, W3 모두 끝나고 홈 토스트 표시가 남아요.
+        controller.openRelease()
+        assertThat(controller.release()).isTrue()
+        assertThat(controller.session.value).isNull()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.None)
+        assertThat(controller.releaseNotice.value).isTrue()
+        controller.consumeReleaseNotice()
+        assertThat(controller.releaseNotice.value).isFalse()
+        assertThat(runner.effects).contains(RingEffect.SessionEnded(3, RingOutcome.Cancelled))
+    }
+
+    @Test
+    fun release_whileW4Open_switchesToWakeCheckWhenWaitEnds() = runTest {
+        val sessions = sessionStore(tmp.newFile("r2.preferences_pb").also { it.delete() })
+        val settings = InMemoryWakeCheckSettingsStore(WakeCheckSettings(askAfterMinutes = 3, answerSeconds = 60))
+        val controller = RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now, settings)
+        controller.fire(3)
+        controller.send(RingEvent.MissionStarted)
+        controller.send(RingEvent.MissionCompleted)
+        controller.openRelease()
+        clock += 3 * 60_000L
+        controller.send(RingEvent.TimerFired(TimerKind.WakeCheckAsk))
+        // 기다림이 끝나면 W4가 W2로 바뀌어요. 이때 다시 '해제'를 눌러도 W2를 그대로 보여 줘요.
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
+        assertThat(controller.openRelease()).isTrue()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.WakeCheck)
+    }
+
+    @Test
+    fun release_whileRinging_doesNothing() = runTest {
+        val sessions = sessionStore(tmp.newFile("r3.preferences_pb").also { it.delete() })
+        val controller = RingController(sessions, FakeAlarms(checkAlarm), RecordingRunner(), now)
+        controller.fire(3)
+        assertThat(controller.openRelease()).isFalse()
+        assertThat(controller.screen.value).isEqualTo(RingScreen.Ringing)
+        assertThat(controller.release()).isFalse()
+        assertThat(controller.session.value).isNotNull()
+    }
+
+    @Test
     fun openRecheckEarly_withoutRecheck_doesNothing() = runTest {
         val sessions = sessionStore(tmp.newFile("i.preferences_pb").also { it.delete() })
         val controller = RingController(sessions, FakeAlarms(mathAlarm), RecordingRunner(), now)

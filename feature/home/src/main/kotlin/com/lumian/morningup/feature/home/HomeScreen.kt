@@ -153,7 +153,7 @@ fun HomeRoute(
         onUndo = viewModel::undoDelete,
         onDismissMessage = viewModel::dismissMessage,
         modifier = modifier,
-        banner = withStatusBanner(status, viewModel::openRecheck, viewModel::openRest, banner),
+        banner = withStatusBanner(status, viewModel::openRelease, viewModel::openRest, banner),
         extra = HomeExtraActions(
             onRestOnce = viewModel::restOnce,
             onAllOff = viewModel::turnAllOff,

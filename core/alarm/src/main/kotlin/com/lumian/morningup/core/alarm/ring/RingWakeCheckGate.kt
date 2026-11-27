@@ -22,12 +22,13 @@ class RingWakeCheckGate @Inject constructor(
     private val controller: RingController,
     private val screenIntent: RingScreenIntentFactory,
 ) : WakeCheckGate {
+    // W3를 기다리는 동안은 늘 띠를 보여요. 미리 하나 끝냈어도 '해제'로 W4를 열 수 있어요(TSK-266).
     override val recheckPending: Flow<Boolean> = controller.session
-        .map { it?.canFinishEarly == true }
+        .map { it?.phase == RingPhase.AwaitingRecheck }
         .distinctUntilChanged()
 
     override val recheckLeft: Flow<Int?> = controller.session
-        .map { session -> session?.takeIf { it.canFinishEarly }?.checksLeft }
+        .map { session -> session?.takeIf { it.phase == RingPhase.AwaitingRecheck }?.checksLeft }
         .distinctUntilChanged()
 
     override fun isActive(alarmId: Long): Boolean = controller.session.value?.plan?.alarmId == alarmId
@@ -77,6 +78,18 @@ class RingWakeCheckGate @Inject constructor(
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }
+
+    override fun openRelease() {
+        if (!controller.openRelease()) return
+        val intent = screenIntent.create(context)
+            .putExtra(RingNotifications.EXTRA_OPEN_RELEASE, true)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+
+    override val releaseNotice: Flow<Boolean> = controller.releaseNotice
+
+    override fun consumeReleaseNotice() = controller.consumeReleaseNotice()
 
     private companion object {
         /** 그 알람 카드를 막는 단계(결정 165): 울리는 중, 쉬는 중, 미션 중. */

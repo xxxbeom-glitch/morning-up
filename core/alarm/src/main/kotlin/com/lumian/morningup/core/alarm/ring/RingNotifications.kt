@@ -284,24 +284,32 @@ class RingNotifications @Inject constructor(
         if (wakeCheckAt != null) {
             builder.setWhen(wakeCheckAt).setShowWhen(true).setUsesChronometer(true).setChronometerCountDown(true)
         }
+        // W2 기다림에는 '재확인 해제' 버튼을 달아 W4를 열어요(TSK-266). 본문을 누르면 앱 홈 그대로예요.
+        if (phase == RingPhase.AwaitingWakeCheck) builder.addReleaseAction()
         return builder.build()
     }
 
+    /** W4 재확인 해제 화면을 여는 길(TSK-266). 알림에서 바로 끝내지 않고 10초 누르기 화면을 거쳐요. */
+    private fun releasePendingIntent(): PendingIntent = PendingIntent.getActivity(
+        context,
+        REQUEST_RELEASE_OPEN,
+        screenIntent.create(context).putExtra(EXTRA_OPEN_RELEASE, true),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
+
+    private fun NotificationCompat.Builder.addReleaseAction(): NotificationCompat.Builder =
+        addAction(0, text(R.string.recheck_release_action), releasePendingIntent())
+
     /** 지금부터 [atMillis]까지 남은 분(올림, 최소 1). */
     private fun minutesUntil(atMillis: Long): Int =
-        ((atMillis - System.currentTimeMillis() + 59_999L) / 60_000L).toInt().coerceAtLeast(1)
+        ((atMillis - System.currentTimeMillis() + MINUTE_MILLIS - 1) / MINUTE_MILLIS).toInt().coerceAtLeast(1)
 
     /**
-     * W2 '깼어요' 뒤 W3를 기다리는 동안의 조용한 알림(결정 145 9번). 제목은 '오전 6:43에 한 번 더 물어볼게요',
-     * 줄어드는 시계를 달고, 동작 버튼은 없어요. 누르면 W3를 바로 열어 지금 끝낼 수 있어요.
+     * W2 '일어났어요' 뒤 W3를 기다리는 동안의 조용한 알림(결정 145 9번). 제목은 '오전 6:43에 재수면 여부를 재확인할게요',
+     * 줄어드는 시계를 달아요. 본문과 동작 버튼 '재확인 해제' 모두 W4를 열어요(TSK-266).
      */
     private fun recheckWaiting(askAt: Long?): Notification {
-        val open = PendingIntent.getActivity(
-            context,
-            2,
-            screenIntent.create(context).putExtra(EXTRA_OPEN_RECHECK, true),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
+        val open = releasePendingIntent()
         val title = askAt?.let { context.getString(R.string.recheck_waiting_title, clock12(it)) }
             ?: text(R.string.ring_text_recheck_waiting)
         val builder = NotificationCompat.Builder(context, CHANNEL_WAITING)
@@ -313,6 +321,7 @@ class RingNotifications @Inject constructor(
             .setOngoing(true)
             .setSilent(true)
             .setContentIntent(open)
+            .addReleaseAction()
         if (askAt != null) {
             builder.setWhen(askAt).setShowWhen(true).setUsesChronometer(true).setChronometerCountDown(true)
         }
@@ -321,29 +330,22 @@ class RingNotifications @Inject constructor(
 
     /**
      * 여러 번 묻기의 W3 기다림 알림(결정 146 3절). 묻는 때가 무작위라 시각과 줄어드는 시계를 달지 않아요.
-     * 제목 '곧 한 번 더 물어볼게요', 본문 '남은 확인 2번. 눌러서 지금 하나 끝낼 수 있어요'.
-     * 이번 기다림에 이미 하나 미리 끝냈으면 본문은 남은 수만 적고, 누르면 앱 홈을 열어요(한 번에 하나만).
+     * 제목 '곧 재수면 여부를 재확인할게요', 본문 '남은 재확인 2번. 완전히 일어나셨으면 재확인을 해제해주세요'.
+     * 본문과 동작 버튼 '재확인 해제' 모두 W4를 열어요(TSK-266). 해제하면 남은 재확인이 모두 끝나요.
      */
     private fun multiRecheckWaiting(notice: RecheckNotice): Notification {
-        val target = if (notice.canFinishEarly) {
-            screenIntent.create(context).putExtra(EXTRA_OPEN_RECHECK, true)
-        } else {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)
-        }
-        val open = target?.let {
-            PendingIntent.getActivity(context, 2, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        }
-        val body = if (notice.canFinishEarly) R.string.recheck_multi_waiting_text else R.string.recheck_multi_left
+        val open = releasePendingIntent()
         return NotificationCompat.Builder(context, CHANNEL_WAITING)
             .setSmallIcon(R.drawable.ic_alarm_clock)
             .setContentTitle(text(R.string.recheck_multi_waiting_title))
-            .setContentText(context.getString(body, notice.left))
+            .setContentText(context.getString(R.string.recheck_multi_waiting_text, notice.left))
             .setCategory(NotificationCompat.CATEGORY_STATUS)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setOngoing(true)
             .setSilent(true)
             .setShowWhen(false)
             .setContentIntent(open)
+            .addReleaseAction()
             .build()
     }
 
@@ -549,6 +551,9 @@ class RingNotifications @Inject constructor(
         /** W3 기다림 알림이나 홈 띠를 눌러 W3를 미리 열었다는 표시(결정 145). */
         const val EXTRA_OPEN_RECHECK = "open_recheck"
 
+        /** 홈 띠 '해제'나 기다림 알림 '재확인 해제'로 W4 재확인 해제 화면을 열어요(TSK-266). */
+        const val EXTRA_OPEN_RELEASE = "open_release"
+
         /** 미션 비상구 알림을 눌러 M5 '미션 포기'를 열어요(결정 171). */
         const val EXTRA_OPEN_ESCAPE = "open_escape"
         const val RING_NOTIFICATION_ID = 1
@@ -568,6 +573,8 @@ class RingNotifications @Inject constructor(
         private const val REQUEST_ESCAPE_OPEN = 50
         private const val REQUEST_ESCAPE_DISMISSED = 51
         private const val REQUEST_MISSED_OPEN = 52
+        private const val REQUEST_RELEASE_OPEN = 53
+        private const val MINUTE_MILLIS = 60_000L
 
         /** 놓친 알람과 강제 종료 알림 묶음 이름. 울림 알림과 따로 보이게 해요(TSK-222). */
         private const val GROUP_MISSED = "missed"
