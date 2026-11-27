@@ -1206,3 +1206,16 @@
 {"at": "2026-11-27 11:05:06", "by": "Leader", "id": "TSK-253", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-28", "2026-11-27"]}}
 {"at": "2026-11-27 11:05:07", "by": "[QA 5]", "id": "TSK-278", "action": "comment", "changes": {"comments": [null, ["Z플립5(56545f7): 화면 켜 두기 통과. 미션 중 RingActivity fl=81810180(KEEP_SCREEN_ON 있음), 미션 포기로 W1(AwaitingWakeCheck) 넘어가자 fl=81810100(빠짐), W2 묻는 중 다시 81810180. 잠들기 소리 '30분 남음' 칩은 BuildConfig.SLEEP_LOUNGE=false라 수면 탭이 없어 폰 확인 불가, SleepTimerDefaultTest 통과"]]}}
 {"at": "2026-11-27 11:05:12", "by": "Leader", "id": "ISS-060", "action": "set", "changes": {"owner": [null, "[개발 27]"]}}
+{"at": "2026-11-27 11:06:32", "by": "Leader", "id": "TSK-280", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:33", "by": "Leader", "id": "TSK-219", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-28", "2026-11-27"]}}
+{"at": "2026-11-27 11:06:35", "by": "Leader", "id": "TSK-220", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-28", "2026-11-27"]}}
+{"at": "2026-11-27 11:06:36", "by": "Leader", "id": "TSK-245", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:37", "by": "Leader", "id": "TSK-249", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:37", "by": "Leader", "id": "TSK-264", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:39", "by": "Leader", "id": "TSK-279", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:40", "by": "Leader", "id": "TSK-281", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:41", "by": "Leader", "id": "TSK-290", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:43", "by": "Leader", "id": "TSK-291", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:44", "by": "Leader", "id": "TSK-278", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 11:06:47", "by": "Leader", "id": "TSK-245", "action": "comment", "changes": {"comments": [null, ["TSK-279(결정 186, 188)로 대체"]]}}
+{"at": "2026-11-27 11:06:50", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 26]", "[개발 29]"]}}
