@@ -43,7 +43,7 @@ class RingScreensTest {
         ringing(hasMissions = true) { pressed = true }
         compose.onNodeWithText("11월 16일 월요일").assertExists()
         compose.onNodeWithText("오전 6:30").assertExists()
-        compose.onNodeWithText("알람 끄기").assertDoesNotExist()
+        compose.onNodeWithText("알람 해제").assertDoesNotExist()
         compose.onNodeWithText("미션 시작").performClick()
         assertThat(pressed).isTrue()
     }
@@ -51,7 +51,7 @@ class RingScreensTest {
     @Test
     fun ringing_withoutMissions_showsDismiss() {
         ringing(hasMissions = false)
-        compose.onNodeWithText("알람 끄기").assertExists()
+        compose.onNodeWithText("알람 해제").assertExists()
         compose.onNodeWithText("미션 시작").assertDoesNotExist()
     }
 
@@ -95,9 +95,9 @@ class RingScreensTest {
     fun wakeCheck_showsCountdown_andHoldTenSecondsConfirms() {
         var awake = false
         wakeCheck { awake = true }
-        compose.onNodeWithText("깨어 있나요?").assertExists()
+        compose.onNodeWithText("일어나셨죠?").assertExists()
         compose.onNodeWithText("0:42").assertExists()
-        compose.onNodeWithText("시간 안에 하지 않으면 알람이 다시 울려요").assertExists()
+        compose.onNodeWithText("시간 안에 누르지 않으면 알람이 다시 울려요").assertExists()
         // 톡백처럼 두 번 탭하면 10초에 걸쳐 저절로 차요.
         compose.onNodeWithTag(HOLD_BUTTON_TAG).performSemanticsAction(SemanticsActions.OnClick)
         compose.mainClock.advanceTimeBy(5_000)
@@ -128,8 +128,8 @@ class RingScreensTest {
     @Test
     fun recheck_showsTitle_andHidesClockWhenOpenedEarly() {
         wakeCheck(recheck = true, remaining = null)
-        compose.onNodeWithText("정말 깼어요?").assertExists()
-        compose.onNodeWithText("시간 안에 하지 않으면 알람이 다시 울려요").assertDoesNotExist()
+        compose.onNodeWithText("아직 깨어 계시죠?").assertExists()
+        compose.onNodeWithText("시간 안에 누르지 않으면 알람이 다시 울려요").assertDoesNotExist()
     }
 
     @Test
@@ -146,7 +146,7 @@ class RingScreensTest {
             }
         }
         compose.onNodeWithText("확인했어요").assertExists()
-        compose.onNodeWithText("3분 뒤 한 번 더 물어볼게요").assertExists()
+        compose.onNodeWithText("3분 뒤 재수면 여부를 재확인할게요").assertExists()
     }
 
     @Test

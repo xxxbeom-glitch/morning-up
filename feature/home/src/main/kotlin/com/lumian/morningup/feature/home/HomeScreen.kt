@@ -98,6 +98,7 @@ import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.designsystem.theme.morningShadow
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.ui.AlarmText
+import com.lumian.morningup.core.ui.WeekStart
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 import java.time.LocalTime
@@ -747,7 +748,7 @@ private fun DaysRow(days: Set<DayOfWeek>, ringsToday: Boolean) {
                 color = color,
             )
         } else {
-            DayOfWeek.entries.filter { it in days }.forEach { day ->
+            WeekStart.rememberDays().filter { it in days }.forEach { day ->
                 Text(text = AlarmText.dayShort(res, day), style = style, color = color)
             }
         }

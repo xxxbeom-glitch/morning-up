@@ -75,7 +75,7 @@ class LabPageTest {
         showPage()
         compose.onNodeWithText("Crazy Mode").assertExists()
         compose.onNodeWithText("확실히 잠깨기").assertDoesNotExist()
-        compose.onNodeWithText("울릴 때 버튼이 움직여요").assertExists()
+        compose.onNodeWithText("꺼짐").assertExists()
         compose.onNodeWithText("여러 번 묻기").assertDoesNotExist()
         compose.onNodeWithText("톡백 같은 접근성 기능을 쓰는 중에는 움직이는 버튼이 자동으로 꺼져요.").assertExists()
     }

@@ -22,11 +22,11 @@
     <!-- M2 Pop Quiz 분야 이름은 core/ui ui_quiz_category_* (TSK-284) -->
 
     <!-- M4 Shake Shake -->
-    <string name="mission_shake_guide">폰을 세게 흔들어요</string>
-    <string name="mission_drop_placeholder">떨어지는 단어를 입력해요</string>
+    <string name="mission_shake_guide">스마트폰을 흔들어주세요</string>
+    <string name="mission_drop_placeholder">쏟아지는 단어를 입력해요</string>
     <!-- M5 미션 포기(결정 171, 172, 시안 1149:15007) -->
     <string name="escape_screen_idle">%1$d초 안에 쓰지 않으면 미션으로 돌아가요</string>
-    <string name="escape_screen_guide">문장을 그대로 따라 쓰면 알람이 꺼져요</string>
+    <string name="escape_screen_guide">문장을 그대로 따라 쓰면 알람이 해제돼요</string>
     <string name="escape_screen_retry">다시 미션 수행하기</string>
     <string name="escape_screen_input">따라 쓰는 칸</string>
 </resources>

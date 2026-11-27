@@ -75,7 +75,7 @@ class EditScreenTest {
         // 다시 울림은 페이지 대신 S3 시트가 열려요(결정 78).
         compose.onNodeWithText("다시 울림").performSemanticsAction(SemanticsActions.OnClick)
         assertThat(opened).isNull()
-        compose.onNodeWithText("못 들으면 쉬었다 다시 울려요").assertExists()
+        compose.onNodeWithText("해제하지 않고 두면 저절로 다시 울려요").assertExists()
     }
 
     @Test
@@ -101,7 +101,7 @@ class EditScreenTest {
         compose.mainClock.advanceTimeBy(1_000)
         // 결정 180: 다시 잠들기 방지 줄 글자를 누르면 S4 시트가 열려요(시안 TSK-226).
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
-        compose.onNodeWithText("알람을 끈 뒤 깼는지 한 번 더 물어요").assertExists()
+        compose.onNodeWithText("알람 해제 후 재수면 여부를 재확인해요").assertExists()
         compose.onNodeWithText("10분 후").performClick()
         assertThat(ask).isEqualTo(10)
     }
@@ -171,7 +171,8 @@ class EditScreenTest {
         compose.onNodeWithText("알람 사운드").assertExists()
         compose.onNodeWithText("알람 화면 배경").assertDoesNotExist()
         compose.onNodeWithText("80%, 진동").performScrollTo().performClick()
-        compose.onNodeWithText("소리 크기와 울리는 방식을 정해요").assertExists()
+        // 시트 제목 '볼륨'이 줄 이름과 함께 두 곳에 보여요(설명 글은 TSK-285로 뺌).
+        assertThat(compose.onAllNodesWithText("볼륨").fetchSemanticsNodes().size).isEqualTo(2)
         compose.onNodeWithText("10초").performClick()
         assertThat(gentle).isEqualTo(10)
         compose.onNodeWithText("안 함").performClick()
@@ -212,7 +213,7 @@ class EditScreenTest {
         assertThat(removed).containsExactly(MissionType.ShakeShake)
         // 빈 칸 → S1-1 미션 추가 시트. 이미 넣은 미션 줄은 누를 수 없고, 다른 줄은 시트를 닫고 설정 시트를 열어요.
         compose.onNodeWithTag("${MISSION_SLOT_TAG}Empty2").performClick()
-        compose.onNodeWithText("알람을 끌 때 풀 미션을 하나 골라요").assertExists()
+        compose.onNodeWithText("미션 추가").assertExists()
         compose.onNodeWithTag("${MISSION_PICK_ROW_TAG}QuickMath").assertIsNotEnabled()
         compose.onNodeWithTag("${MISSION_PICK_ROW_TAG}PopQuiz").assertIsEnabled().performClick()
         assertThat(opened).containsExactly(MissionType.QuickMath, MissionType.PopQuiz).inOrder()
@@ -264,8 +265,8 @@ class EditScreenTest {
     @Test
     fun missionPage_noMission_showsDescriptions_andShakeDisabledWithoutSensor() {
         show(EditUiState(loading = false, detail = EditDetail.Mission, shakeAvailable = false))
-        compose.onNodeWithText("떨어지는 단어를 입력해요").assertExists()
-        compose.onNodeWithText("상식 퀴즈를 맞혀요").assertExists()
+        compose.onNodeWithText("비처럼 쏟아지는 단어를 캐치해요").assertExists()
+        compose.onNodeWithText("다양한 분야의 랜덤 퀴즈").assertExists()
         compose.onNodeWithTag("${MISSION_CARD_TAG}DropWords").assertIsEnabled()
         compose.onNodeWithTag("${MISSION_CARD_TAG}ShakeShake").assertIsNotEnabled()
     }

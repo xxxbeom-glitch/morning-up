@@ -66,7 +66,7 @@ class EscapeNotificationTest {
         assertThat(posted.extras.getCharSequence(NotificationCompat.EXTRA_TITLE).toString())
             .isEqualTo("미션을 못 하겠으면")
         assertThat(posted.extras.getCharSequence(NotificationCompat.EXTRA_TEXT).toString())
-            .isEqualTo("여기를 누르고 문장을 따라 쓰면 미션 없이 알람이 꺼져요")
+            .isEqualTo("여기를 누르고 문장을 따라 쓰면 미션 없이 알람이 해제돼요")
         val opened = shadowOf(posted.contentIntent).savedIntent
         assertThat(opened.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false)).isTrue()
     }

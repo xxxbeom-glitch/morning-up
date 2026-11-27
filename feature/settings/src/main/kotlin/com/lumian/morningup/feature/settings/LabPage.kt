@@ -363,7 +363,7 @@ private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit
     }
 }
 
-/** T3 '움직이는 버튼' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 1250ms'(결정 190으로 시간 제한 없음). */
+/** T3 '움직이는 버튼' 둘째 줄: 꺼지면 '꺼짐', 켜면 '속도 1250ms'(결정 190으로 시간 제한 없음). */
 @Composable
 private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(
@@ -371,7 +371,7 @@ private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
         stringResource(R.string.settings_lab_speed_ms, lab.trickSpeed.millis),
     )
 } else {
-    stringResource(R.string.settings_lab_trick_off)
+    stringResource(R.string.settings_lab_off)
 }
 
 /** T3-1: 빠르기 ms 숫자 칸과 설명(결정 181), '미리 해보기', '완료'. */

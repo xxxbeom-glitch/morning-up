@@ -287,7 +287,6 @@ fun GentlePage(
     DetailPage(
         title = stringResource(R.string.edit_gentle),
         onBack = onBack,
-        help = stringResource(R.string.edit_gentle_help),
         modifier = modifier,
     ) {
         MorningSettingsCard(title = stringResource(R.string.edit_gentle_title)) {

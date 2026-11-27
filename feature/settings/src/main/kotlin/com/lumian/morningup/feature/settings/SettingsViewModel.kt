@@ -8,12 +8,14 @@ import com.lumian.morningup.core.alarm.NextAlarmNotice
 import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.guard.PowerGuardConsent
 import com.lumian.morningup.core.alarm.ring.AlarmDndOverride
+import com.lumian.morningup.core.alarm.ring.AlarmOutputRoute
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.PermissionReport
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
+import com.lumian.morningup.core.ui.WeekStart
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalTime
@@ -36,7 +38,27 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val dndOverride: AlarmDndOverride? = null,
     private val nextAlarmNotice: NextAlarmNotice? = null,
+    private val outputRoute: AlarmOutputRoute? = null,
 ) : ViewModel() {
+    private val appContext = context.applicationContext
+
+    private val _weekMonday = MutableStateFlow(WeekStart.isMonday(appContext))
+
+    /** 설정 > 알람 '한 주 시작 요일'. false면 일요일(처음 값), true면 월요일(TSK-287). */
+    val weekMonday: StateFlow<Boolean> = _weekMonday.asStateFlow()
+
+    fun setWeekMonday(monday: Boolean) {
+        WeekStart.setMonday(appContext, monday)
+        _weekMonday.value = monday
+    }
+
+    /** 설정 > 소리 '이어폰, 블루투스로 울리기'. 처음 꺼짐(TSK-287). */
+    val externalOutput: StateFlow<Boolean> = outputRoute?.enabled ?: MutableStateFlow(false)
+
+    fun setExternalOutput(on: Boolean) {
+        outputRoute?.setEnabled(on)
+    }
+
     /** 설정 탭 '다음 알람 늘 보이기' 토글(결정 179). 처음 꺼짐. */
     val nextAlarmShown: StateFlow<Boolean> = nextAlarmNotice?.enabled ?: MutableStateFlow(false)
 

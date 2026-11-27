@@ -57,7 +57,7 @@ class HomeScreenTest {
         compose.onNodeWithText("첫 알람을 만들어 볼까요?").assertExists()
         compose.onNodeWithContentDescription("알람 추가").assertDoesNotExist()
         compose.onNodeWithText("11월 16일 (월)").assertExists()
-        compose.onNodeWithText("알람 만들기").performClick()
+        compose.onNodeWithText("알람 생성").performClick()
         assertThat(added).isTrue()
     }
 
@@ -150,7 +150,7 @@ class HomeScreenTest {
             ),
             onLongPress = { longPressed = it },
         )
-        compose.onNodeWithContentDescription("7시간 20분 후, 알림이 울립니다").assertExists()
+        compose.onNodeWithContentDescription("7시간 20분 후 알람이 울려요").assertExists()
         compose.onNodeWithText("11월 17일 (화) 오전 6:30").assertExists()
         compose.onNodeWithContentDescription("오전 6:30, 한 번").performTouchInput { longClick() }
         assertThat(longPressed).isEqualTo(alarm)

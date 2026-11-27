@@ -172,7 +172,6 @@ private fun EmptySlot(index: Int, onClick: () -> Unit, modifier: Modifier) {
 internal fun MissionPickSheetContent(state: EditUiState, onPick: (MissionType) -> Unit) {
     MorningSheetHeader(
         title = stringResource(R.string.edit_mission_add_title),
-        description = stringResource(R.string.edit_mission_add_desc),
         modifier = Modifier.padding(top = MorningDimens.space8, bottom = MorningDimens.space8),
     )
     Column {

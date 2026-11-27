@@ -44,27 +44,81 @@ class SettingsScreensTest {
     }
 
     @Test
-    fun t1_oneRow_partialWhenOneRequiredOff_andOpensPermissionPage() {
+    fun t1_requiredOff_needsAttention_andOpensPermissionPage() {
         var opened = false
         setT1(report(AlarmPermission.Overlay)) { opened = true }
-        compose.onNodeWithText("일부 허용됨").assertExists()
-        compose.onNodeWithText("알람 울림").assertDoesNotExist()
-        compose.onNodeWithText("알람 화면 표시").assertDoesNotExist()
+        compose.onNodeWithText("확인이 필요해요").assertExists()
         compose.onNodeWithText("1.0.0").assertExists()
-        compose.onNodeWithText("권한").performClick()
+        compose.onNodeWithText("권한 점검").performClick()
         assertThat(opened).isTrue()
     }
 
     @Test
-    fun t1_optionalOff_stillGranted() {
+    fun t1_optionalOff_noValue() {
         setT1(report(AlarmPermission.Battery, AlarmPermission.Location, AlarmPermission.AlarmVolume))
-        compose.onNodeWithText("허용됨").assertExists()
+        compose.onNodeWithText("확인이 필요해요").assertDoesNotExist()
     }
 
     @Test
-    fun t1_allRequiredOff_none() {
-        setT1(report(AlarmPermission.Notifications, AlarmPermission.FullScreen, AlarmPermission.Overlay))
-        compose.onNodeWithText("허용 안 됨").assertExists()
+    fun t1_silenced_needsAttention() {
+        setT1(report().copy(alarmsSilenced = true))
+        compose.onNodeWithText("확인이 필요해요").assertExists()
+    }
+
+    /** TSK-287: 카드 8개 묶음 이름과 새 줄. 개인정보 처리방침은 주소가 없으면 숨겨요. */
+    @Test
+    fun t1_groupsAndNewRows() {
+        setT1(report())
+        listOf("알람이 잘 울리게", "알람", "소리", "미션 중", "화면", "도움", "앱 정보").forEach {
+            compose.onNodeWithText(it).assertExists()
+        }
+        compose.onNodeWithText("방해 금지 모드에서 허용하기").assertExists()
+        compose.onNodeWithText("한 주 시작 요일").assertExists()
+        compose.onNodeWithText("일요일").assertExists()
+        compose.onNodeWithText("이어폰, 블루투스로 울리기").assertExists()
+        compose.onNodeWithText("문의하기").assertExists()
+        compose.onNodeWithText("개인정보 처리방침").assertDoesNotExist()
+    }
+
+    @Test
+    fun t1_weekStartSheet_picksMonday() {
+        var monday: Boolean? = null
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                SettingsScreen(
+                    report = report(),
+                    versionName = "1.0.0",
+                    tryAlarmAt = null,
+                    onOpenPermissions = {},
+                    onTryAlarm = {},
+                    onFeedback = {},
+                    onWeekMonday = { monday = it },
+                )
+            }
+        }
+        compose.onNodeWithText("한 주 시작 요일").performScrollTo().performClick()
+        compose.onNodeWithText("월요일").performClick()
+        assertThat(monday).isTrue()
+    }
+
+    @Test
+    fun t1_privacyRow_whenUrlGiven() {
+        var opened = false
+        compose.setContent {
+            MorningTheme(darkTheme = false, reduceMotion = true) {
+                SettingsScreen(
+                    report = report(),
+                    versionName = "1.0.0",
+                    tryAlarmAt = null,
+                    onOpenPermissions = {},
+                    onTryAlarm = {},
+                    onFeedback = {},
+                    onPrivacy = { opened = true },
+                )
+            }
+        }
+        compose.onNodeWithText("개인정보 처리방침").performScrollTo().performClick()
+        assertThat(opened).isTrue()
     }
 
     private fun setPage(

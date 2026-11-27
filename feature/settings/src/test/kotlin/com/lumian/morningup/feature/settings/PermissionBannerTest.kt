@@ -28,7 +28,7 @@ class PermissionBannerTest {
     @Test
     fun silenced_showsMoreCount_andView() {
         show(PermissionBanner.AlarmsSilenced, more = 2)
-        compose.onNodeWithText("방해 금지가 알람 소리를 막아요").assertExists()
+        compose.onNodeWithText("방해 금지 모드가 알람 소리를 막아요").assertExists()
         compose.onNodeWithText("'알람' 허용을 켜 주세요. 그 밖에 2개 더").assertExists()
         compose.onNodeWithText("보기").performClick()
         assertThat(clicks).isEqualTo(1)

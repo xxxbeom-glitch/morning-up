@@ -44,6 +44,7 @@ class AlarmSoundPlayer @Inject constructor(
     private val calls: CallMonitor,
     private val volumeGuard: AlarmVolumeGuard,
     private val dnd: AlarmDndOverride,
+    private val route: AlarmOutputRoute,
 ) {
     private var requested: SoundOutput? = null
     private var volumeHeld = false
@@ -60,6 +61,9 @@ class AlarmSoundPlayer @Inject constructor(
     val isPlaying: Boolean get() = player != null || tone != null
 
     private var soundId: String? = null
+
+    /** 이 알람에서 다시 울림 사이에 쉰 횟수. 이어폰, 블루투스 길을 정할 때 써요([AlarmOutputRoute]). */
+    private var restsDone = 0
     private var pattern: VibrationPattern = VibrationPattern.Basic
 
     /** S7 부드럽게 깨우기: 소리를 처음 켠 때와 끝까지 올리는 데 걸리는 시간. 0이면 바로 제 볼륨이에요. */
@@ -84,8 +88,10 @@ class AlarmSoundPlayer @Inject constructor(
         soundId: String? = null,
         pattern: VibrationPattern = VibrationPattern.Basic,
         gentleSeconds: Int = 0,
+        restsDone: Int = 0,
     ) {
         if (player == null && tone == null) {
+            this.restsDone = restsDone
             if (!volumeHeld) {
                 volumeHeld = true
                 dnd.hold()
@@ -175,6 +181,7 @@ class AlarmSoundPlayer @Inject constructor(
             diagnostics.record("sound_failed")
             startTone()
         }
+        created?.let { route.apply(it, restsDone) }
         player = created
         return created
     }

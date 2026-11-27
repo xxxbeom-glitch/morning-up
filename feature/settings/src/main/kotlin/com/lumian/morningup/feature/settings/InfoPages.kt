@@ -102,12 +102,6 @@ fun LicensesPage(onBack: () -> Unit, modifier: Modifier = Modifier) {
                     style = MorningTheme.typography.titleMedium,
                     color = colors.textPrimary,
                 )
-                Spacer(Modifier.height(MorningDimens.space4))
-                Text(
-                    stringResource(R.string.licenses_desc),
-                    style = MorningTheme.typography.bodySmall,
-                    color = colors.textSecondary,
-                )
             }
             NavRows {
                 Licenses.forEach { (name, license, url) ->
@@ -118,29 +112,100 @@ fun LicensesPage(onBack: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/** 자주 묻는 질문. 앱 안에서 접었다 펴는 목록이에요(design-system T1). */
+/** FAQ 답 아래 글자 버튼이 여는 곳(plan-11-faq 1절). */
+enum class FaqTarget { None, Permissions, DndGuide }
+
+private data class FaqItem(val question: Int, val answer: Int, val target: FaqTarget = FaqTarget.None)
+
+private val FaqNotRinging = listOf(
+    FaqItem(R.string.faq_a1_q, R.string.faq_a1_a, FaqTarget.Permissions),
+    FaqItem(R.string.faq_a2_q, R.string.faq_a2_a, FaqTarget.DndGuide),
+    FaqItem(R.string.faq_a3_q, R.string.faq_a3_a, FaqTarget.Permissions),
+    FaqItem(R.string.faq_a4_q, R.string.faq_a4_a, FaqTarget.Permissions),
+    FaqItem(R.string.faq_a5_q, R.string.faq_a5_a, FaqTarget.Permissions),
+    FaqItem(R.string.faq_a6_q, R.string.faq_a6_a, FaqTarget.Permissions),
+    FaqItem(R.string.faq_a7_q, R.string.faq_a7_a),
+    FaqItem(R.string.faq_a8_q, R.string.faq_a8_a),
+    FaqItem(R.string.faq_a9_q, R.string.faq_a9_a),
+)
+
+private val FaqPermissions = listOf(
+    FaqItem(R.string.faq_b1_q, R.string.faq_b1_a),
+    FaqItem(R.string.faq_b2_q, R.string.faq_b2_a),
+    FaqItem(R.string.faq_b3_q, R.string.faq_b3_a),
+    FaqItem(R.string.faq_b4_q, R.string.faq_b4_a),
+    FaqItem(R.string.faq_b5_q, R.string.faq_b5_a),
+    FaqItem(R.string.faq_b6_q, R.string.faq_b6_a, FaqTarget.DndGuide),
+    FaqItem(R.string.faq_b7_q, R.string.faq_b7_a),
+    FaqItem(R.string.faq_b8_q, R.string.faq_b8_a),
+)
+
+private val FaqFeatures = listOf(
+    FaqItem(R.string.faq_c1_q, R.string.faq_c1_a),
+    FaqItem(R.string.faq_c2_q, R.string.faq_c2_a),
+    FaqItem(R.string.faq_c3_q, R.string.faq_c3_a),
+    FaqItem(R.string.faq_c4_q, R.string.faq_c4_a),
+    FaqItem(R.string.faq_c5_q, R.string.faq_c5_a),
+    FaqItem(R.string.faq_c6_q, R.string.faq_c6_a),
+    FaqItem(R.string.faq_c7_q, R.string.faq_c7_a),
+)
+
+/**
+ * T6 자주 묻는 질문(피그마 `1209:30595`, TSK-288). 세 묶음(알람이 울리지 않을 때, 권한, 기능) 24개.
+ * 권한과 관계있는 답 아래에는 '권한 화면 열기'(T2), 방해 금지 답에는 T2-1 글자 버튼이 있어요.
+ * 맨 아래 '답을 못 찾았어요'는 문의하기로 가요.
+ */
 @Composable
-fun FaqPage(onBack: () -> Unit, modifier: Modifier = Modifier) {
-    val items = listOf(
-        R.string.faq_q1 to R.string.faq_a1,
-        R.string.faq_q2 to R.string.faq_a2,
-        R.string.faq_q3 to R.string.faq_a3,
-        R.string.faq_q4 to R.string.faq_a4,
-        R.string.faq_q5 to R.string.faq_a5,
-        R.string.faq_q6 to R.string.faq_a6,
-        R.string.faq_q7 to R.string.faq_a7,
-    )
+fun FaqPage(
+    onBack: () -> Unit,
+    modifier: Modifier = Modifier,
+    onOpenPermissions: () -> Unit = {},
+    onOpenDndGuide: () -> Unit = {},
+    onNotFound: () -> Unit = {},
+) {
+    val open: (FaqTarget) -> Unit = { target ->
+        when (target) {
+            FaqTarget.Permissions -> onOpenPermissions()
+            FaqTarget.DndGuide -> onOpenDndGuide()
+            FaqTarget.None -> Unit
+        }
+    }
     InfoFrame(stringResource(R.string.settings_faq), onBack, modifier) {
-        MorningSettingsCard(title = stringResource(R.string.faq_card)) {
-            Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
-                items.forEach { (q, a) -> Fold(title = stringResource(q), body = stringResource(a)) }
+        Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space24)) {
+            FaqGroup(stringResource(R.string.faq_group_not_ringing), FaqNotRinging, open)
+            FaqGroup(stringResource(R.string.faq_group_permissions), FaqPermissions, open)
+            FaqGroup(stringResource(R.string.faq_group_features), FaqFeatures, open)
+            MorningSettingsCard(title = null) {
+                NavRows { NavRow(label = stringResource(R.string.faq_not_found), onClick = onNotFound) }
             }
         }
     }
 }
 
 @Composable
-private fun Fold(title: String, body: String) {
+private fun FaqGroup(title: String, items: List<FaqItem>, onOpen: (FaqTarget) -> Unit) {
+    SettingsGroup(title) {
+        MorningSettingsCard(title = null) {
+            Column {
+                items.forEach { item ->
+                    Fold(
+                        title = stringResource(item.question),
+                        body = stringResource(item.answer),
+                        action = when (item.target) {
+                            FaqTarget.Permissions -> stringResource(R.string.faq_open_permissions)
+                            FaqTarget.DndGuide -> stringResource(R.string.faq_open_dnd)
+                            FaqTarget.None -> null
+                        },
+                        onAction = { onOpen(item.target) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Fold(title: String, body: String, action: String? = null, onAction: () -> Unit = {}) {
     var open by rememberSaveable(title) { mutableStateOf(false) }
     val colors = MorningTheme.colors
     Column(Modifier.fillMaxWidth().animateContentSize()) {
@@ -171,6 +236,16 @@ private fun Fold(title: String, body: String) {
                 color = colors.textSecondary,
                 modifier = Modifier.padding(bottom = MorningDimens.space12),
             )
+            if (action != null) {
+                Text(
+                    text = action,
+                    style = MorningTheme.typography.bodySmallStrong,
+                    color = colors.primaryText,
+                    modifier = Modifier
+                        .morningClickable(haptic = null, role = Role.Button, onClick = onAction)
+                        .padding(bottom = MorningDimens.space12),
+                )
+            }
         }
     }
 }

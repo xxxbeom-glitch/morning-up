@@ -157,7 +157,7 @@ class MissionHostScreenTest {
         val r = runner(MissionSetting(MissionType.ShakeShake, count = 18))
         show(stateOf(r))
         compose.onNodeWithContentDescription("18").assertExists()
-        compose.onNodeWithText("폰을 세게 흔들어요").assertExists()
+        compose.onNodeWithText("스마트폰을 흔들어주세요").assertExists()
         compose.onNodeWithText("정답", substring = true).assertDoesNotExist()
     }
 

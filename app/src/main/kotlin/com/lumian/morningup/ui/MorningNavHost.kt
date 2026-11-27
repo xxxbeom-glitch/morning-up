@@ -44,6 +44,7 @@ import com.lumian.morningup.feature.ring.TrickPreviewRoute
 import com.lumian.morningup.feature.settings.DndGuideRoute
 import com.lumian.morningup.feature.settings.FaqPage
 import com.lumian.morningup.feature.settings.LabRoute
+import com.lumian.morningup.feature.settings.SupportRoute
 import com.lumian.morningup.feature.settings.LicensesPage
 import com.lumian.morningup.feature.settings.PermissionBanner
 import com.lumian.morningup.feature.settings.PermissionRoute
@@ -73,6 +74,10 @@ data object FaqRoute
 /** T5 오픈소스 라이선스. */
 @Serializable
 data object LicensesRoute
+
+/** T7 문의하기 임시판(TSK-289). 서버 전이라 바로 T7-1 쓰기예요. */
+@Serializable
+data object SupportDestination
 
 /** 미션 확인용 앱 첫 화면(11-20 사용자 지시). */
 @Serializable
@@ -244,6 +249,7 @@ fun MorningNavHost(
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
                         onOpenLab = { navController.navigate(LabDestination) { launchSingleTop = true } },
                         onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
+                        onOpenSupport = { navController.navigate(SupportDestination) { launchSingleTop = true } },
                     )
                 },
                 sleepTab = { tabModifier ->
@@ -317,7 +323,17 @@ fun MorningNavHost(
                 onBack = { navController.popBackStack() },
             )
         }
-        composable<FaqRoute> { FaqPage(onBack = { navController.popBackStack() }) }
+        composable<FaqRoute> {
+            FaqPage(
+                onBack = { navController.popBackStack() },
+                onOpenPermissions = { navController.navigate(PermissionsRoute) { launchSingleTop = true } },
+                onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
+                onNotFound = { navController.navigate(SupportDestination) { launchSingleTop = true } },
+            )
+        }
+        composable<SupportDestination> {
+            SupportRoute(versionName = BuildConfig.VERSION_NAME, onBack = { navController.popBackStack() })
+        }
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
         composable<EditRoute> {
             AlarmEditRoute(

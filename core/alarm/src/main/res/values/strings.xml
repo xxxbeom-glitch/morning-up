@@ -11,58 +11,59 @@
     <string name="sleep_pause">일시정지</string>
     <string name="sleep_stop">끄기</string>
     <string name="channel_missed">놓친 알람</string>
-    <string name="channel_missed_description">끄지 못하고 지나간 알람을 알려요</string>
+    <string name="channel_missed_description">해제하지 못하고 지나간 알람을 알려요</string>
 
     <!-- 울리는 중 알림 -->
-    <string name="ring_title">알람이 울리고 있어요</string>
+    <string name="ring_title">예정된 시간이 됐어요</string>
     <string name="resting_title">알람이 잠시 멈췄어요</string>
-    <string name="waiting_title">미션을 마쳤어요</string>
+    <string name="waiting_title">예정된 알람을 해제했어요</string>
     <string name="channel_status">알람 울리는 중</string>
-    <string name="channel_status_description">알람이 울리는 동안 알림창에 조용히 보여 줘요</string>
-    <string name="channel_waiting">알람 기다림</string>
-    <string name="channel_waiting_description">쉬는 중이거나 깨어 있는지 물어보기 전에 조용히 보여 줘요</string>
-    <string name="ring_text_ringing">눌러서 알람을 꺼요</string>
+    <string name="channel_status_description">알람이 울리는 동안 알림 패널에 조용히 보여줘요</string>
+    <string name="channel_waiting">재확인 기다림</string>
+    <string name="channel_waiting_description">다시 울리기 전이나 재수면 여부를 재확인하기 전에 조용히 보여줘요</string>
+    <string name="ring_text_ringing">눌러서 알람을 해제하세요</string>
     <string name="ring_text_mission">미션을 하고 있어요</string>
     <string name="ring_text_resting">잠시 뒤 다시 울려요</string>
     <!-- 쉬는 중 알림(결정 70). %1$s는 다시 울리는 시각(예: 8:30)이에요. 누르면 울림 화면이 열려요. -->
-    <string name="ring_text_resting_at">%1$s에 다시 울려요. 눌러서 지금 끌 수 있어요</string>
+    <string name="ring_text_resting_at">%1$s에 다시 울려요. 눌러서 지금 해제할 수 있어요</string>
     <!-- 쉬기 시작할 때 토스트. %1$d는 분, %2$d는 다음 울림 번째 -->
     <string name="rest_toast_numbered">%1$d분 뒤 %2$d번째 알람이 울려요</string>
     <string name="rest_toast">%1$d분 뒤 알람이 다시 울려요</string>
     <!-- 미루는 동안 알림(결정 195, 문구표 3-6절 69, 70). %1$s는 다시 울리는 시각(예: 오전 6:35)이에요. -->
     <string name="snoozed_title">알람을 미뤘어요</string>
     <string name="snoozed_text">%1$s에 다시 울려요. 눌러서 지금 미션을 할 수 있어요</string>
-    <string name="ring_text_waiting">잠시 뒤 깨어 있는지 물어볼게요</string>
+    <string name="ring_text_waiting">%1$d분 뒤 재수면 여부를 재확인할게요</string>
     <!-- W2 깨어 있나요: 울림과 같은 전체 화면 알림으로 띄워요 -->
-    <string name="wake_check_title">깨어 있나요?</string>
-    <string name="ring_text_wake_check">깨어 있나요? \'깼어요\'를 10초 동안 꾹 눌러 주세요</string>
+    <string name="wake_check_title">일어나셨죠?</string>
+    <string name="ring_text_wake_check">일어나셨죠? 버튼을 10초간 눌러주세요</string>
     <!-- W3 정말 깼어요(결정 145) -->
-    <string name="recheck_title">정말 깼어요?</string>
-    <string name="ring_text_recheck">\'깼어요\'를 10초 동안 꾹 눌러 주세요</string>
-    <string name="ring_text_recheck_waiting">잠시 뒤 한 번 더 물어볼게요</string>
+    <string name="recheck_title">아직 깨어 계시죠?</string>
+    <string name="ring_text_recheck">버튼을 10초간 눌러주세요</string>
+    <string name="ring_text_recheck_waiting">잠시 뒤 재수면 여부를 재확인할게요</string>
     <!-- W3 기다림 알림. %1$s는 묻는 시각(예: 오전 6:43) -->
-    <string name="recheck_waiting_title">%1$s에 한 번 더 물어볼게요</string>
-    <string name="recheck_waiting_text">정말 깼으면 눌러서 지금 끝낼 수 있어요</string>
+    <string name="recheck_waiting_title">%1$s에 재수면 여부를 재확인할게요</string>
+    <string name="recheck_waiting_text">완전히 일어나셨으면 재확인을 해제해주세요</string>
+    <string name="recheck_release_action">재확인 해제</string>
     <!-- 실험실 여러 번 묻기(결정 146): 무작위라 시각을 적지 않아요 -->
-    <string name="recheck_multi_waiting_title">곧 한 번 더 물어볼게요</string>
-    <string name="recheck_multi_waiting_text">남은 확인 %1$d번. 눌러서 지금 하나 끝낼 수 있어요</string>
-    <string name="recheck_multi_left">남은 확인 %1$d번</string>
+    <string name="recheck_multi_waiting_title">곧 재수면 여부를 재확인할게요</string>
+    <string name="recheck_multi_waiting_text">남은 재확인 %1$d번. 완전히 일어나셨으면 재확인을 해제해주세요</string>
+    <string name="recheck_multi_left">남은 재확인 %1$d번</string>
     <string name="clock_am">오전 %1$s</string>
     <string name="clock_pm">오후 %1$s</string>
 
     <!-- 놓친 알람 알림 -->
     <string name="missed_title">알람을 놓쳤어요</string>
-    <string name="missed_text_ignored">%1$s 알람을 끄지 않아서 멈췄어요</string>
+    <string name="missed_text_ignored">%1$s 알람을 해제하지 않아서 멈췄어요</string>
     <string name="missed_text_powered_off">%1$s 알람은 폰이 꺼져 있는 동안 지나갔어요</string>
     <string name="missed_text_app_closed">%1$s 알람은 앱이 닫혀 있는 동안 지나갔어요</string>
     <!-- 강제 종료 흔적 (TSK-177 답 6, 시안 N2) -->
     <string name="force_stopped_title">앱이 강제로 닫혀 알람이 꺼져 있었어요</string>
     <string name="force_stopped_text">지금 다시 맞췄어요</string>
     <string name="power_guard_service_label">일어나 전원 종료 방지</string>
-    <string name="power_guard_service_desc">알람이 울리는 동안과 미션을 하는 동안 전원 메뉴가 열리면 바로 닫아요. 화면 내용은 읽거나 저장하지 않아요.</string>
+    <string name="power_guard_service_desc">알람이 울리는 동안 전원 메뉴가 열리면 바로 닫아요. 화면 내용은 읽거나 저장하지 않아요.</string>
     <!-- 다음 알람 늘 보이기 N3(결정 179, 시안 TSK-224) -->
     <string name="channel_next_alarm">다음 알람</string>
-    <string name="channel_next_alarm_description">다음 알람을 알림 창에 늘 띄워 둬요</string>
+    <string name="channel_next_alarm_description">예정된 다음 알람을 알림 패널에 항상 보여줘요</string>
     <!-- 다음 알람 목요일 오전 6:30 -->
     <string name="next_alarm_title">다음 알람 %1$s</string>
     <!-- 목요일 오전 6:30 -->
@@ -81,18 +82,18 @@
     <!-- 밤 9시 내일 알람 점검 (TSK-177 답 5, 시안 N1) -->
     <string name="tomorrow_title_silent">내일 알람이 소리 없이 울릴 수 있어요</string>
     <string name="tomorrow_text_restricted">배터리 사용이 \'제한\'으로 되어 있어요</string>
-    <string name="tomorrow_text_silenced">방해 금지가 알람을 막고 있어요</string>
+    <string name="tomorrow_text_silenced">방해 금지 모드가 알람을 막고 있어요</string>
     <string name="tomorrow_text_low_battery">배터리가 %1$d%% 남았어요. 자기 전에 충전해 주세요</string>
     <string name="tomorrow_more">%1$s. 그 밖에 %2$d개 더</string>
     <!-- 미션 비상구 알림(결정 149~151, TSK-182). 버튼 글 '미션 포기'는 가칭이라 escape_action 하나에만 둬요 -->
     <string name="channel_escape">미션을 못 할 때</string>
-    <string name="channel_escape_description">울림 미션을 할 수 없을 때 문장을 따라 써서 알람을 끄는 알림이에요</string>
+    <string name="channel_escape_description">울림 미션을 할 수 없을 때 문장을 따라 써서 알람을 해제하는 알림이에요</string>
     <string name="escape_title">미션을 못 하겠으면</string>
-    <string name="escape_text">여기를 누르고 문장을 따라 쓰면 미션 없이 알람이 꺼져요</string>
+    <string name="escape_text">여기를 누르고 문장을 따라 쓰면 미션 없이 알람이 해제돼요</string>
     <string name="escape_wrong">조금 달라요. 한 번 더 따라 써 주세요.</string>
     <string name="escape_action">미션 포기</string>
     <string name="escape_hint">띄어쓰기와 마침표까지 똑같이 써 주세요</string>
-    <string name="escape_done">알람을 껐어요</string>
+    <string name="escape_done">알람을 해제했어요</string>
     <!-- 따라 쓸 예문 20개. 띄어쓰기 포함 40~60자, 해요체. 손님이 보는 글이라 가운뎃점과 긴 줄표를 쓰지 않아요 -->
     <string-array name="escape_sentences">
         <item>지금은 미션을 할 수 없어서 알람을 끄지만 내일 아침에는 꼭 제시간에 일어날게요.</item>

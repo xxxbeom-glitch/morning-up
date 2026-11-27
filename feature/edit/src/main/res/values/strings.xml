@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="edit_title">알람 편집</string>
+    <string name="edit_title_new">알람 생성</string>
     <string name="edit_back">뒤로</string>
     <!-- 7시간 20분 후 알림이 울립니다 -->
-    <string name="edit_until">%1$s 후 알림이 울립니다</string>
+    <string name="edit_until">%1$s 후 알람이 울려요</string>
     <string name="edit_period">오전 오후</string>
     <string name="edit_hour">시</string>
     <string name="edit_minute">분</string>
@@ -19,14 +20,13 @@
     <string name="edit_mission">미션 선택</string>
     <string name="edit_preview">미리 해보기</string>
     <string name="edit_mission_add_title">미션 추가</string>
-    <string name="edit_mission_add_desc">알람을 끌 때 풀 미션을 하나 골라요</string>
     <string name="edit_mission_remove">%1$s 빼기</string>
     <string name="edit_ring_again">다시 울림</string>
-    <string name="edit_ring_again_value">%1$d분, %2$d회</string>
+    <string name="edit_ring_again_value">%1$d분, %2$d번</string>
     <string name="edit_ring_again_until_off">%1$d분, 무제한</string>
     <string name="edit_wake_check">다시 잠들기 방지</string>
     <!-- S4 다시 잠들기 방지 시트(결정 180, 시안 TSK-226) -->
-    <string name="edit_wake_check_sheet_desc">알람을 끈 뒤 깼는지 한 번 더 물어요</string>
+    <string name="edit_wake_check_sheet_desc">알람 해제 후 재수면 여부를 재확인해요</string>
     <string name="edit_wake_check_ask">간격</string>
     <string name="edit_recheck">횟수</string>
     <string name="edit_minutes_after">%1$d분 후</string>
@@ -39,7 +39,7 @@
     <string name="edit_wake_check_value">%1$d분 후, 횟수 %2$d번</string>
     <string name="edit_wake_check_value_no_recheck">%1$d분 후</string>
     <string name="edit_power_off">전원 종료 방지</string>
-    <string name="edit_power_off_value">미션 끝날 때까지</string>
+    <string name="edit_power_off_value">해제할 때까지</string>
 
     <string name="edit_card_sound">알람 사운드</string>
     <string name="edit_sound">알람음</string>
@@ -51,13 +51,13 @@
     <string name="edit_background">알람 화면 배경</string>
 
     <string name="edit_save">저장</string>
-    <string name="edit_ringing_blocked">지금 울리는 알람이에요. 울림 화면에서 꺼 주세요</string>
+    <string name="edit_ringing_blocked">지금 울리는 알람이에요. 울림 화면에서 해제해 주세요</string>
 
     <!-- S1-2 미션 고르기 -->
-    <string name="edit_mission_desc_drop_words">떨어지는 단어를 입력해요</string>
-    <string name="edit_mission_desc_pop_quiz">상식 퀴즈를 맞혀요</string>
-    <string name="edit_mission_desc_quick_math">간단한 계산 문제를 풀어요</string>
-    <string name="edit_mission_desc_shake_shake">폰을 세게 흔들어요</string>
+    <string name="edit_mission_desc_drop_words">비처럼 쏟아지는 단어를 캐치해요</string>
+    <string name="edit_mission_desc_pop_quiz">다양한 분야의 랜덤 퀴즈</string>
+    <string name="edit_mission_desc_quick_math">수학 문제를 맞혀요</string>
+    <string name="edit_mission_desc_shake_shake">스마트폰을 흔들어주세요</string>
     <!-- 고른 카드 설명: 1단계, 속도 1, 10문제 (11-19 사용자 결정: Drop Words도 '문제 수') -->
     <string name="edit_mission_value_drop_words">%1$d단계, 속도 %2$d, %3$d문제</string>
     <string name="edit_mission_value_questions">%1$d단계, %2$d문제</string>
@@ -141,28 +141,25 @@
     <string name="edit_ring_again_interval_option">%1$d분</string>
     <string name="edit_ring_again_count_title">횟수</string>
     <string name="edit_ring_again_count_option">%1$d번</string>
-    <string name="edit_ring_again_count_until_off">끌 때까지</string>
-    <string name="edit_ring_again_help">다시 울릴 때도 미션을 풀어야 꺼져요</string>
+    <string name="edit_ring_again_count_until_off">해제할 때까지</string>
+    <string name="edit_ring_again_help">다시 울릴 때도 미션을 풀어야 해제돼요</string>
 
     <!-- S6 볼륨과 진동 -->
     <string name="edit_volume_title">볼륨</string>
-    <string name="edit_volume_sheet_desc">소리 크기와 울리는 방식을 정해요</string>
     <string name="edit_gentle_none">안 함</string>
     <string name="edit_seconds">%1$d초</string>
     <string name="edit_done">완료</string>
-    <string name="edit_ring_again_sheet_desc">못 들으면 쉬었다 다시 울려요</string>
-    <string name="edit_ring_again_count_sheet">%1$d회</string>
+    <string name="edit_ring_again_sheet_desc">해제하지 않고 두면 저절로 다시 울려요</string>
+    <string name="edit_ring_again_count_sheet">%1$d번</string>
     <string name="edit_ring_again_unlimited">무제한</string>
     <string name="edit_volume_percent">%1$d%%</string>
     <string name="edit_vibration_title">진동</string>
-    <string name="edit_vibration_sub">소리와 함께 울려요</string>
     <string name="edit_vibration_basic">기본 진동</string>
     <string name="edit_vibration_short">짧게 여러 번</string>
     <string name="edit_vibration_long">길게 한 번</string>
 
     <!-- S7 부드럽게 깨우기 -->
     <string name="edit_gentle_title">올라가는 시간</string>
-    <string name="edit_gentle_help">설정한 볼륨까지 천천히 올라가요</string>
 
     <!-- S8 알람 화면 배경 -->
     <string name="edit_background_add_photo">내 사진 추가</string>
@@ -171,17 +168,17 @@
 
     <!-- S0-1 저장 안 하고 나가기 -->
     <!-- 저장 때 경고 창 S0-2, S0-3 (TSK-177 답 1, 2, TSK-220 시안) -->
-    <string name="edit_warn_dismiss_title">이대로는 끌 화면이 안 떠요</string>
+    <string name="edit_warn_dismiss_title">이대로는 해제 화면이 안 떠요</string>
     <string name="edit_warn_dismiss_message">알림과 \'다른 앱 위에 표시\'가 꺼져 있어 알람이 울려도 소리만 나요.</string>
     <string name="edit_warn_dismiss_save">그래도 저장</string>
     <string name="edit_warn_dismiss_fix">권한 켜기</string>
-    <string name="edit_warn_silenced_title">방해 금지가 소리를 막고 있어요</string>
-    <string name="edit_warn_silenced_message">방해 금지에서 \'알람\'이 꺼져 있어 알람이 소리 없이 울릴 수 있어요.</string>
+    <string name="edit_warn_silenced_title">방해 금지 모드가 소리를 막고 있어요</string>
+    <string name="edit_warn_silenced_message">방해 금지 모드에서 \'알람\'이 꺼져 있어 알람이 소리 없이 울릴 수 있어요.</string>
     <string name="edit_warn_silenced_save">괜찮아요</string>
     <string name="edit_warn_silenced_fix">설정 열기</string>
     <string name="edit_exit_title">저장하지 않고 나갈까요?</string>
     <string name="edit_exit_message">지금 나가면\n바꾼 내용이 저장되지 않아요.</string>
-    <string name="edit_exit_keep">계속 편집</string>
+    <string name="edit_exit_keep">계속하기</string>
     <string name="edit_exit_leave">나가기</string>
     <string name="edit_off_value">사용 안 함</string>
     <string name="edit_vibration_pattern_title">진동 모양</string>

@@ -73,7 +73,7 @@ class EscapeScreenTest {
     @Test
     fun typing_showsGuideTimeAndGhostSentence_withoutRemovedParts() {
         show(EscapeUiState(sentence = MissionEscape.TEST_SENTENCE))
-        compose.onNodeWithText("문장을 그대로 따라 쓰면 알람이 꺼져요").assertExists()
+        compose.onNodeWithText("문장을 그대로 따라 쓰면 알람이 해제돼요").assertExists()
         compose.onNodeWithTag(MISSION_TIMELINE_TAG).assertExists()
         compose.onNodeWithText("다시 미션 수행하기").assertExists()
         compose.onNodeWithText("미션 포기").assertDoesNotExist()
@@ -99,7 +99,7 @@ class EscapeScreenTest {
             ),
         )
         compose.onNodeWithTag(ESCAPE_BACK_TAG).assertDoesNotExist()
-        compose.onNodeWithText("맞아요. 알람을 껐어요").assertDoesNotExist()
+        compose.onNodeWithText("맞아요. 알람을 해제했어요").assertDoesNotExist()
         compose.onNodeWithTag(ESCAPE_INPUT_TAG).assertIsNotEnabled()
     }
 

@@ -37,9 +37,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.lumian.morningup.core.alarm.PermissionSettings
+import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
+import com.lumian.morningup.core.designsystem.component.MorningDialogSheet
 import com.lumian.morningup.core.designsystem.component.MorningMessageHost
+import com.lumian.morningup.core.designsystem.component.MorningModalSheet
+import com.lumian.morningup.core.designsystem.component.MorningOverlay
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
 import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
+import com.lumian.morningup.core.designsystem.component.MorningSheetHeader
 import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.component.MorningToast
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
@@ -58,12 +63,9 @@ private val NavRowGap = 5.dp
 /** 피그마 T1 두 줄짜리 Setting Row 높이(라벨과 설명, 위아래 7). 편집 화면 줄은 그대로 둬요. */
 internal val SettingsToggleRowHeight = 54.dp
 
-/** 의견 보내기 받는 주소(design-system T1, 11-16 사용자 결정). */
-private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
-
 /**
- * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보, 실험실. 제목은 숨겨요.
- * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
+ * T1 설정(피그마 `1209:28778`, TSK-287). 카드 8개, 카드마다 바깥 위에 작은 묶음 이름을 달아요.
+ * 알람이 잘 울리게, 알람, 소리, 미션 중, 화면, 실험실, 도움, 앱 정보 순서예요.
  * 화면 모드와 시험 알람은 디버그 빌드의 adb 명령으로 바꿔요(docs/qa/README.md). 화면에는 시험용 줄이 없어요(TSK-270).
  */
 @Composable
@@ -76,15 +78,19 @@ fun SettingsRoute(
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     onOpenLab: () -> Unit = {},
     onOpenDndGuide: () -> Unit = {},
+    onOpenSupport: (() -> Unit)? = null,
+    privacyUrl: String? = null,
     labCard: @Composable () -> Unit = { LabCard(onOpen = onOpenLab) },
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
     val tryAt by viewModel.tryAlarmAt.collectAsStateWithLifecycle()
     val powerOn by viewModel.powerGuardEnabled.collectAsStateWithLifecycle()
-    val dndOn by viewModel.dndOverrideEnabled.collectAsStateWithLifecycle()
     val nextShown by viewModel.nextAlarmShown.collectAsStateWithLifecycle()
+    val weekMonday by viewModel.weekMonday.collectAsStateWithLifecycle()
+    val external by viewModel.externalOutput.collectAsStateWithLifecycle()
     var askPowerConsent by rememberSaveable { mutableStateOf(false) }
+    var askExternal by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
     SettingsScreen(
         report = report,
@@ -92,7 +98,7 @@ fun SettingsRoute(
         tryAlarmAt = tryAt,
         onOpenPermissions = onOpenPermissions,
         onTryAlarm = viewModel::tryAlarm,
-        onFeedback = { sendFeedback(context, versionName, report) },
+        onFeedback = onOpenSupport ?: { sendFeedback(context, versionName, report) },
         onFaq = onOpenFaq,
         onLicenses = onOpenLicenses,
         modifier = modifier,
@@ -107,18 +113,16 @@ fun SettingsRoute(
                 askPowerConsent = true
             }
         },
-        // 방해 금지 접근 권한이 있을 때만 켜진 모양이에요. 없으면 켤 때 그 권한 화면으로 보내요(TSK-177 답 3).
+        onDndGuide = onOpenDndGuide,
         nextAlarmShown = nextShown,
         onNextAlarmShown = viewModel::setNextAlarmShown,
-        // 안드로이드 15부터는 앱이 사용자 방해 금지를 풀 수 없어서 켜지 않고 '알람 허용' 안내(T2-1)로 보내요(ISS-057).
-        dndOverride = dndOn && report.isGranted(AlarmPermission.DoNotDisturb) && viewModel.dndOverrideSupported,
-        onDndOverride = { on ->
-            val guide = on && !viewModel.dndOverrideSupported
-            viewModel.setDndOverrideEnabled(on && !guide)
-            if (guide) onOpenDndGuide()
-            if (on && !guide && !report.isGranted(AlarmPermission.DoNotDisturb)) {
-                PermissionSettings.open(context, PermissionSettings.intentFor(context, AlarmPermission.DoNotDisturb))
-            }
+        weekMonday = weekMonday,
+        onWeekMonday = viewModel::setWeekMonday,
+        // 켤 때만 안내 시트를 한 번 띄우고, 끌 때는 바로 꺼요(plan-11-settings-menu 3절).
+        externalOutput = external,
+        onExternalOutput = { on -> if (on) askExternal = true else viewModel.setExternalOutput(false) },
+        onPrivacy = privacyUrl?.let { url ->
+            { PermissionSettings.open(context, Intent(Intent.ACTION_VIEW, url.toUri())) }
         },
     )
     if (askPowerConsent) {
@@ -132,6 +136,15 @@ fun SettingsRoute(
                 askPowerConsent = false
                 viewModel.setPowerGuardEnabled(false)
             },
+        )
+    }
+    if (askExternal) {
+        ExternalOutputSheet(
+            onTurnOn = {
+                viewModel.setExternalOutput(true)
+                askExternal = false
+            },
+            onCancel = { askExternal = false },
         )
     }
 }
@@ -151,11 +164,16 @@ fun SettingsScreen(
     labCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
     onPowerGuard: (Boolean) -> Unit = {},
-    dndOverride: Boolean = false,
-    onDndOverride: (Boolean) -> Unit = {},
+    onDndGuide: () -> Unit = {},
     nextAlarmShown: Boolean = false,
     onNextAlarmShown: (Boolean) -> Unit = {},
+    weekMonday: Boolean = false,
+    onWeekMonday: (Boolean) -> Unit = {},
+    externalOutput: Boolean = false,
+    onExternalOutput: (Boolean) -> Unit = {},
+    onPrivacy: (() -> Unit)? = null,
 ) {
+    var weekSheet by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -171,60 +189,91 @@ fun SettingsScreen(
                     end = MorningDimens.layoutScreenMargin,
                     top = MorningDimens.space16,
                 ),
-                verticalArrangement = Arrangement.spacedBy(MorningDimens.layoutCardGap),
+                verticalArrangement = Arrangement.spacedBy(MorningDimens.space24),
             ) {
-                // 카드 제목은 숨겨요(결정 101). 순서: 알람, 기상 미션, 날씨 애니메이션, 도움말, 앱 정보.
-                MorningSettingsCard(title = null) {
-                    NavRows {
-                        PermissionNavRow(report, onOpenPermissions)
-                        NavRow(
-                            label = stringResource(R.string.settings_alarm_try),
-                            value = stringResource(R.string.settings_alarm_try_value),
-                            onClick = onTryAlarm,
+                SettingsGroup(stringResource(R.string.settings_card_ringing)) {
+                    MorningSettingsCard(title = null) {
+                        NavRows {
+                            PermissionNavRow(report, onOpenPermissions)
+                            NavRow(
+                                label = stringResource(R.string.settings_dnd_override),
+                                desc = stringResource(R.string.settings_dnd_override_desc),
+                                onClick = onDndGuide,
+                            )
+                            NavRow(
+                                label = stringResource(R.string.settings_alarm_try),
+                                value = stringResource(R.string.settings_alarm_try_value),
+                                onClick = onTryAlarm,
+                            )
+                        }
+                    }
+                }
+                SettingsGroup(stringResource(R.string.settings_card_alarm)) {
+                    MorningSettingsCard(title = null) {
+                        NavRows {
+                            NavRow(
+                                label = stringResource(R.string.settings_week_start),
+                                value = stringResource(
+                                    if (weekMonday) R.string.settings_week_start_mon else R.string.settings_week_start_sun,
+                                ),
+                                onClick = { weekSheet = true },
+                            )
+                        }
+                        // '다음 알람 항상 표시'(결정 179, 시안 TSK-224). 처음 꺼짐.
+                        MorningSettingRow(
+                            label = stringResource(R.string.settings_next_alarm),
+                            value = stringResource(R.string.settings_next_alarm_desc),
+                            state = if (nextAlarmShown) SettingRowState.On else SettingRowState.Off,
+                            onCheckedChange = onNextAlarmShown,
+                            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
                         )
                     }
-                    // 알람 카드 맨 아래 '다음 알람 늘 보이기'(결정 179, 시안 TSK-224). 처음 꺼짐.
-                    MorningSettingRow(
-                        label = stringResource(R.string.settings_next_alarm),
-                        value = stringResource(R.string.settings_next_alarm_desc),
-                        state = if (nextAlarmShown) SettingRowState.On else SettingRowState.Off,
-                        onCheckedChange = onNextAlarmShown,
-                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
-                    )
                 }
-                // 깼는지 묻기 값은 알람마다라 알람 편집 S4 시트에 있어요(결정 180, 시안 TSK-226).
-                MorningSettingsCard(title = null) {
-                    MorningSettingRow(
-                        label = stringResource(R.string.settings_power_guard),
-                        value = stringResource(R.string.settings_power_guard_desc),
-                        state = if (powerGuard) SettingRowState.On else SettingRowState.Off,
-                        onCheckedChange = onPowerGuard,
-                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
-                    )
-                    MorningSettingRow(
-                        label = stringResource(R.string.settings_dnd_override),
-                        value = stringResource(R.string.settings_dnd_override_desc),
-                        state = if (dndOverride) SettingRowState.On else SettingRowState.Off,
-                        onCheckedChange = onDndOverride,
-                        modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
-                    )
-                }
-                weatherCard()
-                MorningSettingsCard(title = null) {
-                    NavRows {
-                        NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
-                        NavRow(label = stringResource(R.string.settings_feedback), onClick = onFeedback)
+                SettingsGroup(stringResource(R.string.settings_card_sound)) {
+                    MorningSettingsCard(title = null) {
+                        MorningSettingRow(
+                            label = stringResource(R.string.settings_bt_output),
+                            value = stringResource(R.string.settings_bt_output_desc),
+                            state = if (externalOutput) SettingRowState.On else SettingRowState.Off,
+                            onCheckedChange = onExternalOutput,
+                            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+                        )
                     }
                 }
-                MorningSettingsCard(title = null) {
-                    NavRows {
-                        NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
-                        NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
+                SettingsGroup(stringResource(R.string.settings_card_mission)) {
+                    MorningSettingsCard(title = null) {
+                        MorningSettingRow(
+                            label = stringResource(R.string.settings_power_guard),
+                            value = stringResource(R.string.settings_power_guard_desc),
+                            state = if (powerGuard) SettingRowState.On else SettingRowState.Off,
+                            onCheckedChange = onPowerGuard,
+                            modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
+                        )
                     }
                 }
-                // 맨 아래 '실험실' 작은 글과 'Crazy Mode' 카드(결정 146, 188).
-                // 디버그 빌드의 '화면 모드(임시)' 줄은 출시 앱처럼 보이게 뺐어요(TSK-270). 화면 모드는 adb THEME 명령으로 바꿔요.
+                SettingsGroup(stringResource(R.string.settings_card_screen)) { weatherCard() }
+                // '실험실' 묶음 이름은 LabCardContent가 직접 달아요(결정 146, 188).
                 labCard()
+                SettingsGroup(stringResource(R.string.settings_card_help)) {
+                    MorningSettingsCard(title = null) {
+                        NavRows {
+                            NavRow(label = stringResource(R.string.settings_faq), onClick = onFaq)
+                            NavRow(label = stringResource(R.string.settings_support), onClick = onFeedback)
+                        }
+                    }
+                }
+                SettingsGroup(stringResource(R.string.settings_card_info)) {
+                    MorningSettingsCard(title = null) {
+                        NavRows {
+                            NavRow(label = stringResource(R.string.settings_version), value = versionName, onClick = null)
+                            NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
+                            // 앱 전용 한 장 사이트 주소가 정해지기 전에는 숨겨요.
+                            if (onPrivacy != null) {
+                                NavRow(label = stringResource(R.string.settings_privacy), onClick = onPrivacy)
+                            }
+                        }
+                    }
+                }
             }
             // 끝까지 내리면 마지막 카드가 하단 메뉴 위에 보여요.
             Spacer(Modifier.navigationBarsPadding().height(BottomNavSpace))
@@ -242,7 +291,77 @@ fun SettingsScreen(
             }
         }
     }
+    if (weekSheet) {
+        WeekStartSheet(
+            monday = weekMonday,
+            onPick = { monday ->
+                onWeekMonday(monday)
+                weekSheet = false
+            },
+            onDismiss = { weekSheet = false },
+        )
+    }
 }
+
+/** 카드 바깥 위 작은 묶음 이름(시안 T1, 실험실 카드와 같은 모양). */
+@Composable
+internal fun SettingsGroup(title: String, content: @Composable () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space12)) {
+        Text(
+            text = title,
+            style = MorningTheme.typography.captionMedium,
+            color = MorningTheme.colors.textSecondary,
+            modifier = Modifier.padding(horizontal = MorningDimens.layoutCardPadding),
+        )
+        content()
+    }
+}
+
+/** T1-3 한 주 시작 요일 시트(피그마 `1209:30162`). 제목과 칩 두 개, 고르면 바로 닫혀요. */
+@Composable
+private fun WeekStartSheet(monday: Boolean, onPick: (Boolean) -> Unit, onDismiss: () -> Unit) {
+    MorningOverlay {
+        MorningModalSheet(visible = true, onDismiss = onDismiss, tag = WEEK_START_SHEET_TAG) {
+            MorningSheetHeader(
+                title = stringResource(R.string.settings_week_start),
+                modifier = Modifier.padding(top = MorningDimens.space8),
+            )
+            Spacer(Modifier.height(MorningDimens.space16))
+            Row(horizontalArrangement = Arrangement.spacedBy(MorningDimens.space8)) {
+                MorningChoiceChip(
+                    label = stringResource(R.string.settings_week_start_sun),
+                    selected = !monday,
+                    onClick = { onPick(false) },
+                    modifier = Modifier.weight(1f),
+                )
+                MorningChoiceChip(
+                    label = stringResource(R.string.settings_week_start_mon),
+                    selected = monday,
+                    onClick = { onPick(true) },
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            Spacer(Modifier.height(MorningDimens.space24))
+        }
+    }
+}
+
+/** T1-4 이어폰, 블루투스 안내 시트(피그마 `1209:30254`). 켤 때 한 번만 떠요. */
+@Composable
+private fun ExternalOutputSheet(onTurnOn: () -> Unit, onCancel: () -> Unit) {
+    MorningDialogSheet(
+        title = stringResource(R.string.settings_bt_sheet_title),
+        message = stringResource(R.string.settings_bt_sheet_msg),
+        confirmLabel = stringResource(R.string.settings_bt_sheet_on),
+        onConfirm = onTurnOn,
+        laterLabel = stringResource(R.string.settings_bt_sheet_cancel),
+        onLater = onCancel,
+        tag = EXTERNAL_OUTPUT_SHEET_TAG,
+    )
+}
+
+internal const val WEEK_START_SHEET_TAG = "weekStartSheet"
+internal const val EXTERNAL_OUTPUT_SHEET_TAG = "externalOutputSheet"
 
 /** 카드 안 진입 줄 묶음. 줄끼리는 사이 없이 44 간격으로 붙어요(시안 줄 간격 44, 데모와 같음). */
 @Composable
@@ -251,46 +370,54 @@ internal fun NavRows(content: @Composable () -> Unit) {
 }
 
 /**
- * '권한' 한 줄(결정 102, 130 보충). 필수 셋(알림, 전체 화면 알림, 다른 앱 위에 표시)이 모두 켜지면 '허용됨'(회색),
- * 일부만 켜지면 '일부 허용됨', 하나도 안 켜지면 '허용 안 됨'(둘 다 빨강). 선택, 기타 권한은 세지 않아요.
+ * '권한 점검' 한 줄(plan-11-settings-menu 1절, 4절). 필수 권한이 꺼졌거나 방해 금지 모드가 알람을 막고 있으면
+ * 빨간 '확인이 필요해요', 아니면 값 없이 화살표만 보여요.
  */
 @Composable
 private fun PermissionNavRow(report: PermissionReport, onOpen: () -> Unit) {
-    val granted = report.grantedRequiredCount
-    val status = when (granted) {
-        PermissionReport.RequiredCount -> R.string.permission_granted
-        0 -> R.string.permission_status_none
-        else -> R.string.permission_status_partial
-    }
+    val attention = report.needsAttention || report.alarmsSilenced
     NavRow(
         label = stringResource(R.string.settings_permissions),
-        value = stringResource(status),
-        valueError = granted < PermissionReport.RequiredCount,
+        value = if (attention) stringResource(R.string.settings_needs_attention) else null,
+        valueError = attention,
         onClick = onOpen,
     )
 }
 
 /**
  * 피그마 Nav Row. 한 줄 44(`size/row-plain`), 오른쪽에 값과 chevron-right 16(사이 5).
- * [valueError]면 값 글자가 빨강이에요(권한 상태, 결정 102). [onClick]이 없으면 화살표 없이 값만 보여요(버전).
+ * [desc]가 있으면 라벨 아래 작은 설명을 달고 두 줄 높이가 돼요(방해 금지 모드 줄).
+ * [valueError]면 값 글자가 빨강이에요. [onClick]이 없으면 화살표 없이 값만 보여요(버전).
  */
 @Composable
-internal fun NavRow(label: String, onClick: (() -> Unit)?, value: String? = null, valueError: Boolean = false) {
+internal fun NavRow(
+    label: String,
+    onClick: (() -> Unit)?,
+    value: String? = null,
+    valueError: Boolean = false,
+    desc: String? = null,
+) {
     val colors = MorningTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(MorningDimens.sizeRowPlain)
+            .then(
+                if (desc == null) {
+                    Modifier.height(MorningDimens.sizeRowPlain)
+                } else {
+                    Modifier.heightIn(min = SettingsToggleRowHeight)
+                },
+            )
             .then(if (onClick != null) Modifier.morningClickable(haptic = null, onClick = onClick) else Modifier),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(NavRowGap),
     ) {
-        Text(
-            text = label,
-            style = MorningTheme.typography.bodyMedium,
-            color = colors.textBody,
-            modifier = Modifier.weight(1f),
-        )
+        Column(Modifier.weight(1f)) {
+            Text(text = label, style = MorningTheme.typography.bodyMedium, color = colors.textBody)
+            if (desc != null) {
+                Text(text = desc, style = MorningTheme.typography.captionMedium, color = colors.textSecondary)
+            }
+        }
         if (value != null) {
             Text(
                 text = value,
@@ -316,7 +443,7 @@ private fun sendFeedback(context: Context, versionName: String, report: Permissi
         missing,
     )
     val intent = Intent(Intent.ACTION_SENDTO, "mailto:".toUri())
-        .putExtra(Intent.EXTRA_EMAIL, arrayOf(FEEDBACK_EMAIL))
+        .putExtra(Intent.EXTRA_EMAIL, arrayOf(SUPPORT_EMAIL))
         .putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_subject))
         .putExtra(Intent.EXTRA_TEXT, body)
     PermissionSettings.open(context, intent)

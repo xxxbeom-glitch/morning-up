@@ -10,6 +10,6 @@
     <string name="sleep_timer_chip_off">종료 타이머</string>
     <string name="sleep_timer_left">%1$d분 남음</string>
     <string name="sleep_timer_sheet_title">종료 타이머</string>
-    <string name="sleep_timer_option_off">끄기</string>
+    <string name="sleep_timer_option_off">아침 알람까지</string>
     <string name="sleep_timer_option">%1$d분</string>
 </resources>

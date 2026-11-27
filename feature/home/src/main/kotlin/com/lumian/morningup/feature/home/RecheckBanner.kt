@@ -11,6 +11,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -30,6 +35,7 @@ import com.lumian.morningup.core.designsystem.theme.morningShadow
 import com.lumian.morningup.core.ui.AlarmText
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.LocalTime
+import kotlinx.coroutines.delay
 
 private val BannerIcon = 20.dp
 private val TextGap = 2.dp
@@ -126,12 +132,27 @@ fun RestingBanner(at: LocalTime, onClick: () -> Unit, modifier: Modifier = Modif
     )
 }
 
-/** W2 대기 띠 '곧 깼는지 물어볼게요 / 오전 6:43쯤 확인 화면이 떠요'(결정 168, 시안 TSK-201). 눌러도 아무 일 없어요. */
+/**
+ * W2 대기 띠 '재수면 여부를 3분 후 재확인할게요 / 완전히 일어나셨으면 재확인을 해제해주세요'(결정 168, TSK-285 문구).
+ * 남은 분은 올림으로 세고 1분마다 다시 그려요. 1분 안이거나 시각을 모르면 '곧 재수면 여부를 재확인할게요'예요.
+ */
 @Composable
 fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null) {
+    var now by remember { mutableStateOf(LocalTime.now()) }
+    LaunchedEffect(at) {
+        while (true) {
+            now = LocalTime.now()
+            delay((60 - now.second).coerceAtLeast(1) * 1000L)
+        }
+    }
+    val minutes = at?.let { wakeCheckMinutesLeft(now, it) } ?: 0
     StatusBanner(
-        title = stringResource(R.string.home_wake_check_soon_band),
-        desc = at?.let { stringResource(R.string.home_wake_check_soon_desc, AlarmText.time(alarmResources(), it)) },
+        title = if (minutes >= 1) {
+            stringResource(R.string.home_wake_check_soon_band, minutes)
+        } else {
+            stringResource(R.string.home_wake_check_soon_band_now)
+        },
+        desc = stringResource(R.string.home_wake_check_soon_desc),
         tag = WAKE_CHECK_SOON_BANNER_TAG,
         modifier = modifier,
     )
@@ -155,6 +176,14 @@ internal fun withStatusBanner(
             banner?.invoke()
         }
     }
+}
+
+/** [now]부터 [at]까지 남은 분(올림). 1분 안이면 0, 자정을 넘기면 다음 날로 쳐요. */
+internal fun wakeCheckMinutesLeft(now: LocalTime, at: LocalTime): Int {
+    var seconds = java.time.Duration.between(now, at).seconds
+    if (seconds < -60) seconds += 24 * 60 * 60
+    if (seconds < 60) return 0
+    return ((seconds + 59) / 60).toInt()
 }
 
 const val RECHECK_BANNER_TAG = "recheckBanner"

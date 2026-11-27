@@ -59,23 +59,13 @@ import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.mission.QuizCategory
 import com.lumian.morningup.core.ui.AlarmText
+import com.lumian.morningup.core.ui.WeekStart
 import com.lumian.morningup.core.ui.alarmResources
 import java.time.DayOfWeek
 import kotlinx.coroutines.delay
 
 /** 편집 화면의 하위 화면. */
 enum class EditDetail { Mission, Preview, RingAgain, PowerOff, Sound, Vibration, Gentle, Background }
-
-/** 피그마 S0의 요일 순서(일~토). */
-private val DayOrder = listOf(
-    DayOfWeek.SUNDAY,
-    DayOfWeek.MONDAY,
-    DayOfWeek.TUESDAY,
-    DayOfWeek.WEDNESDAY,
-    DayOfWeek.THURSDAY,
-    DayOfWeek.FRIDAY,
-    DayOfWeek.SATURDAY,
-)
 
 private const val HOURS_HALF_DAY = 12
 private const val MINUTES_PER_HOUR = 60
@@ -246,7 +236,7 @@ fun EditScreen(
                 .statusBarsPadding(),
         ) {
             MorningTopBar(
-                title = stringResource(R.string.edit_title),
+                title = stringResource(if (state.isNew) R.string.edit_title_new else R.string.edit_title),
                 onBack = actions.onBack,
                 backContentDescription = stringResource(R.string.edit_back),
             )
@@ -529,7 +519,7 @@ private fun RepeatCard(alarm: Alarm, actions: EditActions) {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            DayOrder.forEach { day ->
+            WeekStart.rememberDays().forEach { day ->
                 val label = AlarmText.dayShort(resources, day)
                 MorningDayChip(
                     label = label,

@@ -260,15 +260,19 @@ class RingNotifications @Inject constructor(
             resting -> R.string.resting_title
             else -> R.string.waiting_title
         }
+        // W2 기다림은 '3분 뒤 재수면 여부를 재확인할게요'에 줄어드는 시계를 같이 달아요(TSK-285, W3 기다림과 같은 모양).
+        val wakeCheckAt = phaseEndsAt?.takeIf { phase == RingPhase.AwaitingWakeCheck }
         val body = if (snoozing && phaseEndsAt != null) {
             context.getString(R.string.snoozed_text, clock12(phaseEndsAt))
         } else if (resting && phaseEndsAt != null) {
             val at = Instant.ofEpochMilli(phaseEndsAt).atZone(ZoneId.systemDefault()).toLocalTime()
             context.getString(R.string.ring_text_resting_at, at.format(DateTimeFormatter.ofPattern("H:mm")))
+        } else if (wakeCheckAt != null) {
+            context.getString(R.string.ring_text_waiting, minutesUntil(wakeCheckAt))
         } else {
             text(phaseText(phase))
         }
-        return NotificationCompat.Builder(context, CHANNEL_WAITING)
+        val builder = NotificationCompat.Builder(context, CHANNEL_WAITING)
             .setSmallIcon(R.drawable.ic_alarm_clock)
             .setContentTitle(text(title))
             .setContentText(body)
@@ -277,8 +281,15 @@ class RingNotifications @Inject constructor(
             .setOngoing(true)
             .setContentIntent(open)
             .withEscape(body)
-            .build()
+        if (wakeCheckAt != null) {
+            builder.setWhen(wakeCheckAt).setShowWhen(true).setUsesChronometer(true).setChronometerCountDown(true)
+        }
+        return builder.build()
     }
+
+    /** 지금부터 [atMillis]까지 남은 분(올림, 최소 1). */
+    private fun minutesUntil(atMillis: Long): Int =
+        ((atMillis - System.currentTimeMillis() + 59_999L) / 60_000L).toInt().coerceAtLeast(1)
 
     /**
      * W2 '깼어요' 뒤 W3를 기다리는 동안의 조용한 알림(결정 145 9번). 제목은 '오전 6:43에 한 번 더 물어볼게요',
@@ -515,7 +526,7 @@ class RingNotifications @Inject constructor(
         null, RingPhase.Ringing -> R.string.ring_text_ringing
         RingPhase.InMission -> R.string.ring_text_mission
         RingPhase.Resting -> R.string.ring_text_resting
-        RingPhase.AwaitingWakeCheck -> R.string.ring_text_waiting
+        RingPhase.AwaitingWakeCheck -> R.string.ring_text_recheck_waiting
         RingPhase.WakeCheckAsking -> R.string.ring_text_wake_check
         RingPhase.AwaitingRecheck -> R.string.ring_text_recheck_waiting
         RingPhase.RecheckAsking -> R.string.ring_text_recheck

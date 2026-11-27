@@ -2,13 +2,13 @@
 <resources>
     <!-- H0 상단: 7시간 20분 후,(줄바꿈)알림이 울립니다 -->
     <string name="home_next_edit">다음 알람 편집</string>
-    <string name="home_next_headline">%1$s 후,\n알림이 울립니다</string>
+    <string name="home_next_headline">%1$s 후\n알람이 울려요</string>
     <!-- 11월 16일 (월) 오전 6:30 -->
     <string name="home_next_subline">%1$s %2$s</string>
     <!-- H1 빈 홈, 켜진 알람이 없을 때 -->
-    <string name="home_empty_headline">울릴 알람이\n아직 없어요</string>
+    <string name="home_empty_headline">예정된 알람이\n없어요</string>
     <string name="home_empty_title">첫 알람을 만들어 볼까요?</string>
-    <string name="home_empty_button">알람 만들기</string>
+    <string name="home_empty_button">알람 생성</string>
 
     <string name="home_add">알람 추가</string>
     <string name="home_more">더보기</string>
@@ -51,20 +51,22 @@
     <string name="home_copied_one">알람을 복제했어요</string>
     <string name="home_copied">알람 %1$d개를 복제했어요</string>
     <!-- 편집에서 저장해 남은 확인(W2, W3)을 멈춘 토스트(결정 145) -->
-    <string name="home_checks_stopped">남은 확인을 멈췄어요</string>
+    <string name="home_checks_stopped">재확인을 해제했어요</string>
     <!-- H0 위쪽 띠: 한 번 더 확인(W3)이 남았을 때(결정 145) -->
-    <string name="home_recheck_title">한 번 더 확인이 남았어요</string>
-    <string name="home_recheck_desc">눌러서 지금 끝낼 수 있어요</string>
-    <string name="home_recheck_title_count">한 번 더 확인이 %1$d번 남았어요</string>
-    <string name="home_recheck_desc_one">눌러서 지금 하나 끝낼 수 있어요</string>
-    <string name="home_recheck_action">확인하기</string>
+    <string name="home_recheck_title">곧 재수면 여부를 재확인할게요</string>
+    <string name="home_recheck_desc">완전히 일어나셨으면 재확인을 해제해주세요</string>
+    <string name="home_recheck_title_count">재확인이 %1$d번 남았어요</string>
+    <string name="home_recheck_desc_one">완전히 일어나셨으면 재확인을 해제해주세요</string>
+    <string name="home_recheck_action">해제</string>
     <string name="home_resting_band">%1$s에 다시 울려요</string>
     <string name="home_resting_band_desc">지금 미션을 하면 바로 끝나요</string>
     <string name="home_resting_band_action">미션 하기</string>
     <!-- 미루기로 쉬는 중 띠 설명(결정 195, 문구표 3-6절 73). 제목은 쉬는 중 띠와 같아요. -->
     <string name="home_snoozed_band_desc">알람을 미뤘어요. 지금 미션을 하면 바로 끝나요</string>
-    <string name="home_wake_check_soon_band">곧 깼는지 물어볼게요</string>
+    <string name="home_wake_check_soon_band">재수면 여부를 %1$d분 후 재확인할게요</string>
+    <string name="home_wake_check_soon_band_now">곧 재수면 여부를 재확인할게요</string>
     <!-- 오전 6:43쯤 확인 화면이 떠요(시안 TSK-201) -->
-    <string name="home_wake_check_soon_desc">%1$s쯤 확인 화면이 떠요</string>
-    <string name="home_ringing_blocked">울리는 중인 알람이에요. 울림 화면에서 꺼 주세요</string>
+    <string name="home_wake_check_soon_desc">완전히 일어나셨으면 재확인을 해제해주세요</string>
+    <string name="home_recheck_release">해제</string>
+    <string name="home_ringing_blocked">울리는 중인 알람이에요. 울림 화면에서 해제해 주세요</string>
 </resources>

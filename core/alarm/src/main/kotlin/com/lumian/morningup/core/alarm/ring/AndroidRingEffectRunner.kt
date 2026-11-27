@@ -48,6 +48,18 @@ class AndroidRingEffectRunner @Inject constructor(
         }
     }
 
+    /** 지금 알람에서 다시 울림 사이에 쉰 횟수. 두 번째 다시 울림부터 폰 스피커로 울리는 데 써요(TSK-287). */
+    private var restAlarmId: Long? = null
+    private var restsDone = 0
+
+    private fun restsFor(alarmId: Long?): Int {
+        if (alarmId != restAlarmId) {
+            restAlarmId = alarmId
+            restsDone = 0
+        }
+        return restsDone
+    }
+
     private suspend fun runOne(session: RingSession?, effect: RingEffect) {
         when (effect) {
             is RingEffect.PlaySound -> playSound(session, effect.volumeFraction)
@@ -60,7 +72,7 @@ class AndroidRingEffectRunner @Inject constructor(
             RingEffect.ShowWakeCheck,
             RingEffect.ShowRecheck,
             -> notifications.showRinging(session?.phase)
-            RingEffect.ShowWakeUp -> Unit
+            RingEffect.ShowWakeUp -> restAlarmId = null
             is RingEffect.ShowEscape, RingEffect.ClearEscape, is RingEffect.EscapeUsed -> runEscape(session, effect)
             RingEffect.PlayChime -> playChime(session)
             RingEffect.PausedForCall -> diagnostics.record("check_paused_for_call", session?.plan?.alarmId)
@@ -82,6 +94,8 @@ class AndroidRingEffectRunner @Inject constructor(
                 FlowLog.event("wake_result", effect.alarmId, detail)
             }
             is RingEffect.RestStarted -> {
+                restsFor(session?.plan?.alarmId)
+                restsDone++
                 diagnostics.record(
                     "rest_started",
                     session?.plan?.alarmId,
@@ -156,6 +170,7 @@ class AndroidRingEffectRunner @Inject constructor(
             soundId = alarm?.soundId.takeUnless { silent },
             pattern = alarm?.vibrationPattern ?: VibrationPattern.Basic,
             gentleSeconds = if (alarm?.gentleWake == true) alarm.gentleSeconds else 0,
+            restsDone = restsFor(session?.plan?.alarmId),
         )
     }
 

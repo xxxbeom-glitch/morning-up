@@ -52,7 +52,7 @@ private fun Modifier.bleed(horizontal: Dp): Modifier = layout { measurable, cons
 @Composable
 internal fun EditSheetFrame(
     title: String,
-    description: String?,
+    description: String? = null,
     onDone: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -114,7 +114,6 @@ internal fun VolumeSheetContent(alarm: Alarm, actions: EditActions, onDone: () -
     DisposableEffect(previewer) { onDispose { previewer.stop() } }
     EditSheetFrame(
         title = stringResource(R.string.edit_volume_title),
-        description = stringResource(R.string.edit_volume_sheet_desc),
         onDone = onDone,
     ) {
         VolumeSlider(
