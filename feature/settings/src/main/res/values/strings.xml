@@ -114,11 +114,6 @@
     <!-- T5 오픈소스 라이선스, 자주 묻는 질문(손님이 보는 글: 가운뎃점과 긴 줄표를 쓰지 않아요) -->
     <string name="settings_faq">자주 묻는 질문</string>
     <string name="settings_licenses">오픈소스 라이선스</string>
-    <!-- 디버그 빌드에서만 보이는 시험 도구 모음 -->
-    <string name="settings_theme_mode">화면 모드(임시)</string>
-    <string name="settings_theme_mode_auto">자동</string>
-    <string name="settings_theme_mode_light">라이트</string>
-    <string name="settings_theme_mode_dark">다크</string>
     <string name="licenses_card">사용한 오픈소스</string>
     <string name="licenses_desc">\'일어나\'는 아래 오픈소스의 도움을 받았어요</string>
     <string name="faq_card">질문을 눌러 답을 보세요</string>

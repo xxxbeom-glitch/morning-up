@@ -1,6 +1,5 @@
 package com.lumian.morningup.feature.settings
 
-import com.lumian.morningup.core.designsystem.theme.ThemeMode
 import android.content.Context
 import android.content.Intent
 import android.os.Build
@@ -65,7 +64,7 @@ private const val FEEDBACK_EMAIL = "lumianthecompany@gmail.com"
 /**
  * T1 설정(피그마 `141:1293`). 카드: 알람, 기상 미션(전원 종료 방지), 날씨 애니메이션, 도움말, 앱 정보, 실험실. 제목은 숨겨요.
  * [weatherCard]는 알람 카드 아래 '날씨 애니메이션' 카드 자리예요(9단계).
- * [themeMode]가 있으면(디버그 빌드만) 맨 아래에 '화면 모드(임시)' 줄을 붙여요. 시험 알람은 adb 명령으로 걸어요(docs/qa/README.md).
+ * 화면 모드와 시험 알람은 디버그 빌드의 adb 명령으로 바꿔요(docs/qa/README.md). 화면에는 시험용 줄이 없어요(TSK-270).
  */
 @Composable
 fun SettingsRoute(
@@ -74,8 +73,6 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     onOpenFaq: () -> Unit = {},
     onOpenLicenses: () -> Unit = {},
-    themeMode: ThemeMode? = null,
-    onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = { WeatherCard() },
     onOpenLab: () -> Unit = {},
     onOpenDndGuide: () -> Unit = {},
@@ -99,8 +96,6 @@ fun SettingsRoute(
         onFaq = onOpenFaq,
         onLicenses = onOpenLicenses,
         modifier = modifier,
-        themeMode = themeMode,
-        onThemeMode = onThemeMode,
         weatherCard = weatherCard,
         labCard = labCard,
         // 접근성 서비스가 켜져 있을 때만 켜진 모양이에요. 꺼져 있으면 P6 바텀시트를 띄워요(결정 134).
@@ -152,8 +147,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onFaq: () -> Unit = {},
     onLicenses: () -> Unit = {},
-    themeMode: ThemeMode? = null,
-    onThemeMode: (ThemeMode) -> Unit = {},
     weatherCard: @Composable () -> Unit = {},
     labCard: @Composable () -> Unit = {},
     powerGuard: Boolean = false,
@@ -229,21 +222,9 @@ fun SettingsScreen(
                         NavRow(label = stringResource(R.string.settings_licenses), onClick = onLicenses)
                     }
                 }
-                // 맨 아래 '실험실' 작은 글과 '확실히 잠깨기' 카드(결정 146).
+                // 맨 아래 '실험실' 작은 글과 'Crazy Mode' 카드(결정 146, 188).
+                // 디버그 빌드의 '화면 모드(임시)' 줄은 출시 앱처럼 보이게 뺐어요(TSK-270). 화면 모드는 adb THEME 명령으로 바꿔요.
                 labCard()
-                // 디버그 빌드만: 화면 모드(임시, TSK-166). 출시 빌드에는 이 카드가 없어요.
-                if (themeMode != null) {
-                    MorningSettingsCard(title = null) {
-                        NavRows {
-                            // 누를 때마다 자동 → 라이트 → 다크 → 자동으로 바뀌어요.
-                            NavRow(
-                                label = stringResource(R.string.settings_theme_mode),
-                                value = stringResource(themeMode.labelRes()),
-                                onClick = { onThemeMode(themeMode.next()) },
-                            )
-                        }
-                    }
-                }
             }
             // 끝까지 내리면 마지막 카드가 하단 메뉴 위에 보여요.
             Spacer(Modifier.navigationBarsPadding().height(BottomNavSpace))
@@ -339,12 +320,4 @@ private fun sendFeedback(context: Context, versionName: String, report: Permissi
         .putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.settings_feedback_subject))
         .putExtra(Intent.EXTRA_TEXT, body)
     PermissionSettings.open(context, intent)
-}
-
-private fun ThemeMode.next(): ThemeMode = ThemeMode.entries[(ordinal + 1) % ThemeMode.entries.size]
-
-private fun ThemeMode.labelRes(): Int = when (this) {
-    ThemeMode.Auto -> R.string.settings_theme_mode_auto
-    ThemeMode.Light -> R.string.settings_theme_mode_light
-    ThemeMode.Dark -> R.string.settings_theme_mode_dark
 }
