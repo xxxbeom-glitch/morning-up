@@ -79,6 +79,10 @@ data object LicensesRoute
 @Serializable
 data object SupportDestination
 
+/** T2 권한 맨 아래에서 여는 문의하기. '오류 신고'가 골라진 채 열려요(TSK-294). */
+@Serializable
+data object SupportBugDestination
+
 /** 미션 확인용 앱 첫 화면(11-20 사용자 지시). */
 @Serializable
 data object MissionTryDestination
@@ -305,6 +309,7 @@ fun MorningNavHost(
             PermissionRoute(
                 onBack = { navController.popBackStack() },
                 onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
+                onOpenSupport = { navController.navigate(SupportBugDestination) { launchSingleTop = true } },
             )
         }
         composable<DndGuideDestination> {
@@ -335,6 +340,13 @@ fun MorningNavHost(
         }
         composable<SupportDestination> {
             SupportRoute(versionName = BuildConfig.VERSION_NAME, onBack = { navController.popBackStack() })
+        }
+        composable<SupportBugDestination> {
+            SupportRoute(
+                versionName = BuildConfig.VERSION_NAME,
+                onBack = { navController.popBackStack() },
+                bugFirst = true,
+            )
         }
         composable<LicensesRoute> { LicensesPage(onBack = { navController.popBackStack() }) }
         composable<EditRoute> {

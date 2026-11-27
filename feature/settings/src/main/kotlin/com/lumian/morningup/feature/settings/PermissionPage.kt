@@ -51,6 +51,7 @@ import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Shield
 import com.lumian.morningup.core.alarm.PermissionSettings
+import com.lumian.morningup.core.designsystem.component.MorningSettingsCard
 import com.lumian.morningup.core.designsystem.component.MorningToggle
 import com.lumian.morningup.core.designsystem.component.MorningToggleSize
 import com.lumian.morningup.core.designsystem.component.MorningTopBar
@@ -179,6 +180,7 @@ fun PermissionRoute(
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
     onOpenDndGuide: (() -> Unit)? = null,
+    onOpenSupport: (() -> Unit)? = null,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val report by viewModel.report.collectAsStateWithLifecycle()
@@ -193,6 +195,7 @@ fun PermissionRoute(
         onOpen = { if (it == AlarmPermission.DoNotDisturb && onOpenDndGuide != null) onOpenDndGuide() else open(it) },
         onOpenSamsungSleep = { PermissionSettings.open(context, PermissionSettings.samsungSleepIntent()) },
         modifier = modifier,
+        onOpenSupport = onOpenSupport,
     )
 }
 
@@ -291,6 +294,7 @@ fun PermissionPage(
     onOpenSamsungSleep: () -> Unit,
     modifier: Modifier = Modifier,
     showExactAlarm: Boolean = false,
+    onOpenSupport: (() -> Unit)? = null,
 ) {
     Column(
         modifier = modifier
@@ -342,6 +346,14 @@ fun PermissionPage(
                         ),
                         onOpenSamsungSleep,
                     )
+                }
+            }
+            // 맨 아래 '그래도 알람이 안 울리면 문의하기'(plan-11-support 들어오는 곳, TSK-294). '오류 신고'가 골라진 채 T7-1이 열려요.
+            if (onOpenSupport != null) {
+                MorningSettingsCard(title = null) {
+                    NavRows {
+                        NavRow(label = stringResource(R.string.permission_support), onClick = onOpenSupport)
+                    }
                 }
             }
         }
