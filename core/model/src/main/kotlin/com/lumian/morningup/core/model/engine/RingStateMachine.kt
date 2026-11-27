@@ -161,7 +161,8 @@ object RingStateMachine {
         return when (kind) {
             TimerKind.RingTimeout -> ringTimeout(session, now)
             TimerKind.RestEnded -> ring(session, now)
-            TimerKind.MissionTimeout -> ring(session, now)
+            // 미션 중에 멈춰 다시 울리면, 다시 '미션 시작'을 눌렀을 때 첫 미션부터 해요(결정 189). 다시 울림 횟수는 그대로예요.
+            TimerKind.MissionTimeout -> ring(session.copy(missionsDone = 0), now)
             TimerKind.WakeCheckAsk ->
                 ask(session, RingPhase.WakeCheckAsking, session.plan.wakeCheckAnswerSeconds * SECOND, now, inCall)
             TimerKind.RecheckAsk -> ask(

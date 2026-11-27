@@ -184,21 +184,21 @@ class RingStateMachineTest {
     }
 
     @Test
-    fun missionTimeout_ringsAgain_withoutUsingRingCount_keepingDoneMissions() {
+    fun missionTimeout_ringsAgain_withoutUsingRingCount_restartingFromFirstMission() {
         var s = reduce(fire().session, RingEvent.MissionStarted, t0).session
         s = reduce(s, RingEvent.MissionCompleted, t0 + 20 * sec).session
         assertThat(s!!.missionsDone).isEqualTo(1)
         val t = reduce(s, RingEvent.TimerFired(TimerKind.MissionTimeout), t0 + 79 * sec)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
         assertThat(t.session!!.ringsLeft).isEqualTo(2)
-        assertThat(t.session!!.missionsDone).isEqualTo(1)
+        assertThat(t.session!!.missionsDone).isEqualTo(0)
         assertThat(t.effects).contains(PlaySound(1f))
-        // 다시 시작하면 두 번째 미션부터
-        assertThat(reduce(t.session, RingEvent.MissionStarted, t0 + 90 * sec).effects).contains(ShowMission(1))
+        // 다시 시작하면 첫 미션부터(결정 189)
+        assertThat(reduce(t.session, RingEvent.MissionStarted, t0 + 90 * sec).effects).contains(ShowMission(0))
     }
 
     @Test
-    fun threeMissions_runInOrder_andTimeoutInMiddle_resumesFromUnfinishedOne() {
+    fun threeMissions_runInOrder_andTimeoutInMiddle_restartsFromFirstMission() {
         val three = plan(missions = listOf(MissionType.DropWords, MissionType.PopQuiz, MissionType.ShakeShake))
         var t = reduce(fire(three).session, RingEvent.MissionStarted, t0)
         assertThat(t.effects).contains(ShowMission(0))
@@ -208,12 +208,29 @@ class RingStateMachineTest {
         t = reduce(t.session, RingEvent.TimerFired(TimerKind.MissionTimeout), t0 + 69 * sec)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
         t = reduce(t.session, RingEvent.MissionStarted, t0 + 80 * sec)
+        assertThat(t.effects).contains(ShowMission(0))
+        t = reduce(t.session, RingEvent.MissionCompleted, t0 + 85 * sec)
         assertThat(t.effects).contains(ShowMission(1))
         t = reduce(t.session, RingEvent.MissionCompleted, t0 + 90 * sec)
         assertThat(t.effects).contains(ShowMission(2))
         t = reduce(t.session, RingEvent.MissionCompleted, t0 + 100 * sec)
         assertThat(t.session).isNull()
         assertThat(t.effects).contains(ShowWakeUp)
+    }
+
+    @Test
+    fun fourMissions_timeoutOnLastMission_restartsFromFirstMission() {
+        val four = plan(
+            missions = listOf(MissionType.DropWords, MissionType.PopQuiz, MissionType.ShakeShake, MissionType.QuickMath),
+        )
+        var t = reduce(fire(four).session, RingEvent.MissionStarted, t0)
+        repeat(3) { t = reduce(t.session, RingEvent.MissionCompleted, t0 + (it + 1) * 5 * sec) }
+        assertThat(t.effects).contains(ShowMission(3))
+        t = reduce(t.session, RingEvent.TimerFired(TimerKind.MissionTimeout), t0 + 15 * sec + 59 * sec)
+        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
+        assertThat(t.session!!.missionsDone).isEqualTo(0)
+        t = reduce(t.session, RingEvent.MissionStarted, t0 + 80 * sec)
+        assertThat(t.effects).contains(ShowMission(0))
     }
 
     @Test
