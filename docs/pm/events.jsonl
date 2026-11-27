@@ -1028,3 +1028,19 @@
 {"at": "2026-11-27 10:02:54", "by": "Leader", "id": "TSK-274", "action": "create", "changes": {"id": [null, "TSK-274"], "wbs": [null, "2.63"], "parent": [null, "TSK-002"], "title": [null, "11-27 재미 요소 아이디어 보관: LP판 꾹 누르기, 움직이는 시각, 큰 글자 타이핑, 페이크 타임, 색칠 미션"], "area": [null, "plan"], "owner": [null, "Leader"], "reviewer": [null, "Leader"], "status": [null, "todo"], "acceptance": [[], ["아이디어 메모만, 구현 보류"]]}}
 {"at": "2026-11-27 10:02:55", "by": "Leader", "id": "TSK-275", "action": "create", "changes": {"id": [null, "TSK-275"], "wbs": [null, "1.10"], "parent": [null, "TSK-001"], "title": [null, "사용자 답 받기: 스누즈를 다시 넣을지"], "area": [null, "ops"], "owner": [null, "Leader"], "reviewer": [null, "Leader"], "status": [null, "todo"], "acceptance": [[], ["11-16 '울림 화면 스누즈 없음' 결정 유지 또는 변경"]]}}
 {"at": "2026-11-27 10:03:39", "by": "Leader", "id": "TSK-275", "action": "set", "changes": {"status": ["todo", "waiting_user"]}}
+{"at": "2026-11-27 10:04:42", "by": "[개발 26]", "id": "TSK-257", "action": "claim", "changes": {"owner": ["Leader", "[개발 26]"], "status": ["todo", "doing"], "start": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:04:42", "by": "[개발 25]", "id": "TSK-251", "action": "claim", "changes": {"status": ["todo", "doing"]}}
+{"at": "2026-11-27 10:04:42", "by": "[개발 26]", "id": "TSK-258", "action": "claim", "changes": {"owner": ["Leader", "[개발 26]"], "status": ["todo", "doing"], "start": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:04:43", "by": "[개발 26]", "id": "TSK-259", "action": "claim", "changes": {"owner": ["Leader", "[개발 26]"], "status": ["todo", "doing"], "start": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:04:43", "by": "[개발 26]", "id": "TSK-260", "action": "claim", "changes": {"owner": ["Leader", "[개발 26]"], "status": ["todo", "doing"], "start": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:04:44", "by": "[개발 26]", "id": "TSK-261", "action": "claim", "changes": {"owner": ["Leader", "[개발 26]"], "status": ["todo", "doing"], "start": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:04:51", "by": "Leader", "id": "TSK-256", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:51", "by": "Leader", "id": "TSK-262", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:52", "by": "Leader", "id": "TSK-265", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:53", "by": "Leader", "id": "TSK-266", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:54", "by": "Leader", "id": "TSK-268", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:54", "by": "Leader", "id": "TSK-269", "action": "set", "changes": {"owner": ["Leader", "[기획 11]"]}}
+{"at": "2026-11-27 10:04:54", "by": "Leader", "id": "TSK-263", "action": "set", "changes": {"owner": ["Leader", "[리서치 6]"]}}
+{"at": "2026-11-27 10:04:55", "by": "Leader", "id": "TSK-267", "action": "set", "changes": {"owner": ["Leader", "[리서치 6]"]}}
+{"at": "2026-11-27 10:04:57", "by": "Leader", "id": "TSK-271", "action": "set", "changes": {"owner": ["Leader", "[리서치 6]"]}}
+{"at": "2026-11-27 10:04:58", "by": "Leader", "id": "TSK-272", "action": "set", "changes": {"owner": ["Leader", "[리서치 6]"]}}
