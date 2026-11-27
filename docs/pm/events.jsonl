@@ -1169,3 +1169,7 @@
 {"at": "2026-11-27 10:33:49", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 25]", "[개발 28]"]}}
 {"at": "2026-11-27 10:34:09", "by": "Leader", "id": "TSK-286", "action": "set", "changes": {"owner": ["[개발 28]", "[개발 27]"]}}
 {"at": "2026-11-27 10:34:10", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 28]", "[개발 26]"]}}
+{"at": "2026-11-27 10:34:45", "by": "Leader", "id": "TSK-250", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
+{"at": "2026-11-27 10:34:46", "by": "Leader", "id": "ISS-058", "action": "approve", "changes": {"status": ["resolved", "closed"]}}
+{"at": "2026-11-27 10:34:47", "by": "Leader", "id": "TSK-094", "action": "set", "changes": {"status": ["doing", "review"]}}
+{"at": "2026-11-27 10:34:49", "by": "Leader", "id": "TSK-094", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-30", "2026-11-27"]}}
