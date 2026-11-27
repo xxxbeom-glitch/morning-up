@@ -56,7 +56,7 @@
 | 헤더 | **Sheet Header 부품(137:696)** h80, 12/24/16/24, **제목만**(`Title/Medium`, 보조 글과 스위치 끔). 두 번째 페이지는 Sheet Page Header(1244:22313) h80, 12/24/12/12 | EX1-a, EX5-b |
 | 본문 | 좌우 24 고정. 위 여백은 헤더 아래 8(목록) 또는 4(그림, 슬라이더 먼저) | EX1-a 8, EX4 4 |
 | 아래 버튼 | footer h96, 24/16/16/16, Button Large(112:55) | EX 전부 |
-| 버튼 없는 시트 | footer 자리에 빈 칸 h100(8/16/16/16)만 둬서 아래 숨 쉴 곳 확보 | EX5-a, EX8 |
+| 버튼 없는 시트 | 빈 footer를 두지 않고 본문 아래 여백 `space/24` 뒤 바로 Nav Bar (11-27 사용자 피드백) | EX8 |
 | 시스템 바 | Nav Bar 354:1014 h48 항상 포함 | EX 전부 |
 | 그림 칸 | 312×176, 모서리 20, fill `background/raised` | EX4, EX7 |
 
@@ -86,7 +86,7 @@
 ### 3-1. 타입별 고정 구조
 
 **타입 1 하나 고르기** (EX8, h328)
-- Sheet Header(제목만) → content 8/24/0/24, gap 4, Radio Row → 빈 footer h100 → Nav Bar
+- Sheet Header(제목만) → content 8/24/24/24, gap 4, Radio Row → Nav Bar (빈 footer 없음)
 - 고른 줄은 칠로만 표시해요. 테두리 없음.
 
 **타입 2 값 조절** (EX3 h348, EX4 h580)
