@@ -1346,3 +1346,5 @@
 {"at": "2026-11-27 14:27:36", "by": "[개발 30]", "id": "ISS-068", "action": "resolve", "changes": {"status": ["open", "resolved"], "resolved": [null, "2026-11-27"], "fix": [null, "faq_b4_a에서 잠들기 소리 문장 뺌. 커밋 5d894ec"]}}
 {"at": "2026-11-27 14:27:49", "by": "[QA 6]", "id": "ISS-068", "action": "comment", "changes": {"comments": [null, ["[QA 6] 5d894ec 확인: faq_b4_a에서 잠들기 소리 문장이 빠졌고 나머지 문장은 그대로예요. 문구만 바뀐 것이라 폰 확인은 필요 없어요. 통과 의견."]]}}
 {"at": "2026-11-27 14:27:59", "by": "Leader", "id": "ISS-068", "action": "approve", "changes": {"status": ["resolved", "closed"], "comments": [null, ["QA 6 통과(5d894ec, 문구만)"]]}}
+{"at": "2026-11-27 14:29:32", "by": "Leader", "id": "TSK-100", "action": "set", "changes": {"status": ["todo", "done"]}}
+{"at": "2026-11-27 14:29:32", "by": "Leader", "id": "TSK-100", "action": "comment", "changes": {"comments": [null, ["결정 169로 '일어나' 확정"]]}}
