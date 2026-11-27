@@ -294,12 +294,10 @@ class EditViewModel @Inject constructor(
         if (minutes in WakeCheckSettings.ASK_MINUTES) editCheck { it.copy(askAfterMinutes = minutes) }
     }
 
-    /** '한 번 더 확인' 줄의 '안 함'(끔). 켜기는 횟수 칸을 고를 때 해요(결정 183). */
-    fun setRecheck(on: Boolean) = editCheck { it.copy(recheckEnabled = on) }
-
-    /** '한 번 더 확인' 1, 2, 3번. 고르면 한 번 더 확인도 켜요. */
-    fun setRecheckCount(count: Int) {
-        if (count in WakeCheckSettings.RECHECK_COUNTS) editCheck { it.copy(recheckEnabled = true, recheckCount = count) }
+    /** S4 '횟수' +, -(결정 186). 최소 1, 최대 없음. 옛 '안 함'은 1부터 시작해요. */
+    fun stepRecheckCount(delta: Int) = editCheck {
+        val now = it.normalized().recheckCount
+        it.copy(recheckEnabled = true, recheckCount = (now + delta).coerceAtLeast(WakeCheckSettings.MIN_RECHECK_COUNT))
     }
 
     private fun editCheck(transform: (WakeCheck) -> WakeCheck) =
@@ -464,10 +462,10 @@ class EditViewModel @Inject constructor(
         )
 
         /**
-         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 켬(5분, 3번, 결정 163. 옛 알람은 저장된 값 그대로),
+         * 새 알람 처음 값. 미션 없음(4-1), 다시 울림 꺼짐(결정 187, 켜면 5분 3번. 옛 알람은 저장된 값 그대로),
          * 다시 잠들기 방지 꺼짐(간격과 시간은 전체 설정, 결정 145),
          * 알람음 기본, 진동 켬, 배경 시간대 하늘. 시각은 오전 7:00.
          */
-        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = DEFAULT_RING_AGAIN_COUNT))
+        fun newAlarm(): Alarm = Alarm(time = DEFAULT_TIME, ringAgain = RingAgain(count = 0))
     }
 }

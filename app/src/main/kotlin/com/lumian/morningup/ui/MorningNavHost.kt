@@ -28,8 +28,6 @@ import com.lumian.morningup.R
 import com.lumian.morningup.core.designsystem.component.MorningDialog
 import com.lumian.morningup.core.designsystem.motion.MorningMotion
 import com.lumian.morningup.core.designsystem.theme.LocalReduceMotion
-import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
-import com.lumian.morningup.core.designsystem.theme.rememberThemeMode
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionBanner as BannerKind
 import com.lumian.morningup.core.model.PermissionStep
@@ -225,7 +223,6 @@ fun MorningNavHost(
                     )
                 },
                 settingsTab = { tabModifier ->
-                    val context = LocalContext.current
                     SettingsRoute(
                         versionName = BuildConfig.VERSION_NAME,
                         onOpenPermissions = {
@@ -236,8 +233,6 @@ fun MorningNavHost(
                         onOpenLicenses = { navController.navigate(LicensesRoute) { launchSingleTop = true } },
                         onOpenLab = { navController.navigate(LabDestination) { launchSingleTop = true } },
                         onOpenDndGuide = { navController.navigate(DndGuideDestination) { launchSingleTop = true } },
-                        themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG).takeIf { BuildConfig.DEBUG },
-                        onThemeMode = { mode -> ThemeModeStore.set(context, mode) },
                     )
                 },
                 sleepTab = { tabModifier ->

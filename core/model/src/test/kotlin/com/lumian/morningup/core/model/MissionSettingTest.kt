@@ -7,13 +7,13 @@ import org.junit.Test
 class MissionSettingTest {
     @Test
     fun defaults() {
-        assertThat(MissionSetting.default(MissionType.QuickMath)).isEqualTo(MissionSetting(MissionType.QuickMath, 1, 3))
-        assertThat(MissionSetting.default(MissionType.PopQuiz)).isEqualTo(MissionSetting(MissionType.PopQuiz, 1, 3))
+        assertThat(MissionSetting.default(MissionType.QuickMath)).isEqualTo(MissionSetting(MissionType.QuickMath, 1, 1))
+        assertThat(MissionSetting.default(MissionType.PopQuiz)).isEqualTo(MissionSetting(MissionType.PopQuiz, 1, 1))
         assertThat(MissionSetting.default(MissionType.DropWords))
-            .isEqualTo(MissionSetting(MissionType.DropWords, 1, 10, speed = 1))
+            .isEqualTo(MissionSetting(MissionType.DropWords, 1, 1, speed = 1))
         assertThat(
             MissionSetting.default(MissionType.ShakeShake),
-        ).isEqualTo(MissionSetting(MissionType.ShakeShake, 1, 10))
+        ).isEqualTo(MissionSetting(MissionType.ShakeShake, 1, 1))
     }
 
     @Test
@@ -21,10 +21,10 @@ class MissionSettingTest {
         val math = MissionSetting.rangeOf(MissionType.QuickMath)
         assertThat(math.levels).isEqualTo(1..7)
         assertThat(math.counts).isEqualTo(1..10)
-        assertThat(MissionSetting.rangeOf(MissionType.PopQuiz).counts).isEqualTo(2..10)
-        assertThat(MissionSetting.rangeOf(MissionType.DropWords).counts).isEqualTo(5..30)
+        assertThat(MissionSetting.rangeOf(MissionType.PopQuiz).counts).isEqualTo(1..10)
+        assertThat(MissionSetting.rangeOf(MissionType.DropWords).counts).isEqualTo(1..30)
         assertThat(MissionSetting.rangeOf(MissionType.DropWords).countStep).isEqualTo(1)
-        assertThat(MissionSetting.rangeOf(MissionType.ShakeShake).counts).isEqualTo(10..200)
+        assertThat(MissionSetting.rangeOf(MissionType.ShakeShake).counts).isEqualTo(1..200)
         assertThat(MissionSetting.rangeOf(MissionType.ShakeShake).levels).isEqualTo(1..1)
     }
 
@@ -32,7 +32,7 @@ class MissionSettingTest {
     fun normalized_forTest_allowsBelowMinimum() {
         val test = MissionSetting(MissionType.DropWords, count = 3, forTest = true)
         assertThat(test.normalized().count).isEqualTo(3)
-        assertThat(MissionSetting(MissionType.DropWords, count = 3).normalized().count).isEqualTo(5)
+        assertThat(MissionSetting(MissionType.DropWords, count = 0).normalized().count).isEqualTo(1)
     }
 
     @Test

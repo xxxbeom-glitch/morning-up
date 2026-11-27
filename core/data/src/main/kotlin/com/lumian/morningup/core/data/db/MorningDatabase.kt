@@ -12,7 +12,7 @@ import com.lumian.morningup.core.model.WakeCheckSettings
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -28,7 +28,14 @@ abstract class MorningDatabase : RoomDatabase() {
          * 다시 잠들기 방지 값이에요(앱은 설정 저장소에서 읽어요, 결정 180).
          */
         fun migrations(legacyWakeCheck: () -> LegacyWakeCheck = { LegacyWakeCheck() }): List<Migration> =
-            listOf(Migration1To2, Migration2To3, Migration3To4, Migration4To5(legacyWakeCheck), Migration5To6)
+            listOf(
+                Migration1To2,
+                Migration2To3,
+                Migration3To4,
+                Migration4To5(legacyWakeCheck),
+                Migration5To6,
+                Migration6To7,
+            )
     }
 }
 
@@ -119,6 +126,20 @@ object Migration5To6 : Migration(5, 6) {
         db.execSQL(
             "UPDATE alarms SET wakeCheckAnswerSeconds = ?, recheckWaitMinutes = ?",
             arrayOf<Any>(WakeCheckSettings.FIXED_ANSWER_SECONDS, WakeCheckSettings.FIXED_RECHECK_WAIT_MINUTES),
+        )
+    }
+}
+
+/**
+ * v6 → v7: '한 번 더 확인' 줄을 '횟수'로 바꾸고 '안 함' 칸을 없앴어요(결정 186). 켜고 끄기는 실험실 스위치가 맡아요.
+ * 옛 '안 함'(끔)은 횟수 1(켬)로 옮기고, 켬이던 알람은 횟수를 그대로 둬요. 표 구조는 그대로예요.
+ */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration6To7 : Migration(6, 7) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "UPDATE alarms SET recheckEnabled = 1, recheckCount = ? WHERE recheckEnabled = 0 OR recheckCount < ?",
+            arrayOf<Any>(WakeCheckSettings.MIN_RECHECK_COUNT, WakeCheckSettings.MIN_RECHECK_COUNT),
         )
     }
 }

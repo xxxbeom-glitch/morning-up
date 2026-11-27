@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                 // 온보딩 전용 확인 앱만 시각을 무시하고 라이트 한 바퀴, 다크 한 바퀴를 차례로 보여요(11-20 사용자 요청).
                 var demoDark by rememberSaveable { mutableStateOf(false) }
                 val clockNight = rememberNightByClock(now::now)
-                // 디버그 빌드는 설정 '화면 모드(임시)'로 라이트, 다크를 고정할 수 있어요(TSK-166).
+                // 디버그 빌드는 adb THEME 명령으로 라이트, 다크를 고정할 수 있어요(TSK-166, TSK-270).
                 val themeMode = rememberThemeMode(enabled = BuildConfig.DEBUG)
                 val night = if (BuildConfig.ONBOARDING_ONLY) demoDark else themeMode.isDark(clockNight)
                 MorningTheme(darkTheme = night) {

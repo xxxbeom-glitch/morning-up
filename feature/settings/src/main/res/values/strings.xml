@@ -114,11 +114,6 @@
     <!-- T5 오픈소스 라이선스, 자주 묻는 질문(손님이 보는 글: 가운뎃점과 긴 줄표를 쓰지 않아요) -->
     <string name="settings_faq">자주 묻는 질문</string>
     <string name="settings_licenses">오픈소스 라이선스</string>
-    <!-- 디버그 빌드에서만 보이는 시험 도구 모음 -->
-    <string name="settings_theme_mode">화면 모드(임시)</string>
-    <string name="settings_theme_mode_auto">자동</string>
-    <string name="settings_theme_mode_light">라이트</string>
-    <string name="settings_theme_mode_dark">다크</string>
     <string name="licenses_card">사용한 오픈소스</string>
     <string name="licenses_desc">\'일어나\'는 아래 오픈소스의 도움을 받았어요</string>
     <string name="faq_card">질문을 눌러 답을 보세요</string>
@@ -168,18 +163,18 @@
     <string name="onboarding_motion_app_name" translatable="false">일어나</string>
     <string name="onboarding_motion_overlay_off">다른 앱 위에 표시 안 함</string>
     <string name="onboarding_motion_overlay_on">다른 앱 위에 표시 함</string>
-    <!-- 실험실 '확실히 잠깨기'(결정 146 1절, 시안 TSK-171) -->
+    <!-- 실험실 'Crazy Mode'(결정 146 1절, 시안 TSK-171, 이름은 결정 188) -->
     <string name="settings_lab">실험실</string>
-    <string name="settings_lab_title">확실히 잠깨기</string>
+    <string name="settings_lab_title">Crazy Mode</string>
     <string name="settings_lab_off">꺼짐</string>
     <string name="settings_lab_intro">잘 못 일어나는 분을 위한 실험 기능이에요. 아직 다듬는 중이라, 써 보고 \'의견 보내기\'로 알려 주세요.</string>
-    <string name="settings_lab_note">톡백 같은 접근성 기능을 쓰는 중에는 버튼 속이기가 자동으로 꺼져요.</string>
-    <string name="settings_lab_trick">버튼 속이기</string>
-    <string name="settings_lab_recheck">한 번 더 확인</string>
-    <string name="settings_lab_recheck_value">\'깼어요\'를 누른 뒤 \'정말 깼어요?\'를 또 물어요</string>
+    <string name="settings_lab_note">톡백 같은 접근성 기능을 쓰는 중에는 움직이는 버튼이 자동으로 꺼져요.</string>
+    <string name="settings_lab_trick">움직이는 버튼</string>
+    <string name="settings_lab_recheck">좀비모드</string>
+    <string name="settings_lab_recheck_value">모든 미션을 완료했더라도 원하는 만큼 알람을 다시 반복할 수 있어요</string>
     <string name="settings_lab_trick_off">울릴 때 버튼이 움직여요</string>
-    <string name="settings_lab_trick_on">속도 %1$s, %2$d초 동안</string>
-    <string name="settings_lab_trick_desc">알람이 울리면 버튼이 화면 안을 공처럼 튕겨 다녀요. 화면을 만지고 %1$d초가 지나면 제자리에 멈춰요.</string>
+    <string name="settings_lab_trick_on">속도 %1$s</string>
+    <string name="settings_lab_trick_desc">알람이 울리면 버튼이 화면 안을 공처럼 튕겨 다녀요. 울리는 동안 멈추지 않아요.</string>
     <string name="settings_lab_speed_ms">%1$dms</string>
     <string name="settings_lab_speed_label">끝에서 끝까지 걸리는 시간</string>
     <string name="settings_lab_speed_unit">ms</string>

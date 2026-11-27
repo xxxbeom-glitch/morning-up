@@ -24,6 +24,8 @@ import com.lumian.morningup.core.alarm.ring.VolumePreviewer
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningChoiceChip
 import com.lumian.morningup.core.designsystem.component.MorningSettingRow
+import com.lumian.morningup.core.designsystem.component.MorningValueSwitchRow
+import com.lumian.morningup.core.designsystem.component.ValueSwitchType
 import com.lumian.morningup.core.designsystem.component.MorningSheetHeader
 import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
@@ -236,14 +238,10 @@ internal fun RingAgainSheetContent(alarm: Alarm, actions: EditActions, onDone: (
 /** 꺼져 있을 때 횟수 칸을 아무것도 고르지 않은 모양으로 두는 값(선택지에 없는 수). */
 private const val NOT_SELECTED = -1
 
-/** '한 번 더 확인' 줄의 '안 함' 칸 값. 고르면 한 번 더 확인(W3)을 꺼요. */
-private const val RECHECK_NONE = 0
-
-private val RecheckOptions = listOf(RECHECK_NONE) + WakeCheckSettings.RECHECK_COUNTS
-
 /**
- * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안). ① '간격' 3, 5, 10분 후 ② '한 번 더 확인' 안 함, 1번, 2번, 3번.
- * ② 줄은 설정 > 실험실 '한 번 더 확인'을 켰을 때만 보여요(결정 184). 줄 아래 설명 글은 없어요(TSK-247). 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
+ * S4 다시 잠들기 방지 시트, 두 줄(결정 183 A안, 결정 186). ① '간격' 1, 3, 5, 10분 후 ② '횟수' +, -(최소 1, 최대 없음).
+ * ② 줄은 설정 > 실험실 '좀비모드'를 켰을 때만 보여요(결정 184, 188). 줄 아래 설명 글은 없어요(TSK-247).
+ * 고르는 즉시 편집 중인 알람에 반영돼요. W2 대답할 시간 1분, W3까지 3분, W3 대답할 시간 1분은 고정이에요.
  */
 @Composable
 internal fun WakeCheckSheetContent(alarm: Alarm, labRecheck: Boolean, actions: EditActions, onDone: () -> Unit) {
@@ -261,31 +259,39 @@ internal fun WakeCheckSheetContent(alarm: Alarm, labRecheck: Boolean, actions: E
             onSelect = actions.onWakeCheckAsk,
         )
         // 결정 184: '한 번 더 확인' 줄은 실험실에서 켰을 때만 보여요.
-        if (labRecheck) RecheckRow(check.recheckEnabled, check.recheckCount, actions)
+        if (labRecheck) RecheckRow(check.normalized().recheckCount, actions)
     }
 }
 
+/** 테스트에서 '횟수' 줄 +, - 버튼을 찾는 이름표 앞부분. */
+const val RECHECK_COUNT_TAG = "recheckCount"
+
+/** '횟수' 줄. 미션 설정 시트와 같은 +, - 부품이에요(결정 186). */
 @Composable
-private fun RecheckRow(enabled: Boolean, count: Int, actions: EditActions) {
-    ChipRow(
-        label = stringResource(R.string.edit_recheck),
-        options = RecheckOptions,
-        selected = if (enabled) count else RECHECK_NONE,
-        optionLabel = { n ->
-            if (n == RECHECK_NONE) stringResource(R.string.edit_recheck_none) else stringResource(R.string.edit_times, n)
-        },
-        onSelect = { n -> if (n == RECHECK_NONE) actions.onRecheck(false) else actions.onRecheckCount(n) },
+private fun RecheckRow(count: Int, actions: EditActions) {
+    val label = stringResource(R.string.edit_recheck)
+    MorningValueSwitchRow(
+        label = label,
+        value = stringResource(R.string.edit_times, count),
+        type = ValueSwitchType.Count,
+        canDecrease = count > WakeCheckSettings.MIN_RECHECK_COUNT,
+        canIncrease = true,
+        onDecrease = { actions.onRecheckStep(-1) },
+        onIncrease = { actions.onRecheckStep(1) },
+        decreaseDescription = stringResource(R.string.edit_mission_decrease, label),
+        increaseDescription = stringResource(R.string.edit_mission_increase, label),
+        tag = RECHECK_COUNT_TAG,
     )
 }
 
 /**
- * '다시 잠들기 방지' 줄 값: '3분 후, 한 번 더 확인 1번'. 한 번 더 확인이 꺼져 있거나 실험실에서 꺼 두었으면 '3분 후'예요(결정 184).
+ * '다시 잠들기 방지' 줄 값: '3분 후, 횟수 1번'. 실험실 '좀비모드'를 꺼 두었으면 '3분 후'예요(결정 184, 186).
  */
 @Composable
 internal fun wakeCheckValue(alarm: Alarm, labRecheck: Boolean): String {
     val check = alarm.wakeCheck
-    return if (check.recheckEnabled && labRecheck) {
-        stringResource(R.string.edit_wake_check_value, check.askAfterMinutes, check.recheckCount)
+    return if (labRecheck) {
+        stringResource(R.string.edit_wake_check_value, check.askAfterMinutes, check.normalized().recheckCount)
     } else {
         stringResource(R.string.edit_wake_check_value_no_recheck, check.askAfterMinutes)
     }

@@ -163,6 +163,6 @@ class RingScreensTest {
             }
         }
         compose.onNodeWithText("미리 해보기, 소리는 나지 않아요").assertExists()
-        compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
+        compose.onNodeWithText("접근성 기능이 켜져 있어 움직이는 버튼이 꺼져요").assertExists()
     }
 }

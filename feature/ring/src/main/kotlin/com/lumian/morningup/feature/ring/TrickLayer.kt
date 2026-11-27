@@ -3,7 +3,6 @@ package com.lumian.morningup.feature.ring
 import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -45,7 +44,6 @@ import com.lumian.morningup.core.designsystem.motion.perform
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.ButtonTrick
-import com.lumian.morningup.core.model.LabSettings
 import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -54,17 +52,11 @@ import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
 
 /** 누르는 영역은 이 크기 이상이에요(버튼은 결정 155 고침으로 112dp 고정이라 지금은 늘 넘어요). */
 private val TrickTouchMin = 48.dp
-
-/** 20초가 지나 원래 자리로 돌아가는 시간. */
-private const val RETURN_MILLIS = 300
 
 /** 한 프레임에 셀 시간 상한(초). 화면이 잠깐 멈췄다 돌아와도 버튼이 벽을 뚫고 튀지 않게 해요. */
 private const val MAX_FRAME_SECONDS = 0.1f
@@ -74,11 +66,11 @@ private const val NANOS_PER_SECOND = 1_000_000_000f
 
 /** 버튼 속이기 한 번 동안 일어난 일. 울림 화면은 기록을 남기고, 미리 해보기는 아무것도 하지 않아요. */
 interface TrickListener {
-    /** 화면을 처음 만졌어요. 여기서부터 20초를 세요. */
+    /** 화면을 처음 만졌어요. */
     fun onStart() {}
 
-    /** 버튼을 눌렀어요. [expired]면 20초가 다 지나 멈춘 뒤 누른 거예요. */
-    fun onEnd(seconds: Int, expired: Boolean) {}
+    /** 버튼을 눌렀어요. [seconds]는 처음 만진 때부터 누를 때까지예요. */
+    fun onEnd(seconds: Int) {}
 
     companion object {
         val None = object : TrickListener {}
@@ -165,15 +157,12 @@ object TrickBounce {
 
 /**
  * 울림 화면이 한 번 뜰 동안의 버튼 속이기(결정 146, 155). 화면이 새로 뜨면 새로 만들어 처음부터 다시 걸려요.
- * - [firstTouchAt]: 화면을 처음 만진 때. 여기서부터 [LabSettings.TRICK_SECONDS]초가 지나면 [expired].
- * - [done]: 원래 자리로 돌아가 멈췄어요. 그 뒤는 원래 버튼이 그대로 있어요.
+ * - [firstTouchAt]: 화면을 처음 만진 때. 누르기까지 걸린 시간을 재요.
+ * - 버튼은 울리는 내내 튕겨요(결정 190, 옛 20초 제한을 없앰). 누를 때까지 멈추지 않아요.
  */
 @Stable
 class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Default) {
     internal var firstTouchAt by mutableStateOf<Long?>(null)
-    internal var expired by mutableStateOf(false)
-    var done by mutableStateOf(false)
-        internal set
     private var ended = false
 
     /** 버튼 가운데(통 기준 px), 보이는 크기(px). 크기는 처음 자리 잡을 때 한 번 정해요. */
@@ -182,9 +171,8 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
     internal var velocity = Offset.Zero
     internal var placed = false
 
-    /** 통(울림 화면에서 상태 표시줄과 내비게이션 바 안쪽), 원래 버튼 자리(모두 화면 기준 px). */
+    /** 통(울림 화면에서 상태 표시줄과 내비게이션 바 안쪽, 화면 기준 px). */
     internal var area by mutableStateOf<Rect?>(null)
-    var home by mutableStateOf<Rect?>(null)
 
     /** 버튼에 손가락이 닿았어요. 움직이는 중이어도 인정해요. */
     internal fun tap(listener: TrickListener, onReal: (Offset) -> Unit) {
@@ -200,19 +188,19 @@ class TrickRun(val trick: ButtonTrick, internal val random: Random = Random.Defa
         listener.onStart()
     }
 
-    /** 버튼을 눌렀어요. 한 번만 알려요. 20초가 지나 원래 버튼을 누른 경우도 여기로 와요. */
+    /** 버튼을 눌렀어요. 한 번만 알려요. */
     fun finish(listener: TrickListener) {
         if (ended) return
         ended = true
         val seconds = firstTouchAt?.let { ((SystemClock.elapsedRealtime() - it) / MILLIS_PER_SECOND).toInt() } ?: 0
-        listener.onEnd(seconds, expired)
+        listener.onEnd(seconds)
     }
 }
 
 /**
  * 버튼 속이기 층. 울림 화면 위에 꽉 차게 덮고 버튼 하나를 맨 위에 그려요(하늘, 날짜, 시각 위로도 지나가요).
- * 원래 버튼 자리는 비워 두고([TrickRun.home]만 재요), 20초가 지나면 그 자리로 0.3초에 걸쳐 돌아가 [TrickRun.done]이
- * 돼요. 움직임은 프레임마다(애니메이션 시계) 계산해요. 빠르기는 1초에 통 너비의 [ButtonTrick.speed] 배예요.
+ * 원래 버튼 자리는 비워 두고, 버튼은 울리는 내내 튕겨요(결정 190).
+ * 움직임은 프레임마다(애니메이션 시계) 계산해요. 빠르기는 1초에 통 너비의 [ButtonTrick.speed] 배예요.
  */
 @Composable
 fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (center: Offset) -> Unit) {
@@ -248,23 +236,11 @@ fun TrickLayer(run: TrickRun, label: String, listener: TrickListener, onReal: (c
         }
     }
 
-    // 처음 만진 때부터 20초.
-    LaunchedEffect(run, run.firstTouchAt) {
-        val start = run.firstTouchAt ?: return@LaunchedEffect
-        val left = LabSettings.TRICK_SECONDS * MILLIS_PER_SECOND - (SystemClock.elapsedRealtime() - start)
-        delay(left.coerceAtLeast(0))
-        run.expired = true
-    }
-
+    // 결정 190: 울리는 내내 튕겨요. 누르거나 울림 화면이 닫힐 때까지 멈추지 않아요.
     val area = run.area
-    LaunchedEffect(run, area?.size, run.expired) {
+    LaunchedEffect(run, area?.size) {
         if (area == null) return@LaunchedEffect
-        if (run.expired) {
-            run.returnHome(run.home?.center?.minus(area.topLeft), maxSize)
-            run.done = true
-        } else {
-            run.bounce(area.size, maxSize, touchMin)
-        }
+        run.bounce(area.size, maxSize, touchMin)
     }
 }
 
@@ -288,12 +264,6 @@ private suspend fun TrickRun.bounce(area: Size, visible: Float, touchMin: Float)
         velocity = next.velocity
         center.snapTo(next.center)
     }
-}
-
-/** 20초가 지나면 버튼은 원래 자리로 돌아가요. */
-private suspend fun TrickRun.returnHome(home: Offset?, fullSize: Float) = coroutineScope {
-    if (home != null) launch { center.animateTo(home, tween(RETURN_MILLIS)) }
-    launch { size.animateTo(fullSize, tween(RETURN_MILLIS)) }
 }
 
 /**

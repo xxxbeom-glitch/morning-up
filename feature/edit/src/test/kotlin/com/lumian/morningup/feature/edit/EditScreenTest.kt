@@ -106,42 +106,43 @@ class EditScreenTest {
     }
 
     @Test
-    fun wakeCheckSheet_twoRows_noneTurnsRecheckOff_countTurnsOn() {
-        var recheckOff = false
-        var count: Int? = null
+    fun wakeCheckSheet_twoRows_countUsesPlusMinus() {
+        val steps = mutableListOf<Int>()
         val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true))
         show(
             EditUiState(loading = false, draft = draft, labRecheck = true),
-            EditActions(onRecheck = { recheckOff = !it }, onRecheckCount = { count = it }),
+            EditActions(onRecheckStep = { steps += it }),
         )
         // 실험실에서 켜면 줄 값에 횟수도 보여요.
-        compose.onNodeWithText("3분 후, 한 번 더 확인 1번").assertExists()
+        compose.onNodeWithText("3분 후, 횟수 1번").assertExists()
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
-        // 결정 183, TSK-247: 줄은 '간격'과 '한 번 더 확인' 둘, 줄 아래 설명 글 없음. 대답할 시간, 확인까지, 묻는 횟수 줄도 없어요.
+        // 결정 186: 줄은 '간격'(1, 3, 5, 10분)과 '횟수'(+, -) 둘. '안 함' 칸과 3번 끝은 없어요.
         compose.onNodeWithText("간격").assertExists()
-        compose.onNodeWithText("한 번 더 확인").assertExists()
-        compose.onNodeWithText("다시 물어보기").assertDoesNotExist()
-        compose.onNodeWithText("10초 동안 눌러야 완전히 꺼져요").assertDoesNotExist()
+        compose.onNodeWithText("1분 후").assertExists()
+        compose.onNodeWithText("횟수").assertExists()
+        compose.onNodeWithText("한 번 더 확인").assertDoesNotExist()
+        compose.onNodeWithText("안 함").assertDoesNotExist()
         compose.onNodeWithText("대답할 시간").assertDoesNotExist()
         compose.onNodeWithText("확인까지").assertDoesNotExist()
-        compose.onNodeWithText("묻는 횟수").assertDoesNotExist()
-        compose.onNodeWithText("안 함").performClick()
-        assertThat(recheckOff).isTrue()
-        compose.onNodeWithText("2번").performClick()
-        assertThat(count).isEqualTo(2)
+        // 1번이 최소라 - 는 막혀 있고 + 는 눌려요.
+        compose.onNodeWithTag(RECHECK_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
+        compose.onNodeWithTag(RECHECK_COUNT_TAG + VALUE_INC_SUFFIX, useUnmergedTree = true)
+            .assertIsEnabled()
+            .performSemanticsAction(SemanticsActions.OnClick)
+        assertThat(steps).containsExactly(1)
     }
 
     @Test
     @Config(qualifiers = "w360dp-h748dp")
-    fun wakeCheckSheet_narrowScreen_recheckLabelStaysOneLine() {
-        // ISS-058: Z플립5 너비에서 '한 번 더 확인' 줄 이름이 두 줄로 갈리지 않아요. 칩 4개는 그대로 다 보여요.
+    fun wakeCheckSheet_narrowScreen_intervalChipsAllShown() {
+        // ISS-058: Z플립5 너비에서도 간격 칩 4개가 다 보이고 '횟수' 줄 이름은 한 줄이에요.
         val draft = EditViewModel.newAlarm().copy(wakeCheck = WakeCheck(enabled = true))
         show(EditUiState(loading = false, draft = draft, labRecheck = true), EditActions())
         compose.onNodeWithText("다시 잠들기 방지").performScrollTo().performSemanticsAction(SemanticsActions.OnClick)
         val layouts = mutableListOf<TextLayoutResult>()
-        compose.onNodeWithText("한 번 더 확인").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
+        compose.onNodeWithText("횟수").performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         assertThat(layouts.single().lineCount).isEqualTo(1)
-        listOf("안 함", "1번", "2번", "3번").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
+        listOf("1분 후", "3분 후", "5분 후", "10분 후").forEach { compose.onNodeWithText(it).assertIsDisplayed() }
     }
 
     @Test
@@ -152,7 +153,7 @@ class EditScreenTest {
         compose.onNodeWithText("3분 후").performScrollTo().assertExists()
         compose.onNodeWithText("다시 잠들기 방지").performSemanticsAction(SemanticsActions.OnClick)
         compose.onNodeWithText("간격").assertExists()
-        compose.onNodeWithText("한 번 더 확인").assertDoesNotExist()
+        compose.onNodeWithText("횟수").assertDoesNotExist()
         compose.onNodeWithText("2번").assertDoesNotExist()
     }
 
@@ -282,7 +283,7 @@ class EditScreenTest {
         compose.onNodeWithText("예: 사과, 나무").assertDoesNotExist()
         compose.onNodeWithTag(SHEET_LEVEL_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(SHEET_SPEED_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
-        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsEnabled()
+        compose.onNodeWithTag(SHEET_COUNT_TAG + VALUE_DEC_SUFFIX, useUnmergedTree = true).assertIsNotEnabled()
         compose.onNodeWithTag(
             SHEET_LEVEL_TAG + VALUE_INC_SUFFIX,
             useUnmergedTree = true,

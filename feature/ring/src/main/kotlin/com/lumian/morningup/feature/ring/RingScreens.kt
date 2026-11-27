@@ -150,7 +150,7 @@ private fun BoxScope.RingingContent(
     val resources = LocalContext.current.resources
     val label = stringResource(if (hasMissions) R.string.ring_start_mission else R.string.ring_dismiss)
     // 버튼 속이기 중에는 원래 자리를 비워 두고 위 층([TrickLayer])에서 그려요.
-    val tricking = trickRun != null && !trickRun.done
+    val tricking = trickRun != null
     Column(
         modifier = Modifier.align(Alignment.Center).systemBarsPadding(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -169,11 +169,7 @@ private fun BoxScope.RingingContent(
         }
         Spacer(Modifier.height(MorningDimens.space40))
         if (tricking) {
-            Spacer(
-                Modifier
-                    .size(MorningDimens.sizeButtonCircle)
-                    .onGloballyPositioned { trickRun?.home = it.boundsInRoot() },
-            )
+            Spacer(Modifier.size(MorningDimens.sizeButtonCircle))
         } else {
             MorningButton(
                 text = label,

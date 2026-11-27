@@ -28,13 +28,12 @@
     <!-- S4 다시 잠들기 방지 시트(결정 180, 시안 TSK-226) -->
     <string name="edit_wake_check_sheet_desc">알람을 끈 뒤 깼는지 한 번 더 물어요</string>
     <string name="edit_wake_check_ask">간격</string>
-    <string name="edit_recheck">한 번 더 확인</string>
-    <string name="edit_recheck_none">안 함</string>
+    <string name="edit_recheck">횟수</string>
     <string name="edit_minutes_after">%1$d분 후</string>
     <string name="edit_minutes">%1$d분</string>
     <string name="edit_times">%1$d번</string>
     <!-- 편집 줄 값: 3분 후, 한 번 더 확인 1번 -->
-    <string name="edit_wake_check_value">%1$d분 후, 한 번 더 확인 %2$d번</string>
+    <string name="edit_wake_check_value">%1$d분 후, 횟수 %2$d번</string>
     <string name="edit_wake_check_value_no_recheck">%1$d분 후</string>
     <string name="edit_power_off">전원 종료 방지</string>
     <string name="edit_power_off_value">미션 끝날 때까지</string>

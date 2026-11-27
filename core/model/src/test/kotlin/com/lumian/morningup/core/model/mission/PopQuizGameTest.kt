@@ -81,7 +81,8 @@ class PopQuizGameTest {
     }
 
     @Test
-    fun targetBelowMinimum_isTwo() {
-        assertThat(PopQuizGame(1, 1, bank, Random(1)).start().target).isEqualTo(2)
+    fun targetBelowMinimum_isOne() {
+        // 결정 187로 최소가 1문제예요.
+        assertThat(PopQuizGame(1, 0, bank, Random(1)).start().target).isEqualTo(1)
     }
 }

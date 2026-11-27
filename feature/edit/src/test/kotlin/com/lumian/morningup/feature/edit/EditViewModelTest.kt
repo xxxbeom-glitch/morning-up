@@ -78,8 +78,8 @@ class EditViewModelTest {
             assertThat(state.changed).isFalse()
             assertThat(state.hasMissions).isFalse()
             assertThat(state.draft.time).isEqualTo(LocalTime.of(7, 0))
-            // 다시 울림은 켜진 채 시작해요(5분 3번, 결정 163).
-            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 3))
+            // 다시 울림은 꺼진 채 시작해요(결정 187). 켜면 5분 3번이에요.
+            assertThat(state.draft.ringAgain).isEqualTo(RingAgain(intervalMinutes = 5, count = 0))
             // 다시 잠들기 방지는 꺼진 채 시작해요. 간격과 시간은 설정 탭 전체 설정이에요(결정 145).
             assertThat(state.draft.wakeCheck).isEqualTo(WakeCheck(enabled = false))
             // 23:10에 내일 07:00 → 7시간 50분 후.
@@ -204,10 +204,11 @@ class EditViewModelTest {
         val vm = viewModel(FakeAlarmBook())
         vm.uiState.test {
             loaded()
-            vm.setRingAgain(false)
-            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
+            // 새 알람은 다시 울림 꺼짐으로 시작해요(결정 187).
             vm.setRingAgain(true)
             assertThat(awaitItem().draft.ringAgain.count).isEqualTo(3)
+            vm.setRingAgain(false)
+            assertThat(awaitItem().draft.ringAgain.count).isEqualTo(0)
             vm.setWakeCheck(true)
             assertThat(awaitItem().draft.wakeCheck.enabled).isTrue()
             vm.setSoundId("aube_paisible")
@@ -221,6 +222,25 @@ class EditViewModelTest {
             assertThat(awaitItem().draft.gentleWake).isTrue()
             vm.setSkipHolidays(true)
             assertThat(awaitItem().draft.skipHolidays).isTrue()
+        }
+    }
+
+    @Test
+    fun wakeCheck_intervalOneMinute_andCountSteps_minOneNoMax() = runTest {
+        // 결정 186: 간격 1분을 고를 수 있고, 횟수는 +, - 로 최소 1, 최대 없음이에요. 고르면 다시 잠들기 방지도 켜요.
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setWakeCheckAsk(1)
+            var check = awaitItem().draft.wakeCheck
+            assertThat(check.enabled).isTrue()
+            assertThat(check.askAfterMinutes).isEqualTo(1)
+            vm.stepRecheckCount(-1)
+            repeat(5) { vm.stepRecheckCount(1) }
+            check = expectMostRecentItem().draft.wakeCheck
+            assertThat(check.recheckCount).isEqualTo(6)
+            repeat(9) { vm.stepRecheckCount(-1) }
+            assertThat(expectMostRecentItem().draft.wakeCheck.recheckCount).isEqualTo(1)
         }
     }
 
@@ -444,16 +464,17 @@ class EditViewModelTest {
             loaded()
             vm.openMissionSheet(MissionType.DropWords)
             var sheet = awaitItem().missionSheet!!
-            // 처음 값은 1단계, 속도 1이라 < 가 막혀 있어요. 문제 수는 10개이고 1씩 5개까지 줄일 수 있어요(11-19 사용자 결정).
+            // 처음 값은 모두 1이라 < 가 막혀 있어요(결정 187).
             assertThat(sheet.canLevelDown).isFalse()
             assertThat(sheet.canSpeedDown).isFalse()
-            assertThat(sheet.canCountDown).isTrue()
+            assertThat(sheet.canCountDown).isFalse()
             assertThat(sheet.canLevelUp).isTrue()
             vm.stepMissionLevel(-1)
+            vm.stepMissionCount(1)
             repeat(5) { vm.stepMissionCount(-1) }
             sheet = expectMostRecentItem().missionSheet!!
             assertThat(sheet.setting.level).isEqualTo(1)
-            assertThat(sheet.setting.count).isEqualTo(5)
+            assertThat(sheet.setting.count).isEqualTo(1)
             assertThat(sheet.canCountDown).isFalse()
             repeat(10) { vm.stepMissionLevel(1) }
             repeat(10) { vm.stepMissionSpeed(1) }

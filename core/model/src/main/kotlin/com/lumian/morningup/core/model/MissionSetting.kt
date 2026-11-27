@@ -52,20 +52,20 @@ data class MissionSetting(
         val SPEEDS = 1..4
         private val LEVELS = 1..7
 
-        /** mission-levels.md 2번 표의 개수 범위. */
-        private val DROP_WORDS_COUNTS = 5..30
-        private val POP_QUIZ_COUNTS = 2..10
+        /** mission-levels.md 2번 표의 개수 범위. 결정 187로 처음 값이 모두 1이라 최소도 모두 1이에요. */
+        private val DROP_WORDS_COUNTS = 1..30
+        private val POP_QUIZ_COUNTS = 1..10
         private val QUICK_MATH_COUNTS = 1..10
-        private val SHAKE_COUNTS = 10..200
+        private val SHAKE_COUNTS = 1..200
         private val SINGLE_LEVEL = 1..1
 
         fun rangeOf(type: MissionType): Range = when (type) {
             MissionType.DropWords ->
-                Range(LEVELS, DROP_WORDS_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 10)
-            MissionType.PopQuiz -> Range(LEVELS, POP_QUIZ_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 3)
-            MissionType.QuickMath -> Range(LEVELS, QUICK_MATH_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 3)
+                Range(LEVELS, DROP_WORDS_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
+            MissionType.PopQuiz -> Range(LEVELS, POP_QUIZ_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
+            MissionType.QuickMath -> Range(LEVELS, QUICK_MATH_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
             MissionType.ShakeShake ->
-                Range(SINGLE_LEVEL, SHAKE_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 10)
+                Range(SINGLE_LEVEL, SHAKE_COUNTS, countStep = 1, defaultLevel = 1, defaultCount = 1)
         }
 
         /** 처음 값으로 만든 설정. */

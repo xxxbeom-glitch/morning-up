@@ -6,7 +6,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.google.common.truth.Truth.assertThat
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
-import com.lumian.morningup.core.designsystem.theme.ThemeMode
 import com.lumian.morningup.core.model.AlarmPermission
 import com.lumian.morningup.core.model.PermissionReport
 import org.junit.Rule
@@ -37,32 +36,9 @@ class SettingsScreensTest {
         }
     }
 
-    /** TSK-166: 디버그 빌드만 '화면 모드(임시)' 줄. 누르면 자동 → 라이트 → 다크 → 자동. 값이 없으면(출시) 줄이 없어요. */
+    /** TSK-270: 출시 앱처럼 '화면 모드(임시)' 줄은 화면에 없어요. 화면 모드는 디버그 adb THEME 명령으로 바꿔요. */
     @Test
-    fun themeModeRow_cyclesModes_andHiddenWhenNull() {
-        var mode = ThemeMode.Auto
-        val picked = mutableListOf<ThemeMode>()
-        compose.setContent {
-            MorningTheme(darkTheme = false, reduceMotion = true) {
-                SettingsScreen(
-                    report = report(),
-                    versionName = "1.0.0",
-                    tryAlarmAt = null,
-                    onOpenPermissions = {},
-                    onTryAlarm = {},
-                    onFeedback = {},
-                    themeMode = mode,
-                    onThemeMode = { picked += it },
-                )
-            }
-        }
-        compose.onNodeWithText("화면 모드(임시)").performScrollTo().assertExists()
-        compose.onNodeWithText("자동").performClick()
-        assertThat(picked).containsExactly(ThemeMode.Light)
-    }
-
-    @Test
-    fun themeModeRow_absentWithoutMode() {
+    fun themeModeRow_absent() {
         setT1(report())
         compose.onNodeWithText("화면 모드(임시)").assertDoesNotExist()
     }

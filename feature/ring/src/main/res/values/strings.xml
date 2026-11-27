@@ -40,7 +40,7 @@
     <!-- 실험실 버튼 속이기 미리 해보기(T3-3) -->
     <string name="ring_preview_top">미리 해보기, 소리는 나지 않아요</string>
     <!-- 접근성 기능 때문에 버튼 속이기가 꺼질 때 위 줄 아래 안내(ISS-041) -->
-    <string name="ring_preview_trick_off">접근성 기능이 켜져 있어 버튼 속이기가 꺼져요</string>
+    <string name="ring_preview_trick_off">접근성 기능이 켜져 있어 움직이는 버튼이 꺼져요</string>
     <string name="ring_preview_close">닫기</string>
     <string name="ring_preview_done">잘했어요</string>
     <string name="ring_preview_back">곧 설정으로 돌아가요</string>

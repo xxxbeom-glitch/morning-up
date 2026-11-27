@@ -55,39 +55,42 @@ class LabPageTest {
         compose.onNodeWithText("실험실").assertExists()
         compose.onNodeWithText("꺼짐").assertExists()
         lab = LabSettings(trickEnabled = true)
-        compose.onNodeWithText("버튼 속이기").performClick()
+        compose.onNodeWithText("움직이는 버튼").performClick()
         assertThat(calls).containsExactly("open")
         // 결정 184: 켠 것 이름을 이어서 보여요.
         lab = LabSettings(trickEnabled = true, recheckEnabled = true)
-        compose.onNodeWithText("버튼 속이기, 한 번 더 확인").assertExists()
+        compose.onNodeWithText("움직이는 버튼, 좀비모드").assertExists()
     }
 
     @Test
     fun t3_recheckCard_startsOff_andToggles() {
         showPage()
-        compose.onNodeWithText("한 번 더 확인").performScrollTo().performClick()
+        compose.onNodeWithText("좀비모드").performScrollTo().performClick()
+        compose.onNodeWithText("모든 미션을 완료했더라도 원하는 만큼 알람을 다시 반복할 수 있어요").assertExists()
         assertThat(calls).containsExactly("recheck:true")
     }
 
     @Test
     fun t3_off_showsIntroRowsAndNote() {
         showPage()
-        compose.onNodeWithText("확실히 잠깨기").assertExists()
+        compose.onNodeWithText("Crazy Mode").assertExists()
+        compose.onNodeWithText("확실히 잠깨기").assertDoesNotExist()
         compose.onNodeWithText("울릴 때 버튼이 움직여요").assertExists()
         compose.onNodeWithText("여러 번 묻기").assertDoesNotExist()
-        compose.onNodeWithText("톡백 같은 접근성 기능을 쓰는 중에는 버튼 속이기가 자동으로 꺼져요.").assertExists()
+        compose.onNodeWithText("톡백 같은 접근성 기능을 쓰는 중에는 움직이는 버튼이 자동으로 꺼져요.").assertExists()
     }
 
     @Test
-    fun t3_on_showsSpeedAndSeconds() {
+    fun t3_on_showsSpeed_noTimeLimit() {
+        // 결정 190: 울리는 내내 튕겨서 '20초 동안'은 없어요.
         showPage(LabSettings(trickEnabled = true))
-        compose.onNodeWithText("속도 1250ms, 20초 동안").assertExists()
+        compose.onNodeWithText("속도 1250ms").assertExists()
     }
 
     @Test
     fun trickSheet_picksSpeed_andOpensPreview() {
         showPage(LabSettings(trickEnabled = true, trickSpeed = TrickSpeed.Fast))
-        compose.onNodeWithText("버튼 속이기").performClick()
+        compose.onNodeWithText("움직이는 버튼").performClick()
         compose.onNodeWithTag(LAB_TRICK_SHEET_TAG).assertExists()
         // 결정 155로 강도 칩은 없어졌어요.
         compose.onNodeWithText("똑같은 가짜 버튼이 섞여요").assertDoesNotExist()
@@ -104,21 +107,21 @@ class LabPageTest {
     @Test
     fun escapeCard_showsRowAndNote() {
         showPage()
-        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().assertExists()
+        compose.onNodeWithText("미션 포기 사용하기").performScrollTo().assertExists()
         compose.onNodeWithText("미션을 못 할 때 뜨는 알림이에요").assertExists()
-        compose.onNodeWithText("숨겨도 흔들기 센서가 없는 폰이나 마지막 다시 울림에서는 떠요.").assertExists()
+        compose.onNodeWithText("사용하지 않아도 흔들기 센서가 없는 폰이나 마지막 다시 울림에서는 떠요.").assertExists()
     }
 
     @Test
     fun escapeHide_needsConfirm_thenHides() {
         showPage()
-        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithText("미션 포기 사용하기").performScrollTo().performClick()
         compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertExists()
-        compose.onNodeWithText("'미션 포기' 알림을 숨길까요?").assertExists()
-        compose.onNodeWithText("숨겨도 이럴 때는 떠요").assertExists()
+        compose.onNodeWithText("미션 포기를 사용하지 않을까요?").assertExists()
+        compose.onNodeWithText("사용하지 않아도 이럴 때는 떠요").assertExists()
         compose.onNodeWithText("2. 다시 울림이 마지막 바퀴일 때, 첫 미션에서").assertExists()
         assertThat(calls).isEmpty()
-        compose.onNodeWithText("숨기기").performClick()
+        compose.onNodeWithText("사용 안 하기").performClick()
         assertThat(calls).containsExactly("escape:true")
         compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
     }
@@ -126,7 +129,7 @@ class LabPageTest {
     @Test
     fun escapeHide_cancel_keepsShowing() {
         showPage()
-        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithText("미션 포기 사용하기").performScrollTo().performClick()
         compose.onNodeWithText("취소").performClick()
         compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
         assertThat(calls).isEmpty()
@@ -135,7 +138,7 @@ class LabPageTest {
     @Test
     fun escapeShow_turnsOffAtOnce() {
         showPage(LabSettings(escapeHidden = true))
-        compose.onNodeWithText("'미션 포기' 알림 숨기기").performScrollTo().performClick()
+        compose.onNodeWithText("미션 포기 사용하기").performScrollTo().performClick()
         compose.onNodeWithTag(LAB_ESCAPE_SHEET_TAG).assertDoesNotExist()
         assertThat(calls).containsExactly("escape:false")
     }
@@ -143,6 +146,6 @@ class LabPageTest {
     @Test
     fun trickRow_a11yOff_showsNotice() {
         showPage(LabSettings(trickEnabled = true), trickOff = true)
-        compose.onNodeWithText("접근성 기능이 켜져 있어 버튼 속이기가 꺼져요").assertExists()
+        compose.onNodeWithText("접근성 기능이 켜져 있어 움직이는 버튼이 꺼져요").assertExists()
     }
 }

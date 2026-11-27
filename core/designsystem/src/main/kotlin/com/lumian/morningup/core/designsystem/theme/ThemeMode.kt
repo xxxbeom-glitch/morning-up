@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * 화면 모드(TSK-166, 11-23 사용자 요청 "설정에서 임시로 다크, 라이트 모드로 수동으로 해 볼 수 있는 거").
- * [Auto]는 지금처럼 시각을 따라요(아침 라이트, 밤 다크). 디버그 빌드의 설정에서만 고를 수 있어요.
+ * [Auto]는 지금처럼 시각을 따라요(아침 라이트, 밤 다크). 디버그 빌드의 adb THEME 명령으로만 고를 수 있어요(TSK-270, docs/qa/README.md).
  */
 enum class ThemeMode {
     Auto,

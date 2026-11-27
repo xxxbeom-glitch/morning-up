@@ -137,7 +137,7 @@ fun LabCardContent(lab: LabSettings, onOpen: () -> Unit) {
     }
 }
 
-/** T1 줄 값: '꺼짐' 또는 켠 것 이름을 이어서('버튼 속이기, 한 번 더 확인', 결정 177, 184). */
+/** T1 줄 값: '꺼짐' 또는 켠 것 이름을 이어서('움직이는 버튼, 좀비모드', 결정 177, 184, 188). */
 @Composable
 private fun labValue(lab: LabSettings): String {
     val names = buildList {
@@ -147,7 +147,7 @@ private fun labValue(lab: LabSettings): String {
     return if (names.isEmpty()) stringResource(R.string.settings_lab_off) else names.joinToString(", ")
 }
 
-/** T3 '확실히 잠깨기' 페이지. [onPreview]는 T3-3 미리 해보기를 열어요. */
+/** T3 'Crazy Mode' 페이지(결정 188). [onPreview]는 T3-3 미리 해보기를 열어요. */
 @Composable
 fun LabRoute(onBack: () -> Unit, onPreview: () -> Unit, viewModel: LabViewModel = hiltViewModel()) {
     val settings by viewModel.settings.collectAsStateWithLifecycle()
@@ -233,8 +233,8 @@ fun LabScreen(
             )
             Spacer(Modifier.height(MorningDimens.space4))
             EscapeCard(
-                hidden = lab.escapeHidden,
-                onToggle = { on -> if (on) sheet = LabSheet.HideEscape else onEscapeHidden(false) },
+                use = !lab.escapeHidden,
+                onToggle = { use -> if (use) onEscapeHidden(false) else sheet = LabSheet.HideEscape },
             )
             Spacer(Modifier.height(MorningDimens.space4))
             RecheckCard(on = lab.recheckEnabled, onToggle = onRecheck)
@@ -275,18 +275,18 @@ fun LabScreen(
 }
 
 /**
- * T3 둘째 카드: '미션 포기' 알림 숨기기 토글 한 줄과 아래 작은 글(결정 151, 시안 1084:13871).
- * 켜면 바로 바뀌지 않고 T3-4 확인 시트를 먼저 열어요. 끄는 것은 바로 돼요.
+ * T3 둘째 카드: '미션 포기 사용하기' 토글 한 줄과 아래 작은 글(결정 151, 188, 시안 1084:13871).
+ * 켜짐이 사용(알림 뜸, 처음 값)이에요. 끌 때는 바로 바뀌지 않고 T3-4 확인 시트를 먼저 열어요. 켜는 것은 바로 돼요.
  */
 @Composable
-private fun EscapeCard(hidden: Boolean, onToggle: (Boolean) -> Unit) {
+private fun EscapeCard(use: Boolean, onToggle: (Boolean) -> Unit) {
     MorningSettingsCard(title = null) {
         MorningSettingRow(
             label = stringResource(R.string.settings_lab_escape),
             value = stringResource(R.string.settings_lab_escape_value),
-            state = if (hidden) SettingRowState.On else SettingRowState.Off,
+            state = if (use) SettingRowState.On else SettingRowState.Off,
             onCheckedChange = onToggle,
-            onClick = { onToggle(!hidden) },
+            onClick = { onToggle(!use) },
             modifier = Modifier.heightIn(min = SettingsToggleRowHeight),
         )
     }
@@ -299,8 +299,8 @@ private fun EscapeCard(hidden: Boolean, onToggle: (Boolean) -> Unit) {
 }
 
 /**
- * T3 셋째 카드: '한 번 더 확인' 토글 한 줄(결정 184, 기존 실험실 줄 부품). 켜면 알람 편집 '다시 잠들기 방지' 시트에
- * '한 번 더 확인' 줄이 보이고 알람마다 정한 횟수대로 '정말 깼어요?'를 물어요.
+ * T3 셋째 카드: '좀비모드' 토글 한 줄(결정 184, 188, 옛 '한 번 더 확인'). 켜면 알람 편집 '다시 잠들기 방지' 시트에
+ * '횟수' 줄이 보이고 알람마다 정한 횟수대로 '정말 깼어요?'를 물어요.
  */
 @Composable
 private fun RecheckCard(on: Boolean, onToggle: (Boolean) -> Unit) {
@@ -363,13 +363,12 @@ private fun ColumnScope.HideEscapeSheet(onCancel: () -> Unit, onHide: () -> Unit
     }
 }
 
-/** T3 '버튼 속이기' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 1250ms, 20초 동안'. */
+/** T3 '움직이는 버튼' 둘째 줄: 꺼지면 '울릴 때 버튼이 움직여요', 켜면 '속도 1250ms'(결정 190으로 시간 제한 없음). */
 @Composable
 private fun trickValue(lab: LabSettings): String = if (lab.trickEnabled) {
     stringResource(
         R.string.settings_lab_trick_on,
         stringResource(R.string.settings_lab_speed_ms, lab.trickSpeed.millis),
-        LabSettings.TRICK_SECONDS,
     )
 } else {
     stringResource(R.string.settings_lab_trick_off)
@@ -385,7 +384,7 @@ private fun ColumnScope.TrickSheet(
 ) {
     SheetFrame(
         title = stringResource(R.string.settings_lab_trick),
-        description = stringResource(R.string.settings_lab_trick_desc, LabSettings.TRICK_SECONDS),
+        description = stringResource(R.string.settings_lab_trick_desc),
         onDone = onDone,
     ) {
         TrickSpeedInput(speed = lab.trickSpeed, onSpeed = onSpeed)

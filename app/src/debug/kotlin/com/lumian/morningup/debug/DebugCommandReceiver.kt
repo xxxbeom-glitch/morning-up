@@ -10,6 +10,8 @@ import com.lumian.morningup.core.alarm.ring.FlowLog
 import com.lumian.morningup.core.alarm.ring.MissionEscapeAnswers
 import com.lumian.morningup.core.alarm.ring.MissionEscapeNotifier
 import com.lumian.morningup.core.data.AlarmRepository
+import com.lumian.morningup.core.designsystem.theme.ThemeMode
+import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
@@ -56,6 +58,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
             ACTION_WAKE_CHECK -> setWakeCheck(intent)
             ACTION_LAB -> setLab(intent)
             ACTION_ESCAPE -> sendEscape(intent)
+            ACTION_THEME -> setTheme(context, intent)
             else -> resultData = "unknown action: ${intent.action}"
         }
     }
@@ -179,6 +182,23 @@ class DebugCommandReceiver : BroadcastReceiver() {
         }
     }
 
+    /**
+     * 화면 모드를 바꿔요(TSK-270). 예전 설정의 '화면 모드(임시)' 줄 대신이에요. 열려 있는 화면에도 바로 적용돼요.
+     * 예: `--es mode dark` (auto, light, dark)
+     */
+    private fun setTheme(context: Context, intent: Intent) {
+        val raw = intent.getStringExtra(EXTRA_MODE).orEmpty()
+        val mode = ThemeMode.entries.firstOrNull { it.name.equals(raw, ignoreCase = true) }
+        val result = if (mode == null) {
+            "theme unknown mode: $raw (auto, light, dark)"
+        } else {
+            ThemeModeStore.set(context, mode)
+            "theme $mode"
+        }
+        FlowLog.event("debug_theme", detail = result)
+        resultData = result
+    }
+
     private fun Intent.boolOr(key: String, fallback: Boolean): Boolean =
         if (hasExtra(key)) getBooleanExtra(key, fallback) else fallback
 
@@ -205,6 +225,8 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_ESCAPE_HIDDEN = "escape_hidden"
         const val ACTION_ESCAPE = "com.lumian.morningup.debug.ESCAPE"
         const val EXTRA_ANSWER = "answer"
+        const val ACTION_THEME = "com.lumian.morningup.debug.THEME"
+        const val EXTRA_MODE = "mode"
         private const val ANSWER_OK = "ok"
         private const val ANSWER_WRONG = "wrong"
         private const val SECONDS_PER_MINUTE = 60

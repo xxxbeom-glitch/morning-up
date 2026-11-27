@@ -125,10 +125,10 @@ class RingViewModel @Inject constructor(
         override fun onStart() =
             trickRecorder.record(LabLog.TRICK_START, state.alarmId, state.trick?.detail().orEmpty())
 
-        override fun onEnd(seconds: Int, expired: Boolean) = trickRecorder.record(
+        override fun onEnd(seconds: Int) = trickRecorder.record(
             LabLog.TRICK_END,
             state.alarmId,
-            "seconds=$seconds expired=$expired",
+            "seconds=$seconds",
             kept = true,
         )
     }
