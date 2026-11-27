@@ -112,6 +112,15 @@ interface WakeCheckGate {
 
     /** W3 '정말 깼어요?'를 지금 열어요(홈 띠, 미리 끝내기). */
     fun openRecheck()
+
+    /** 홈 띠 '해제'를 눌렀어요. W2, W3를 기다리는 중이면 W4 재확인 해제 화면을 열어요(TSK-266). */
+    fun openRelease() = Unit
+
+    /** W4로 재확인을 해제했고 홈이 아직 토스트를 안 띄웠으면 true예요. */
+    val releaseNotice: Flow<Boolean> get() = flowOf(false)
+
+    /** 홈이 '재확인을 해제했어요' 토스트를 띄웠어요. */
+    fun consumeReleaseNotice() = Unit
 }
 
 /** 메모리에만 두는 설정 저장소. 시험과 기본값에 써요. */

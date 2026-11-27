@@ -22,6 +22,20 @@ class FakeRingLink(
         sent += event
     }
 
+    /** [release]가 돌려줄 값. 불린 횟수는 [released]예요. */
+    var releaseResult = true
+    var released = 0
+        private set
+
+    override suspend fun release(): Boolean {
+        released++
+        return releaseResult
+    }
+
+    override fun closeRelease() {
+        if (screen.value == RingScreen.Release) screen.value = RingScreen.None
+    }
+
     override fun closeWakeUp() {
         wakeUpClosed++
         if (screen.value == RingScreen.WakeUp) screen.value = RingScreen.None

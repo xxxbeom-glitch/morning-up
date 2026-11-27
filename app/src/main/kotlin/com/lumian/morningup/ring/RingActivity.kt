@@ -69,11 +69,15 @@ class RingActivity : ComponentActivity() {
     /** 미션 비상구 알림을 눌러 열었어요(결정 171). 저장된 울림을 읽은 뒤 M5를 열어요. */
     private var openedForEscape = false
 
+    /** 홈 띠 '해제'나 기다림 알림 '재확인 해제'로 열었어요(TSK-266). 저장된 울림을 읽은 뒤 W4를 열어요. */
+    private var openedForRelease = false
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         if (intent.getBooleanExtra(RingNotifications.EXTRA_FROM_REST, false)) controller.openDuringRest()
         if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_RECHECK, false)) controller.openRecheckEarly()
         if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false)) openEscape()
+        if (intent.getBooleanExtra(RingNotifications.EXTRA_OPEN_RELEASE, false)) controller.openRelease()
     }
 
     /** 미션 비상구 알림을 눌렀어요. M5를 열고 소리를 끄도록 울림 서비스에 알려요(결정 171). 열었으면 true예요. */
@@ -113,6 +117,8 @@ class RingActivity : ComponentActivity() {
         if (openedForRecheck && controller.openRecheckEarly()) openedForRecheck = false
         openedForEscape = intent?.getBooleanExtra(RingNotifications.EXTRA_OPEN_ESCAPE, false) == true
         if (openedForEscape && openEscape()) openedForEscape = false
+        openedForRelease = intent?.getBooleanExtra(RingNotifications.EXTRA_OPEN_RELEASE, false) == true
+        if (openedForRelease && controller.openRelease()) openedForRelease = false
         resumeIfNeeded()
         lifecycleScope.launch {
             // 세션이 보이면 읽기가 끝난 것이에요. 앱이 새로 떠서 늦게 읽혔으면 그때 쉬는 중 화면을 열어요.
@@ -129,6 +135,10 @@ class RingActivity : ComponentActivity() {
                     if (openedForEscape) {
                         openEscape()
                         openedForEscape = false
+                    }
+                    if (openedForRelease) {
+                        controller.openRelease()
+                        openedForRelease = false
                     }
                     loaded.value = true
                 }
@@ -156,6 +166,7 @@ class RingActivity : ComponentActivity() {
                         },
                         // 다크 울림 화면에서 상태 표시줄 아이콘이 검게 남아 안 보였어요(ISS-047).
                         systemBars = { dark -> SystemBarIcons(dark) },
+                        onReleased = ::afterRelease,
                     )
                   }
                 }
@@ -189,6 +200,16 @@ class RingActivity : ComponentActivity() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             )
         }
+        finish()
+    }
+
+    /** W4 재확인 해제를 마쳤어요(TSK-266). 홈으로 가요. 토스트는 홈이 컨트롤러의 해제 표시를 보고 띄워요. */
+    private fun afterRelease() {
+        Timber.i("release_closed_to_home")
+        startActivity(
+            Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+        )
         finish()
     }
 

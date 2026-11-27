@@ -24,6 +24,7 @@ private enum class FirstRunStage { Splash, Alarm, Permissions }
 /**
  * 첫 실행 흐름(결정 191, `docs/plan-11-first-run.md`): O1 스플래시 → O4-1~O4-4 첫 알람(알림 권한 카드 포함)
  * → O5 필수 권한 목록(꺼진 줄이 없으면 건너뜀) → [onFinished]. 저장한 알람이 있으면 그 id를 넘겨 홈이 토스트를 띄워요.
+ * 첫 알람을 저장하면 바로 [onAlarmSaved]를 불러 첫 실행 끝을 남겨요(ISS-061).
  * 첫 알람은 편집 모듈, 권한은 설정 모듈이라 둘을 잇는 이 틀만 앱에 둬요.
  * [demo](첫 실행 확인용 앱)면 알람을 저장하지 않고 O5에 네 줄을 다 보여요. [onLightRoundFinished]가 있으면
  * 첫 바퀴를 마칠 때 불러(부르는 쪽이 다크로 바꿔요) O4-1부터 한 바퀴 더 보여요.
@@ -31,6 +32,7 @@ private enum class FirstRunStage { Splash, Alarm, Permissions }
 @Composable
 internal fun FirstRunHost(
     onFinished: (savedAlarmId: Long?) -> Unit,
+    onAlarmSaved: () -> Unit = {},
     demo: Boolean = false,
     onLightRoundFinished: (() -> Unit)? = null,
     alarmViewModel: FirstRunViewModel = hiltViewModel(),
@@ -51,6 +53,7 @@ internal fun FirstRunHost(
         FirstRunStage.Alarm -> FirstRunAlarmRoute(
             onFinished = { exit ->
                 savedId = (exit as? FirstRunExit.Saved)?.alarmId
+                if (savedId != null) onAlarmSaved()
                 stage = FirstRunStage.Permissions
             },
             needsNotificationCard = { firstRunNeedsNotificationCard(context) },

@@ -44,6 +44,22 @@ class RingViewModelTest {
     private fun viewModel(link: FakeRingLink) = RingViewModel(link, now, ticker, NoWeather, recorder, trickRuns)
 
     @Test
+    fun release_showsW4WithoutCountdown_andReportsDone() = runTest {
+        // TSK-266: W2 기다림 중 W4. 남은 시간 숫자가 없고, 10초를 마치면 해제하고 홈으로 알려요.
+        val waiting = testRingSession(missions = listOf(math)).copy(phase = RingPhase.AwaitingWakeCheck)
+        val link = FakeRingLink(waiting, RingScreen.Release)
+        val vm = viewModel(link)
+        assertThat(vm.uiState.value.screen).isEqualTo(RingScreen.Release)
+        assertThat(vm.uiState.value.checkEndsAt).isNull()
+        var done = 0
+        vm.onRelease { done++ }
+        assertThat(link.released).isEqualTo(1)
+        assertThat(done).isEqualTo(1)
+        vm.onReleaseClosed()
+        assertThat(link.screen.value).isEqualTo(RingScreen.None)
+    }
+
+    @Test
     fun ringing_showsDateTimeAndMorning() = runTest {
         val vm = viewModel(FakeRingLink(testRingSession(missions = listOf(math)), RingScreen.Ringing))
         val state = vm.uiState.value

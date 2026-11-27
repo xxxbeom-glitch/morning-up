@@ -283,8 +283,10 @@ fun MorningNavHost(
             exitTransition = { fadeOut(MorningMotion.effects(MorningMotion.EffectsDefault)) },
         ) {
             FirstRunHost(
+                // 첫 알람을 저장한 순간 끝났다고 표시해요(기획 1절, ISS-061). 그 뒤 O5에서 닫아도 다음 실행은 홈이에요.
+                // 저장 전에 닫으면 다음에 O4-1부터예요.
+                onAlarmSaved = { if (!onboardingOnly) onOnboardingFinished() },
                 onFinished = { savedId ->
-                    // 끝났다고 표시하는 때는 홈에 도착한 순간이에요(기획 1절). 중간에 닫으면 다음에 O4-1부터예요.
                     onOnboardingFinished()
                     navController.leaveFirstRun(onboardingOnly, savedId)
                 },

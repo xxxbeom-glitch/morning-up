@@ -44,4 +44,15 @@ class FakeWakeCheckGate(
     override fun openRecheck() {
         calls += "open"
     }
+
+    override val releaseNotice = MutableStateFlow(false)
+
+    override fun openRelease() {
+        calls += "open_release"
+    }
+
+    override fun consumeReleaseNotice() {
+        calls += "release_seen"
+        releaseNotice.value = false
+    }
 }

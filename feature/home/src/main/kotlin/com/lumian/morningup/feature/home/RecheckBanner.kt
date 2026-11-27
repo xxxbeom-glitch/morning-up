@@ -95,7 +95,7 @@ internal fun StatusBanner(
     }
 }
 
-/** H0 위쪽 띠 '한 번 더 확인이 남았어요'(결정 145). 어디를 눌러도 W3를 바로 열어 지금 끝낼 수 있어요. */
+/** H0 위쪽 W3 기다림 띠(결정 145). 어디를 눌러도 W4 재확인 해제 화면이 열려요(TSK-266). */
 @Composable
 fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier, left: Int? = null) {
     StatusBanner(
@@ -135,14 +135,15 @@ fun RestingBanner(at: LocalTime, onClick: () -> Unit, modifier: Modifier = Modif
 /**
  * W2 대기 띠 '재수면 여부를 3분 후 재확인할게요 / 완전히 일어나셨으면 재확인을 해제해주세요'(결정 168, TSK-285 문구).
  * 남은 분은 올림으로 세고 1분마다 다시 그려요. 1분 안이거나 시각을 모르면 '곧 재수면 여부를 재확인할게요'예요.
+ * [onClick]이 있으면 오른쪽에 '해제'가 붙고 눌러서 W4를 열어요(TSK-266).
  */
 @Composable
-fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null) {
+fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null, onClick: (() -> Unit)? = null) {
     var now by remember { mutableStateOf(LocalTime.now()) }
     LaunchedEffect(at) {
         while (true) {
             now = LocalTime.now()
-            delay((60 - now.second).coerceAtLeast(1) * 1000L)
+            delay((SECONDS_PER_MINUTE - now.second).coerceAtLeast(1) * MILLIS_PER_SECOND)
         }
     }
     val minutes = at?.let { wakeCheckMinutesLeft(now, it) } ?: 0
@@ -153,6 +154,9 @@ fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null) {
             stringResource(R.string.home_wake_check_soon_band_now)
         },
         desc = stringResource(R.string.home_wake_check_soon_desc),
+        // 오른쪽 '해제', 띠 아무 데나 눌러도 W4 재확인 해제 화면이에요(TSK-266).
+        action = stringResource(R.string.home_recheck_release).takeIf { onClick != null },
+        onClick = onClick,
         tag = WAKE_CHECK_SOON_BANNER_TAG,
         modifier = modifier,
     )
@@ -161,7 +165,7 @@ fun WakeCheckSoonBanner(modifier: Modifier = Modifier, at: LocalTime? = null) {
 /** 띠가 있으면 권한 배너([banner]) 위에 얹어요. */
 internal fun withStatusBanner(
     status: HomeStatus?,
-    onOpenRecheck: () -> Unit,
+    onOpenRelease: () -> Unit,
     onOpenRest: () -> Unit,
     banner: (@Composable () -> Unit)?,
 ): (@Composable () -> Unit)? {
@@ -169,9 +173,9 @@ internal fun withStatusBanner(
     return {
         Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space12)) {
             when (status) {
-                is HomeStatus.Recheck -> RecheckBanner(onClick = onOpenRecheck, left = status.left)
+                is HomeStatus.Recheck -> RecheckBanner(onClick = onOpenRelease, left = status.left)
                 is HomeStatus.Resting -> RestingBanner(at = status.at, onClick = onOpenRest, snoozed = status.snoozed)
-                is HomeStatus.WakeCheckSoon -> WakeCheckSoonBanner(at = status.at)
+                is HomeStatus.WakeCheckSoon -> WakeCheckSoonBanner(at = status.at, onClick = onOpenRelease)
             }
             banner?.invoke()
         }
@@ -181,10 +185,14 @@ internal fun withStatusBanner(
 /** [now]부터 [at]까지 남은 분(올림). 1분 안이면 0, 자정을 넘기면 다음 날로 쳐요. */
 internal fun wakeCheckMinutesLeft(now: LocalTime, at: LocalTime): Int {
     var seconds = java.time.Duration.between(now, at).seconds
-    if (seconds < -60) seconds += 24 * 60 * 60
-    if (seconds < 60) return 0
-    return ((seconds + 59) / 60).toInt()
+    if (seconds < -SECONDS_PER_MINUTE) seconds += SECONDS_PER_DAY
+    if (seconds < SECONDS_PER_MINUTE) return 0
+    return ((seconds + SECONDS_PER_MINUTE - 1) / SECONDS_PER_MINUTE).toInt()
 }
+
+private const val SECONDS_PER_MINUTE = 60L
+private const val SECONDS_PER_DAY = 24 * 60 * 60L
+private const val MILLIS_PER_SECOND = 1000L
 
 const val RECHECK_BANNER_TAG = "recheckBanner"
 const val RESTING_BANNER_TAG = "restingBanner"

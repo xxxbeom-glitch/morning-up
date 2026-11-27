@@ -26,6 +26,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+@Suppress("LargeClass")
 class HomeViewModelTest {
     @get:Rule
     val main = MainDispatcherRule()
@@ -227,6 +228,27 @@ class HomeViewModelTest {
             vm.onAlarmSaved(1, checksStopped = true)
             assertThat(awaitItem().message).isEqualTo(HomeMessage.ChecksStopped)
         }
+    }
+
+    @Test
+    fun releasedInW4_showsChecksStoppedToastOnce() = runTest {
+        // TSK-266: W4로 재확인을 해제하고 홈에 오면 토스트를 한 번 띄우고 표시를 지워요.
+        val vm = viewModel(FakeAlarmBook(listOf(a630)))
+        vm.uiState.test {
+            awaitItem().let { if (it.loading) awaitItem() else it }
+            checks.releaseNotice.value = true
+            var state = awaitItem()
+            while (state.message == null) state = awaitItem()
+            assertThat(state.message).isEqualTo(HomeMessage.ChecksStopped)
+            assertThat(checks.releaseNotice.value).isFalse()
+            assertThat(checks.calls).contains("release_seen")
+        }
+    }
+
+    @Test
+    fun releaseBanner_opensW4() {
+        viewModel(FakeAlarmBook(listOf(a630))).openRelease()
+        assertThat(checks.calls).contains("open_release")
     }
 
     @Test

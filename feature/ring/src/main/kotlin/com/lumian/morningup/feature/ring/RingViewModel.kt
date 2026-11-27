@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 /** 울림 화면(D0, M, W1, W2, W3)이 그릴 것. */
 data class RingUiState(
@@ -99,6 +100,14 @@ class RingViewModel @Inject constructor(
 
     /** W3 '깼어요'(10초 길게 누르기를 마침). 기다리는 중에 미리 연 경우도 같아요. */
     fun onRecheckDone() = link.send(RingEvent.RecheckConfirmed)
+
+    /** W4 '일어났어요' 10초를 마쳤어요. 남은 재확인을 끝내고, 끝냈으면 [done]을 불러요(TSK-266). */
+    fun onRelease(done: () -> Unit) {
+        viewModelScope.launch { if (link.release()) done() }
+    }
+
+    /** W4를 X나 뒤로로 닫았어요. */
+    fun onReleaseClosed() = link.closeRelease()
 
     /** W1 '확인'. */
     fun onWakeUpClosed() = link.closeWakeUp()

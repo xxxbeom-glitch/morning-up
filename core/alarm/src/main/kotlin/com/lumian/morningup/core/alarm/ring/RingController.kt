@@ -43,6 +43,12 @@ sealed interface RingScreen {
 
     /** W3 정말 깼어요. 기다리는 중에 알림이나 홈 띠로 미리 열 때도 이 화면이에요(결정 145). */
     data object Recheck : RingScreen
+
+    /**
+     * W4 재확인 해제(TSK-266). W2, W3를 기다리는 동안 홈 띠 '해제'나 알림 '재확인 해제'로 열어요.
+     * 10초 누르면 남은 재확인이 끝나요. 기다림이 끝나면 상태표가 W2, W3로 바꿔요.
+     */
+    data object Release : RingScreen
 }
 
 /** 상태표가 시킨 일을 실제로 하는 쪽. 안드로이드 구현은 [AndroidRingEffectRunner]예요. */
@@ -69,6 +75,7 @@ class RingController @Inject constructor(
     private val mutex = Mutex()
     private val _session = MutableStateFlow<RingSession?>(null)
     private val _screen = MutableStateFlow<RingScreen>(RingScreen.None)
+    private val _releaseNotice = MutableStateFlow(false)
 
     val session: StateFlow<RingSession?> = _session.asStateFlow()
     val screen: StateFlow<RingScreen> = _screen.asStateFlow()
@@ -213,6 +220,53 @@ class RingController @Inject constructor(
     /** 쉬는 중 알림을 눌렀어요. 쉬는 동안에도 울림 화면을 보여 줘서 미션을 시작하거나 끌 수 있게 해요. */
     fun openDuringRest() {
         if (_session.value?.phase == RingPhase.Resting) _screen.value = RingScreen.Ringing
+    }
+
+    /**
+     * 홈 띠 '해제'나 알림 '재확인 해제'를 눌렀어요(TSK-266). W2, W3를 기다리는 중이면 W4를 열어요.
+     * 이미 W2, W3를 묻는 중이면 그 화면을 그대로 보여 줘요(거기서 누르면 끝나요). 무언가 열었으면 true예요.
+     */
+    fun openRelease(): Boolean {
+        val session = _session.value ?: return false
+        val screen = when {
+            session.pausedLeftMillis != null -> null
+            session.phase == RingPhase.AwaitingWakeCheck || session.phase == RingPhase.AwaitingRecheck ->
+                RingScreen.Release
+            session.phase == RingPhase.WakeCheckAsking -> RingScreen.WakeCheck
+            session.phase == RingPhase.RecheckAsking -> RingScreen.Recheck
+            else -> null
+        } ?: return false
+        FlowLog.event("release_opened", session.plan.alarmId, "phase=${session.phase}")
+        _screen.value = screen
+        return true
+    }
+
+    /** W4에서 X나 뒤로를 눌렀어요. 아무것도 바꾸지 않고 기다림을 이어가요. */
+    fun closeRelease() {
+        if (_screen.value == RingScreen.Release) {
+            FlowLog.event("release_closed", _session.value?.plan?.alarmId)
+            _screen.value = RingScreen.None
+        }
+    }
+
+    /**
+     * W4에서 10초를 다 눌렀어요. 이번 울림의 남은 재확인(W2, W3)을 모두 끝내요. 다음 알람 설정은 그대로예요.
+     * 누르는 중에 기다림이 끝나 W2, W3로 바뀌면 화면이 그 확인으로 보내요(같은 버튼, 같은 10초). 끝냈으면 true예요.
+     */
+    suspend fun release(): Boolean = mutex.withLock {
+        val session = sessions.load() ?: return@withLock false
+        if (!session.phase.isCheck) return@withLock false
+        FlowLog.event("release_done", session.plan.alarmId, "phase=${session.phase}")
+        apply(RingEvent.CancelChecks(session.plan.alarmId))
+        _releaseNotice.value = true
+        true
+    }
+
+    /** W4로 재확인을 해제했어요. 홈이 토스트 '재확인을 해제했어요'를 한 번 띄우고 [consumeReleaseNotice]로 지워요. */
+    val releaseNotice: StateFlow<Boolean> get() = _releaseNotice
+
+    fun consumeReleaseNotice() {
+        _releaseNotice.value = false
     }
 
     /**

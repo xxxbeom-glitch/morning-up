@@ -24,6 +24,12 @@ interface RingLink {
 
     /** M5 미션 포기에서 하던 미션 화면으로 돌아가요(결정 171). */
     fun backToMission() = Unit
+
+    /** W4에서 10초를 다 눌러 남은 재확인을 끝내요(TSK-266). 끝냈으면 true예요. */
+    suspend fun release(): Boolean = false
+
+    /** W4를 X나 뒤로로 닫아요. 기다림은 그대로예요. */
+    fun closeRelease() = Unit
 }
 
 @Singleton
@@ -39,4 +45,8 @@ class ServiceRingLink @Inject constructor(
     override fun closeWakeUp() = controller.clearScreen()
 
     override fun backToMission() = controller.backToMission()
+
+    override suspend fun release(): Boolean = controller.release()
+
+    override fun closeRelease() = controller.closeRelease()
 }

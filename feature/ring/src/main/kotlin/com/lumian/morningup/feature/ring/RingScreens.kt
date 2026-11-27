@@ -1,6 +1,8 @@
 package com.lumian.morningup.feature.ring
 
 import androidx.compose.foundation.Image
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.X
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.lumian.morningup.core.designsystem.component.MorningButton
 import com.lumian.morningup.core.designsystem.component.MorningButtonSize
+import com.lumian.morningup.core.designsystem.component.MorningIconButton
 import com.lumian.morningup.core.designsystem.motion.MorningHaptic
 import com.lumian.morningup.core.designsystem.motion.morningClickable
 import com.lumian.morningup.core.designsystem.theme.FixedFontScale
@@ -102,7 +105,9 @@ fun RingingScreen(
     val local = remember(trickKey, trick) { trick?.let { TrickRun(it) } }
     val run = trickRun ?: local
     ChosenBackground(background, dayPart, modifier) {
-        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener, snoozeMinutes, onSnooze)
+        RingingContent(
+            date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener, snoozeMinutes, onSnooze,
+        )
     }
 }
 
@@ -312,6 +317,8 @@ fun WakeCheckScreen(
     nextAskMinutes: Int? = null,
     ask: AskCount? = null,
     multiDone: MultiDone? = null,
+    release: Boolean = false,
+    onClose: () -> Unit = {},
 ) {
     RingSky(dayPart, modifier) {
         Column(
@@ -321,14 +328,33 @@ fun WakeCheckScreen(
             if (confirmed) {
                 CheckDone(nextAskMinutes, multiDone)
             } else {
-                CheckAsking(recheck, remainingMillis, onAwake, ask.takeIf { recheck })
+                CheckAsking(recheck && !release, remainingMillis, onAwake, ask.takeIf { recheck && !release }, release)
             }
+        }
+        // W4만 위 왼쪽에 X 닫기가 있어요(TSK-266). 누르면 기다림이 그대로 이어져요.
+        if (release && !confirmed) {
+            MorningIconButton(
+                icon = Lucide.X,
+                contentDescription = stringResource(R.string.ring_release_close),
+                onClick = onClose,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .systemBarsPadding()
+                    .padding(MorningDimens.space8)
+                    .testTag(RELEASE_CLOSE_TAG),
+            )
         }
     }
 }
 
 @Composable
-private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () -> Unit, ask: AskCount?) {
+private fun CheckAsking(
+    recheck: Boolean,
+    remainingMillis: Long?,
+    onAwake: () -> Unit,
+    ask: AskCount?,
+    release: Boolean = false,
+) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
     val resources = LocalContext.current.resources
@@ -375,6 +401,16 @@ private fun CheckAsking(recheck: Boolean, remainingMillis: Long?, onAwake: () ->
             textAlign = TextAlign.Center,
         )
     }
+    if (release) {
+        // W4: 남은 시간 숫자 없이 해제 뒤 안내 한 줄(TSK-266).
+        Spacer(Modifier.height(MorningDimens.space16))
+        Text(
+            text = stringResource(R.string.ring_release_note),
+            style = typography.bodySmall,
+            color = colors.textBody,
+            textAlign = TextAlign.Center,
+        )
+    }
     Spacer(Modifier.height(MorningDimens.space40))
     HoldButton(
         label = stringResource(R.string.ring_wake_check_awake),
@@ -408,6 +444,8 @@ private fun CheckDone(nextAskMinutes: Int?, multiDone: MultiDone?) {
         )
     }
 }
+
+const val RELEASE_CLOSE_TAG = "ringReleaseClose"
 
 /** 여러 번 묻기에서 지금 묻는 확인이 몇 번째인지([number]는 1부터). */
 data class AskCount(val number: Int, val total: Int) {

@@ -118,7 +118,8 @@ class SnoozeTest {
     @Test
     fun ringAgainRest_isNotSnoozed() {
         val s = fire(Snooze(enabled = true))
-        val t = RingStateMachine.reduce(s, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + RingStateMachine.RING_MILLIS)
+        val timeout = RingEvent.TimerFired(TimerKind.RingTimeout)
+        val t = RingStateMachine.reduce(s, timeout, t0 + RingStateMachine.RING_MILLIS)
         assertThat(t.session!!.phase).isEqualTo(RingPhase.Resting)
         assertThat(t.session!!.snoozed).isFalse()
         assertThat(t.session!!.snoozesLeft).isEqualTo(3)

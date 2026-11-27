@@ -45,6 +45,7 @@ private const val COUNTDOWN_FRAME_MILLIS = 200L
  * - D0에서 미션으로 넘어갈 때 버튼 자리에서 원형으로 퍼지며 열려요. '애니메이션 줄이기'면 페이드예요.
  * - 보여 줄 화면이 없어지면 [onClose]를 불러요. [canClose]가 false면(저장된 울림을 읽는 중) 기다려요.
  * - W1 '확인'은 [onWakeUpConfirmed]로 알려요(잠겨 있었으면 닫고, 풀려 있었으면 홈으로 가는 일은 액티비티 몫).
+ * - W4 재확인 해제(TSK-266)를 마치면 [onReleased]로 알려요(홈으로 가 토스트를 띄우는 일은 액티비티 몫).
  * - [systemBars]는 상태 표시줄, 내비게이션 줄 아이콘 색을 맞추는 자리예요. 바탕이 어두우면(밤, 다크 화면 모드, 미션) true로
  *   불러 흰 아이콘이 되게 해요(ISS-047).
  */
@@ -57,6 +58,7 @@ fun RingRoute(
     viewModel: RingViewModel = hiltViewModel(),
     escapeContent: @Composable () -> Unit = {},
     systemBars: @Composable (dark: Boolean) -> Unit = {},
+    onReleased: () -> Unit = {},
 ) {
     val ringState by viewModel.uiState.collectAsStateWithLifecycle()
     val weather by viewModel.weather.collectAsStateWithLifecycle()
@@ -83,6 +85,8 @@ fun RingRoute(
     // 울리는 동안 뒤로 가기로 빠져나가지 못해요. W1만 '확인'과 같게 닫아요.
     BackHandler(enabled = true) {
         if (state.screen == RingScreen.WakeUp) confirmWakeUp()
+        // W4는 뒤로도 X와 같이 닫아요. 기다림은 그대로예요.
+        if (state.screen == RingScreen.Release) viewModel.onReleaseClosed()
     }
     LaunchedEffect(state.screen, canClose) {
         if (state.screen == RingScreen.None && canClose) {
@@ -113,18 +117,23 @@ fun RingRoute(
             onSnooze = viewModel::onSnooze,
             onWakeUpConfirmed = confirmWakeUp,
             onAwake = {
-                confirmedOn = lastShown
-                doneMulti = multiDoneNow(state.ask)
-                if (lastShown == RingScreen.Recheck) {
-                    doneNextAsk = null
-                    viewModel.onRecheckDone()
+                if (lastShown == RingScreen.Release) {
+                    viewModel.onRelease(onReleased)
                 } else {
-                    doneNextAsk = state.nextAskMinutes
-                    viewModel.onAwake()
+                    confirmedOn = lastShown
+                    doneMulti = multiDoneNow(state.ask)
+                    if (lastShown == RingScreen.Recheck) {
+                        doneNextAsk = null
+                        viewModel.onRecheckDone()
+                    } else {
+                        doneNextAsk = state.nextAskMinutes
+                        viewModel.onAwake()
+                    }
                 }
             },
             missionContent = missionContent,
             escapeContent = escapeContent,
+            onReleaseClosed = viewModel::onReleaseClosed,
         )
     }
 }
@@ -152,6 +161,7 @@ private fun RingContent(
     onAwake: () -> Unit,
     missionContent: @Composable (index: Int) -> Unit,
     escapeContent: @Composable () -> Unit,
+    onReleaseClosed: () -> Unit = {},
 ) {
     var buttonCenter by remember { mutableStateOf<Offset?>(null) }
     val ringing = @Composable { live: Boolean ->
@@ -183,7 +193,9 @@ private fun RingContent(
             onConfirm = onWakeUpConfirmed,
             weather = state.weather,
         )
-        RingScreen.WakeCheck, RingScreen.Recheck -> {
+        // W4(재확인 해제)도 W2, W3와 같은 자리에서 그려요. 누르는 중에 기다림이 끝나 W2, W3로 바뀌어도
+        // 같은 버튼이 남아 누르던 시간을 이어 세요(TSK-266).
+        RingScreen.WakeCheck, RingScreen.Recheck, RingScreen.Release -> {
             val confirmed = confirmedOn == shown
             val endsAt = state.checkEndsAt
             var remaining by remember { mutableStateOf(endsAt?.minus(nowMillis())) }
@@ -203,6 +215,8 @@ private fun RingContent(
                 nextAskMinutes = doneNextAsk,
                 ask = state.ask,
                 multiDone = doneMulti,
+                release = shown == RingScreen.Release,
+                onClose = onReleaseClosed,
             )
         }
     }

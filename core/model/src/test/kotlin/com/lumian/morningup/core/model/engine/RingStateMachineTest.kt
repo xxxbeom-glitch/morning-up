@@ -221,7 +221,12 @@ class RingStateMachineTest {
     @Test
     fun fourMissions_timeoutOnLastMission_restartsFromFirstMission() {
         val four = plan(
-            missions = listOf(MissionType.DropWords, MissionType.PopQuiz, MissionType.ShakeShake, MissionType.QuickMath),
+            missions = listOf(
+                MissionType.DropWords,
+                MissionType.PopQuiz,
+                MissionType.ShakeShake,
+                MissionType.QuickMath,
+            ),
         )
         var t = reduce(fire(four).session, RingEvent.MissionStarted, t0)
         repeat(3) { t = reduce(t.session, RingEvent.MissionCompleted, t0 + (it + 1) * 5 * sec) }

@@ -179,14 +179,24 @@ class MigrationTest {
         // 결정 183: 대답할 시간 30초, 3분 → 1분 / 확인까지 1분, 5분 → 3분 / 한 번 더 확인 끔 → '안 함'(끔 그대로), 켬 → 횟수 그대로.
         createV4(1, 2, 3)
         helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { LegacyWakeCheck() }).apply {
-            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 30, recheckWaitMinutes = 1, recheckEnabled = 1, recheckCount = 2 WHERE id = 1")
-            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 180, recheckWaitMinutes = 5, recheckEnabled = 0, recheckCount = 3 WHERE id = 2")
-            execSQL("UPDATE alarms SET wakeCheckAnswerSeconds = 60, recheckWaitMinutes = 3, recheckEnabled = 1, recheckCount = 1 WHERE id = 3")
+            execSQL(
+                "UPDATE alarms SET wakeCheckAnswerSeconds = 30, recheckWaitMinutes = 1, " +
+                    "recheckEnabled = 1, recheckCount = 2 WHERE id = 1",
+            )
+            execSQL(
+                "UPDATE alarms SET wakeCheckAnswerSeconds = 180, recheckWaitMinutes = 5, " +
+                    "recheckEnabled = 0, recheckCount = 3 WHERE id = 2",
+            )
+            execSQL(
+                "UPDATE alarms SET wakeCheckAnswerSeconds = 60, recheckWaitMinutes = 3, " +
+                    "recheckEnabled = 1, recheckCount = 1 WHERE id = 3",
+            )
             close()
         }
         val db = helper.runMigrationsAndValidate(dbName, 6, true, Migration5To6)
         val rows = db.query(
-            "SELECT id, wakeCheckAnswerSeconds, recheckWaitMinutes, recheckEnabled, recheckCount FROM alarms ORDER BY id",
+            "SELECT id, wakeCheckAnswerSeconds, recheckWaitMinutes, recheckEnabled, recheckCount " +
+                "FROM alarms ORDER BY id",
         ).use { c ->
             buildList {
                 while (c.moveToNext()) add(List(5) { c.getInt(it) })
