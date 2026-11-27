@@ -1,0 +1,217 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 7,
+    "identityHash": "a8fc0f5d87f18c5e84fb4690dc31d5bb",
+    "entities": [
+      {
+        "tableName": "alarms",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `hour` INTEGER NOT NULL, `minute` INTEGER NOT NULL, `repeatDaysMask` INTEGER NOT NULL, `skipHolidays` INTEGER NOT NULL, `enabled` INTEGER NOT NULL, `missions` TEXT NOT NULL, `ringAgainIntervalMinutes` INTEGER NOT NULL, `ringAgainCount` INTEGER, `wakeCheckEnabled` INTEGER NOT NULL, `wakeCheckAskAfterMinutes` INTEGER NOT NULL, `wakeCheckAnswerSeconds` INTEGER NOT NULL, `powerOffGuard` INTEGER NOT NULL, `soundId` TEXT NOT NULL, `volumePercent` INTEGER NOT NULL, `vibrate` INTEGER NOT NULL, `gentleWake` INTEGER NOT NULL, `background` TEXT, `skipOnceDate` TEXT, `nextTriggerAt` INTEGER, `vibrationPattern` TEXT NOT NULL DEFAULT 'basic', `gentleSeconds` INTEGER NOT NULL DEFAULT 30, `recheckEnabled` INTEGER NOT NULL DEFAULT 1, `recheckWaitMinutes` INTEGER NOT NULL DEFAULT 3, `recheckCount` INTEGER NOT NULL DEFAULT 1)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "hour",
+            "columnName": "hour",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minute",
+            "columnName": "minute",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "repeatDaysMask",
+            "columnName": "repeatDaysMask",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "skipHolidays",
+            "columnName": "skipHolidays",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "enabled",
+            "columnName": "enabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "missions",
+            "columnName": "missions",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ringAgainIntervalMinutes",
+            "columnName": "ringAgainIntervalMinutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ringAgainCount",
+            "columnName": "ringAgainCount",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "wakeCheckEnabled",
+            "columnName": "wakeCheckEnabled",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wakeCheckAskAfterMinutes",
+            "columnName": "wakeCheckAskAfterMinutes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "wakeCheckAnswerSeconds",
+            "columnName": "wakeCheckAnswerSeconds",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "powerOffGuard",
+            "columnName": "powerOffGuard",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "soundId",
+            "columnName": "soundId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "volumePercent",
+            "columnName": "volumePercent",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vibrate",
+            "columnName": "vibrate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "gentleWake",
+            "columnName": "gentleWake",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "background",
+            "columnName": "background",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "skipOnceDate",
+            "columnName": "skipOnceDate",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "nextTriggerAt",
+            "columnName": "nextTriggerAt",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "vibrationPattern",
+            "columnName": "vibrationPattern",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'basic'"
+          },
+          {
+            "fieldPath": "gentleSeconds",
+            "columnName": "gentleSeconds",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "30"
+          },
+          {
+            "fieldPath": "recheckEnabled",
+            "columnName": "recheckEnabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "recheckWaitMinutes",
+            "columnName": "recheckWaitMinutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "3"
+          },
+          {
+            "fieldPath": "recheckCount",
+            "columnName": "recheckCount",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "diagnostic_log",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `at` INTEGER NOT NULL, `event` TEXT NOT NULL, `alarmId` INTEGER, `detail` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "at",
+            "columnName": "at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "event",
+            "columnName": "event",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "alarmId",
+            "columnName": "alarmId",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "detail",
+            "columnName": "detail",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a8fc0f5d87f18c5e84fb4690dc31d5bb')"
+    ]
+  }
+}

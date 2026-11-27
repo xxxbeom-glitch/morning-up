@@ -39,8 +39,8 @@ data class WakeCheckSettings(
         /** W3 '정말 깼어요?'까지(그리고 W3와 다음 W3 사이) 기다리는 시간(분). 결정 183부터 고르기 없이 3분이에요. */
         const val FIXED_RECHECK_WAIT_MINUTES = 3
 
-        /** T1-1 '다시 물어보기' 3분 후, 5분 후, 10분 후. */
-        val ASK_MINUTES = listOf(3, 5, 10)
+        /** S4 '간격' 1, 3, 5, 10분 후(결정 186, 결정 183의 3, 5, 10분을 바꿈). */
+        val ASK_MINUTES = listOf(1, 3, 5, 10)
 
         /** 옛 '대답할 시간' 30초, 1분, 3분. 옛 저장값을 읽을 때만 써요(결정 183부터 [FIXED_ANSWER_SECONDS]). */
         val ANSWER_SECONDS = listOf(30, 60, 180)
@@ -48,8 +48,11 @@ data class WakeCheckSettings(
         /** 옛 '확인까지' 1분 후, 3분 후, 5분 후. 옛 저장값을 읽을 때만 써요(결정 183부터 [FIXED_RECHECK_WAIT_MINUTES]). */
         val RECHECK_WAIT_MINUTES = listOf(1, 3, 5)
 
-        /** '한 번 더 확인' 1번, 2번, 3번(결정 176, 183). 시트에서는 앞에 '안 함'([WakeCheck.recheckEnabled] 끔)이 붙어요. */
-        val RECHECK_COUNTS = listOf(1, 2, 3)
+        /**
+         * S4 '횟수'(옛 '한 번 더 확인')의 최소. 최대는 없어요(결정 186). 미션 설정의 +, - 부품으로 골라요.
+         * 켜고 끄기는 실험실 스위치([LabSettings.recheckEnabled])가 맡아서 '안 함' 칸은 없어요.
+         */
+        const val MIN_RECHECK_COUNT = 1
     }
 }
 

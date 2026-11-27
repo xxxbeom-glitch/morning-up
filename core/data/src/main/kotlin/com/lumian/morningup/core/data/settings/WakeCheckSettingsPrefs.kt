@@ -132,7 +132,7 @@ class WakeCheckSettingsPrefs internal constructor(
                 .takeIf { it in WakeCheckSettings.RECHECK_WAIT_MINUTES }
                 ?: WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
             recheckCount = prefs.getInt(KEY_RECHECK_COUNT, WakeCheckSettings.DEFAULT_RECHECK_COUNT)
-                .takeIf { it in WakeCheckSettings.RECHECK_COUNTS } ?: WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+                .coerceAtLeast(WakeCheckSettings.MIN_RECHECK_COUNT),
             lab = LabSettings(
                 trickEnabled = prefs.getBoolean(KEY_TRICK, false),
                 trickSpeed = TrickSpeed.of(prefs.getString(KEY_TRICK_SPEED, null)),

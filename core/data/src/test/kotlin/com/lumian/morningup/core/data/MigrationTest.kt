@@ -11,6 +11,7 @@ import com.lumian.morningup.core.data.db.LegacyWakeCheck
 import com.lumian.morningup.core.data.db.Migration3To4
 import com.lumian.morningup.core.data.db.Migration4To5
 import com.lumian.morningup.core.data.db.Migration5To6
+import com.lumian.morningup.core.data.db.Migration6To7
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
@@ -153,7 +154,8 @@ class MigrationTest {
         val check = AlarmRepository(db.alarmDao()).all().single().wakeCheck
         db.close()
         assertThat(check)
-            .isEqualTo(WakeCheck(true, 10, 60, recheckEnabled = false, recheckWaitMinutes = 3, recheckCount = 3))
+            // 결정 186: v6 → v7에서 옛 '안 함'은 횟수 1이 돼요.
+            .isEqualTo(WakeCheck(true, 10, 60, recheckEnabled = true, recheckWaitMinutes = 3, recheckCount = 1))
     }
 
     @Test
@@ -195,6 +197,27 @@ class MigrationTest {
             listOf(2, 60, 3, 0, 3),
             listOf(3, 60, 3, 1, 1),
         ).inOrder()
+    }
+
+    @Test
+    fun v6ToV7_turnsOldNoneIntoOne_keepsOnCounts() = runTest {
+        // 결정 186: '안 함'(끔) → 횟수 1(켬), 켬이면 횟수 그대로(최대 없음).
+        createV4(1, 2, 3)
+        helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { LegacyWakeCheck() }).close()
+        helper.runMigrationsAndValidate(dbName, 6, true, Migration5To6).apply {
+            execSQL("UPDATE alarms SET recheckEnabled = 0, recheckCount = 3 WHERE id = 1")
+            execSQL("UPDATE alarms SET recheckEnabled = 1, recheckCount = 2 WHERE id = 2")
+            execSQL("UPDATE alarms SET recheckEnabled = 1, recheckCount = 1 WHERE id = 3")
+            close()
+        }
+        val db = helper.runMigrationsAndValidate(dbName, 7, true, Migration6To7)
+        val rows = db.query("SELECT id, recheckEnabled, recheckCount FROM alarms ORDER BY id").use { c ->
+            buildList {
+                while (c.moveToNext()) add(List(3) { c.getInt(it) })
+            }
+        }
+        db.close()
+        assertThat(rows).containsExactly(listOf(1, 1, 1), listOf(2, 1, 2), listOf(3, 1, 1)).inOrder()
     }
 
     private fun insertV1(id: Long, missions: String, sound: String = "default") =

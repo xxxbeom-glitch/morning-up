@@ -294,12 +294,10 @@ class EditViewModel @Inject constructor(
         if (minutes in WakeCheckSettings.ASK_MINUTES) editCheck { it.copy(askAfterMinutes = minutes) }
     }
 
-    /** '한 번 더 확인' 줄의 '안 함'(끔). 켜기는 횟수 칸을 고를 때 해요(결정 183). */
-    fun setRecheck(on: Boolean) = editCheck { it.copy(recheckEnabled = on) }
-
-    /** '한 번 더 확인' 1, 2, 3번. 고르면 한 번 더 확인도 켜요. */
-    fun setRecheckCount(count: Int) {
-        if (count in WakeCheckSettings.RECHECK_COUNTS) editCheck { it.copy(recheckEnabled = true, recheckCount = count) }
+    /** S4 '횟수' +, -(결정 186). 최소 1, 최대 없음. 옛 '안 함'은 1부터 시작해요. */
+    fun stepRecheckCount(delta: Int) = editCheck {
+        val now = it.normalized().recheckCount
+        it.copy(recheckEnabled = true, recheckCount = (now + delta).coerceAtLeast(WakeCheckSettings.MIN_RECHECK_COUNT))
     }
 
     private fun editCheck(transform: (WakeCheck) -> WakeCheck) =

@@ -60,7 +60,7 @@ class WakeCheckSettingsPrefsTest {
 
     @Test
     fun pickLegacy_outOfChoices_becomesDefault_andNoneOn_isNull() {
-        assertThat(WakeCheckSettingsPrefs.pickLegacy(listOf(legacy(1, on = true, ask = 1, answer = 120))))
+        assertThat(WakeCheckSettingsPrefs.pickLegacy(listOf(legacy(1, on = true, ask = 2, answer = 120))))
             .isEqualTo(WakeCheckSettings.DEFAULT_ASK_MINUTES to WakeCheckSettings.DEFAULT_ANSWER_SECONDS)
         assertThat(WakeCheckSettingsPrefs.pickLegacy(listOf(legacy(1, on = false, ask = 5, answer = 30)))).isNull()
     }

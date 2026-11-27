@@ -226,6 +226,25 @@ class EditViewModelTest {
     }
 
     @Test
+    fun wakeCheck_intervalOneMinute_andCountSteps_minOneNoMax() = runTest {
+        // 결정 186: 간격 1분을 고를 수 있고, 횟수는 +, - 로 최소 1, 최대 없음이에요. 고르면 다시 잠들기 방지도 켜요.
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            loaded()
+            vm.setWakeCheckAsk(1)
+            var check = awaitItem().draft.wakeCheck
+            assertThat(check.enabled).isTrue()
+            assertThat(check.askAfterMinutes).isEqualTo(1)
+            vm.stepRecheckCount(-1)
+            repeat(5) { vm.stepRecheckCount(1) }
+            check = expectMostRecentItem().draft.wakeCheck
+            assertThat(check.recheckCount).isEqualTo(6)
+            repeat(9) { vm.stepRecheckCount(-1) }
+            assertThat(expectMostRecentItem().draft.wakeCheck.recheckCount).isEqualTo(1)
+        }
+    }
+
+    @Test
     fun save_existingAlarm_stopsLeftChecks_andTellsHome() = runTest {
         val book = FakeAlarmBook(listOf(withMission))
         val checks = FakeWakeCheckGate(pendingFor = setOf(4))

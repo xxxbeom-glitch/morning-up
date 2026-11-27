@@ -59,12 +59,16 @@ class RecheckCountTest {
     }
 
     @Test
-    fun normalized_fixesOldAnswerAndWait_keepsRecheckOffAndCount() {
-        // 결정 183: 대답할 시간 30초, 3분 → 1분 / 확인까지 1분, 5분 → 3분 / 한 번 더 확인 끔('안 함')과 횟수는 그대로.
+    fun normalized_fixesOldAnswerAndWait_turnsOldNoneIntoOne() {
+        // 결정 183: 대답할 시간 30초, 3분 → 1분 / 확인까지 1분, 5분 → 3분.
+        // 결정 186: 옛 '안 함'(끔)은 횟수 1(켬)로, 켬이면 횟수 그대로. 최대는 없어요.
         val old = WakeCheck(true, 5, 180, recheckEnabled = false, recheckWaitMinutes = 5, recheckCount = 2)
         assertThat(old.normalized())
-            .isEqualTo(WakeCheck(true, 5, 60, recheckEnabled = false, recheckWaitMinutes = 3, recheckCount = 2))
+            .isEqualTo(WakeCheck(true, 5, 60, recheckEnabled = true, recheckWaitMinutes = 3, recheckCount = 1))
         assertThat(WakeCheck(answerSeconds = 30, recheckWaitMinutes = 1).normalized().answerSeconds).isEqualTo(60)
+        assertThat(WakeCheck(recheckCount = 7).normalized().recheckCount).isEqualTo(7)
+        assertThat(WakeCheck(recheckCount = 0).normalized().recheckCount).isEqualTo(1)
+        assertThat(WakeCheck(askAfterMinutes = 1).normalized().askAfterMinutes).isEqualTo(1)
     }
 
     @Test
