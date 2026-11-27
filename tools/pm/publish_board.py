@@ -23,5 +23,10 @@ old = 'let base = location.href.split("#")[0];'
 if old not in html:
     raise SystemExit("링크 주소 줄을 못 찾았어요: board_template.html 의 linkOf 를 확인해요")
 html = html.replace(old, f'let base = "{ARTIFACT_URL}";')
+memo = (ROOT / "tools/pm/memo_block.html").read_text(encoding="utf-8")
+anchor = '<section class="stats" id="stats"'
+if anchor not in html:
+    raise SystemExit("메모 칸 넣을 자리를 못 찾았어요")
+html = html.replace(anchor, memo + anchor, 1)
 OUT.write_text(html.strip() + "\n", encoding="utf-8")
 print("wrote", OUT, len(html) // 1024, "KB")

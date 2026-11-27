@@ -1,0 +1,73 @@
+<style>
+.memo{margin:12px 24px 0;padding:14px 16px;border-radius:12px;background:var(--ask-soft)}
+.memo h2{font-size:14px;font-weight:700;color:var(--ask-text);margin:0 0 8px}
+.memo .row{display:flex;gap:8px}
+.memo textarea{flex:1;min-height:56px;resize:vertical;font:inherit;font-size:14px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.memo .send{align-self:flex-end;padding:8px 14px;border-radius:8px;background:var(--ask);color:#fff;font-weight:600;font-size:14px}
+.memo .send:disabled{opacity:.5;cursor:default}
+.memo .msg{font-size:13px;color:var(--muted);margin-top:6px}
+.memo ul{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.memo li{background:var(--card);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--body)}
+.memo li .meta{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--faint);margin-bottom:2px}
+.memo li .st{padding:1px 6px;border-radius:999px;background:var(--raised);color:var(--muted)}
+.memo li .st.new{background:var(--ask);color:#fff}
+.memo li .st.done{background:var(--ok-soft);color:var(--ok-text)}
+.memo li .txt{white-space:pre-wrap;word-break:break-word}
+.memo li .rep{margin-top:4px;padding-left:8px;border-left:2px solid var(--line);color:var(--muted);white-space:pre-wrap}
+.memo li .del{margin-left:auto;color:var(--faint);font-size:12px}
+.memo .more{margin-top:6px;font-size:13px;color:var(--ask-text)}
+</style>
+<section class="memo" id="memo" aria-label="Leader에게 메모">
+  <h2>Leader에게 메모</h2>
+  <div class="row"><textarea id="memoIn" placeholder="QA하면서 본 것, 내일 할 일을 적어 두세요. 매일 10시에 읽고 처리해요."></textarea><button class="send" id="memoSend">남기기</button></div>
+  <div class="msg" id="memoMsg">메모 칸을 불러오는 중이에요.</div>
+  <ul id="memoList"></ul>
+  <button class="more" id="memoMore" hidden>지난 메모 더 보기</button>
+</section>
+<script>
+(async function(){
+  const $=id=>document.getElementById(id);
+  const inp=$("memoIn"), btn=$("memoSend"), msg=$("memoMsg"), list=$("memoList"), more=$("memoMore");
+  btn.disabled=true;
+  let showAll=false, rows=[];
+  const t=setTimeout(()=>{msg.textContent="메모 칸을 불러오지 못했어요. 새로고침해 주세요.";},10000);
+  const db=await claude.use("db");
+  if(!db){clearTimeout(t);msg.textContent="이 화면에서는 메모를 남길 수 없어요. claude.ai에서 열어 주세요.";return;}
+  const col=db.collection("memos");
+  const fmt=ms=>{const d=new Date(ms);return (d.getMonth()+1)+"-"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
+  const ST={new:"새 메모",read:"읽음",done:"처리함"};
+  function render(){
+    list.textContent="";
+    const vis=showAll?rows:rows.filter(r=>r.status!=="done").concat(rows.filter(r=>r.status==="done").slice(0,3));
+    for(const r of vis){
+      const li=document.createElement("li");
+      const meta=document.createElement("div");meta.className="meta";
+      const st=document.createElement("span");st.className="st "+(r.status||"new");st.textContent=ST[r.status]||ST.new;
+      const at=document.createElement("span");at.textContent=fmt(r.at);
+      meta.append(st,at);
+      if((r.status||"new")==="new"){const d=document.createElement("button");d.className="del";d.textContent="지우기";d.onclick=async()=>{d.disabled=true;try{await col.doc(r.id).delete();}catch(e){d.disabled=false;msg.textContent="지우지 못했어요.";}};meta.append(d);}
+      const tx=document.createElement("div");tx.className="txt";tx.textContent=r.text||"";
+      li.append(meta,tx);
+      if(r.reply){const rp=document.createElement("div");rp.className="rep";rp.textContent="Leader: "+r.reply;li.append(rp);}
+      list.append(li);
+    }
+    const hidden=rows.length-vis.length;
+    more.hidden=hidden<=0&&!showAll; more.textContent=showAll?"접기":"지난 메모 더 보기 ("+hidden+")";
+  }
+  more.onclick=()=>{showAll=!showAll;render();};
+  col.orderBy("at","desc").limit(100).onSnapshot(s=>{
+    clearTimeout(t);
+    rows=s.docs.map(d=>Object.assign({id:d.id},d.data()));
+    msg.textContent=rows.length?"":"아직 남긴 메모가 없어요.";
+    btn.disabled=!inp.value.trim();
+    render();
+  },e=>{clearTimeout(t);msg.textContent="메모를 불러오지 못했어요.";});
+  inp.oninput=()=>{btn.disabled=!inp.value.trim();};
+  btn.onclick=async()=>{
+    const v=inp.value.trim(); if(!v) return;
+    btn.disabled=true;
+    try{const now=Date.now();await col.doc("m"+now).set({text:v,at:now,status:"new"});inp.value="";msg.textContent="남겼어요.";}
+    catch(e){msg.textContent="남기지 못했어요. 다시 눌러 주세요.";btn.disabled=false;}
+  };
+})();
+</script>
