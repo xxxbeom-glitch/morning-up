@@ -202,6 +202,7 @@
 | Mission List Row (`524:12116`, 11-17 새로) | | Name, Description 글자 | 미션 추가 시트 S1-1의 한 줄: 그림 48, 이름, 설명, chevron-right 20. 높이 72(결정 100) |
 | bg-preview | 하늘 | | Background Tile 안 미리보기 |
 | 아이콘 (모두 Lucide) | 화면에서 쓰는 선 아이콘(alarm, settings, plus, ellipsis-vertical, chevron-left, check, bell-off, copy, trash, x 등)과 채운 아이콘(battery, moon, bell-off, volume, square-badge, layers, alarm-clock) | | Icon Button, 헤더, 메뉴, 하단 바, 권한 줄 |
+| icon/external-link (`1257:29042`, 11-27 새로) | | 선 두께 2, chevron과 같은 색 변수 | 줄 끝에서 앱 밖(메일 앱, 웹)으로 나갈 때. T1 '문의하기'(결정 201), '개인정보 처리방침' 줄. 앱 안 화면으로 가면 chevron-right |
 
 - 11-16 정리: 어디에도 쓰이지 않던 Badge, Text Button 부품을 지웠어요. Option Chip(`137:638`)과 Choice Row(`137:669`)는 보관 페이지 이전안에서만 써서 처음엔 남겨 뒀다가 아래 정리 때 지웠어요.
 - 11-16 폐기 부품 정리(사용자 요청): 화면 페이지에서 안 쓰는 부품 38개와 Bottom Nav의 Active=기록 베리언트를 지웠어요. 지운 것: 안 쓰는 Lucide 아이콘(zap, bell, battery, layers, music, flame, sun, smartphone, shield-check, list-checks, target, user-round, vibrate, file-text, info, list-ordered, image, heart, map-pin), 안 쓰는 채운 아이콘(shield-check-filled, map-pin-filled), Option Chip, Choice Row, bg-preview 단색과 사진, Ring Sky, Ring Weather Front. 눌림(Pressed)과 비활성(Disabled) 상태 베리언트는 기본 세팅이라 남겼어요. 부품 안에서 바꿔 끼워 쓰던 아이콘 10개(copy, trash, x, 채운 battery, moon, bell-off, volume, square-badge, layers, alarm-clock)는 지웠다가 바로 되살려 다시 연결했어요. 보관 페이지 옛 시안 일부는 원본 부품이 없어졌지만 모양은 그대로 보여요.
