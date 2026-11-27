@@ -345,25 +345,6 @@ class RingStateMachineTest {
     }
 
     @Test
-    fun otherAlarmWhileResting_ringsNewAlarm_andEndsRestingOne() {
-        // 결정 166: 앞 알람이 쉬는 중이면 사람이 자고 있어서 뒤 알람이 울리고, 앞 알람의 남은 울림은 끝나요.
-        val s = reduce(fire().session, RingEvent.TimerFired(TimerKind.RingTimeout), t0 + ring).session
-        val at = t0 + ring + min
-        val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), at)
-        assertThat(t.session!!.plan.alarmId).isEqualTo(3)
-        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
-        assertThat(t.effects).containsAtLeast(
-            SessionEnded(1, RingOutcome.Cancelled),
-            PlaySound(1f),
-            ShowRingScreen,
-            ScheduleTimer(at + ring, TimerKind.RingTimeout),
-            RescheduleAlarm(3),
-        ).inOrder()
-        assertThat(t.effects).doesNotContain(PostMissedNotification(1))
-        assertThat(t.effects).doesNotContain(MarkPassed(3))
-    }
-
-    @Test
     fun otherAlarmWhileRinging_isMarkedPassed() {
         val s = fire().session
         val t = reduce(s, RingEvent.AlarmFired(plan(id = 3)), t0 + 30 * sec)
@@ -636,19 +617,5 @@ class RingStateMachineTest {
         assertThat(w2.effects).isEmpty()
         // 그 뒤 W2를 통과하면 W3 없이 끝나요.
         assertThat(reduce(w2.session, RingEvent.WakeCheckConfirmed, w2At + 2 * sec).session).isNull()
-    }
-
-    @Test
-    fun newAlarm_duringChecks_cancelsOld_andRingsNew() {
-        val t = reduce(awaitingRecheck().session, RingEvent.AlarmFired(plan(id = 2)), w2At + min)
-        assertThat(t.session!!.plan.alarmId).isEqualTo(2)
-        assertThat(t.session!!.phase).isEqualTo(RingPhase.Ringing)
-        assertThat(t.effects).containsAtLeast(
-            WakeResultRecorded(1, WakeResult.Cancelled, 0),
-            SessionEnded(1, RingOutcome.Cancelled),
-            PlaySound(1f),
-            ShowRingScreen,
-            RescheduleAlarm(2),
-        ).inOrder()
     }
 }

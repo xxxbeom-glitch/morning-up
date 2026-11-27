@@ -55,7 +55,77 @@ object RingStateMachine {
     fun reduce(session: RingSession?, event: RingEvent, now: Long, inCall: Boolean = false): Transition {
         if (event is RingEvent.AlarmFired) return withEscapeCleared(session, alarmFired(session, event.plan, now))
         if (session == null) return NoChange(null)
-        return withEscapeCleared(session, route(session, event, now, inCall))
+        // 멈춘 앞 알람 가운데 이 사건으로 없어질 것(남은 확인 멈춤)을 먼저 덜어 내요.
+        val (active, early) = pruneSuspended(session, event)
+        val t = withSuspendedResumed(active, withEscapeCleared(active, route(active, event, now, inCall)), now)
+        return if (early.isEmpty()) t else t.copy(effects = early + t.effects)
+    }
+
+    /**
+     * 끼어든 알람이 끝나면 멈춘 앞 알람([RingSession.suspended])을 이어가요(결정 200 3, 4번).
+     * 끼어든 알람이 미션을 끝내 확인(W2, W3)을 기다리게 됐는데 앞 알람이 쉬는 중이면, 다시 울려야 하는 앞 알람을
+     * 먼저 이어가고 끼어든 알람의 확인을 대신 멈춰 둬요. 타이머는 한 칸뿐이라 이어가는 알람 것으로 다시 걸어요.
+     */
+    private fun withSuspendedResumed(before: RingSession, t: Transition, now: Long): Transition {
+        val waiting = before.suspended ?: return t
+        val after = t.session
+        return when {
+            after == null -> {
+                val back = resumed(waiting, now)
+                Transition(back, t.effects + timerOf(back))
+            }
+            after.phase.isCheck && !before.phase.isCheck && waiting.phase == RingPhase.Resting -> {
+                val later = suspendedForLater(after.copy(suspended = waiting.suspended))
+                val back = resumed(waiting, now).copy(suspended = later)
+                Transition(back, t.effects + timerOf(back))
+            }
+            else -> t
+        }
+    }
+
+    /** 멈춰 둔 알람을 다시 이어가요. 기다리던 때가 이미 지났으면 바로 다음 단계로 가요. */
+    private fun resumed(waiting: RingSession, now: Long) =
+        waiting.copy(phaseEndsAt = maxOf(waiting.phaseEndsAt, now))
+
+    private fun timerOf(s: RingSession) = ScheduleTimer(s.phaseEndsAt, TimerKind.entries.first { it.phase == s.phase })
+
+    /**
+     * 다른 알람이 끼어들어 멈춰 둘 모습. W2, W3를 묻던 중이면 기다리는 단계로 돌려 이어갈 때 바로 다시 물어요.
+     * 미션 비상구 알림은 새 알람이 울리며 지워져서 다음 미션 때 다시 띄우게 해요.
+     */
+    private fun suspendedForLater(s: RingSession): RingSession = when (s.phase) {
+        RingPhase.WakeCheckAsking -> s.copy(phase = RingPhase.AwaitingWakeCheck, phaseEndsAt = 0L)
+        RingPhase.RecheckAsking -> s.copy(phase = RingPhase.AwaitingRecheck, phaseEndsAt = 0L)
+        else -> s
+    }.copy(pausedLeftMillis = null, escapeShown = false)
+
+    /**
+     * 멈춘 앞 알람에도 닿는 사건. 그 알람의 남은 확인을 멈추거나(알람 끔, 지움, 저장) 전체 설정에서 한 번 더 확인을
+     * 껐으면 멈춘 알람에서도 덜어 내요. 덜어 낸 것은 진단 기록만 남겨요(지금 울림의 화면과 알림은 그대로예요).
+     */
+    private fun pruneSuspended(session: RingSession, event: RingEvent): Pair<RingSession, List<RingEffect>> {
+        val stack = session.suspended ?: return session to emptyList()
+        val (rest, dropped) = when (event) {
+            is RingEvent.CancelChecks -> pruned(stack, { it.plan.alarmId == event.alarmId && it.phase.isCheck })
+            RingEvent.RecheckTurnedOff -> pruned(
+                stack,
+                drop = { it.phase == RingPhase.AwaitingRecheck },
+                keep = { it.copy(plan = it.plan.copy(recheckEnabled = false)) },
+            )
+            else -> return session to emptyList()
+        }
+        val effects = dropped.map { WakeResultRecorded(it.plan.alarmId, WakeResult.Cancelled, it.rounds) }
+        return session.copy(suspended = rest) to effects
+    }
+
+    private fun pruned(
+        s: RingSession?,
+        drop: (RingSession) -> Boolean,
+        keep: (RingSession) -> RingSession = { it },
+    ): Pair<RingSession?, List<RingSession>> {
+        if (s == null) return null to emptyList()
+        val (rest, dropped) = pruned(s.suspended, drop, keep)
+        return if (drop(s)) rest to dropped + s else keep(s).copy(suspended = rest) to dropped
     }
 
     /**
@@ -119,24 +189,52 @@ object RingStateMachine {
     private val RingPhase.isAlarmPhase get() = this == RingPhase.Ringing || this == RingPhase.Resting
 
     /**
-     * 알람 시각. 다른 알람이 울리거나 미션 중이면 사람이 깨어 있어서 뒤 알람은 '지나감'이에요. 다만 앞 알람이
-     * W2, W3를 기다리거나 묻는 중이면 앞 알람의 남은 확인을 멈추고 새 알람이 울려요(결정 145 7번).
-     * 앞 알람이 쉬는 중(다시 울림 사이)이어도 새 알람이 울리고 앞 알람의 남은 울림은 끝내요(결정 166).
+     * 알람 시각(결정 200, 더 엄격한 쪽을 남겨요).
+     * - 같은 분에 먼저 울리기 시작한 알람보다 이 알람이 더 엄격하면(미션이 더 많거나, 같은 수면 먼저 만든 알람) 이 알람으로
+     *   바꿔 울리고 앞 알람은 '지나감'이에요(1번, ISS-069). 아니면 이 알람이 '지나감'이에요.
+     * - 다른 알람이 울리거나 미션 중이면 사람이 깨어 있어서 뒤 알람은 '지나감'이에요(2번).
+     * - 앞 알람이 쉬는 중이거나 W2, W3를 기다리거나 묻는 중이면 새 알람이 울리고, 앞 알람은 멈춰 뒀다가
+     *   새 알람이 끝나면 이어가요(3, 4번).
+     * '지나감'이어도 다음 회차는 알람마다 따로 예약해요.
      */
     private fun alarmFired(session: RingSession?, plan: RingPlan, now: Long): Transition {
+        if (session != null && replacesSameMinute(session, plan, now)) {
+            val ringing = newRinging(plan, now, suspended = session.suspended)
+            val effects = listOf(MarkPassed(session.plan.alarmId)) + ringEffects(ringing) +
+                RescheduleAlarm(plan.alarmId)
+            return Transition(ringing, effects)
+        }
         if (session != null && !session.phase.isCheck && session.phase != RingPhase.Resting) {
             return Transition(session, listOf(MarkPassed(plan.alarmId), RescheduleAlarm(plan.alarmId)))
         }
-        val ringing = RingSession(
-            plan = plan,
-            phase = RingPhase.Ringing,
-            ringsLeft = plan.ringAgainCount,
-            missionsDone = 0,
-            phaseEndsAt = now + RING_MILLIS,
-            snoozesLeft = plan.snoozeCount,
-        )
-        val previous = session?.let { cancelled(it).effects }.orEmpty()
-        return Transition(ringing, previous + ringEffects(ringing) + RescheduleAlarm(plan.alarmId))
+        val ringing = newRinging(plan, now, suspended = session?.let(::suspendedForLater))
+        return Transition(ringing, ringEffects(ringing) + RescheduleAlarm(plan.alarmId))
+    }
+
+    private fun newRinging(plan: RingPlan, now: Long, suspended: RingSession?) = RingSession(
+        plan = plan,
+        phase = RingPhase.Ringing,
+        ringsLeft = plan.ringAgainCount,
+        missionsDone = 0,
+        phaseEndsAt = now + RING_MILLIS,
+        snoozesLeft = plan.snoozeCount,
+        firedAt = now,
+        suspended = suspended,
+    )
+
+    /**
+     * 앞 알람이 같은 분에 막 울리기 시작한 첫 울림이고(아직 아무도 손대지 않음), 새 알람이 더 엄격한지(결정 200 1번).
+     * 미션 수가 많은 쪽, 같으면 먼저 만든 알람(id가 작은 쪽)이에요. 둘 다 미션이 없으면 바꾸지 않아요.
+     */
+    private fun replacesSameMinute(session: RingSession, plan: RingPlan, now: Long): Boolean {
+        val untouched = session.phase == RingPhase.Ringing && session.rounds == 0 &&
+            session.ringsLeft == session.plan.ringAgainCount && session.snoozesLeft == session.plan.snoozeCount
+        val fired = session.firedAt
+        val sameMinute = fired > 0 && now - fired < MINUTE && now / MINUTE == fired / MINUTE
+        if (!untouched || !sameMinute) return false
+        val mine = session.plan.missions.size
+        val theirs = plan.missions.size
+        return theirs > mine || (theirs == mine && theirs > 0 && plan.alarmId < session.plan.alarmId)
     }
 
     private fun ring(session: RingSession, now: Long, reset: Boolean = false): Transition {

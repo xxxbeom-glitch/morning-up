@@ -145,6 +145,13 @@ data class RingSession(
     val snoozesLeft: Int = 0,
     /** 지금 쉬는 중([RingPhase.Resting])이 미루기로 시작됐는지. 알림과 홈 띠 글이 달라요. */
     val snoozed: Boolean = false,
+    /** 알람 시각에 울리기 시작한 때(epoch 밀리초). 같은 분에 온 알람끼리 고를 때 써요(결정 200 1번). 옛 세션은 0이에요. */
+    val firedAt: Long = 0L,
+    /**
+     * 이 알람이 끼어들어 잠시 멈춘 앞 알람(결정 200 3, 4번). 쉬는 중이거나 확인(W2, W3)을 기다리던 알람이에요.
+     * 이 알람이 끝나면 이어가요. 앞 알람도 멈춘 알람을 들고 있을 수 있어요.
+     */
+    val suspended: RingSession? = null,
 ) {
     /** 울림 화면(D0)에 'n분 뒤 다시'를 보여 줄지. 소리 내며 울리는 중이고 횟수가 남았을 때만이에요. */
     val canSnooze: Boolean get() = phase == RingPhase.Ringing && snoozesLeft > 0
