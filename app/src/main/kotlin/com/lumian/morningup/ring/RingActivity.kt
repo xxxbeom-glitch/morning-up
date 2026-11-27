@@ -24,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import com.lumian.morningup.MainActivity
 import com.lumian.morningup.core.alarm.AlarmDiagnostics
 import com.lumian.morningup.core.alarm.AlarmIntents
+import com.lumian.morningup.core.alarm.guard.RingWindowFocus
 import com.lumian.morningup.core.alarm.ring.RingController
 import com.lumian.morningup.core.alarm.ring.RingNotifications
 import com.lumian.morningup.core.alarm.ring.RingScreen
@@ -57,6 +58,9 @@ class RingActivity : ComponentActivity() {
 
     @Inject lateinit var diagnostics: AlarmDiagnostics
 
+    /** 전원 종료 방지가 메뉴가 닫혔는지 볼 때 써요(ISS-060). */
+    @Inject lateinit var windowFocus: RingWindowFocus
+
     /** 저장된 울림을 다 읽기 전에는 닫지 않아요(앱이 새로 뜬 경우 처음엔 상태가 비어 있어요). */
     private val loaded = MutableStateFlow(false)
 
@@ -71,6 +75,16 @@ class RingActivity : ComponentActivity() {
 
     /** 홈 띠 '해제'나 기다림 알림 '재확인 해제'로 열었어요(TSK-266). 저장된 울림을 읽은 뒤 W4를 열어요. */
     private var openedForRelease = false
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        windowFocus.focused = hasFocus
+    }
+
+    override fun onDestroy() {
+        windowFocus.focused = false
+        super.onDestroy()
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
