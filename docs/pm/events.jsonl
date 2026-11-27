@@ -1219,3 +1219,4 @@
 {"at": "2026-11-27 11:06:44", "by": "Leader", "id": "TSK-278", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-27"]}}
 {"at": "2026-11-27 11:06:47", "by": "Leader", "id": "TSK-245", "action": "comment", "changes": {"comments": [null, ["TSK-279(결정 186, 188)로 대체"]]}}
 {"at": "2026-11-27 11:06:50", "by": "Leader", "id": "TSK-282", "action": "set", "changes": {"owner": ["[개발 26]", "[개발 29]"]}}
+{"at": "2026-11-27 11:07:18", "by": "Leader", "id": "TSK-293", "action": "create", "changes": {"id": [null, "TSK-293"], "wbs": [null, "4.107"], "parent": [null, "TSK-004"], "title": [null, "미션 설정 화면을 큰 요소와 드럼롤로 바꾸기"], "area": [null, "dev"], "owner": [null, "[개발 29]"], "reviewer": [null, "Leader"], "status": [null, "todo"], "relates": [[], ["TSK-264"]], "decisions": [[], ["187", "192"]], "acceptance": [[], ["TSK-264 시안대로", "숫자 고르기 드럼롤, 처음 값 1", "설명 글 빼기", "시험"]]}}
