@@ -57,7 +57,12 @@ class RingNotifications @Inject constructor(
     private val manager = NotificationManagerCompat.from(context)
 
     /** 지금 올라가 있는 울림 알림(ID 1 또는 2)의 재료. 미션 비상구를 붙이거나 뗄 때 같은 내용으로 다시 올려요. */
-    private data class Shown(val phase: RingPhase?, val endsAt: Long?, val notice: RecheckNotice?)
+    private data class Shown(
+        val phase: RingPhase?,
+        val endsAt: Long?,
+        val notice: RecheckNotice?,
+        val snoozed: Boolean = false,
+    )
 
     @Volatile
     private var shown: Shown? = null
@@ -122,10 +127,15 @@ class RingNotifications @Inject constructor(
      * 앞 서비스 알림(ID 1). 울리는 동안 알림창에 조용히 남아요(배너, 전체 화면 없음).
      * 화면을 깨우는 일은 [openScreenNow]가 하고, 그게 막히면 [alertRinging]이 배너와 전체 화면으로 대신해요.
      */
-    fun ringing(phase: RingPhase?, phaseEndsAt: Long? = null, notice: RecheckNotice? = null): Notification {
+    fun ringing(
+        phase: RingPhase?,
+        phaseEndsAt: Long? = null,
+        notice: RecheckNotice? = null,
+        snoozed: Boolean = false,
+    ): Notification {
         ensureChannels()
-        shown = Shown(phase, phaseEndsAt, notice)
-        if (isWaiting(phase)) return waiting(phase, phaseEndsAt, notice)
+        shown = Shown(phase, phaseEndsAt, notice, snoozed)
+        if (isWaiting(phase)) return waiting(phase, phaseEndsAt, notice, snoozed)
         return ringBuilder(CHANNEL_STATUS, phase)
             .setOnlyAlertOnce(true)
             .withEscape(text(phaseText(phase)))
@@ -142,7 +152,7 @@ class RingNotifications @Inject constructor(
             diagnostics.record("escape_blocked", detail = "notifications_off")
             return false
         }
-        showRinging(now.phase, now.endsAt, now.notice)
+        showRinging(now.phase, now.endsAt, now.notice, now.snoozed)
         return true
     }
 
@@ -229,8 +239,9 @@ class RingNotifications @Inject constructor(
      * 쉬는 중이나 W2 기다림 알림. 울리는 게 아니라서 제목을 따로 두고, 배너 없는 조용한 통로를 써요.
      * 쉬는 중이면 다시 울릴 시각을 적고, 누르면 울림 화면을 열어 지금 끌 수 있게 해요(결정 70).
      * W2 기다림은 할 일이 없는 울림 화면 대신 앱 홈을 열어요.
+     * 미루기로 쉬는 중([snoozed])이면 제목과 본문만 '알람을 미뤘어요'로 바꿔요(결정 195). 누르면 같은 울림 화면이에요.
      */
-    private fun waiting(phase: RingPhase?, phaseEndsAt: Long?, notice: RecheckNotice?): Notification {
+    private fun waiting(phase: RingPhase?, phaseEndsAt: Long?, notice: RecheckNotice?, snoozed: Boolean): Notification {
         if (phase == RingPhase.AwaitingRecheck) {
             return if (notice != null) multiRecheckWaiting(notice) else recheckWaiting(phaseEndsAt)
         }
@@ -243,8 +254,15 @@ class RingNotifications @Inject constructor(
         val open = target?.let {
             PendingIntent.getActivity(context, 1, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         }
-        val title = if (resting) R.string.resting_title else R.string.waiting_title
-        val body = if (resting && phaseEndsAt != null) {
+        val snoozing = resting && snoozed
+        val title = when {
+            snoozing -> R.string.snoozed_title
+            resting -> R.string.resting_title
+            else -> R.string.waiting_title
+        }
+        val body = if (snoozing && phaseEndsAt != null) {
+            context.getString(R.string.snoozed_text, clock12(phaseEndsAt))
+        } else if (resting && phaseEndsAt != null) {
             val at = Instant.ofEpochMilli(phaseEndsAt).atZone(ZoneId.systemDefault()).toLocalTime()
             context.getString(R.string.ring_text_resting_at, at.format(DateTimeFormatter.ofPattern("H:mm")))
         } else {
@@ -330,7 +348,12 @@ class RingNotifications @Inject constructor(
      * 다시 울릴 때 ID 1이 새 알림으로 올라와야 잠금 화면 위로 울림 화면이 떠요.
      */
     @SuppressLint("MissingPermission")
-    fun showRinging(phase: RingPhase?, phaseEndsAt: Long? = null, notice: RecheckNotice? = null) {
+    fun showRinging(
+        phase: RingPhase?,
+        phaseEndsAt: Long? = null,
+        notice: RecheckNotice? = null,
+        snoozed: Boolean = false,
+    ) {
         if (!manager.areNotificationsEnabled()) {
             diagnostics.record("notifications_disabled")
             return
@@ -338,7 +361,7 @@ class RingNotifications @Inject constructor(
         // 깨우기 알림은 울림(D0)이나 W2 동안만 남기고, 미션을 시작하거나 쉬면 지워요.
         if (phase != RingPhase.Ringing && phase?.isAsking != true) manager.cancel(ALERT_NOTIFICATION_ID)
         if (isWaiting(phase)) {
-            manager.notify(WAITING_NOTIFICATION_ID, ringing(phase, phaseEndsAt, notice))
+            manager.notify(WAITING_NOTIFICATION_ID, ringing(phase, phaseEndsAt, notice, snoozed))
         } else {
             manager.cancel(WAITING_NOTIFICATION_ID)
             manager.notify(RING_NOTIFICATION_ID, ringing(phase))

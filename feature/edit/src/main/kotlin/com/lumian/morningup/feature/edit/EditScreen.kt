@@ -122,6 +122,9 @@ fun AlarmEditRoute(
                 onWakeCheck = viewModel::setWakeCheck,
                 onWakeCheckAsk = viewModel::setWakeCheckAsk,
                 onRecheckStep = viewModel::stepRecheckCount,
+                onSnooze = viewModel::setSnooze,
+                onSnoozeMinutes = viewModel::setSnoozeMinutes,
+                onSnoozeStep = viewModel::stepSnoozeCount,
                 onSoundId = viewModel::setSoundId,
                 onVibrate = viewModel::setVibrate,
                 onGentle = viewModel::setGentleWake,
@@ -169,6 +172,9 @@ data class EditActions(
     val onWakeCheck: (Boolean) -> Unit = {},
     val onWakeCheckAsk: (Int) -> Unit = {},
     val onRecheckStep: (Int) -> Unit = {},
+    val onSnooze: (Boolean) -> Unit = {},
+    val onSnoozeMinutes: (Int) -> Unit = {},
+    val onSnoozeStep: (Int) -> Unit = {},
     val onSoundId: (String) -> Unit = {},
     val onVibrate: (Boolean) -> Unit = {},
     val onGentle: (Boolean) -> Unit = {},
@@ -324,6 +330,7 @@ fun EditScreen(
             when (lastSheet) {
                 EditSheet.Volume -> VolumeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.RingAgain -> RingAgainSheetContent(state.draft, actions, onDone = { sheet = null })
+                EditSheet.Snooze -> SnoozeSheetContent(state.draft, actions, onDone = { sheet = null })
                 EditSheet.WakeCheck ->
                     WakeCheckSheetContent(state.draft, state.labRecheck, actions, onDone = { sheet = null })
                 EditSheet.MissionPick -> MissionPickSheetContent(
@@ -573,6 +580,22 @@ private fun MissionCard(
                 if (on) onOpenSheet(EditSheet.RingAgain)
             },
             onClick = { onOpenSheet(EditSheet.RingAgain) },
+        )
+        // 미루기(결정 195, 시안 TSK-281): 다시 울림 아래. 토글을 켜면 켜고 나서 시트도 바로 띄워요.
+        val snooze = alarm.snooze
+        MorningSettingRow(
+            label = stringResource(R.string.edit_snooze),
+            value = if (snooze.enabled) {
+                stringResource(R.string.edit_snooze_value, snooze.minutes, snooze.count)
+            } else {
+                offValue()
+            },
+            state = onOff(snooze.enabled),
+            onCheckedChange = { on ->
+                actions.onSnooze(on)
+                if (on) onOpenSheet(EditSheet.Snooze)
+            },
+            onClick = { onOpenSheet(EditSheet.Snooze) },
         )
         // 결정 180: W2, W3 값은 알람마다라 S4 시트에서 정해요. 다시 울림처럼 글자 쪽은 시트를 열고,
         // 토글을 켜면 켜고 나서 시트도 바로 띄워요.

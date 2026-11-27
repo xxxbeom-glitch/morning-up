@@ -12,6 +12,7 @@ import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
 import com.lumian.morningup.core.model.PermissionChecker
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.Snooze
 import com.lumian.morningup.core.model.Ringtones
 import com.lumian.morningup.core.model.SaveWarning
 import com.lumian.morningup.core.model.VibrationPattern
@@ -308,6 +309,22 @@ class EditViewModel @Inject constructor(
 
     private fun editCheck(transform: (WakeCheck) -> WakeCheck) =
         edit { it.copy(wakeCheck = transform(it.wakeCheck).copy(enabled = true)) }
+
+    /** 미루기 켜고 끄기(결정 195). 처음 켜면 5분, 3번이에요. */
+    fun setSnooze(on: Boolean) = edit { it.copy(snooze = it.snooze.copy(enabled = on)) }
+
+    /** 미루기 시트 '간격'. 값을 고르면 미루기도 켜요. */
+    fun setSnoozeMinutes(minutes: Int) {
+        if (minutes in Snooze.MINUTES) editSnooze { it.copy(minutes = minutes) }
+    }
+
+    /** 미루기 시트 '횟수' +, -. 최소 1, 최대 없음. */
+    fun stepSnoozeCount(delta: Int) = editSnooze {
+        it.copy(count = (it.normalized().count + delta).coerceAtLeast(Snooze.MIN_COUNT))
+    }
+
+    private fun editSnooze(transform: (Snooze) -> Snooze) =
+        edit { it.copy(snooze = transform(it.snooze).copy(enabled = true)) }
 
     /** S3 '간격'. 꺼져 있었으면 처음 횟수(3번)로 켜져요. */
     fun setRingAgainInterval(minutes: Int) {

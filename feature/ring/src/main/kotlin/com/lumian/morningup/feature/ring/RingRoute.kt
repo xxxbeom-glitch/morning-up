@@ -110,6 +110,7 @@ fun RingRoute(
             trickListener = trickListener,
             nowMillis = viewModel::nowMillis,
             onMainButton = viewModel::onMainButton,
+            onSnooze = viewModel::onSnooze,
             onWakeUpConfirmed = confirmWakeUp,
             onAwake = {
                 confirmedOn = lastShown
@@ -146,6 +147,7 @@ private fun RingContent(
     trickListener: TrickListener,
     nowMillis: () -> Long,
     onMainButton: () -> Unit,
+    onSnooze: () -> Unit,
     onWakeUpConfirmed: () -> Unit,
     onAwake: () -> Unit,
     missionContent: @Composable (index: Int) -> Unit,
@@ -165,6 +167,8 @@ private fun RingContent(
             // 미션 화면이 퍼지는 동안 아래 깔린 울림 화면에는 걸지 않아요.
             trickRun = trickRun.takeIf { live },
             trickListener = trickListener,
+            snoozeMinutes = state.snoozeMinutes.takeIf { live },
+            onSnooze = onSnooze,
         )
     }
     when (shown) {

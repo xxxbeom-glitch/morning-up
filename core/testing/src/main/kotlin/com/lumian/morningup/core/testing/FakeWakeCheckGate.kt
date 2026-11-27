@@ -17,6 +17,7 @@ class FakeWakeCheckGate(
     val calls = mutableListOf<String>()
 
     override val restingUntil = MutableStateFlow<Long?>(null)
+    override val restingSnoozed = MutableStateFlow(false)
     override val wakeCheckWaiting = MutableStateFlow(false)
     override val wakeCheckAt = MutableStateFlow<Long?>(null)
 

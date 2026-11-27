@@ -92,6 +92,9 @@ interface WakeCheckGate {
     /** 쉬는 중이면 다시 울릴 시각(epoch 밀리초), 아니면 null. 홈 띠 '오전 6:40에 다시 울려요'가 봐요(결정 165). */
     val restingUntil: Flow<Long?> get() = flowOf(null)
 
+    /** 지금 쉬는 중이 미루기로 시작됐는지(결정 195). 홈 띠 설명이 '알람을 미뤘어요'로 바뀌어요. */
+    val restingSnoozed: Flow<Boolean> get() = flowOf(false)
+
     /** 미션 끝 뒤 W2를 기다리는 중인지. 홈 띠 '곧 깼는지 물어볼게요'가 봐요(결정 168). */
     val wakeCheckWaiting: Flow<Boolean> get() = flowOf(false)
 

@@ -37,13 +37,13 @@ private val TextGap = 2.dp
 /**
  * H0 위쪽 띠에 무엇을 보일지. 울림 단계는 한 번에 하나라 띠도 하나예요.
  * - [Recheck]: 한 번 더 확인(W3)을 기다려요(결정 145).
- * - [Resting]: 다시 울림 사이에 쉬는 중이에요(결정 165). [at]에 다시 울려요.
+ * - [Resting]: 다시 울림 사이에 쉬는 중이에요(결정 165). [at]에 다시 울려요. [snoozed]면 미루기로 쉬는 중(결정 195).
  * - [WakeCheckSoon]: 미션 끝 뒤 W2를 기다려요(결정 168). 글만 보여요. [at]은 W2가 뜰 시각이에요(TSK-201).
  */
 sealed interface HomeStatus {
     data class Recheck(val left: Int? = null) : HomeStatus
 
-    data class Resting(val at: LocalTime) : HomeStatus
+    data class Resting(val at: LocalTime, val snoozed: Boolean = false) : HomeStatus
 
     data class WakeCheckSoon(val at: LocalTime? = null) : HomeStatus
 }
@@ -112,11 +112,11 @@ fun RecheckBanner(onClick: () -> Unit, modifier: Modifier = Modifier, left: Int?
  * 누르면 쉬는 중 알림과 같이 울림 화면이 열려요.
  */
 @Composable
-fun RestingBanner(at: LocalTime, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun RestingBanner(at: LocalTime, onClick: () -> Unit, modifier: Modifier = Modifier, snoozed: Boolean = false) {
     val time = AlarmText.time(alarmResources(), at)
     StatusBanner(
         title = stringResource(R.string.home_resting_band, time),
-        desc = stringResource(R.string.home_resting_band_desc),
+        desc = stringResource(if (snoozed) R.string.home_snoozed_band_desc else R.string.home_resting_band_desc),
         action = stringResource(R.string.home_resting_band_action),
         icon = Lucide.AlarmClock,
         iconTint = MorningTheme.colors.statusError,
@@ -149,7 +149,7 @@ internal fun withStatusBanner(
         Column(verticalArrangement = Arrangement.spacedBy(MorningDimens.space12)) {
             when (status) {
                 is HomeStatus.Recheck -> RecheckBanner(onClick = onOpenRecheck, left = status.left)
-                is HomeStatus.Resting -> RestingBanner(at = status.at, onClick = onOpenRest)
+                is HomeStatus.Resting -> RestingBanner(at = status.at, onClick = onOpenRest, snoozed = status.snoozed)
                 is HomeStatus.WakeCheckSoon -> WakeCheckSoonBanner(at = status.at)
             }
             banner?.invoke()

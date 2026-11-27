@@ -163,7 +163,7 @@ class RingController @Inject constructor(
             when (effect) {
                 RingEffect.ShowRingScreen -> _screen.value = RingScreen.Ringing
                 // 쉬기 시작하면 울림 화면을 닫아 폰이 평소처럼 잠들게 해요(결정 70).
-                is RingEffect.RestStarted -> _screen.value = RingScreen.None
+                is RingEffect.RestStarted, is RingEffect.SnoozeStarted -> _screen.value = RingScreen.None
                 is RingEffect.ShowMission -> _screen.value = RingScreen.Mission(effect.index)
                 RingEffect.ShowWakeUp -> _screen.value = RingScreen.WakeUp
                 RingEffect.ShowWakeCheck -> _screen.value = RingScreen.WakeCheck

@@ -21,6 +21,7 @@
 | 알람 볼륨 정해 걸기 (TSK-250) | 위 명령 끝에 `--ei volume 1` (0~100, 그 알람의 벨소리 볼륨 %. W2, W3 사이렌도 이 볼륨을 따라요. silent와 같이 주면 volume이 먼저예요. 결과 `data="case A alarm N at HH:MM volume=1%"`) |
 | 배터리 전날 밤 알림 바로 보내기 | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.BATTERY_REMINDER` |
 | 깼는지 묻기 값을 모든 알람에 넣기 (TSK-088, 결정 180부터 알람마다) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.WAKE_CHECK --ei ask_minutes 5 --ei answer_seconds 30 --ez recheck true --ei recheck_wait 1 --ei recheck_count 2` (값은 빼도 되고, 넣은 것만 바뀌어요. 켜고 끄기는 알람 것 그대로. 고를 수 없는 값은 울릴 때 처음 값이 돼요. 시간을 줄이려면 lab의 `minute_seconds`를 써요) |
+| 미루기 값을 모든 알람에 넣기, 누르기 (TSK-282, 결정 195) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.SNOOZE --ez enabled true --ei minutes 1 --ei count 2` (넣은 값만 바뀌어요). 지금 울리는 알람을 미루려면 `--ez press true`만 보내요(울리는 중이고 횟수가 남았을 때만 받아요) |
 | 실험실 '확실히 잠깨기' 바꾸기 (TSK-172) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.LAB --ez trick true --es speed fast --ez multi true --ei count 3 --ei minute_seconds 6` (넣은 값만 바뀌어요. `speed`는 slow, normal, fast(결정 155로 강도를 없애서 `level`은 넣어도 무시해요), `count`는 3~5. `minute_seconds`는 여러 번 묻기 간격과 1시간 상한에서 1분을 몇 초로 셀지예요(1~60, 60이면 실제 시간). 결과는 `data="lab ..."`) |
 | 미션 포기 숨기기 켜고 끄기 (TSK-182) | 위 `LAB` 명령에 `--ez escape_hidden true` (끄려면 `false`) |
 | 화면 모드 바꾸기 (TSK-270, 설정의 '화면 모드(임시)' 줄 대신) | `adb shell am broadcast -n com.lumian.wakeup.debug/com.lumian.morningup.debug.DebugCommandReceiver -a com.lumian.morningup.debug.THEME --es mode dark` (`auto`는 시각대로, `light`, `dark`. 열린 화면에 바로 적용되고 앱을 다시 열어도 유지돼요. 결과는 `data="theme Dark"`) |
@@ -63,6 +64,7 @@ adb logcat -s MorningFlow:I > flow.log
 | `timer_missiontimeout` | 미션 중 59초 동안 손을 놓아 다시 울려요 |
 | `mission_completed` | 미션을 모두 마쳤어요 |
 | `dismiss_without_mission` | 미션 없는 알람의 '알람 끄기' |
+| `snoozed`, `snooze_started` | D0 'n분 뒤 다시'를 눌러 미뤘어요(`next=` 다시 울릴 시각, `min=`, `left=` 남은 횟수) |
 | `wake_up_closed` | W1 '확인'을 눌러 닫았어요 |
 | `timer_wakecheckask` | W2 '깨어 있나요'를 띄울 때예요 |
 | `wake_check_confirmed` | W2 '깼어요'를 눌렀어요 |

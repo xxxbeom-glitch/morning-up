@@ -52,6 +52,8 @@ data class RingUiState(
     val trickKey: Long? = null,
     /** 여러 번 묻기에서 지금 묻는(또는 미리 연) 확인이 몇 번째인지. 꺼져 있으면 null이에요. */
     val ask: AskCount? = null,
+    /** D0 'n분 뒤 다시'의 n(결정 195). 미루기를 껐거나 횟수를 다 썼거나 울리는 중이 아니면 null이라 버튼이 없어요. */
+    val snoozeMinutes: Int? = null,
 )
 
 /**
@@ -88,6 +90,9 @@ class RingViewModel @Inject constructor(
         val event = if (uiState.value.hasMissions) RingEvent.MissionStarted else RingEvent.DismissWithoutMission
         link.send(event)
     }
+
+    /** D0 'n분 뒤 다시'(미루기, 결정 195). */
+    fun onSnooze() = link.send(RingEvent.Snoozed)
 
     /** W2 '깼어요'(10초 길게 누르기를 마침). */
     fun onAwake() = link.send(RingEvent.WakeCheckConfirmed)
@@ -169,6 +174,7 @@ class RingViewModel @Inject constructor(
             trick = session?.plan?.trick,
             trickKey = session?.takeIf { it.phase == RingPhase.Ringing }?.phaseEndsAt,
             ask = session?.let { askOf(it) },
+            snoozeMinutes = session?.takeIf { it.canSnooze }?.plan?.snoozeMinutes,
         )
 
         /** W3를 여러 번 물을 때 지금 묻는 W3 번호(마친 수 + 1, 결정 176). W2 때와 한 번만 물을 때는 null이에요. */

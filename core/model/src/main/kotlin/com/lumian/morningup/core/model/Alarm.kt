@@ -24,6 +24,29 @@ data class RingAgain(val intervalMinutes: Int = 5, val count: Int? = 3) {
 }
 
 /**
+ * 미루기(결정 195). 울림 화면에서 직접 눌러 [minutes]분 뒤로 미뤄요. 한 번 울림 동안 [count]번까지예요.
+ * 처음 값은 꺼짐, 5분, 3번이에요(`docs/plan-11-snooze.md`). 자동 '다시 울림'과 따로 세요.
+ */
+data class Snooze(
+    val enabled: Boolean = false,
+    val minutes: Int = DEFAULT_MINUTES,
+    val count: Int = DEFAULT_COUNT,
+) {
+    /** 고를 수 없는 값은 처음 값으로, 횟수는 1 이상으로 맞춰요. */
+    fun normalized(): Snooze = copy(
+        minutes = minutes.takeIf { it in MINUTES } ?: DEFAULT_MINUTES,
+        count = count.coerceAtLeast(MIN_COUNT),
+    )
+
+    companion object {
+        val MINUTES = listOf(1, 3, 5, 10)
+        const val DEFAULT_MINUTES = 5
+        const val DEFAULT_COUNT = 3
+        const val MIN_COUNT = 1
+    }
+}
+
+/**
  * 다시 잠들기 방지(W2, W3)를 이 알람에 쓸지와 그 값(결정 180, 알람마다). 알람 편집 S4 시트 두 줄에서 정해요(결정 183, 186).
  * - [askAfterMinutes]: W2 '간격'. 미션을 끝낸 뒤 W2까지예요. 1, 3, 5, 10분(결정 186).
  * - [answerSeconds]: W2 대답할 시간. 결정 183부터 1분 고정이라 [normalized]가 늘 1분으로 맞춰요.
@@ -81,6 +104,8 @@ data class Alarm(
     /** 고른 순서대로의 미션과 설정. 비어 있으면 미션 없는 알람(4-1)이에요. */
     val missions: List<MissionSetting> = emptyList(),
     val ringAgain: RingAgain = RingAgain(),
+    /** 미루기(결정 195). 처음 꺼짐이에요. */
+    val snooze: Snooze = Snooze(),
     val wakeCheck: WakeCheck = WakeCheck(),
     val powerOffGuard: Boolean = false,
     /** 새 알람은 랜덤으로 시작해요(11-19 사용자 결정). */

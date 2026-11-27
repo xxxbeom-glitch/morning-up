@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -75,8 +76,9 @@ fun RingSky(dayPart: DayPart, modifier: Modifier = Modifier, content: @Composabl
 }
 
 /**
- * D0 알람 울림. 하늘, 날짜, 시각, 원형 버튼만 있어요(스누즈 없음).
- * 미션이 없으면 버튼 글만 '알람 끄기'예요. [onButtonCenter]는 미션 화면이 퍼져 나올 자리예요.
+ * D0 알람 울림. 하늘, 날짜, 시각, 원형 버튼. 미루기를 켰고 횟수가 남았으면([snoozeMinutes]) 버튼 아래 작은 글자 버튼
+ * 'n분 뒤 다시'가 있어요(결정 195, 시안 TSK-281). 미션이 없으면 버튼 글만 '알람 끄기'예요.
+ * [onButtonCenter]는 미션 화면이 퍼져 나올 자리예요.
  */
 @Composable
 fun RingingScreen(
@@ -92,13 +94,15 @@ fun RingingScreen(
     trickKey: Any? = null,
     trickListener: TrickListener = TrickListener.None,
     trickRun: TrickRun? = null,
+    snoozeMinutes: Int? = null,
+    onSnooze: () -> Unit = {},
 ) {
     // 울림 화면은 뷰모델이 울림 한 번 동안 들고 있는 [trickRun]을 줘요(화면을 껐다 켜도 이어져요, ISS-048).
     // 미리 해보기는 [trick]만 주고, [trickKey]가 바뀌면 처음부터 다시 걸려요.
     val local = remember(trickKey, trick) { trick?.let { TrickRun(it) } }
     val run = trickRun ?: local
     ChosenBackground(background, dayPart, modifier) {
-        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener)
+        RingingContent(date, time, hasMissions, onMainButton, onButtonCenter, run, trickListener, snoozeMinutes, onSnooze)
     }
 }
 
@@ -144,6 +148,8 @@ private fun BoxScope.RingingContent(
     onButtonCenter: (Offset) -> Unit,
     trickRun: TrickRun?,
     trickListener: TrickListener,
+    snoozeMinutes: Int?,
+    onSnooze: () -> Unit,
 ) {
     val colors = MorningTheme.colors
     val typography = MorningTheme.typography
@@ -182,6 +188,8 @@ private fun BoxScope.RingingContent(
                 modifier = Modifier.onGloballyPositioned { onButtonCenter(it.boundsInRoot().center) },
             )
         }
+        // 미루기 버튼은 '움직이는 버튼' 중에도 제자리예요(`docs/plan-11-snooze.md` 2절).
+        if (snoozeMinutes != null) SnoozeButton(snoozeMinutes, onSnooze)
     }
     if (tricking && trickRun != null) {
         TrickLayer(trickRun, label, trickListener) { center ->
@@ -190,6 +198,26 @@ private fun BoxScope.RingingContent(
         }
     }
 }
+
+/** 테스트에서 D0 미루기 버튼을 찾는 이름표. */
+const val SNOOZE_BUTTON_TAG = "ringSnooze"
+
+/** '미션 시작' 아래 16dp의 작은 글자 버튼 'n분 뒤 다시'(시안 TSK-281). 누르는 칸은 글자보다 넓게 잡아요. */
+@Composable
+private fun SnoozeButton(minutes: Int, onClick: () -> Unit) {
+    Spacer(Modifier.height(MorningDimens.space4))
+    Text(
+        text = stringResource(R.string.ring_snooze, minutes),
+        style = MorningTheme.typography.bodySmall,
+        color = MorningTheme.colors.textBody,
+        modifier = Modifier
+            .testTag(SNOOZE_BUTTON_TAG)
+            .morningClickable(haptic = MorningHaptic.Press, onClick = onClick)
+            .padding(horizontal = MorningDimens.space16, vertical = SnoozeTouchPadding),
+    )
+}
+
+private val SnoozeTouchPadding = 12.dp
 
 /**
  * W1 해제 완료. 하늘 위에 딤을 깔고 가운데 카드(인사, 한마디, '확인').

@@ -9,12 +9,14 @@ import com.lumian.morningup.core.alarm.NowProvider
 import com.lumian.morningup.core.alarm.ring.FlowLog
 import com.lumian.morningup.core.alarm.ring.MissionEscapeAnswers
 import com.lumian.morningup.core.alarm.ring.MissionEscapeNotifier
+import com.lumian.morningup.core.alarm.ring.RingService
 import com.lumian.morningup.core.data.AlarmRepository
 import com.lumian.morningup.core.designsystem.theme.ThemeMode
 import com.lumian.morningup.core.designsystem.theme.ThemeModeStore
 import com.lumian.morningup.core.model.TrickSpeed
 import com.lumian.morningup.core.model.WakeCheckSettingsStore
 import com.lumian.morningup.core.model.engine.AlarmRescheduler
+import com.lumian.morningup.core.model.engine.RingEvent
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -56,6 +58,7 @@ class DebugCommandReceiver : BroadcastReceiver() {
                 resultData = result
             }
             ACTION_WAKE_CHECK -> setWakeCheck(intent)
+            ACTION_SNOOZE -> setSnooze(context, intent)
             ACTION_LAB -> setLab(intent)
             ACTION_ESCAPE -> sendEscape(intent)
             ACTION_THEME -> setTheme(context, intent)
@@ -88,6 +91,38 @@ class DebugCommandReceiver : BroadcastReceiver() {
                     else -> ""
                 }
                 FlowLog.event("debug_case_scheduled", alarmId = alarm.id, detail = result)
+                pending.resultData = result
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    /**
+     * 미루기 값을 모든 알람에 넣어요(결정 195, TSK-282). 빠진 값은 그대로 둬요. `--ez press true`면 값은 그대로 두고
+     * 지금 울리는 알람에 D0 'n분 뒤 다시'를 누른 것처럼 보내요(울리는 중이고 횟수가 남았을 때만 받아요).
+     * 예: `--ez enabled true --ei minutes 1 --ei count 2`
+     */
+    private fun setSnooze(context: Context, intent: Intent) {
+        if (intent.getBooleanExtra(EXTRA_PRESS, false)) {
+            RingService.send(context, RingEvent.Snoozed)
+            resultData = "snooze pressed"
+            return
+        }
+        val pending = goAsync()
+        scope.launch {
+            try {
+                repository.all().forEach { alarm ->
+                    val old = alarm.snooze
+                    val snooze = old.copy(
+                        enabled = intent.boolOr(EXTRA_ENABLED, old.enabled),
+                        minutes = intent.intOr(EXTRA_SNOOZE_MINUTES, old.minutes),
+                        count = intent.intOr(EXTRA_SNOOZE_COUNT, old.count),
+                    ).normalized()
+                    repository.save(alarm.copy(snooze = snooze))
+                }
+                val result = "snooze " + repository.all().map { it.id to it.snooze }
+                FlowLog.event("debug_snooze", detail = result)
                 pending.resultData = result
             } finally {
                 pending.finish()
@@ -218,6 +253,11 @@ class DebugCommandReceiver : BroadcastReceiver() {
         const val EXTRA_RECHECK = "recheck"
         const val EXTRA_RECHECK_WAIT = "recheck_wait"
         const val EXTRA_RECHECK_COUNT = "recheck_count"
+        const val ACTION_SNOOZE = "com.lumian.morningup.debug.SNOOZE"
+        const val EXTRA_ENABLED = "enabled"
+        const val EXTRA_SNOOZE_MINUTES = "minutes"
+        const val EXTRA_SNOOZE_COUNT = "count"
+        const val EXTRA_PRESS = "press"
         const val ACTION_LAB = "com.lumian.morningup.debug.LAB"
         const val EXTRA_TRICK = "trick"
         const val EXTRA_SPEED = "speed"

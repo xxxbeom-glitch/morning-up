@@ -3,6 +3,8 @@
     <!-- D0 알람 울림 -->
     <string name="ring_start_mission">미션 시작</string>
     <string name="ring_dismiss">알람 끄기</string>
+    <!-- D0 미루기 글자 버튼(결정 195, 문구표 3-6절 66). %1$d는 분 -->
+    <string name="ring_snooze">%1$d분 뒤 다시</string>
 
     <!-- W1 해제 완료 -->
     <string name="ring_wake_up_title_morning">좋은 아침이에요</string>

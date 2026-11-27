@@ -41,6 +41,10 @@ class RingWakeCheckGate @Inject constructor(
         .map { session -> session?.takeIf { it.phase == RingPhase.Resting }?.phaseEndsAt }
         .distinctUntilChanged()
 
+    override val restingSnoozed: Flow<Boolean> = controller.session
+        .map { it?.phase == RingPhase.Resting && it.snoozed }
+        .distinctUntilChanged()
+
     override val wakeCheckWaiting: Flow<Boolean> = controller.session
         .map { it?.phase == RingPhase.AwaitingWakeCheck }
         .distinctUntilChanged()

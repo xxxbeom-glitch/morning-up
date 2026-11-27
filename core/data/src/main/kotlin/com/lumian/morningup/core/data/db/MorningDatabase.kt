@@ -12,7 +12,7 @@ import com.lumian.morningup.core.model.WakeCheckSettings
  */
 @Database(
     entities = [AlarmEntity::class, DiagnosticLogEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class MorningDatabase : RoomDatabase() {
@@ -35,6 +35,7 @@ abstract class MorningDatabase : RoomDatabase() {
                 Migration4To5(legacyWakeCheck),
                 Migration5To6,
                 Migration6To7,
+                Migration7To8,
             )
     }
 }
@@ -141,5 +142,15 @@ object Migration6To7 : Migration(6, 7) {
             "UPDATE alarms SET recheckEnabled = 1, recheckCount = ? WHERE recheckEnabled = 0 OR recheckCount < ?",
             arrayOf<Any>(WakeCheckSettings.MIN_RECHECK_COUNT, WakeCheckSettings.MIN_RECHECK_COUNT),
         )
+    }
+}
+
+/** v7 → v8: 알람마다 미루기 칸 세 개를 더해요(결정 195). 옛 알람은 꺼짐, 5분, 3번이에요. */
+@Suppress("MagicNumber") // 판 번호예요.
+object Migration7To8 : Migration(7, 8) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE alarms ADD COLUMN snoozeEnabled INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE alarms ADD COLUMN snoozeMinutes INTEGER NOT NULL DEFAULT 5")
+        db.execSQL("ALTER TABLE alarms ADD COLUMN snoozeCount INTEGER NOT NULL DEFAULT 3")
     }
 }

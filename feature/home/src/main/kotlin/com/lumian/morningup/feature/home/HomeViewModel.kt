@@ -136,13 +136,13 @@ class HomeViewModel @Inject constructor(
     val status: StateFlow<HomeStatus?> = combine(
         checks.recheckPending,
         checks.recheckLeft,
-        checks.restingUntil,
+        checks.restingUntil.combine(checks.restingSnoozed) { at, snoozed -> at?.let { it to snoozed } },
         checks.wakeCheckWaiting,
         checks.wakeCheckAt,
-    ) { recheck, left, restUntil, waiting, askAt ->
+    ) { recheck, left, rest, waiting, askAt ->
         when {
             recheck -> HomeStatus.Recheck(left)
-            restUntil != null -> HomeStatus.Resting(localTime(restUntil))
+            rest != null -> HomeStatus.Resting(localTime(rest.first), snoozed = rest.second)
             waiting -> HomeStatus.WakeCheckSoon(askAt?.let(::localTime))
             else -> null
         }

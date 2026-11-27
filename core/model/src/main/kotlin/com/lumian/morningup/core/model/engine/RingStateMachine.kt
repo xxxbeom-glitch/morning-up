@@ -19,6 +19,7 @@ import com.lumian.morningup.core.model.engine.RingEffect.ShowRecheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowRingScreen
 import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeCheck
 import com.lumian.morningup.core.model.engine.RingEffect.ShowWakeUp
+import com.lumian.morningup.core.model.engine.RingEffect.SnoozeStarted
 import com.lumian.morningup.core.model.engine.RingEffect.StopSound
 import com.lumian.morningup.core.model.engine.RingEffect.WakeResultRecorded
 
@@ -76,6 +77,7 @@ object RingStateMachine {
             RingEvent.MissionInteraction -> missionInteraction(session, now)
             RingEvent.MissionCompleted -> missionCompleted(session, now)
             RingEvent.DismissWithoutMission -> dismissWithoutMission(session, now)
+            RingEvent.Snoozed -> snooze(session, now)
             RingEvent.MissionEscaped -> missionEscaped(session, now)
             RingEvent.EscapeOpened, RingEvent.EscapeTyped -> escapeOpened(session, now)
             RingEvent.WakeCheckConfirmed ->
@@ -131,6 +133,7 @@ object RingStateMachine {
             ringsLeft = plan.ringAgainCount,
             missionsDone = 0,
             phaseEndsAt = now + RING_MILLIS,
+            snoozesLeft = plan.snoozeCount,
         )
         val previous = session?.let { cancelled(it).effects }.orEmpty()
         return Transition(ringing, previous + ringEffects(ringing) + RescheduleAlarm(plan.alarmId))
@@ -144,6 +147,7 @@ object RingStateMachine {
             missionsDone = if (reset) 0 else session.missionsDone,
             rounds = if (reset) session.rounds + 1 else session.rounds,
             pausedLeftMillis = null,
+            snoozed = false,
             // 처음부터 다시 울린 바퀴에서는 첫 미션 때 비상구 알림을 다시 띄워요(결정 149 2절).
             escapeShown = if (reset) false else session.escapeShown,
         )
@@ -235,6 +239,7 @@ object RingStateMachine {
         }
         val resting = session.copy(
             phase = RingPhase.Resting,
+            snoozed = false,
             ringsLeft = left?.minus(1),
             phaseEndsAt = now + session.plan.intervalMinutes * MINUTE,
         )
@@ -242,6 +247,22 @@ object RingStateMachine {
         val nextNumber = if (total != null && resting.ringsLeft != null) total - resting.ringsLeft + 1 else null
         val rest = RestStarted(resting.phaseEndsAt, session.plan.intervalMinutes, nextNumber)
         return Transition(resting, listOf(StopSound, rest, ScheduleTimer(resting.phaseEndsAt, TimerKind.RestEnded)))
+    }
+
+    /**
+     * D0 'n분 뒤 다시'(결정 195). 소리를 멈추고 울림 화면을 닫은 뒤 미루기 간격 뒤에 다시 울려요. 쉬는 틀은 '다시 울림'
+     * 쉬는 중([RingPhase.Resting])과 같고, 미루기 횟수만 하나 줄어요. 다시 울림 횟수([RingSession.ringsLeft])는 그대로예요.
+     */
+    private fun snooze(session: RingSession, now: Long): Transition {
+        if (!session.canSnooze) return NoChange(session)
+        val resting = session.copy(
+            phase = RingPhase.Resting,
+            snoozed = true,
+            snoozesLeft = session.snoozesLeft - 1,
+            phaseEndsAt = now + session.plan.snoozeMinutes * MINUTE,
+        )
+        val started = SnoozeStarted(resting.phaseEndsAt, session.plan.snoozeMinutes, resting.snoozesLeft)
+        return Transition(resting, listOf(StopSound, started, ScheduleTimer(resting.phaseEndsAt, TimerKind.RestEnded)))
     }
 
     private fun missionStarted(session: RingSession, now: Long): Transition {

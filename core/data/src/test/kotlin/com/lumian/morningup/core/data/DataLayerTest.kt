@@ -50,6 +50,7 @@ class DataLayerTest {
         repeatDays = setOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY, DayOfWeek.SUNDAY),
         skipHolidays = true,
         enabled = true,
+        snooze = com.lumian.morningup.core.model.Snooze(enabled = true, minutes = 10, count = 4),
         missions = listOf(MissionSetting(MissionType.QuickMath, 4, 5), MissionSetting(MissionType.DropWords, 2, 15, 3)),
         ringAgain = RingAgain(10, null),
         wakeCheck = WakeCheck(true),

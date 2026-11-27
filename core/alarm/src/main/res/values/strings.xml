@@ -29,6 +29,9 @@
     <!-- 쉬기 시작할 때 토스트. %1$d는 분, %2$d는 다음 울림 번째 -->
     <string name="rest_toast_numbered">%1$d분 뒤 %2$d번째 알람이 울려요</string>
     <string name="rest_toast">%1$d분 뒤 알람이 다시 울려요</string>
+    <!-- 미루는 동안 알림(결정 195, 문구표 3-6절 69, 70). %1$s는 다시 울리는 시각(예: 오전 6:35)이에요. -->
+    <string name="snoozed_title">알람을 미뤘어요</string>
+    <string name="snoozed_text">%1$s에 다시 울려요. 눌러서 지금 미션을 할 수 있어요</string>
     <string name="ring_text_waiting">잠시 뒤 깨어 있는지 물어볼게요</string>
     <!-- W2 깨어 있나요: 울림과 같은 전체 화면 알림으로 띄워요 -->
     <string name="wake_check_title">깨어 있나요?</string>

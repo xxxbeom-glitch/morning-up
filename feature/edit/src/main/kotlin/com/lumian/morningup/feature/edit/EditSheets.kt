@@ -31,10 +31,11 @@ import com.lumian.morningup.core.designsystem.component.SettingRowState
 import com.lumian.morningup.core.designsystem.theme.MorningDimens
 import com.lumian.morningup.core.designsystem.theme.MorningTheme
 import com.lumian.morningup.core.model.Alarm
+import com.lumian.morningup.core.model.Snooze
 import com.lumian.morningup.core.model.WakeCheckSettings
 
 /** 알람 편집 화면 위에 띄우는 바텀시트(결정 78, 98). 페이지 대신 시트로 고르는 설정이에요. */
-enum class EditSheet { Volume, RingAgain, MissionPick, WakeCheck }
+enum class EditSheet { Volume, RingAgain, Snooze, MissionPick, WakeCheck }
 
 /** 시트 판(좌우 24) 밖으로 8씩 넓혀 피그마 footer(좌우 16)와 맞춰요. */
 private val FooterBleed = 8.dp
@@ -51,7 +52,7 @@ private fun Modifier.bleed(horizontal: Dp): Modifier = layout { measurable, cons
 @Composable
 internal fun EditSheetFrame(
     title: String,
-    description: String,
+    description: String?,
     onDone: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,
 ) {
@@ -260,6 +261,40 @@ internal fun WakeCheckSheetContent(alarm: Alarm, labRecheck: Boolean, actions: E
         )
         // 결정 184: '한 번 더 확인' 줄은 실험실에서 켰을 때만 보여요.
         if (labRecheck) RecheckRow(check.normalized().recheckCount, actions)
+    }
+}
+
+/** 테스트에서 미루기 '횟수' 줄 +, - 버튼을 찾는 이름표 앞부분. */
+const val SNOOZE_COUNT_TAG = "snoozeCount"
+
+/**
+ * S9 미루기 시트(결정 195, 시안 TSK-281). ① '간격' 1, 3, 5, 10분 후 ② '횟수' +, -(최소 1, 최대 없음).
+ * 제목만으로 알 수 있어 설명 글은 없어요(결정 192, 시안). 고르는 즉시 편집 중인 알람에 반영되고 미루기도 켜져요.
+ */
+@Composable
+internal fun SnoozeSheetContent(alarm: Alarm, actions: EditActions, onDone: () -> Unit) {
+    val snooze = alarm.snooze.normalized()
+    EditSheetFrame(title = stringResource(R.string.edit_snooze), description = null, onDone = onDone) {
+        ChipRow(
+            label = stringResource(R.string.edit_wake_check_ask),
+            options = Snooze.MINUTES,
+            selected = snooze.minutes,
+            optionLabel = { stringResource(R.string.edit_minutes_after, it) },
+            onSelect = actions.onSnoozeMinutes,
+        )
+        val label = stringResource(R.string.edit_recheck)
+        MorningValueSwitchRow(
+            label = label,
+            value = stringResource(R.string.edit_times, snooze.count),
+            type = ValueSwitchType.Count,
+            canDecrease = snooze.count > Snooze.MIN_COUNT,
+            canIncrease = true,
+            onDecrease = { actions.onSnoozeStep(-1) },
+            onIncrease = { actions.onSnoozeStep(1) },
+            decreaseDescription = stringResource(R.string.edit_mission_decrease, label),
+            increaseDescription = stringResource(R.string.edit_mission_increase, label),
+            tag = SNOOZE_COUNT_TAG,
+        )
     }
 }
 

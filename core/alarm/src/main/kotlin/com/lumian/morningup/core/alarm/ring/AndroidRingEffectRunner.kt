@@ -89,6 +89,11 @@ class AndroidRingEffectRunner @Inject constructor(
                 )
                 notifications.restToast(effect.intervalMinutes, effect.nextRingNumber)
             }
+            is RingEffect.SnoozeStarted -> {
+                val detail = "next=${clock(effect.nextRingAt)} min=${effect.minutes} left=${effect.left}"
+                diagnostics.record("snooze_started", session?.plan?.alarmId, detail)
+                FlowLog.event("snooze_started", session?.plan?.alarmId, detail)
+            }
             is RingEffect.ScheduleTimer -> {
                 diagnostics.record("timer_set", session?.plan?.alarmId, "${effect.kind} at ${clock(effect.at)}")
                 timers.schedule(effect.at, effect.kind)

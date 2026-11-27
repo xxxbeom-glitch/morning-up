@@ -12,6 +12,7 @@ import com.lumian.morningup.core.data.db.Migration3To4
 import com.lumian.morningup.core.data.db.Migration4To5
 import com.lumian.morningup.core.data.db.Migration5To6
 import com.lumian.morningup.core.data.db.Migration6To7
+import com.lumian.morningup.core.data.db.Migration7To8
 import com.lumian.morningup.core.data.db.MorningDatabase
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.MissionSetting
@@ -218,6 +219,22 @@ class MigrationTest {
         }
         db.close()
         assertThat(rows).containsExactly(listOf(1, 1, 1), listOf(2, 1, 2), listOf(3, 1, 1)).inOrder()
+    }
+
+    @Test
+    fun v7ToV8_addsSnoozeOff_fiveMinutesThreeTimes() = runTest {
+        // 결정 195: 옛 알람은 미루기 꺼짐, 5분, 3번으로 옮겨요.
+        createV4(1)
+        helper.runMigrationsAndValidate(dbName, 5, true, Migration4To5 { LegacyWakeCheck() }).close()
+        helper.runMigrationsAndValidate(dbName, 6, true, Migration5To6).close()
+        helper.runMigrationsAndValidate(dbName, 7, true, Migration6To7).close()
+        val db = helper.runMigrationsAndValidate(dbName, 8, true, Migration7To8)
+        val row = db.query("SELECT snoozeEnabled, snoozeMinutes, snoozeCount FROM alarms WHERE id = 1").use { c ->
+            c.moveToFirst()
+            List(3) { c.getInt(it) }
+        }
+        db.close()
+        assertThat(row).containsExactly(0, 5, 3).inOrder()
     }
 
     private fun insertV1(id: Long, missions: String, sound: String = "default") =

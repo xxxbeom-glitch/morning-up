@@ -61,6 +61,8 @@
     <string name="home_resting_band">%1$s에 다시 울려요</string>
     <string name="home_resting_band_desc">지금 미션을 하면 바로 끝나요</string>
     <string name="home_resting_band_action">미션 하기</string>
+    <!-- 미루기로 쉬는 중 띠 설명(결정 195, 문구표 3-6절 73). 제목은 쉬는 중 띠와 같아요. -->
+    <string name="home_snoozed_band_desc">알람을 미뤘어요. 지금 미션을 하면 바로 끝나요</string>
     <string name="home_wake_check_soon_band">곧 깼는지 물어볼게요</string>
     <!-- 오전 6:43쯤 확인 화면이 떠요(시안 TSK-201) -->
     <string name="home_wake_check_soon_desc">%1$s쯤 확인 화면이 떠요</string>

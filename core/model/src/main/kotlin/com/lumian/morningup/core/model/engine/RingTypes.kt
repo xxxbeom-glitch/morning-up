@@ -5,6 +5,7 @@ import com.lumian.morningup.core.model.ButtonTrick
 import com.lumian.morningup.core.model.LabSettings
 import com.lumian.morningup.core.model.MissionSetting
 import com.lumian.morningup.core.model.MissionType
+import com.lumian.morningup.core.model.Snooze
 import com.lumian.morningup.core.model.WakeCheckSettings
 import kotlinx.serialization.Serializable
 
@@ -45,6 +46,10 @@ data class RingPlan(
      * 켜 두었어도 false예요(5절 예외). 마지막 바퀴 예외는 상태표가 봐요([MissionEscape.shouldShow]).
      */
     val escapeHidden: Boolean = false,
+    /** 미루기 간격(분, 결정 195). */
+    val snoozeMinutes: Int = Snooze.DEFAULT_MINUTES,
+    /** 한 번 울림 동안 미룰 수 있는 횟수. 미루기를 꺼 두었으면 0이에요. 옛 세션에도 0이라 버튼이 안 보여요. */
+    val snoozeCount: Int = 0,
 ) {
     /** [index]번째 미션 설정. 저장된 값이 없거나 종류가 다르면 그 미션의 처음 값이에요. */
     fun missionSetting(index: Int): MissionSetting? {
@@ -82,6 +87,8 @@ data class RingPlan(
             trick = settings.lab.trick,
             escapeHidden = settings.lab.escapeHidden &&
                 (shakeSupported || MissionType.ShakeShake !in alarm.missionTypes),
+            snoozeMinutes = alarm.snooze.normalized().minutes,
+            snoozeCount = if (alarm.snooze.enabled) alarm.snooze.normalized().count else 0,
         )
     }
 }
@@ -134,7 +141,14 @@ data class RingSession(
      * 울림이 끝나면 지워요. 다시 잠들기 방지로 처음부터 다시 울리면 그 바퀴의 첫 미션 때 다시 띄워요.
      */
     val escapeShown: Boolean = false,
+    /** 남은 미루기 횟수(결정 195). 자동 '다시 울림' 횟수([ringsLeft])와 따로 세요. */
+    val snoozesLeft: Int = 0,
+    /** 지금 쉬는 중([RingPhase.Resting])이 미루기로 시작됐는지. 알림과 홈 띠 글이 달라요. */
+    val snoozed: Boolean = false,
 ) {
+    /** 울림 화면(D0)에 'n분 뒤 다시'를 보여 줄지. 소리 내며 울리는 중이고 횟수가 남았을 때만이에요. */
+    val canSnooze: Boolean get() = phase == RingPhase.Ringing && snoozesLeft > 0
+
     /** W3를 여러 번 물을 때 남은 수. 한 번만 물으면 null. */
     val checksLeft: Int?
         get() = plan.recheckCount.takeIf { it > 1 }?.let { (it - checksDone).coerceAtLeast(0) }
@@ -192,6 +206,9 @@ sealed interface RingEvent {
 
     data object MissionCompleted : RingEvent
 
+    /** D0 'n분 뒤 다시'(미루기, 결정 195). 울리는 중이고 횟수가 남았을 때만 받아요. */
+    data object Snoozed : RingEvent
+
     /** 미션 없는 알람의 '알람 끄기'. */
     data object DismissWithoutMission : RingEvent
 
@@ -241,6 +258,7 @@ sealed interface RingEvent {
             "escape_typed" to EscapeTyped,
             "wake_check_confirmed" to WakeCheckConfirmed,
             "recheck_confirmed" to RecheckConfirmed,
+            "snoozed" to Snoozed,
         )
 
         val userEvents: List<RingEvent> = userEventKeys.values.toList()
@@ -263,6 +281,12 @@ sealed interface RingEffect {
      * [nextRingNumber]는 다음이 몇 번째 울림인지예요. 끌 때까지 울리는 알람은 셀 수 없어 null이에요.
      */
     data class RestStarted(val nextRingAt: Long, val intervalMinutes: Int, val nextRingNumber: Int?) : RingEffect
+
+    /**
+     * 미루기를 눌러 쉬기 시작했어요(결정 195). 울림 화면을 닫고 [nextRingAt]에 다시 울려요. [left]는 남은 미루기 횟수예요.
+     * 알림은 쉬는 중 알림과 같은 자리에 '알람을 미뤘어요'로 떠요.
+     */
+    data class SnoozeStarted(val nextRingAt: Long, val minutes: Int, val left: Int) : RingEffect
 
     data class ShowMission(val index: Int) : RingEffect
 

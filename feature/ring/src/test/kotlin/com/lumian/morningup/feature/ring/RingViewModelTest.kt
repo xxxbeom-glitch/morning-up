@@ -55,6 +55,23 @@ class RingViewModelTest {
     }
 
     @Test
+    fun snooze_buttonOnlyWhileRingingWithCountsLeft_andSendsEvent() = runTest {
+        // 결정 195: 미루기를 켰고 횟수가 남았을 때만 'n분 뒤 다시'. 누르면 미루기 사건을 보내요.
+        val base = testRingSession(missions = listOf(math))
+        val ringing = base.copy(plan = base.plan.copy(snoozeMinutes = 3, snoozeCount = 2), snoozesLeft = 2)
+        val link = FakeRingLink(ringing, RingScreen.Ringing)
+        val vm = viewModel(link)
+        assertThat(vm.uiState.value.snoozeMinutes).isEqualTo(3)
+        vm.onSnooze()
+        assertThat(link.sent).containsExactly(RingEvent.Snoozed)
+        link.session.value = ringing.copy(snoozesLeft = 0)
+        assertThat(vm.uiState.value.snoozeMinutes).isNull()
+        link.session.value = ringing.copy(phase = RingPhase.Resting, snoozed = true)
+        assertThat(vm.uiState.value.snoozeMinutes).isNull()
+        assertThat(viewModel(FakeRingLink(base, RingScreen.Ringing)).uiState.value.snoozeMinutes).isNull()
+    }
+
+    @Test
     fun minuteTick_updatesTime_andNight() = runTest {
         val vm = viewModel(FakeRingLink(testRingSession(), RingScreen.Ringing))
         clock = clock.withHour(22).withMinute(5)

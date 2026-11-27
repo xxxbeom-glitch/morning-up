@@ -226,6 +226,28 @@ class EditViewModelTest {
     }
 
     @Test
+    fun snooze_offForNewAlarm_minutesAndCountSteps_minOneNoMax() = runTest {
+        // 결정 195: 새 알람은 미루기 꺼짐. 간격 1, 3, 5, 10분, 횟수 +, - 최소 1, 최대 없음. 고르면 미루기도 켜요.
+        val vm = viewModel(FakeAlarmBook())
+        vm.uiState.test {
+            assertThat(loaded().draft.snooze.enabled).isFalse()
+            vm.setSnoozeMinutes(10)
+            var snooze = awaitItem().draft.snooze
+            assertThat(snooze.enabled).isTrue()
+            assertThat(snooze.minutes).isEqualTo(10)
+            vm.setSnoozeMinutes(7)
+            repeat(4) { vm.stepSnoozeCount(1) }
+            snooze = expectMostRecentItem().draft.snooze
+            assertThat(snooze.minutes).isEqualTo(10)
+            assertThat(snooze.count).isEqualTo(7)
+            repeat(9) { vm.stepSnoozeCount(-1) }
+            assertThat(expectMostRecentItem().draft.snooze.count).isEqualTo(1)
+            vm.setSnooze(false)
+            assertThat(awaitItem().draft.snooze.enabled).isFalse()
+        }
+    }
+
+    @Test
     fun wakeCheck_intervalOneMinute_andCountSteps_minOneNoMax() = runTest {
         // 결정 186: 간격 1분을 고를 수 있고, 횟수는 +, - 로 최소 1, 최대 없음이에요. 고르면 다시 잠들기 방지도 켜요.
         val vm = viewModel(FakeAlarmBook())

@@ -32,6 +32,9 @@
     <string name="edit_minutes_after">%1$d분 후</string>
     <string name="edit_minutes">%1$d분</string>
     <string name="edit_times">%1$d번</string>
+    <!-- 미루기(결정 195, 문구표 3-6절 60, 61) -->
+    <string name="edit_snooze">미루기</string>
+    <string name="edit_snooze_value">%1$d분, %2$d번</string>
     <!-- 편집 줄 값: 3분 후, 한 번 더 확인 1번 -->
     <string name="edit_wake_check_value">%1$d분 후, 횟수 %2$d번</string>
     <string name="edit_wake_check_value_no_recheck">%1$d분 후</string>

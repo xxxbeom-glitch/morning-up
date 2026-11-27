@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.lumian.morningup.core.model.Alarm
 import com.lumian.morningup.core.model.RingAgain
+import com.lumian.morningup.core.model.Snooze
 import com.lumian.morningup.core.model.VibrationPattern
 import com.lumian.morningup.core.model.WakeCheck
 import com.lumian.morningup.core.model.WakeCheckSettings
@@ -46,6 +47,12 @@ data class AlarmEntity(
     @ColumnInfo(defaultValue = "3") val recheckWaitMinutes: Int = WakeCheckSettings.DEFAULT_RECHECK_WAIT_MINUTES,
     /** v5: W3 '묻는 횟수'. */
     @ColumnInfo(defaultValue = "1") val recheckCount: Int = WakeCheckSettings.DEFAULT_RECHECK_COUNT,
+    /** v8: 미루기 켬(결정 195). 처음 꺼짐. */
+    @ColumnInfo(defaultValue = "0") val snoozeEnabled: Boolean = false,
+    /** v8: 미루기 간격(분). */
+    @ColumnInfo(defaultValue = "5") val snoozeMinutes: Int = Snooze.DEFAULT_MINUTES,
+    /** v8: 미루기 횟수. */
+    @ColumnInfo(defaultValue = "3") val snoozeCount: Int = Snooze.DEFAULT_COUNT,
 )
 
 internal fun Set<DayOfWeek>.toMask(): Int = fold(0) { mask, day -> mask or (1 shl (day.value - 1)) }
@@ -69,6 +76,7 @@ fun AlarmEntity.toModel(): Alarm = Alarm(
         recheckWaitMinutes = recheckWaitMinutes,
         recheckCount = recheckCount,
     ).normalized(),
+    snooze = Snooze(snoozeEnabled, snoozeMinutes, snoozeCount).normalized(),
     powerOffGuard = powerOffGuard,
     soundId = soundId,
     volumePercent = volumePercent,
@@ -107,4 +115,7 @@ fun Alarm.toEntity(): AlarmEntity = AlarmEntity(
     recheckEnabled = wakeCheck.recheckEnabled,
     recheckWaitMinutes = wakeCheck.recheckWaitMinutes,
     recheckCount = wakeCheck.recheckCount,
+    snoozeEnabled = snooze.enabled,
+    snoozeMinutes = snooze.minutes,
+    snoozeCount = snooze.count,
 )
