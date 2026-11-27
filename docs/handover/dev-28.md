@@ -18,3 +18,12 @@
 - 문구표 3-6절 미루기 문구(TSK-282)와 재확인 해제 버튼 동작(TSK-286)은 다른 방 일이라 넣지 않음. `home_recheck_release`, `recheck_release_action` 리소스만 있음.
 - A8 '밀어 닫기는 괜찮아요', B4 배터리 문장은 기획 메모대로 QA, 리서치 결과 보고 다시 볼 것.
 - 이어폰 출력 QA(Z플립5 + 블루투스 4칸 + 다시 울림 두 번째 스피커 1칸)는 사용자 확인 몫.
+
+## 다음 방이 이어받을 일 (Leader 지시 순서, 아직 손대지 않음)
+
+1. ISS-061(medium): 첫 알람 저장 뒤 O5에서 앱을 닫으면 첫 실행이 다시 떠서 알람이 하나 더 생김. 첫 실행 끝 표시를 저장 시점에 남기는지부터 볼 것.
+2. TSK-286 W4 재확인 해제: `docs/plan-11-recheck-release.md`, 시안 `docs/exports/tsk-290/`. 리소스 `home_recheck_release`, `recheck_release_action`은 이미 있음.
+3. TSK-293 미션 설정 큰 화면과 드럼롤: 시안 `docs/exports/tsk-264/`.
+4. ISS-062 detekt 줄 길이.
+
+일마다 submit하고 [QA 6]에 '제출됨'을 알릴 것. 참고: [개발 27], [개발 29] 넘김 메모.
