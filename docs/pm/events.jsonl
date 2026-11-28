@@ -1493,3 +1493,4 @@
 {"at": "2026-11-28 11:37:48", "by": "[디자인 35]", "id": "TSK-314", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 11:37:48", "by": "[디자인 35]", "id": "TSK-314", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["홈 권한 안내 모음 1314:11208: H2-1~H2-8 9장(비상구 글 H2-2는 확인 필요)과 배너 순서 메모를 권한 종류별 줄로. 띠는 부품이 아니라 홈 화면째로 옮김. 없는 종류: 위치, 접근성. 커밋 aa97446"]]}}
 {"at": "2026-11-28 11:38:03", "by": "Leader", "id": "TSK-314", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["9장 모음 확인, 위치와 접근성 띠는 없음"]]}}
+{"at": "2026-11-28 11:38:32", "by": "Leader", "id": "TSK-315", "action": "set", "changes": {"owner": ["[디자인 35]", "[디자인 36]"]}}
