@@ -1511,3 +1511,5 @@
 {"at": "2026-11-28 13:11:00", "by": "[디자인 37]", "id": "TSK-310", "action": "claim", "changes": {"status": ["todo", "doing"]}}
 {"at": "2026-11-28 13:28:27", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["사용자: 각 줄 앞 Lucide 라인 아이콘. 언어 선택지는 '기기 설정', '한국어', 'English'"]]}}
 {"at": "2026-11-28 13:30:04", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["[디자인 37] 각 줄 앞 Lucide 아이콘 18, 선 1.5, text/body 색. 커밋 6d03bc9. 언어 선택지는 반영 대기"]]}}
+{"at": "2026-11-28 13:34:55", "by": "Leader", "id": "TSK-316", "action": "create", "changes": {"id": [null, "TSK-316"], "wbs": [null, "3.66"], "parent": [null, "TSK-003"], "title": [null, "Crazy Mode 제목 특별한 타이포그래피 레퍼런스 찾기"], "area": [null, "design"], "owner": [null, "[디자인 38]"], "reviewer": [null, "Leader"], "status": [null, "todo"]}}
+{"at": "2026-11-28 13:35:14", "by": "Leader", "id": "TSK-316", "action": "comment", "changes": {"comments": [null, ["[디자인 38] local_9dd8c2aa-fe76-43e7-921f-2fdcf07fa769 시작"]]}}
