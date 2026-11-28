@@ -1,0 +1,391 @@
+<title>일어나 화면 흐름 진단</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* 레이아웃: 결론 먼저, 그다음 단계별로 알라미와 일어나를 위아래 두 줄로 나란히 놓은 흐름도, 그 뒤 원인과 안 */
+:root{
+  --bg:#F4F6FA; --surface:#FFFFFF; --fg:#16202E; --muted:#5B6678; --line:#DCE2EC;
+  --accent:#0B6CF0; --accent-soft:#E6F0FE; --memo:#E8590C; --memo-soft:#FFF0E6;
+  --good:#12805C; --good-soft:#E5F5EE; --alarmy:#2A2F38;
+  --sans:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E131B; --surface:#171E29; --fg:#E7ECF3; --muted:#9AA6B8; --line:#2A3443;
+  --accent:#6FA8FA; --accent-soft:#16294A; --memo:#FF9A5C; --memo-soft:#3A2214;
+  --good:#4FD1A0; --good-soft:#12302A; --alarmy:#C9CFD8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E131B; --surface:#171E29; --fg:#E7ECF3; --muted:#9AA6B8; --line:#2A3443;
+  --accent:#6FA8FA; --accent-soft:#16294A; --memo:#FF9A5C; --memo-soft:#3A2214;
+  --good:#4FD1A0; --good-soft:#12302A; --alarmy:#C9CFD8; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.65}
+.wrap{max-width:1180px;margin:0 auto;padding-block:40px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:56px}
+h1{font-size:clamp(26px,4vw,36px);line-height:1.25;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:22px;margin:0 0 6px;text-wrap:balance}
+h3{font-size:17px;margin:0 0 6px}
+p{margin:0}
+.lead{color:var(--muted);max-width:68ch}
+.eyebrow{font-size:12px;letter-spacing:.06em;color:var(--muted);font-weight:600}
+section{display:flex;flex-direction:column;gap:16px;min-width:0}
+.id{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500}
+.memo{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--memo);color:#fff;font-size:12px;font-weight:700;line-height:1}
+.memo.ghost{background:var(--memo-soft);color:var(--memo)}
+.tag{display:inline-block;padding:1px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:600}
+.rec{display:inline-block;padding:1px 8px;border-radius:6px;background:var(--good-soft);color:var(--good);font-size:12px;font-weight:700}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;background:transparent;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+tr.pick td{background:var(--good-soft)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.sum{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.sum b{font-size:16px}
+/* 흐름도 */
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);align-items:center}
+.lane{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.lane-head{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:baseline}
+.lane-head h3{margin:0}
+.diff{font-size:14px;color:var(--muted)}
+.row{display:grid;grid-template-columns:72px 1fr;gap:12px;align-items:start;min-width:0}
+.who{font-size:13px;font-weight:700;padding-top:4px}
+.who.a{color:var(--alarmy)} .who.o{color:var(--accent)}
+.flow{display:flex;align-items:flex-start;gap:6px;overflow-x:auto;padding-bottom:6px;min-width:0}
+.node{flex:0 0 auto;width:118px;display:flex;flex-direction:column;gap:4px}
+.node button{all:unset;cursor:zoom-in;display:block;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:var(--bg);height:236px;position:relative}
+.node button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.node img{display:block;width:100%;height:100%;object-fit:cover;object-position:top}
+.node .badges{position:absolute;top:6px;right:6px;display:flex;flex-wrap:wrap;gap:3px;justify-content:flex-end;max-width:100px}
+.node.hit button{border:2px solid var(--memo)}
+.node .cap{font-size:12px;line-height:1.4}
+.node .cap small{display:block;color:var(--muted)}
+.textnode{height:236px;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12px;color:var(--muted);position:relative}
+.arrow{flex:0 0 auto;align-self:center;margin-top:-30px;color:var(--muted);font-size:13px;display:flex;flex-direction:column;align-items:center;width:34px;text-align:center;line-height:1.2}
+.arrow svg{width:22px;height:12px}
+.branch{flex:0 0 auto;align-self:stretch;width:1px;background:var(--line);margin:0 6px}
+/* 원인 */
+.causes{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+.cause{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.cause .ms{display:flex;flex-wrap:wrap;gap:4px}
+.cause p{font-size:14px}
+.why{color:var(--muted)}
+/* 결정 */
+.decision{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.decision > .tbl{border-radius:10px}
+.because{background:var(--good-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+.because b{color:var(--good)}
+.mock-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;align-items:start}
+.phone{width:100%;max-width:300px;background:#EEF1F6;border-radius:22px;padding:14px 12px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);color:#16202E;font-size:12px}
+.phone .ttl{font-weight:700;text-align:center;font-size:13px;padding:2px 0 4px}
+.mc{background:#fff;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.mc.plus{background:linear-gradient(135deg,#0B6CF0,#5AA2FF);color:#fff}
+.mc.plus .pl{align-self:flex-start;background:#fff;color:#0B6CF0;font-weight:700;font-size:10px;border-radius:5px;padding:1px 6px}
+.mc.core{border:1.5px solid #0B6CF0}
+.mr{display:flex;justify-content:space-between;gap:8px}
+.mr span:last-child{color:#5B6678}
+.mnote{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.order{display:flex;flex-direction:column;gap:10px}
+.step{display:grid;grid-template-columns:44px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+.step .n{font-family:var(--mono);font-size:20px;color:var(--accent);font-weight:500}
+.step div{min-width:0}
+.refs{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.ref{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.ref a{color:var(--accent);text-decoration:none;word-break:break-all}
+.ref a:hover{text-decoration:underline}
+.note{font-size:13px;color:var(--muted)}
+/* 크게 보기 */
+#lb{position:fixed;inset:0;background:rgba(10,14,20,.82);display:flex;align-items:center;justify-content:center;z-index:50;padding:24px;cursor:zoom-out}
+#lb[hidden]{display:none}
+#lb img{max-height:88vh;max-width:min(420px,92vw);border-radius:14px;background:#fff}
+#lb p{position:absolute;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#fff;font-size:14px}
+@media (max-width:560px){.row{grid-template-columns:1fr}.who{padding:0}}
+@media (prefers-reduced-motion:no-preference){.node button{transition:transform .15s}.node button:hover{transform:translateY(-2px)}}
+</style>
+
+<div class="wrap">
+
+<header style="display:flex;flex-direction:column;gap:12px">
+  <span class="eyebrow">TSK-308 진단, 11-28, [기획 13]</span>
+  <h1>일어나 화면 흐름 진단</h1>
+  <p class="lead">11-27 메모 30여 개를 화면에 붙여 보니, 하나하나 따로 고칠 문제가 아니라 <b>원인 여섯 가지</b>에서 나온 증상이었어요. 원인을 먼저 고치려면 디자인 전에 <b>세 가지를 정해야</b> 해요. 아래는 결론, 알라미와 나란히 본 흐름도, 원인, 고칠 안, 디자인 순서 차례예요.</p>
+</header>
+
+<section>
+  <h2>결론 먼저</h2>
+  <div class="summary">
+    <div class="sum"><span class="eyebrow">먼저 정할 것 ①</span><b>설정은 세 층으로</b><p>맨 위 Crazy Mode 카드(구독 겸함, <code>plus_label</code>), 그 아래 '알람이 꼭 울리게' 핵심 카드, 그 아래 일반 카드. 서브 라벨과 한 주 시작은 지워요.</p></div>
+    <div class="sum"><span class="eyebrow">먼저 정할 것 ②</span><b>간격은 '미루기' 한 곳에서만</b><p>지금은 미루기, 다시 울림, 다시 잠들기 방지, 좀비모드에 간격이 네 번 나와요. 아무도 안 끄면 '알람 자동 해제' 시간 뒤 멈추고, 미루기 간격만큼 쉬었다 다시 울려요.</p></div>
+    <div class="sum"><span class="eyebrow">먼저 정할 것 ③</span><b>문구는 갤럭시 메뉴 이름 그대로</b><p>폰 설정 이름은 폰에 보이는 글자 그대로 작은따옴표로, 설명은 한 문장에 할 일 하나. 명칭 표를 먼저 만들고 전체 문구 순화에 같이 넘겨요.</p></div>
+    <div class="sum"><span class="eyebrow">그다음 디자인 순서</span><b>C 부품 규칙 → A 설정 → D 안내 → B 온보딩 → E 애니메이션</b><p>다른 묶음이 기대는 규칙부터 정하고, 결정이 끝난 설정을 그다음에 그려요.</p></div>
+  </div>
+</section>
+
+<section id="flow">
+  <h2>알라미와 일어나, 화면 흐름 나란히 보기</h2>
+  <p class="lead">단계마다 위 줄이 알라미(11-25, 11-26 Z플립5 캡처), 아래 줄이 일어나(피그마 11-27 구역 최신 시안)예요. 그림을 누르면 크게 보여요. 주황 테두리와 숫자는 메모에서 UX 문제로 짚은 화면과 메모 번호예요(메모 3~9의 요청은 <span class="memo ghost">+</span>로 표시).</p>
+  <div class="legend"><span><span class="memo">14</span> 메모 1~25 번호</span><span><span class="memo ghost">스누즈</span> 메모 3~9 요청</span><span>→ 화면 이동</span><span>세로 줄: 갈래(같은 화면에서 들어가는 곳)</span></div>
+  <div id="lanes" style="display:flex;flex-direction:column;gap:14px"></div>
+</section>
+
+<section>
+  <h2>메모별 문제와 자리</h2>
+  <p class="lead">메모 번호마다 어느 화면인지, 어느 원인에서 나왔는지, 어느 디자인 묶음에서 고치는지예요. 원인 기호는 다음 절의 R1~R6이에요.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>메모</th><th>화면</th><th>문제(줄여 씀)</th><th>원인</th><th>묶음</th></tr></thead>
+    <tbody id="memoRows"></tbody>
+  </table></div>
+  <p class="note">이번 진단 밖으로 뺀 것: 일정판 메모 접힘 고치기(운영 일), 새 벨소리 파일 교체(개발 일), 전체 문구 md 뽑기(메모 24, TSK-296 <code>docs/wording-inventory.md</code>로 이미 나와 검토 기다림).</p>
+</section>
+
+<section>
+  <h2>원인 분석</h2>
+  <p class="lead">증상을 모아 보면 여섯 갈래예요. 원인을 하나 고치면 메모 여러 개가 같이 풀려요.</p>
+  <div class="causes" id="causes"></div>
+</section>
+
+<section id="d1">
+  <h2>먼저 정할 것 ① 설정 화면 구조</h2>
+  <div class="decision">
+    <p>알라미 설정은 <b>구독 → 전원 끄기 방지 → 앱 삭제 방지</b>를 다른 레벨로 맨 위에 두고, 그 아래 '알람 울림 최적화', '알람 고급설정', '테마'처럼 목록이 이어져요(캡처 76, 77). 우리 T1은 모든 줄이 같은 카드, 같은 글자 크기라 무엇이 중요한지 안 보여요(R1).</p>
+    <div class="tbl"><table>
+      <thead><tr><th>안</th><th>구성(위에서부터)</th><th>좋은 점</th><th>아쉬운 점</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td><span class="rec">추천</span><br><b>A. 세 층</b></td><td>① Crazy Mode 소개 카드(<code>plus_label</code>, 구독 전엔 소개와 시작 버튼, 구독 뒤엔 기능 들어가기와 구독 상태) ② 핵심 카드: 알람 울림 최적화, 전원 종료 방지 ③ 일반 카드: 알람(알람 자동 해제, 다음 알람 항상 표시, 이어폰과 블루투스) / 화면(날씨 테마, 언어) / 자주 묻는 질문, 앱 정보</td><td>구독 카드와 Crazy Mode가 한 장이라 중복 없음. 메모 14, 20, 15, 21을 한 번에 풂. 알라미 흐름과 같은 순서</td><td>Crazy Mode 무료 기능(움직이는 버튼 등)과 유료 경계를 정해야 카드 문구가 정해짐</td></tr>
+        <tr><td><b>B. 구독 카드 따로</b></td><td>① 구독 카드(플랜 상태) ② Crazy Mode 소개 카드 ③ 핵심 카드 ④ 일반 카드</td><td>구독 관리(복원, 해지 안내)가 눈에 잘 띔</td><td>맨 위에 판매 카드가 두 장. 설정 첫 화면이 광고처럼 보임</td></tr>
+        <tr><td><b>C. 핵심 먼저</b></td><td>① 핵심 카드 ② 일반 카드 ③ 맨 아래 Crazy Mode(실험실 자리에 <code>plus_label</code>만)</td><td>알람이 울리게 하는 것이 가장 위라 앱 목적에 충실</td><td>메모 14, 20의 'Crazy Mode를 가장 먼저 보여 주고 싶다'와 어긋남</td></tr>
+      </tbody>
+    </table></div>
+    <div class="mock-wrap">
+      <div class="phone" aria-label="추천안 A 배치 그림">
+        <div class="ttl">설정 (추천 A, 배치만 그린 그림)</div>
+        <div class="mc plus"><span class="pl">plus_label</span><b style="font-size:14px">Crazy Mode</b><span>잠 못 깨는 아침을 위한 기능 묶음</span><span style="align-self:flex-start;background:#fff;color:#0B6CF0;border-radius:8px;padding:3px 10px;font-weight:700">알아보기</span></div>
+        <div class="mc core"><div class="mr"><b>알람 울림 최적화</b><span>확인 필요 2</span></div><div class="mr"><b>전원 종료 방지</b><span>켬</span></div></div>
+        <div class="mc"><div class="mr"><span>알람 자동 해제</span><span>5분</span></div><div class="mr"><span>다음 알람 항상 표시</span><span>꺼짐</span></div><div class="mr"><span>이어폰, 블루투스로 울리기</span><span>꺼짐</span></div></div>
+        <div class="mc"><div class="mr"><span>날씨 테마</span><span>켬</span></div><div class="mr"><span>언어</span><span>한국어</span></div></div>
+        <div class="mc"><div class="mr"><span>자주 묻는 질문</span><span>›</span></div><div class="mr"><span>앱 정보</span><span>1.0.0 ›</span></div></div>
+      </div>
+      <div class="mnote">
+        <h3 style="color:var(--fg)">추천 A에서 같이 정하는 것</h3>
+        <span>• 줄에는 이름 하나만(서브 라벨 지움, 메모 15). 설명이 꼭 필요한 줄은 들어간 화면이나 시트에서 말해요.</span>
+        <span>• 카드 위아래 캡션 없음. 캡션은 '켜면 무엇이 달라지는지'가 이름만으로 안 보일 때만, 카드 <b>아래</b> 한 줄(메모 11 규칙 C에서 정함).</span>
+        <span>• 앱 정보 한 줄을 누르면 안에 오픈소스 라이선스, 문의하기, 약관, 저작권(메모 21).</span>
+        <span>• '한 주 시작 요일' 줄, T1-3 시트, 정책 문서의 항목을 모두 지움(메모 23). 요일 순서는 일요일부터 하나로 고정.</span>
+        <span>• 알람 자동 해제는 카운터(<code>-</code> <code>+</code>), 값은 안 함, 1분부터 30분까지 1분 단위(메모 3~9). 결정 ②와 묶여요.</span>
+        <span>• 날씨 테마와 언어는 온보딩 권한에서 가져온 값을 '화면' 카드에 모아요(메모 15). 언어는 출시 때 한국어뿐이면 줄을 숨겨요.</span>
+        <span>• 앱 삭제 방지는 만들지 않아요(Q 조사: 권한 부담이 큼).</span>
+      </div>
+    </div>
+    <div class="because"><b>A를 추천하는 이유.</b> 사용자가 원한 두 가지(Crazy Mode를 가장 먼저, 핵심 설정은 레벨을 다르게)를 카드 세 장 높이로 모두 지켜요. 구독과 Crazy Mode를 한 카드로 묶으면 '유료 플랜 = Crazy Mode'가 한눈에 보이고, 맨 위 판매 카드가 하나라 덜 부담스러워요.</div>
+  </div>
+</section>
+
+<section id="d2">
+  <h2>먼저 정할 것 ② 스누즈를 켰을 때 다시 울림 간격</h2>
+  <div class="decision">
+    <p>지금 알람 하나에 '간격'을 고르는 자리가 네 곳이에요. <b>미루기</b>(S9, 눌러서 미룸), <b>다시 울림</b>(S3, 아무도 안 끄면 저절로), <b>다시 잠들기 방지</b>(S4, 끈 뒤 깨어 있는지 물음), <b>좀비모드</b>(T3-5). 이름도 '다시'가 겹치고 횟수 단위도 '번'과 '회'가 섞여 있어요(S9 '3번', T3-5 '3회'). 메모의 "다시 울림 간격은 어떻게 조정돼?"는 이 겹침 때문에 생긴 질문이에요(R6).</p>
+    <p>알라미는 <b>알람마다 '알람 미루기'(간격과 횟수, 캡처 29)</b>, <b>모든 알람에 '알람 자동 해제'(설정 고급, 캡처 80)</b> 둘뿐이에요. 미루는 동안 화면에는 남은 시간과 남은 횟수를 보여 줘요(캡처 49).</p>
+    <div class="tbl"><table>
+      <thead><tr><th>안</th><th>규칙</th><th>좋은 점</th><th>아쉬운 점</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td><span class="rec">추천</span><br><b>A. 미루기로 합치기</b></td><td>편집 화면엔 '미루기' 한 줄(간격 1, 3, 5, 10분, 횟수). 아무도 안 끄면 '알람 자동 해제' 시간(설정, 카운터) 동안 울리고 멈춘 뒤, <b>미루기를 한 번 누른 것처럼</b> 미루기 간격 뒤 다시 울리고 횟수를 하나 줄여요. 미루기를 꺼 둔 알람은 안전을 위해 정해진 값(5분 뒤, 3번)으로 다시 울리고 이 값은 화면에 안 보여요. S3 다시 울림 줄과 시트는 없애요</td><td>사용자가 고르는 간격이 하나. 알라미 흐름과 같아 익숙함. 메모 3~9의 '알림 자동 해제 카운터'가 제자리를 찾음</td><td>결정 195와 '아무도 안 끄면 1분 울리고 쉬었다 다시'(11-16) 규칙을 고쳐야 함. 개발에서 다시 울림 코드가 바뀜</td></tr>
+        <tr><td><b>B. 다시 울림이 미루기를 따라감</b></td><td>두 줄은 남기되, 미루기를 켜면 다시 울림 시트에서 간격 칸이 사라지고 미루기 간격을 같이 써요. 횟수는 따로</td><td>지금 화면을 적게 바꿈</td><td>줄 두 개가 그대로라 헷갈림이 남음. '켰을 때만 칸이 사라짐'을 또 설명해야 함</td></tr>
+        <tr><td><b>C. 지금처럼 따로</b></td><td>미루기 간격과 다시 울림 간격을 각각 고름. 두 시트에 '누를 때', '안 끌 때' 설명 한 줄씩</td><td>세밀하게 정할 수 있음, 개발 변경 없음</td><td>사용자가 이미 헷갈린 구조를 그대로 둠. 문구로 풀기 어려움</td></tr>
+      </tbody>
+    </table></div>
+    <div class="because"><b>A를 추천하는 이유.</b> 사용자 눈에는 '눌러서 미룸'과 '안 꺼서 다시 울림'이 같은 경험(잠깐 조용했다 다시 울림)이에요. 경험이 같으면 정하는 곳도 하나여야 해요. 다시 잠들기 방지와 좀비모드의 간격은 '끈 뒤에 묻는 간격'이라 성격이 달라서 그대로 두고, 단위만 '분', 횟수는 '번'으로 맞춰요.</div>
+    <p class="note">A로 정하면 함께 정할 값: 알람 자동 해제 처음 값(추천 1분, 지금 '한 번에 1분 울림'과 같아 개발 영향이 가장 작음), 미루기 횟수를 다 쓴 뒤의 동작(추천: 멈추고 놓친 알람 알림, 지금 규칙 그대로).</p>
+  </div>
+</section>
+
+<section id="d3">
+  <h2>먼저 정할 것 ③ 문구 원칙</h2>
+  <div class="decision">
+    <p>메모 9, 10은 '방해 금지 모드에서 허용하기'처럼 우리가 지어낸 이름이 폰 메뉴 이름과 달라 무엇을 누르라는 건지 헷갈린다는 지적이에요. T2-1 제목은 '방해 금지 모드', 본문은 '방해 금지 설정', 버튼은 '방해 금지 설정 열기'로 한 화면에 이름이 셋이에요(R3).</p>
+    <div class="tbl"><table>
+      <thead><tr><th>안</th><th>방법</th><th>좋은 점</th><th>아쉬운 점</th></tr></thead>
+      <tbody>
+        <tr class="pick"><td><span class="rec">추천</span><br><b>A. 명칭 표 먼저 + 말투 규칙</b></td><td>Z플립5(One UI)에서 실제 메뉴 이름과 경로를 표로 만들어요(예: 설정 › 알림 › '방해 금지'). 화면에는 그 글자 그대로 작은따옴표로. 설명은 한 문장에 할 일 하나, '무엇이 되는지 → 어떻게 하는지' 순서. 이 표와 규칙을 메모 24의 ChatGPT 순화 요청에 같이 넘겨요</td><td>이름이 폰과 같아 따라 하기 쉬움. 순화 결과가 정식 명칭을 바꾸는 일을 막음</td><td>폰에서 메뉴를 하나씩 확인하는 시간이 듦(설정은 바꾸지 않고 보기만, 사용자 지시 받고)</td></tr>
+        <tr><td><b>B. 알라미 문구 핵심 뽑기</b></td><td>같은 기능의 알라미 문구(<code>ko-strings.txt</code> 4113개)에서 뜻만 뽑아 우리 말로(결정 178)</td><td>이미 하던 방법, 줄이기에 좋음</td><td>알라미도 기기마다 다른 이름은 '기기마다 위치가 달라요'로 넘김. 정식 명칭 문제는 남음</td></tr>
+        <tr><td><b>C. 순화 결과를 기준으로</b></td><td>메모 24의 ChatGPT 순화본을 그대로 기준으로 삼음</td><td>사용자가 원하는 말투에 가장 가까움</td><td>순화가 폰 메뉴 이름까지 바꿀 수 있어 따로 대조해야 함</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tbl"><table>
+      <thead><tr><th>우리 화면에 쓰는 말</th><th>바꿀 방향(폰에서 확인 후 확정)</th></tr></thead>
+      <tbody>
+        <tr><td>방해 금지 모드에서 허용하기 / 방해 금지 설정</td><td>폰 메뉴 이름 '방해 금지'로 하나만. 제목은 하는 일('방해 금지 중에도 알람 울리기')</td></tr>
+        <tr><td>배터리 사용 제한 해제하기 / 절전 예외 앱에 추가하기</td><td>둘이 한 메뉴인지 폰에서 확인. 앱 정보 › 배터리 › '제한 없음'이면 그 이름 그대로</td></tr>
+        <tr><td>전체 화면 알림, 다른 앱 위에 표시</td><td>폰의 '특별한 접근' 메뉴 이름과 맞는지 확인</td></tr>
+        <tr><td>다음 알람 '토요일 오전 hh:mm'(N3 알림)</td><td>메모 3~9 지시대로 제목 '일어나', 본문 '다음 알람까지 hh:mm 남음'</td></tr>
+      </tbody>
+    </table></div>
+    <div class="because"><b>A를 추천하는 이유.</b> 메모 10의 핵심은 '폰에 실제로 있는 이름'이에요. 이건 말투를 다듬는 것과 다른 일이라, 표를 먼저 만들어 두면 순화(메모 24)와 FAQ, 알람 울림 최적화 문구가 모두 같은 이름을 쓰게 돼요.</div>
+  </div>
+</section>
+
+<section>
+  <h2>디자인 묶음별 고칠 안</h2>
+  <p class="lead">세 가지가 정해진 뒤 묶음마다 고칠 방법이에요. 묶음마다 2~3안을 두고 하나를 추천했어요.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>묶음</th><th>메모</th><th>안</th><th>추천과 이유</th></tr></thead>
+    <tbody id="groupRows"></tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2>디자인 순서와 기준</h2>
+  <p class="lead">기준은 세 가지예요. ① 다른 묶음이 기대는 규칙 먼저 ② 사용자 결정이 끝난 것부터 ③ 개발에 넘길 양이 큰 것 먼저. 메모 22대로 모든 묶음은 디자인 시스템 부품, 변수, 오토레이아웃에 맞춰 그려요.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>순서 안</th><th>차례</th><th>좋은 점</th><th>아쉬운 점</th></tr></thead>
+    <tbody>
+      <tr class="pick"><td><span class="rec">추천</span><br><b>규칙 먼저</b></td><td>결정 ①②③ → C → A → D → B → E</td><td>C에서 정한 카운터, 캡션, CTA 규칙을 A, D, B가 그대로 씀. 다시 고치는 일이 적음</td><td>눈에 보이는 큰 변화(설정)가 하루 늦게 나옴</td></tr>
+      <tr><td><b>설정 먼저</b></td><td>결정 ①② → A → C → D → B → E</td><td>사용자가 가장 신경 쓰는 설정을 빨리 봄</td><td>A를 그린 뒤 C 규칙이 바뀌면 설정을 다시 고쳐야 함</td></tr>
+      <tr><td><b>첫 실행 먼저</b></td><td>B → C → A → D → E</td><td>새 이름 '일어나'와 아이콘이 바로 보임</td><td>온보딩은 차별화 디자인이라 C 규칙과 얽힘이 적어 먼저 할 이득이 작음</td></tr>
+    </tbody>
+  </table></div>
+  <div class="order" id="order"></div>
+</section>
+
+<section>
+  <h2>레퍼런스(핀터레스트)</h2>
+  <p class="lead">Mobbin은 결제가 안 돼서 핀터레스트 보드와 핀으로 모았어요. 핀 그림은 이 페이지에 넣을 수 없어 링크로 붙였어요. 디자인 방이 묶음을 시작할 때 3~5장을 골라 피그마 옆에 붙여요.</p>
+  <div class="refs" id="refs"></div>
+</section>
+
+<footer class="note">자료: <code>docs/feedback-11-27-memo.md</code>, <code>docs/feedback-11-27-design.md</code>, <code>research/P-alarmy-ux-flow.md</code>, <code>research/Q-alarmy-settings.md</code>, <code>docs/plan-11-snooze.md</code>, 알라미 캡처 <code>docs/exports/tsk-193</code>, <code>tsk-216</code>, 피그마 '11-27 수정, 신규 모음'(1218:20106). 이번 일은 진단과 안까지예요. 피그마와 앱 코드는 고치지 않았어요.</footer>
+</div>
+
+<div id="lb" hidden><img alt=""><p></p></div>
+
+<script>
+const A='img/alarmy/', O='img/ours/';
+const lanes=[
+ {t:'첫 실행', d:'알라미는 시각 → 배경 → 소리 → 미션 → 권한 목록 → 결제. 우리는 시각 → 알림 → 벨소리 → 미션 → 권한 한 장씩. 순서는 비슷하고, 스텝바와 건너뛰기, 버튼 모양이 홈 규칙 그대로라 차별화가 약해요.',
+  a:[['01-onboard-1','소개 3장'],['05-ob-time','알람 시각 1/4'],['07-perm-notif-pre','알림 권한 카드'],['09-ob-bg','배경 고르기'],['12-ob-4','소리, 볼륨'],['14-ob-math','미션 소개'],['18-perm-list','권한 목록 한 장'],['20-paywall','결제 화면']],
+  o:[['O4-1','O4-1 알람 시간',['2','18','25']],['O4-1a','O4-1a 알림 권한 카드',['19']],['O4-3','O4-3 벨소리',['1','+ 드럼롤 비교안']],['O4-4','O4-4 미션',['17','18']],['O2-2','O2-2 전체 화면 알림',['13','18']],['O2-3','O2-3 배터리 사용 제한',['13']]]},
+ {t:'홈과 알람 편집', d:'흐름은 같아요(홈 → 편집 → 줄마다 시트). 알라미는 미루기 한 시트에 간격과 횟수, 우리는 미루기와 다시 울림, 다시 잠들기 방지에 간격이 따로 있어요.',
+  a:[['21-home','홈'],['26-edit','알람 편집'],'|',['29-snooze','미루기 간격, 횟수'],['30-wakeup-check','다시 잠들기 방지'],['34-mission-list','미션 목록'],['35-math-setting','미션 설정'],['99-sound-page','알람 소리']],
+  o:[['H0','H0 홈',['16']],['S0','S0 알람 편집',[]],'|',['S9','S9 미루기 시트',['+ 스누즈 간격']],['S4','S4 다시 잠들기 방지',['4']],['S1-6A','S1-6A Pop Quiz 설정',['5','19']]]},
+ {t:'울림, 미션, 울린 뒤', d:'알라미는 울림 → 미션 → 해제 뒤 난이도 제안 → 재확인 카운트다운. 우리는 울림 → 미션 → 해제 완료 → 깼는지 확인. 우리 울림 화면의 스누즈 버튼이 라이트에서 잘 안 보여요.',
+  a:[['48-ring-screen','울림'],['37-math-mission','미션'],['49-snoozed','미루는 중'],['50-after-dismiss','해제 뒤 제안'],['139-resleep-1min','다시 잠들기 방지 값'],['141-recheck-screen','재확인 화면'],['143-after-woke','아침 탭']],
+  o:[['D0','D0 울림 / 미루기 켬',['3']],['M3','M3 Quick Math',[]],['W1','W1 해제 완료',[]],['W2','W2 깨어 있나요',[]],['W4','W4 재확인 해제',[]],['H0-recheck','H0 재확인 기다림',[]]]},
+ {t:'설정', d:'알라미는 구독과 전원 끄기 방지를 맨 위에 다른 레벨로, 자동 해제는 고급설정 안 시트. 우리는 모든 줄이 같은 레벨이고 서브 라벨이 많아 복잡해요. 메모가 가장 많이 몰린 곳이에요.',
+  a:[['76-settings','설정'],'|',['77-optimize','알람 울림 최적화'],['77-shutdown','전원 끄기 방지'],['79-adv-settings','알람 고급설정'],['80-auto-dismiss','알람 자동 해제'],['78-theme','테마']],
+  o:[['T1','T1 설정',['14','15','20','21','23','+ 자동 해제']],'|',['T2','T2 알람 울림 최적화',['10']],['T2-1','T2-1 방해 금지',['8','9','10']],['T1-3','T1-3 한 주 시작',['23']],['T3','T3 Crazy Mode',['11','20']],['T3-5','T3-5 좀비모드',['4']],['T6','T6 자주 묻는 질문',['6','7','12']],['T7-1','T7-1 문의 쓰기',[]],['@N3','N3 다음 알람 알림(앱 밖)',['+ 문구']]]}
+];
+const arrow='<span class="arrow" aria-hidden="true"><svg viewBox="0 0 22 12"><path d="M0 6h19M14 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>';
+function node(src,label,id,memos){
+  const b=(memos||[]).map(m=>`<span class="memo${m.startsWith('+')?' ghost':''}">${m}</span>`).join('');
+  if(id&&id.startsWith('@')) return `<div class="node hit"><div class="textnode"><div class="badges" style="position:absolute;top:6px;right:6px">${b}</div>알림 패널 글<br>(그림 없음)</div><div class="cap">${label}</div></div>`;
+  return `<div class="node${b?' hit':''}"><button type="button" data-src="${src}" data-cap="${label}" aria-label="${label} 크게 보기"><img src="${src}" alt="${label}" loading="lazy"><span class="badges">${b}</span></button><div class="cap">${label}</div></div>`;
+}
+function flow(list,dir,isOurs){
+  let h='',prev=false;
+  for(const it of list){
+    if(it==='|'){h+='<span class="branch" aria-hidden="true"></span>';prev=false;continue}
+    if(prev) h+=arrow;
+    h+= isOurs? node(dir+it[0]+'.jpg',it[1],it[0],it[2]) : node(dir+it[0]+'.jpg',it[1]);
+    prev=true;
+  }
+  return h;
+}
+document.getElementById('lanes').innerHTML=lanes.map(l=>`<div class="lane"><div class="lane-head"><h3>${l.t}</h3><p class="diff">${l.d}</p></div>
+<div class="row"><span class="who a">알라미</span><div class="flow">${flow(l.a,A,false)}</div></div>
+<div class="row"><span class="who o">일어나</span><div class="flow">${flow(l.o,O,true)}</div></div></div>`).join('');
+
+const memos=[
+ ['1','O4-3','벨소리 카드에 웨이브폼, 카드 눌러 재생과 멈춤, 볼륨은 미디어 볼륨, 시트 없음','R4','B'],
+ ['2','O4-1','드럼롤 포커스 박스를 연하게','R4','B'],
+ ['3','D0','라이트에서 스누즈 버튼이 안 보임','R2','C'],
+ ['4','S4, T3-5','다시 잠들기 방지 간격도 카운터로(지금 라디오)','R2','C'],
+ ['5','S1-6A','Pop Quiz 분야 칩 UI 다시','R2','C'],
+ ['6','T6','펼침과 접힘의 글자 레벨 규칙','R2','D'],
+ ['7','T6','문의하기 버튼 위 캡션 영역 배경이 무엇인지','R2','D'],
+ ['8','T2-1','애니메이션을 먼저 보여 주는 카드 배열로','R5','D, E'],
+ ['9','T2-1','방해 금지 모드인지 설정인지 이름이 헷갈림','R3','문구'],
+ ['10','전체','폰의 정식 명칭과 갤럭시 안내 말투로','R3','문구'],
+ ['11','T3','카드 위아래 캡션 기준이 없음','R2','C'],
+ ['12','T6','FAQ 구조 레퍼런스(카테고리)','R2','D'],
+ ['13','O2, T2-1, 미션 시트','가이드 애니메이션 일관성, 한 프레임에 모아 보기','R5','E'],
+ ['14','T1','핵심 설정을 맨 위에 다른 레벨로, 구독 카드','R1','A'],
+ ['15','T1','화면 카드(날씨 테마, 언어), 서브 라벨 지우기','R1','A'],
+ ['16','H0','앱바 스위치를 자석처럼 끌려가는 움직임으로','R2','C'],
+ ['17','O4-4','미션 없음만 카드에 색이 들어옴, 미션 설명과 값 지우기','R2, R4','B'],
+ ['18','O4 전체','스텝바, 건너뛰기, 뒤로 디자인 레퍼런스(홈 규칙 안 따라도 됨)','R4','B'],
+ ['19','O4-1a, O2, S1-6A','위아래 두 줄 CTA의 아래 글이 레벨이 낮고 높이가 좁음','R2','C'],
+ ['20','T1, T3','Crazy Mode를 맨 위 카드로, plus_label 배치','R1','A'],
+ ['21','T1','앱 정보 한 줄로 묶기','R1','A'],
+ ['22','전체','디자인 시스템, 부품, 오토레이아웃에 맞춰 수정안 진행','전체','기준'],
+ ['23','T1, T1-3','한 주 시작 설정 제거(정책과 디자인)','R1','A'],
+ ['24','전체','모든 문구 md로 뽑기','R3','문구(TSK-296)'],
+ ['25','O1, O4','새 이름 일어나와 아이콘 반영','R4','B'],
+ ['+','S9, S3','스누즈를 켰을 때 다시 울림 간격은 어떻게?','R6','결정 ②'],
+ ['+','T1','알림 자동 해제를 카운터로','R1, R6','A'],
+ ['+','O4-3','드럼롤로 하나씩 올리면 미리듣기 되는 벨소리 비교안','R4','B'],
+ ['+','N3','다음 알람 알림 문구를 일어나 / 다음 알람까지 hh:mm 남음','R3','문구'],
+];
+document.getElementById('memoRows').innerHTML=memos.map(m=>`<tr><td><span class="memo${m[0]==='+'?' ghost':''}">${m[0]}</span></td><td class="id">${m[1]}</td><td>${m[2]}</td><td>${m[3]}</td><td><span class="tag">${m[4]}</span></td></tr>`).join('');
+
+const causes=[
+ ['R1','설정에 층(레벨)이 없어요',['14','15','20','21','23','+'],'T1의 줄 13개가 모두 같은 흰 카드, 같은 글자 크기, 같은 줄 높이예요. 그 위에 서브 라벨이 줄마다 붙어 중요한 것과 덜 중요한 것이 안 갈려요.','기능을 추가할 때마다 기존 카드 끝에 줄을 붙여 왔고, 설정 전체를 다시 묶어 본 적이 없어요. 알라미는 구독, 전원 끄기 방지 같은 핵심을 다른 모양으로 맨 위에 둬요.'],
+ ['R2','같은 일을 하는 부품이 화면마다 달라요',['3','4','5','6','7','11','16','17','19'],'숫자 고르기가 S9는 라디오+카운터, T3-5는 카운터 둘, 단위는 \'번\'과 \'회\'. 캡션은 T3에서 카드 위, 카드 아래 둘 다. 선택 표시는 O4-4에서 미션은 라디오, 미션 없음은 칠. 위아래 CTA 아래 글은 화면마다 높이가 달라요.','결정 202로 바텀시트 규칙은 정했지만 시트 밖(캡션, CTA 두 줄, 카운터를 쓸 때)의 규칙이 문서에 없어요. 방마다 그때 맞게 그렸어요.'],
+ ['R3','문구를 지어내 폰 이름과 달라요',['9','10','24','+'],'T2-1 한 화면에 \'방해 금지 모드\', \'방해 금지 설정\', \'방해 금지 설정 열기\' 세 이름. T2에는 \'배터리 사용 제한 해제하기\'와 \'절전 예외 앱에 추가하기\'가 따로 있어요.','폰에서 실제 메뉴 이름을 확인하지 않고 뜻으로 풀어 썼어요. 정식 명칭 표가 없어서 방마다 다르게 불러요.'],
+ ['R4','첫 실행이 홈 규칙을 그대로 따라요',['1','2','17','18','25','+'],'스텝바 세 칸, 오른쪽 위 건너뛰기, 파란 CTA가 앱 안 화면과 같아요. 이름과 아이콘이 아직 옛 것이고, 벨소리는 목록 10줄이라 고르는 재미가 없어요.','온보딩도 디자인 시스템 부품으로 빨리 맞추느라 \'첫인상\'용 규칙을 따로 두지 않았어요. 사용자는 온보딩은 차별화해도 된다고 했어요(메모 18).'],
+ ['R5','가이드 애니메이션을 볼 곳이 없어요',['8','13'],'권한 안내(O2), 방해 금지(T2-1), 미션 시트 예제, Crazy Mode 시트에 각각 다른 방식의 그림과 빈 자리가 있어요.','화면마다 그때 만들거나 \'animation slot\' 빈칸으로 남겨, 한꺼번에 비교하고 피드백할 프레임이 없어요.'],
+ ['R6','\'다시\'가 네 번 나와요',['4','+'],'미루기, 다시 울림, 다시 잠들기 방지, 좀비모드가 모두 간격을 가져요. 거기에 메모의 \'알림 자동 해제\'까지 들어오면 다섯이에요.','기능을 하나씩 따로 결정했어요(11-16 다시 울림, 11-23 다시 잠들기 방지, 11-27 미루기). 사용자 쪽에서 본 \'다시 울리는 경험\' 하나로 묶어 본 적이 없어요.'],
+];
+document.getElementById('causes').innerHTML=causes.map(c=>`<div class="cause"><span class="id">${c[0]}</span><h3>${c[1]}</h3><div class="ms">${c[2].map(m=>`<span class="memo${m==='+'?' ghost':''}">${m}</span>`).join('')}</div><p><b>보이는 것.</b> ${c[3]}</p><p class="why"><b>왜 생겼나.</b> ${c[4]}</p></div>`).join('');
+
+const groups=[
+ ['C 시트와 부품 규칙','3, 4, 5, 11, 16, 19',
+  '① 규칙 문서부터: 숫자는 카운터, 캡션은 카드 아래 한 줄, CTA 두 줄은 아래 글도 버튼 높이 48. 그 뒤 화면 반영<br>② 화면 먼저 고치고 규칙은 나중에 모음<br>③ 숫자 고르기만 먼저, 나머지는 A, D 하며',
+  '<span class="rec">①</span> 규칙이 먼저 있어야 A, D, B가 같은 부품을 써요. 메모 22(디자인 시스템 연결)와도 맞아요. 울림 화면 스누즈 버튼(메모 3)은 라이트 대비 4.5 이상인 둥근 버튼 하나로'],
+ ['A 설정','14, 15, 20, 21, 23, + 자동 해제',
+  '결정 ①에서 고른 안을 그대로 그림. ① T1 한 장 + 하위 화면(앱 정보, 화면 카드) ② T1만 먼저 그리고 하위는 D와 같이',
+  '<span class="rec">①</span> 앱 정보 안 화면과 자동 해제 시트까지 한 번에 봐야 층 구조가 맞는지 판단돼요'],
+ ['D 안내 화면과 FAQ','6, 7, 8, 12, 13번 일부',
+  '① FAQ: 위에 카테고리 칩, 아래 접는 목록(알라미식) ② 카테고리 제목 + 목록(지금 방식 다듬기) ③ 첫 화면엔 카테고리 카드만, 누르면 목록',
+  '<span class="rec">①</span> 칩은 한 화면에서 바로 바꿀 수 있고 질문 수가 많아도 길어지지 않아요. 접힘은 질문 본문 16 굵게, 펼침 답은 14 보통, 문의 안내는 배경 없이 버튼 위 한 줄. 방해 금지(T2-1)는 애니메이션 카드 → 버튼 순으로'],
+ ['B 온보딩','1, 2, 17, 18, 25, + 벨소리 비교안',
+  '① 온보딩 전용 규칙 따로(큰 제목, 얇은 스텝바, 글자 버튼 건너뛰기) ② 홈 규칙 유지, 크기만 키움 ③ 화면마다 따로',
+  '<span class="rec">①</span> 메모 18의 \'홈 규칙을 너무 따를 필요 없다\'에 맞아요. 벨소리는 카드형(웨이브폼, 눌러 재생)과 드럼롤형 두 안을 나란히 그려 사용자가 고르게. 미션 고르기는 모두 같은 체크 방식, 설명 글 지움'],
+ ['E 가이드 애니메이션','8, 13',
+  '① 피그마에 \'가이드 애니메이션\' 프레임 하나를 만들어 권한, 방해 금지, 미션 예제, Crazy Mode 시트를 한 줄로 모으고 공통 규칙(길이, 반복, 손가락 표시)을 정함 ② 화면마다 그대로 두고 문서로만 규칙',
+  '<span class="rec">①</span> 메모 13이 \'한 번에 보고 피드백할 공간\'을 직접 요청했어요. 모양이 정해지면 D, B의 빈 animation slot을 채워요'],
+];
+document.getElementById('groupRows').innerHTML=groups.map(g=>`<tr><td><b>${g[0]}</b></td><td>${g[1]}</td><td>${g[2]}</td><td>${g[3]}</td></tr>`).join('');
+
+const order=[
+ ['0','결정 ①②③ 받기','이 페이지의 추천안을 사용자가 고름. 고른 안은 결정 문서에 번호를 붙여 적어요.'],
+ ['1','C 시트와 부품 규칙','카운터, 캡션, CTA 두 줄, 선택 표시, 단위(분, 번) 규칙을 design-system.md와 컴포넌트 페이지에. 그 규칙으로 S4, S9, T3-5, S1-6A, D0을 고쳐요. 끝 기준: 같은 일을 하는 부품이 하나씩만 남음.'],
+ ['2','A 설정','결정 ①의 세 층으로 T1, 앱 정보 안 화면, 화면 카드, 자동 해제 시트를 그려요. 한 주 시작은 디자인과 정책에서 지워요. 끝 기준: 줄마다 이름 하나, 캡션은 규칙대로.'],
+ ['3','D 안내 화면과 FAQ','T6 카테고리 칩, T2 알람 울림 최적화, T2-1 방해 금지를 결정 ③ 명칭으로. 끝 기준: 폰 메뉴 이름과 화면 글자가 같음.'],
+ ['4','B 온보딩','온보딩 전용 규칙(제목, 스텝바, 건너뛰기, 뒤로), 일어나 이름과 아이콘, 벨소리 두 안. 끝 기준: 사용자가 벨소리 안 하나를 고름.'],
+ ['5','E 가이드 애니메이션','한 프레임에 모아 공통 규칙을 정하고 B, D의 빈 자리에 넣어요.'],
+ ['6','개발에 넘기기','묶음마다 사용자 확인이 끝나면(결정 199) 개발 방에 넘겨요. 개발은 디자인이 다 끝난 뒤(메모 4).'],
+];
+document.getElementById('order').innerHTML=order.map(s=>`<div class="step"><span class="n">${s[0]}</span><div><h3>${s[1]}</h3><p>${s[2]}</p></div></div>`).join('');
+
+const refs=[
+ ['A 설정','설정 화면 모음 보드','https://www.pinterest.com/maayanr80/app-setting-screens/','묶음 카드와 맨 위 프로필, 업그레이드 배치 예'],
+ ['A 설정','Upgrade to Pro 핀','https://in.pinterest.com/pin/64246732182751246/','설정 안 업그레이드 카드 모양'],
+ ['A 설정','Settings UI 보드','https://www.pinterest.com/suskich/settings-ui/','서브 라벨 없이 이름만 쓰는 목록 예'],
+ ['A 설정','앱 설정과 구독 화면 핀','https://www.pinterest.com/pin/9499849194304536/','설정과 구독 화면을 한 흐름으로 그린 예'],
+ ['D FAQ','앱 FAQ UI 보드(한국)','https://kr.pinterest.com/h2_adela/app-faq-ui/','카테고리 칩 + 접는 목록 구조가 여럿'],
+ ['D FAQ','FAQ, 문의 UI 보드','https://in.pinterest.com/vj_uxdesign/ui-faqsqueries/','탭으로 카테고리를 나눈 예'],
+ ['D FAQ','Accordion UX 보드','https://fr.pinterest.com/levinsonid/ux-accordion/','펼침과 접힘의 글자 레벨 차이'],
+ ['B 온보딩','Onboarding Progress Bar 핀','https://www.pinterest.com/pin/91057223711640803/','얇은 스텝바와 건너뛰기 배치'],
+ ['B 온보딩','Onboarding UX 보드','https://www.pinterest.com/robinyang/onboarding-ux/','첫 실행 전용 큰 제목 예'],
+ ['B 온보딩','Progress Steps 보드','https://www.pinterest.com/suannethall/ux-progress-steps/','단계 표시 방식 비교'],
+ ['E 애니메이션','Permission priming 보드','https://www.pinterest.com/christianwatson/mobile-app-permission-priming/','권한 묻기 전 그림으로 먼저 설명'],
+ ['E 애니메이션','Onboarding animation 보드','https://uk.pinterest.com/shahnazraimi/onboarding-animation/','손가락 표시로 누를 곳 안내하는 움직임'],
+];
+document.getElementById('refs').innerHTML=refs.map(r=>`<div class="ref"><span class="tag" style="align-self:flex-start">${r[0]}</span><b>${r[1]}</b><span class="note">${r[3]}</span><a href="${r[2]}" target="_blank" rel="noopener">${r[2].replace('https://','')}</a></div>`).join('');
+
+const lb=document.getElementById('lb');
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button[data-src]');
+  if(b){lb.querySelector('img').src=b.dataset.src;lb.querySelector('img').alt=b.dataset.cap;lb.querySelector('p').textContent=b.dataset.cap;lb.hidden=false;return}
+  if(!lb.hidden&&e.target.closest('#lb'))lb.hidden=true;
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')lb.hidden=true});
+</script>
