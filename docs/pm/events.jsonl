@@ -1583,3 +1583,4 @@
 {"at": "2026-11-28 15:50:30", "by": "[디자인 46]", "id": "TSK-327", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["Mobbin 15장으로 16자리 움직임 추천, 스켈레톤 CSS 견본 아티팩트 https://claude.ai/artifact/8KyvN8FPzZj3yj36Cy2Y6L (docs/exports/tsk-327-motion/)"]]}}
 {"at": "2026-11-28 15:50:57", "by": "Leader", "id": "TSK-322", "action": "set", "changes": {"decisions": [[], ["225"]]}}
 {"at": "2026-11-28 15:50:58", "by": "Leader", "id": "TSK-322", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["사용자 확정(결정 225)"]]}}
+{"at": "2026-11-28 16:00:31", "by": "Leader", "id": "TSK-328", "action": "create", "changes": {"id": [null, "TSK-328"], "wbs": [null, "2.70"], "parent": [null, "TSK-002"], "title": [null, "좀비모드 알람 끄기 버튼 n초 뒤 활성화 아이디어 검토"], "area": [null, "plan"], "owner": [null, "Leader"], "reviewer": [null, "Leader"], "status": [null, "todo"], "acceptance": [[], ["디자인 일이 끝나고 여유 있을 때 검토만. 바로 적용하지 않음(11-28 사용자 대기 과제)"]]}}
