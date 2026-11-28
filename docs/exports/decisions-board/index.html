@@ -1,0 +1,151 @@
+<title>일어나 결정함</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 한 줄 목록: 질문 카드가 위에서 아래로, 카드마다 네 가지 답 버튼과 메모 */
+:root{
+  --bg:#F3F5F9; --card:#FFFFFF; --fg:#14202E; --muted:#556274; --line:#DDE3EC;
+  --accent:#2F6BFF; --accent-soft:#E6EEFF;
+  --yes:#1E8E5A; --yes-soft:#E2F4EA; --no:#C2412D; --no-soft:#FBE7E3;
+  --hold:#8A6A12; --hold-soft:#F8EFD6; --ask:#5B4BC4; --ask-soft:#ECE9FB;
+  --font:"Noto Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --card:#171E28; --fg:#EEF2F8; --muted:#A3AEBE; --line:#29323F;
+  --accent:#6E98FF; --accent-soft:#1D2A47;
+  --yes:#5CCB94; --yes-soft:#16322A; --no:#F08B78; --no-soft:#3A1F1B;
+  --hold:#E3C266; --hold-soft:#352D16; --ask:#A99BFF; --ask-soft:#26223F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F141B; --card:#171E28; --fg:#EEF2F8; --muted:#A3AEBE; --line:#29323F;
+  --accent:#6E98FF; --accent-soft:#1D2A47;
+  --yes:#5CCB94; --yes-soft:#16322A; --no:#F08B78; --no-soft:#3A1F1B;
+  --hold:#E3C266; --hold-soft:#352D16; --ask:#A99BFF; --ask-soft:#26223F; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);line-height:1.55}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px}
+h1{font-size:24px;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0;font-size:14px}
+.summary{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;padding:4px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);font-variant-numeric:tabular-nums}
+.pill b{font-weight:700}
+.status{font-size:13px;color:var(--muted)}
+.group{display:flex;flex-direction:column;gap:10px}
+.group h2{font-size:13px;letter-spacing:.04em;color:var(--muted);margin:8px 0 0;font-weight:700}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.q.done{border-color:transparent;box-shadow:inset 0 0 0 1.5px var(--line)}
+.qhead{display:flex;gap:10px;align-items:baseline}
+.num{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:28px}
+.qt{font-size:16px;font-weight:700;margin:0;min-width:0}
+.rec{font-size:14px;margin:0;padding-left:38px}
+.rec span{color:var(--accent);font-weight:700}
+.why{font-size:13px;color:var(--muted);margin:0;padding-left:38px}
+.why a{color:var(--accent)}
+.choices{display:flex;flex-wrap:wrap;gap:8px;padding-left:38px}
+.choices button{font:inherit;font-size:14px;padding:7px 14px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--fg);cursor:pointer}
+.choices button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.choices button[aria-pressed="true"][data-v="yes"]{background:var(--yes-soft);color:var(--yes);border-color:transparent;font-weight:700}
+.choices button[aria-pressed="true"][data-v="no"]{background:var(--no-soft);color:var(--no);border-color:transparent;font-weight:700}
+.choices button[aria-pressed="true"][data-v="hold"]{background:var(--hold-soft);color:var(--hold);border-color:transparent;font-weight:700}
+.choices button[aria-pressed="true"][data-v="ask"]{background:var(--ask-soft);color:var(--ask);border-color:transparent;font-weight:700}
+.note{padding-left:38px}
+.note textarea{width:100%;box-sizing:border-box;font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:40px;resize:vertical}
+.note textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:480px){.rec,.why,.choices,.note{padding-left:0}}
+@media (prefers-reduced-motion:no-preference){.choices button{transition:background .15s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>일어나 결정함</h1>
+    <p class="sub">고르면 바로 저장돼요. 메모 칸은 '아니오'나 '다시 설명'일 때 이유를 적어 주세요. Leader가 이 답을 읽고 방에 넘겨요.</p>
+  </header>
+  <div class="summary" id="summary"></div>
+  <div class="status" id="status">저장소에 연결하는 중이에요.</div>
+  <main id="list"></main>
+</div>
+
+<script>
+const ITEMS = [
+  {g:"설정 메인 (TSK-324)", id:"D01", q:"설정 줄 앞 아이콘을 뺄까요?", rec:"빼요", why:"카드로 이미 묶여 있고 줄 이름이 짧아요. 하위 화면에도 아이콘이 없어 일관돼요.", link:"https://www.figma.com/design/MazZLYfaQndMh9AxlRcz2v?node-id=1387-11297", lt:"아이콘 뺀 시안"},
+  {g:"설정 메인 (TSK-324)", id:"D02", q:"연한 구분선을 넣고 줄 높이를 44에서 52로 맞출까요?", rec:"예", why:"카드 안 줄이 5개라 선이 있어야 줄 단위가 보여요. 두 카드의 줄 사이(4와 0)도 0으로 맞춰요."},
+  {g:"설정 메인 (TSK-324)", id:"D03", q:"설정 메인 글자는 14 그대로 둘까요? (하위 화면 제목은 16)", rec:"예, 14 유지", why:"메인은 목록이라 하위 화면 제목보다 한 단계 작게 둬요."},
+  {g:"설정 메인 (TSK-324)", id:"D04", q:"줄 모양을 섞어 쓸까요? 고를 값이 있는 줄은 토글을 빼고 오른쪽 값과 화살표, 켜고 끄기만 있는 줄은 토글만", rec:"예", why:"지금은 토글과 값이 같은 상태를 두 번 보여 주고 누를 곳이 두 군데예요. 알람 편집 줄도 같은 규칙으로 바꿔요. 끄기는 시트에서 '안 함'.", link:"https://claude.ai/artifact/8SKgyV5FdYcWxQdQRKHbtj", lt:"줄 모양 레퍼런스"},
+  {g:"설정 하위 (TSK-317)", id:"D05", q:"설정 하위 2차를 확정하고, 규칙과 어긋난 곳 7가지를 추천대로 고칠까요?", rec:"예", why:"방해 금지 이름 하나로, FAQ 버튼 이름, FAQ 번호 원, 오픈소스와 P6의 옛 이름 '모닝업', P5의 '날씨 테마' 이름 등이에요. 갤럭시 메뉴 이름은 폰 확인 뒤에 맞춰요.", link:"https://www.figma.com/design/MazZLYfaQndMh9AxlRcz2v?node-id=1366-10777", lt:"2차 구역"},
+  {g:"권한 시트 (TSK-322)", id:"D06", q:"설명을 뺀 권한 줄이 촘촘해 보이면 줄 높이를 44로 올릴까요?", rec:"지금(사이 12) 그대로 보고 좁으면 올려요", why:"아코디언 규칙 그대로예요.", link:"https://www.figma.com/design/MazZLYfaQndMh9AxlRcz2v?node-id=1385-11160", lt:"권한 시트 시안"},
+  {g:"권한 시트 (TSK-322)", id:"D07", q:"Z플립5에서 갤럭시 메뉴 이름을 보기만 해서 확인할까요? (폰 작업)", rec:"예", why:"'전체 화면 알림 허용', '권한 허용' 같은 글자가 지금은 추정이에요. 설정은 바꾸지 않고 화면만 봐요."},
+  {g:"푸시 모음 (TSK-318)", id:"D08", q:"미션 포기 '조금 달라요' 내용을 알림에도 보여 줄까요?", rec:"아니오, 안 보여 줘요", why:"알림은 짧게 두고, 자세한 건 앱 안에서 보여 줘요."},
+  {g:"푸시 모음 (TSK-318)", id:"D09", q:"확정 푸시 모음의 옛 W2-1 두 칸(옛 이름 '모닝업')을 새 칸으로 바꿀까요?", rec:"예", why:"앱 이름이 '일어나'로 바뀌어서 옛 칸은 틀린 그림이에요."},
+  {g:"푸시 모음 (TSK-318)", id:"D10", q:"쉬기 토스트는 지금 Snackbar 부품 시안 그대로 둘까요?", rec:"예", why:"부품 규칙과 이미 맞아요."},
+  {g:"푸시 모음 (TSK-315)", id:"D11", q:"새 푸시 알림 4종 시안을 확정할까요?", rec:"예", why:"결정 필요 구역에서 확정 구역으로 옮겨요."},
+  {g:"예전 메모", id:"D12", q:"EX5-b 시트 높이를 EX5-a에 맞출까요?", rec:"예", why:"같은 종류 시트라 높이가 같아야 덜 흔들려 보여요."},
+  {g:"예전 메모", id:"D13", q:"홈 접근성 안내 띠를 더 그릴까요?", rec:"보류", why:"권한 안내 흐름(TSK-322)이 정해진 뒤 같이 보면 좋아요."},
+  {g:"예전 메모", id:"D14", q:"바텀시트 규칙과 부딪히는 화면 6가지를 정할까요?", rec:"다시 설명 받기", why:"6가지 내용을 한 장으로 다시 정리해서 보여 드려야 해요."}
+];
+const LABELS = {yes:"예", no:"아니오", hold:"보류", ask:"다시 설명"};
+const state = {};
+let db = null;
+
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function render(){
+  const list = document.getElementById("list");
+  let html = "", lastG = null;
+  ITEMS.forEach((it,i)=>{
+    if(it.g!==lastG){ if(lastG!==null) html+="</section>"; html+=`<section class="group"><h2>${esc(it.g)}</h2>`; lastG=it.g; }
+    const a = state[it.id]||{};
+    html += `<article class="q${a.choice?" done":""}" data-id="${it.id}">
+      <div class="qhead"><span class="num">${it.id}</span><p class="qt">${esc(it.q)}</p></div>
+      <p class="rec">추천 <span>${esc(it.rec)}</span></p>
+      <p class="why">${esc(it.why)}${it.link?` <a href="${it.link}" target="_blank" rel="noopener">${esc(it.lt)}</a>`:""}</p>
+      <div class="choices" role="group" aria-label="${esc(it.id)} 답">
+        ${Object.entries(LABELS).map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${a.choice===v}">${l}</button>`).join("")}
+      </div>
+      <div class="note"><textarea id="note-${it.id}" placeholder="메모 (선택)" aria-label="${esc(it.id)} 메모">${esc(a.note||"")}</textarea></div>
+    </article>`;
+  });
+  html += "</section>";
+  list.innerHTML = html;
+  summary();
+}
+function summary(){
+  const c={yes:0,no:0,hold:0,ask:0}; let left=0;
+  ITEMS.forEach(it=>{const ch=(state[it.id]||{}).choice; if(ch) c[ch]++; else left++;});
+  document.getElementById("summary").innerHTML =
+    `<span class="pill">남은 것 <b>${left}</b></span>`+Object.entries(LABELS).map(([v,l])=>`<span class="pill">${l} <b>${c[v]}</b></span>`).join("");
+}
+async function save(id){
+  const a = state[id]||{};
+  if(!db){document.getElementById("status").textContent="저장소에 연결되지 않아 이 화면에서만 바뀌었어요."; return;}
+  try{ await db.doc("answers/"+id).set({choice:a.choice||"", note:a.note||"", at:new Date().toISOString()});
+       document.getElementById("status").textContent="저장했어요."; }
+  catch(e){ document.getElementById("status").textContent="저장하지 못했어요. 잠시 뒤 다시 눌러 주세요."; }
+}
+document.getElementById("list").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-v]"); if(!b) return;
+  const id=b.closest(".q").dataset.id; const v=b.dataset.v;
+  state[id]=Object.assign({},state[id]); state[id].choice = state[id].choice===v ? "" : v;
+  const card=b.closest(".q"); card.querySelectorAll("button[data-v]").forEach(x=>x.setAttribute("aria-pressed",String(state[id].choice===x.dataset.v)));
+  card.classList.toggle("done",!!state[id].choice); summary(); save(id);
+});
+const timers={};
+document.getElementById("list").addEventListener("input",e=>{
+  const t=e.target.closest("textarea"); if(!t) return;
+  const id=t.closest(".q").dataset.id; state[id]=Object.assign({},state[id],{note:t.value});
+  clearTimeout(timers[id]); timers[id]=setTimeout(()=>save(id),700);
+});
+render();
+(async()=>{
+  const st=document.getElementById("status");
+  const timer=setTimeout(()=>{st.textContent="저장소 응답이 늦어요. 골라 두면 연결되는 대로 저장해요.";},10000);
+  try{
+    db = await window.claude?.use?.("db");
+    if(!db){clearTimeout(timer); st.textContent="저장소를 쓸 수 없는 화면이에요. 고른 답은 이 화면에만 남아요."; return;}
+    db.collection("answers").onSnapshot(snap=>{
+      clearTimeout(timer);
+      const active=document.activeElement;
+      snap.docs.forEach(d=>{const x=d.data()||{}; state[d.id]={choice:x.choice||"", note:x.note||""};});
+      if(!(active && active.tagName==="TEXTAREA")) render(); else summary();
+      st.textContent="저장소에 연결됐어요. 고르면 바로 저장돼요.";
+    },()=>{clearTimeout(timer); st.textContent="저장소를 읽지 못했어요. 새로 고쳐 주세요.";});
+  }catch(e){clearTimeout(timer); st.textContent="저장소를 쓸 수 없는 화면이에요.";}
+})();
+</script>
