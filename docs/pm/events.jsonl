@@ -1532,3 +1532,8 @@
 {"at": "2026-11-28 14:21:54", "by": "[디자인 39]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["2차 사용자 피드백 반영(T2 카드 여백, 라인 아이콘, 배터리 가이드 애니메이션 자리+번호, T6 탭 대비). 넘김 노트 design-39-handover.md"]]}}
 {"at": "2026-11-28 14:22:48", "by": "Leader", "id": "TSK-317", "action": "set", "changes": {"owner": ["[디자인 39]", "[디자인 41]"]}}
 {"at": "2026-11-28 14:23:05", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["[디자인 39] 2차 피드백 반영(00b05ad), 넘김. [디자인 41] local_ce87eae9-4b66-40a0-aed0-f533e81e81ca 이어받음. 사용자: FAQ 질문마다 연한 구분선"]]}}
+{"at": "2026-11-28 14:24:10", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["T6 자주 묻는 질문 질문 사이 연한 구분선(border/divider 1) 넣음. 사용자 확인 기다림"]]}}
+{"at": "2026-11-28 14:25:24", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["T6 구분선 카드 폭 가득, 질문 앞 Q., 알람 울림 최적화 열기 라인형 버튼. 사용자 확인 기다림"]]}}
+{"at": "2026-11-28 14:27:07", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["T6 칩과 묶음 제목 빼고 질문마다 독립 카드로 나눔. 사용자 확인 기다림"]]}}
+{"at": "2026-11-28 14:27:11", "by": "[디자인 40]", "id": "TSK-318", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["피그마 결정 필요 안 작은 구역 1373:10800에 빠진 알림 10종(알림 창, 잠금 화면 각 1장)과 쉬기 안내 토스트 1칸. N8 미션 포기 기본, 해제 완료, N9 대신 울림, N10 쉬는 중, N11 깼는지 묻는 중 2, W1-1, W2-1 재확인 해제 2, N12 잠들기 재생 중. 문구는 앱 코드 그대로. naming.md 표 추가. 미션 포기 '틀렸을 때'는 결정 171 뒤 알림 모양이 기본과 같아 따로 안 그림"]]}}
+{"at": "2026-11-28 14:27:45", "by": "Leader", "id": "TSK-318", "action": "set", "changes": {"status": ["review", "waiting_user"]}}
