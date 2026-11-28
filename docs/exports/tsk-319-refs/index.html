@@ -1,0 +1,31 @@
+<title>TSK-319 구독 안내 시트 레퍼런스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 위 짧은 소개, 아래 폰 화면 카드 격자 */
+:root{--bg:#F6F6FA;--fg:#14142B;--muted:#5C5C78;--card:#FFFFFF;--line:#E3E3EE;--accent:#3A2E8C;
+--display:"Space Grotesk","Pretendard",system-ui,sans-serif;--body:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0E1C;--fg:#EDEBFA;--muted:#A3A1BE;--card:#1A1830;--line:#2C2A48;--accent:#B9AEFF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0E1C;--fg:#EDEBFA;--muted:#A3A1BE;--card:#1A1830;--line:#2C2A48;--accent:#B9AEFF;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);font-size:1.6rem;margin:0 0 8px;text-wrap:balance}
+.lead{color:var(--muted);margin:0 0 32px;max-width:65ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+figure img{width:100%;border-radius:10px;display:block}
+.tag{font-size:12px;letter-spacing:.04em;color:var(--accent);font-weight:700}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--fg);display:block;font-size:14px}
+a{color:var(--accent)}
+</style>
+<div class="wrap">
+<h1>구독 안내 시트 레퍼런스</h1>
+<p class="lead">알람 편집에서 plus 기능을 누르면 뜨는 시트(TSK-319)를 그리려고 Mobbin에서 모은 화면이에요. 흐름은 알라미처럼 잠긴 줄을 눌러 시트를 띄우는 방식이고, 모양은 설정 Crazy Mode 카드의 깊은 밤 그라데이션을 이어요.</p>
+<div class="grid">
+<figure><img src="locket.jpg" alt="Locket 구독 시트"><span class="tag">시트 모양</span><figcaption><b>Locket</b>브랜드 색 그라데이션이 시트까지 이어지고 버튼 하나로 끝나요. 우리 시트의 기본 구도로 써요. <a href="https://mobbin.com/screens/eb145040-f473-4c8c-983c-19ad3b75b7fc">Mobbin</a></figcaption></figure>
+<figure><img src="opal.jpg" alt="Opal 설정 속 구독 카드"><span class="tag">어두운 카드와 밝은 버튼</span><figcaption><b>Opal</b>어두운 카드 위 폭 가득한 밝은 알약 버튼. Crazy Mode 카드의 흰 '시작하기'와 같은 결이에요. <a href="https://mobbin.com/screens/ca8fff07-00d7-4340-9796-1eb8daa4112a">Mobbin</a></figcaption></figure>
+<figure><img src="orbit.jpg" alt="Orbit 보라 페이월"><span class="tag">깊은 밤 색</span><figcaption><b>Orbit</b>짙은 남보라 바탕에 흰 글. 깊은 밤 그라데이션의 명도 참고예요. <a href="https://mobbin.com/screens/521769df-d360-452b-baf3-e6329b58a842">Mobbin</a></figcaption></figure>
+<figure><img src="joi.jpg" alt="Joi 설정의 Pro 라벨"><span class="tag">줄 옆 작은 라벨</span><figcaption><b>Joi</b>구독 안 해도 줄은 다 보이고 이름 옆에 작은 Pro 라벨. 알람 편집 Crazy Mode 줄의 방식이에요. <a href="https://mobbin.com/screens/2597b305-1785-46a4-96f9-e6b12d96148b">Mobbin</a></figcaption></figure>
+<figure><img src="hatch.jpg" alt="Hatch 업그레이드 카드"><span class="tag">짧은 문구</span><figcaption><b>Hatch Sleep</b>잠 앱의 업그레이드 안내. 문구는 한 줄, 버튼 하나로 짧게 끝나요. <a href="https://mobbin.com/screens/fcdf177d-8032-4a8d-9cc0-80df5af14105">Mobbin</a></figcaption></figure>
+</div>
+</div>
