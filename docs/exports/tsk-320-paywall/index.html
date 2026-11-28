@@ -1,0 +1,138 @@
+<title>Crazy Mode 구독 안내 리서치</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Space+Grotesk:wght@600&display=swap">
+<style>
+/* 레이아웃: 결론 표 → 담을 내용 표 → 구성 순서 → 시트/풀페이지 비교 → 레퍼런스 묶음(방향별 격자) */
+:root{--bg:#F7F6FB;--fg:#16142A;--muted:#5D5A76;--card:#FFFFFF;--line:#E4E2EF;--accent:#3A2A7A;--night1:#120E2E;--night2:#3A2A7A;--ok:#1F7A4D;--warn:#9A5B00;
+--display:"Space Grotesk","Noto Sans KR",system-ui,sans-serif;--body:"Noto Sans KR","Apple SD Gothic Neo",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E0C1D;--fg:#ECEAF8;--muted:#A6A3C0;--card:#18162D;--line:#2B2847;--accent:#B7A9FF;--ok:#6FD39C;--warn:#F0B35A;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E0C1D;--fg:#ECEAF8;--muted:#A6A3C0;--card:#18162D;--line:#2B2847;--accent:#B7A9FF;--ok:#6FD39C;--warn:#F0B35A;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.65;font-size:15px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:0 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.hero{margin-top:calc(-1*env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 48px);padding-bottom:40px;background:linear-gradient(135deg,var(--night1),var(--night2));color:#fff}
+.hero .in{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.eyebrow{font-size:12px;letter-spacing:.08em;opacity:.75;font-weight:700}
+h1{font-family:var(--display);font-size:clamp(1.6rem,4vw,2.3rem);margin:8px 0 12px;text-wrap:balance}
+.hero p{max-width:62ch;margin:0;opacity:.9}
+h2{font-size:1.3rem;margin:48px 0 6px;text-wrap:balance}
+h3{font-size:1.05rem;margin:28px 0 4px}
+.sub{color:var(--muted);margin:0 0 16px;max-width:68ch}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-size:12px;letter-spacing:.04em;color:var(--muted);font-weight:700;background:transparent}
+tr:last-child td{border-bottom:0}
+.pick{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--accent);color:var(--bg)}
+.must{color:var(--ok);font-weight:700}
+.avoid{color:var(--warn);font-weight:700}
+ol.flow{margin:0;padding-left:1.3em;display:grid;gap:6px;max-width:70ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px;margin-top:12px}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;min-width:0}
+figure img{width:100%;border-radius:8px;display:block}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--fg);display:block;font-size:14px}
+a{color:var(--accent)}
+.src{font-size:13px;color:var(--muted)}
+.src li{margin-bottom:4px}
+</style>
+
+<header class="hero"><div class="in">
+<div class="eyebrow">TSK-320 · 11-28 · [디자인 42]</div>
+<h1>Crazy Mode 구독 안내, 무엇을 어떻게 보여 줄까</h1>
+<p>알람 편집에서 plus 기능을 누를 때와 설정 Crazy Mode 카드의 '시작하기'를 누를 때 뜨는 구독 안내를 정하려고 조사했어요. Mobbin 레퍼런스 17장과 Google Play 정책, 국내 전자상거래법 다크패턴 규정을 함께 봤어요.</p>
+</div></header>
+
+<main class="wrap">
+
+<h2>결론: 추천안</h2>
+<p class="sub">두 진입점이 <b>같은 풀페이지 한 장</b>을 쓰고, 체험 일정표로 '언제 돈이 나가는지'를 먼저 보여 줘요.</p>
+<div class="tbl"><table>
+<tr><th>정할 것</th><th>추천</th><th>이유</th></tr>
+<tr><td>모양</td><td><span class="pick">추천</span> 풀페이지(아래에서 올라오는 전체 화면, 왼쪽 위 닫기)</td><td>체험 기간, 체험 뒤 가격, 자동 결제, 해지 방법, 구매 복원, 약관까지 꼭 넣어야 해서 시트에 담으면 결국 화면만큼 길어져요. 결제 확인은 Google Play가 자기 바텀시트를 띄우니, 우리 화면까지 시트면 시트 위에 시트가 겹쳐요.</td></tr>
+<tr><td>두 진입점</td><td><span class="pick">추천</span> 같은 화면 하나. 알람 편집에서 들어오면 누른 기능(움직이는 버튼, 좀비모드)을 혜택 목록 맨 위에 둠</td><td>문구, 법 확인, 개발을 한 번만 해요. 누른 기능이 맨 위에 있어 맥락은 이어져요.</td></tr>
+<tr><td>가운데 내용</td><td><span class="pick">추천</span> 혜택 2줄 + 체험 일정표 3단(오늘, 끝나기 전 알림, 결제 시작)</td><td>일정표와 알림 약속은 '모르는 사이 결제될까' 하는 걱정을 바로 줄여요. Blinkist가 이 방식으로 체험 시작이 늘고 불만이 줄었다고 밝혔어요.</td></tr>
+<tr><td>가격 표시</td><td>'2주 무료, 그다음 첫 달 100원, 그 뒤 매달 정가' 세 단계를 한 줄씩. 정가를 같은 크기로</td><td>Play 정책은 체험 뒤 가격과 자동 갱신을 분명히 쓰라고 해요. 할인가만 크게 쓰면 정책 위반 소지가 있어요.</td></tr>
+<tr><td>버튼</td><td>폭 가득 한 개, '2주 무료로 시작하기'. 아래 한 줄 '언제든 해지할 수 있어요'</td><td>무료라는 사실을 버튼에서 바로 읽어요(Mimo, Duolingo). 지금 정한 '시작하기'를 늘린 말이에요.</td></tr>
+<tr><td>작은 링크</td><td>맨 아래 한 줄: 구매 복원, 이용약관, 개인정보 처리방침</td><td>구독 관리 화면(결정 211)에 '구매 복원'이 이미 있어서 같은 말로 맞춰요.</td></tr>
+</table></div>
+
+<h2>1. 담을 내용과 부담을 줄이는 이유</h2>
+<p class="sub">'꼭'은 정책이나 법 때문에 빠지면 안 되는 것, '권장'은 부담을 줄이는 것, '피함'은 신뢰를 깎는 것이에요.</p>
+<div class="tbl"><table>
+<tr><th>항목</th><th>구분</th><th>부담을 줄이는 이유와 근거</th><th>우리에게</th></tr>
+<tr><td>무료 체험 기간과 끝나는 날</td><td class="must">꼭</td><td>Play 정책: 체험이 얼마나 가는지, 끝나면 자동으로 유료가 된다는 것을 분명히 써야 해요. 국내 전자상거래법도 2025-02-14부터 확인 절차 없이 무료에서 유료로 바꾸는 것을 다크패턴으로 금지해요.</td><td>'2주 무료' + 끝나는 날짜</td></tr>
+<tr><td>체험 뒤 가격, 자동 갱신</td><td class="must">꼭</td><td>Play 정책: 체험 뒤 가격과 해지 방법을 알려야 하고, 연간 상품을 월 환산 가격만 크게 쓰거나 월 상품의 자동 갱신을 숨기면 안 돼요.</td><td>첫 달 100원 다음의 정가를 같은 크기로</td></tr>
+<tr><td>해지 방법</td><td class="must">꼭</td><td>Play 정책: 앱 안에서 쉽게 해지할 길(Play 구독 센터 연결 등)을 보여야 해요.</td><td>'언제든 해지' + 구독 관리에서 Play로 연결(결정 211과 같음)</td></tr>
+<tr><td>끝나기 전 알림 약속</td><td>권장</td><td>Blinkist 사례(회사 발표): 체험 시작 23% 늘고 불만 55% 줄었다고 해요. 다만 Flo 쪽은 효과가 없었다고 해서 모든 앱에 통하지는 않아요. Calm은 알림 스위치, Duolingo는 버튼 위 한 줄로 약속해요.</td><td>일정표 가운데 칸 '끝나기 하루 전 알려 드려요'(날짜는 문구 순화 때)</td></tr>
+<tr><td>혜택 목록</td><td>권장</td><td>무엇을 얻는지 2~3줄이면 충분해요(Calm 3줄, Grok 3줄). 길면 시트가 늘어나고 버튼이 밀려요.</td><td>움직이는 버튼, 좀비모드 2줄</td></tr>
+<tr><td>잘 보이는 닫기</td><td>권장</td><td>닫기를 숨기거나 늦게 띄우면 갇힌 느낌을 줘요. 대부분 왼쪽 또는 오른쪽 위 X.</td><td>왼쪽 위 X(우리 상단 바와 같은 자리)</td></tr>
+<tr><td>구매 복원, 약관</td><td>권장</td><td>폰을 바꾼 사람이 다시 돈을 낼까 걱정하지 않게 해요. 작은 글자 한 줄로 충분해요.</td><td>맨 아래 링크 줄</td></tr>
+<tr><td>월 환산가만 크게, 미리 골라 둔 비싼 상품, 늦게 뜨는 닫기</td><td class="avoid">피함</td><td>Play 정책과 다크패턴 규정에 걸릴 수 있어요.</td><td>쓰지 않음</td></tr>
+</table></div>
+
+<h2>2. 위에서 아래로 구성 순서</h2>
+<p class="sub">레퍼런스 대부분이 같은 순서예요. 상품이 하나면 고르는 칸은 빼요.</p>
+<ol class="flow">
+<li>닫기(왼쪽 위). 필요하면 오른쪽 위에 '구매 복원'.</li>
+<li>제목: Crazy Mode와 plus 라벨, 부제 한 줄(결정 210 카드 문구).</li>
+<li>혜택 2줄: 누른 기능이 맨 위.</li>
+<li>체험 일정표 3단: 오늘 시작, 끝나기 전 알림, 결제 시작(첫 달 100원).</li>
+<li>상품: 하나면 가격 한 줄, 월과 연 두 개면 세로 카드 두 장(고른 카드는 테두리 없이 칠, 우리 규칙).</li>
+<li>큰 버튼 하나(폭 가득).</li>
+<li>버튼 아래 작은 글: 체험 뒤 가격, 자동 갱신, 언제든 해지.</li>
+<li>맨 아래 링크: 구매 복원, 이용약관, 개인정보 처리방침.</li>
+</ol>
+
+<h2>3. 바텀시트와 풀페이지</h2>
+<div class="tbl"><table>
+<tr><th></th><th>바텀시트</th><th>풀페이지</th></tr>
+<tr><td>잘 맞는 때</td><td>잠긴 기능을 누른 순간, 짧게 알리고 버튼 하나(Neuecast, Grok, Locket)</td><td>마음먹고 구독을 보러 온 때, 일정표와 상품, 고지를 다 보여 줄 때(Calm, Mimo, TIDE)</td></tr>
+<tr><td>장점</td><td>뒤 화면이 보여 맥락이 이어지고 닫기 쉬워요</td><td>필수 고지를 다 담아도 답답하지 않아요. 결제용 Play 시트와 겹치지 않아요</td></tr>
+<tr><td>단점</td><td>꼭 넣을 고지를 다 넣으면 화면만큼 길어져요. 레퍼런스 시트들은 가격이 하나뿐이고 체험이 없어요</td><td>한 번 더 깊이 들어가는 느낌</td></tr>
+<tr><td>우리: 알람 편집 plus 기능</td><td>가능하지만 결국 풀페이지로 한 번 더 넘겨야 해요(두 단계)</td><td><span class="pick">추천</span> 바로 풀페이지, 누른 기능이 맨 위</td></tr>
+<tr><td>우리: 설정 '시작하기'</td><td>맞지 않아요</td><td><span class="pick">추천</span> 같은 풀페이지</td></tr>
+</table></div>
+<p class="sub" style="margin-top:12px">다른 안: 알람 편집에서는 짧은 시트(기능 이름, 버튼 '자세히 보기')를 먼저 띄우고 풀페이지로 넘기는 두 단계. 알람 편집을 덜 끊지만 한 번 더 눌러야 하고 화면이 하나 늘어요. 알라미 흐름(결정 178)은 Mobbin에 알라미 화면이 없어서 확인하지 못했어요. 필요하면 Z플립5에서 보기만 해서 확인할 수 있어요.</p>
+
+<h2>레퍼런스</h2>
+
+<h3>A. 체험 일정표로 '언제 돈이 나가는지' 보여 주기</h3>
+<div class="grid">
+<figure><img src="mimo.jpg" alt="Mimo 체험 일정표"><figcaption><b>Mimo</b>짙은 남보라 바탕 일정표 3단, 버튼 위에 체험 뒤 가격. 우리 깊은 밤과 가장 가까워요. <a href="https://mobbin.com/screens/e257555e-bd98-4163-b095-198a8c58473b">Mobbin</a></figcaption></figure>
+<figure><img src="tide.jpg" alt="TIDE 일정표와 혜택"><figcaption><b>TIDE</b>일정표 아래 혜택 목록, 버튼 위 한 줄로 가격과 해지. <a href="https://mobbin.com/screens/4946c946-896e-433d-a459-e031e0e011b6">Mobbin</a></figcaption></figure>
+<figure><img src="vocab.jpg" alt="Vocabulary 일정표와 알림 스위치"><figcaption><b>Vocabulary</b>'끝나기 전 알림' 스위치를 따로 둠. 맨 아래 구매 복원, 약관. <a href="https://mobbin.com/screens/32238af5-552f-4ac3-bede-16981f4c23d3">Mobbin</a></figcaption></figure>
+<figure><img src="journal5.jpg" alt="5 Minute Journal 일정표와 상품 카드"><figcaption><b>5 Minute Journal</b>일정표 + 상품 카드 한 장 + '지금 결제 없음'. <a href="https://mobbin.com/screens/0b03c06a-63c8-43dd-87ed-58fecc57f0a1">Mobbin</a></figcaption></figure>
+<figure><img src="copilot.jpg" alt="Copilot 일정표"><figcaption><b>Copilot</b>버튼 글에 체험 기간을 그대로 씀, 아래 링크 줄(복원, 요금제). <a href="https://mobbin.com/screens/b6ba77c0-7d8f-423e-8453-9db2a97f8035">Mobbin</a></figcaption></figure>
+</div>
+
+<h3>B. 혜택 목록 + 상품 고르기(풀페이지)</h3>
+<div class="grid">
+<figure><img src="calm.jpg" alt="Calm 혜택과 알림 스위치"><figcaption><b>Calm</b>혜택 3줄, 상품 한 장, '갱신 2일 전 알림' 스위치, 아래 작은 글로 가격과 해지. <a href="https://mobbin.com/screens/0beefc95-b82f-4542-87d0-620267d5b94d">Mobbin</a></figcaption></figure>
+<figure><img src="calmsleep.jpg" alt="Calm Sleep 상품 카드 둘"><figcaption><b>Calm Sleep</b>잠 앱. 밤하늘 그라데이션, 연과 월 카드 두 장 나란히. <a href="https://mobbin.com/screens/07905baf-c7e7-48db-9b78-5866d040e1af">Mobbin</a></figcaption></figure>
+<figure><img src="joi.jpg" alt="Joi 상품 줄 세 개"><figcaption><b>Joi</b>상품을 세로 줄로, 고른 줄은 칠로만. 아래 복원과 '언제든 해지'. <a href="https://mobbin.com/screens/f534ccc2-5c15-4ef1-b50c-b823dd786fa6">Mobbin</a></figcaption></figure>
+<figure><img src="nordvpn.jpg" alt="NordVPN 상품과 혜택"><figcaption><b>NordVPN</b>제목 바로 아래 '약정 없음, 언제든 해지'. <a href="https://mobbin.com/screens/e82acebd-f0a6-4728-845f-623f7b9fe0e6">Mobbin</a></figcaption></figure>
+</div>
+
+<h3>C. 잠긴 기능을 누르면 뜨는 짧은 시트</h3>
+<div class="grid">
+<figure><img src="neuecast.jpg" alt="Neuecast 업그레이드 시트"><figcaption><b>Neuecast</b>잠긴 칸을 누르면 시트, 버튼 아래 가격과 해지 한 줄. <a href="https://mobbin.com/screens/38793f5f-cc2d-4917-8f63-8e1fdbb60374">Mobbin</a></figcaption></figure>
+<figure><img src="grok.jpg" alt="Grok 시트"><figcaption><b>Grok Bot</b>혜택 3줄, 가격, 버튼, 복원, 자동 갱신 글, 약관. 다 넣으니 거의 화면 높이. <a href="https://mobbin.com/screens/f6d13969-a642-445e-80f9-274d96486e9a">Mobbin</a></figcaption></figure>
+<figure><img src="locket.jpg" alt="Locket 시트"><figcaption><b>Locket</b>풀페이지 위에 상품 고르기 시트를 겹침. 브랜드 색이 시트까지 이어짐. <a href="https://mobbin.com/screens/eb145040-f473-4c8c-983c-19ad3b75b7fc">Mobbin</a></figcaption></figure>
+<figure><img src="stoic.jpg" alt="stoic 하단 고정 가격"><figcaption><b>stoic.</b>혜택은 위로 스크롤, 가격과 버튼은 아래 고정 칸. <a href="https://mobbin.com/screens/7e15c230-2368-4de4-99ad-49456e8f4ef9">Mobbin</a></figcaption></figure>
+</div>
+
+<h3>D. 부담을 줄이는 작은 장치</h3>
+<div class="grid">
+<figure><img src="duolingo.jpg" alt="Duolingo 체험"><figcaption><b>Duolingo</b>버튼 위 '끝나기 전에 알려 드려요', 버튼 'TRY FOR $0.00', 아래 'NO THANKS'. <a href="https://mobbin.com/screens/97e9b0dc-f653-4422-96e8-53650ff9accd">Mobbin</a></figcaption></figure>
+<figure><img src="pillow.jpg" alt="Pillow 스토어 결제 시트"><figcaption><b>Pillow</b>우리 버튼 다음에 스토어가 자기 시트로 체험, 가격, 해지를 다시 보여 줌. 우리 화면은 시트일 필요가 적어요. <a href="https://mobbin.com/screens/036a75ab-496a-404a-8644-51eb8f5e668a">Mobbin</a></figcaption></figure>
+<figure><img src="eleven.jpg" alt="ElevenLabs 첫 달 할인"><figcaption><b>ElevenLabs</b>첫 달 할인 안내. 할인가 옆에 '언제든 해지'. 첫 달 100원 표시 참고. <a href="https://mobbin.com/screens/6eb5a5a3-9f00-4301-b445-15c8b879e92e">Mobbin</a></figcaption></figure>
+<figure><img src="opal.jpg" alt="Opal 설정 안 구독 카드"><figcaption><b>Opal</b>설정 안 어두운 카드와 밝은 버튼. 설정 Crazy Mode 카드가 이 결이에요. <a href="https://mobbin.com/screens/ca8fff07-00d7-4340-9796-1eb8daa4112a">Mobbin</a></figcaption></figure>
+</div>
+
+<h2>근거 출처</h2>
+<ul class="src">
+<li><a href="https://support.google.com/googleplay/android-developer/answer/9900533">Google Play 정책 센터: 구독</a>, <a href="https://android-developers.googleblog.com/2020/04/building-user-trust-through-more.html">Android Developers Blog (2020)</a></li>
+<li><a href="https://www.newsis.com/view/NISX20250213_0003063585">뉴시스: 다크패턴 신규 규제 Q&amp;A (2025-02)</a>, <a href="https://www.lawtimes.co.kr/news/articleView.html?idxno=205545">법률신문: 개정 전자상거래법 시행</a>. 유료 전환 며칠 전에 알려야 하는지는 시행령 조문으로 다시 확인이 필요해요.</li>
+<li><a href="https://www.revenuecat.com/blog/growth/how-top-apps-approach-paywalls">RevenueCat: 잘하는 앱의 구독 화면</a>, <a href="https://onboardme.substack.com/p/why-most-free-trials-fail-and-how-blinkist-gets-it-right">Blinkist 체험 일정표 사례</a>(회사 발표 수치), <a href="https://www.revenuecat.com/blog/growth/mike-charniatsou-flo-sub-club-podcast-2026">Flo 반대 사례</a></li>
+</ul>
+</main>
