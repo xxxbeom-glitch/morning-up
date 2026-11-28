@@ -1,0 +1,74 @@
+<title>설정 줄 모양 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 위에 결론, 가운데 두 줄 모양 비교 표, 아래 레퍼런스 6장 그리드 */
+:root{
+  --bg:#F4F6FA; --surface:#FFFFFF; --fg:#14202E; --muted:#5B6878; --line:#E2E7EF; --accent:#2F6BFF; --accent-soft:#E7EEFF;
+  --f-head:"Pretendard","Noto Sans KR",system-ui,sans-serif; --f-body:"Pretendard","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F141B;--surface:#18202A;--fg:#E8EDF4;--muted:#9AA6B5;--line:#2A3441;--accent:#7FA2FF;--accent-soft:#1E2A44;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F141B;--surface:#18202A;--fg:#E8EDF4;--muted:#9AA6B5;--line:#2A3441;--accent:#7FA2FF;--accent-soft:#1E2A44;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);line-height:1.6}
+.wrap{max-width:1040px;margin:0 auto;padding-block:32px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--f-head);font-size:1.7rem;margin:0;text-wrap:balance}
+h2{font-size:1.15rem;margin:0 0 12px}
+.lead{color:var(--muted);margin:6px 0 0}
+.verdict{background:var(--accent-soft);border-radius:16px;padding:20px 22px}
+.verdict strong{color:var(--accent)}
+.verdict ul{margin:8px 0 0;padding-left:1.2em}
+.tbl{overflow-x:auto;background:var(--surface);border-radius:16px}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:.93rem}
+th,td{padding:12px 14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.82rem;letter-spacing:.02em}
+tr:last-child td{border-bottom:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}
+figure{margin:0;background:var(--surface);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+figure img{border-radius:10px;width:100%;aspect-ratio:1179/2676;object-fit:cover;background:var(--line)}
+.tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+figcaption b{display:block}
+figcaption p{margin:2px 0 0;color:var(--muted);font-size:.88rem}
+figcaption a{color:var(--accent);font-size:.82rem}
+</style>
+<div class="wrap">
+  <header>
+    <h1>설정 줄 모양 비교</h1>
+    <p class="lead">라벨 아래 값 + 토글(지금 알람 편집 Setting Row)과, 값을 오른쪽에 두고 토글을 빼는 알라미식 줄을 비교했어요. 레퍼런스는 Mobbin 6장이에요. 알라미는 Mobbin에 없어서 알람, 시계, 기본 앱 설정으로 대신했어요.</p>
+  </header>
+
+  <section class="verdict">
+    <strong>추천: 섞어 쓰기 (선택값이 있는 줄은 값 오른쪽 + 화살표, 켜고 끄기만 있는 줄은 토글만)</strong>
+    <ul>
+      <li>고를 값이 있는 줄(미루기, 다시 잠들기 방지, 알람 자동 해제, 좀비모드 등): 라벨 아래 값과 토글을 빼고, 오른쪽에 값 + 화살표. 끄면 값이 '끔' 또는 '안 함'(연한 글자색). 끄기는 시트 안 '안 함'으로 해요(11-27 바텀시트 규칙과 같아요).</li>
+      <li>켜고 끄기뿐인 줄(다음 알람 항상 표시, 이어폰, 날씨 테마, 전원 종료 방지): 토글만, 아래 값 글 없음.</li>
+      <li>그래서 한 줄에 상태 표시가 하나만 남아요. 지금은 토글과 값 글자가 같은 상태를 두 번 보여 줘요.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>두 줄 모양 장단점</h2>
+    <div class="tbl"><table>
+      <thead><tr><th></th><th>A. 라벨 아래 값 + 오른쪽 토글 (지금)</th><th>B. 값 오른쪽 + 화살표, 토글 없음 (알라미식)</th><th>추천: 섞어 쓰기</th></tr></thead>
+      <tbody>
+        <tr><td>한눈에 켜짐 보기</td><td>좋아요. 토글 색으로 바로 보여요</td><td>값 글자로만 보여요. '끔'을 연한 색으로 해야 구분돼요</td><td>켜고 끄기 줄은 토글로, 값 줄은 글자로</td></tr>
+        <tr><td>누르는 곳</td><td>두 곳(토글, 줄). 어디를 누를지 헷갈려요</td><td>줄 전체 한 곳</td><td>줄마다 한 곳</td></tr>
+        <tr><td>끄기까지 걸음</td><td>토글 한 번</td><td>줄 → 시트 '안 함' → 완료, 세 번</td><td>값 줄만 세 번. 자주 끄지 않는 설정이라 괜찮아요</td></tr>
+        <tr><td>줄 높이, 목록 정리</td><td>두 줄이라 54, 길이 들쭉날쭉</td><td>한 줄 44~52로 고르게, 값이 오른쪽에 세로로 줄 맞음</td><td>모든 줄이 한 줄 높이</td></tr>
+        <tr><td>긴 값</td><td>아래 줄이라 여유 있어요</td><td>'5분, 3번' 정도는 괜찮고, 더 길면 잘려요</td><td>값은 짧은 말로 써요</td></tr>
+        <tr><td>설정 메인과 일관성</td><td>설정 메인은 이미 값 오른쪽이라 달라요</td><td>설정 메인과 같아요</td><td>설정 메인, 알람 편집이 같은 규칙</td></tr>
+        <tr><td>흔한 정도 (아래 6장)</td><td>Sonos, Garmin, Keeta</td><td>stoic., Reminders, Apple Health</td><td>Reminders, Apple Health가 이렇게 섞어 써요</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2>레퍼런스 (Mobbin)</h2>
+    <div class="grid">
+      <figure><img src="1-sonos.webp" alt="Sonos 알람 편집 화면"><figcaption><span class="tag">A</span><b>Sonos</b><p>알람 편집. 라벨 아래 값 + 화살표, 토글 없음. 줄이 두 줄이라 길어요.</p><a href="https://mobbin.com/screens/1c3a0e91-1804-40a4-a7e2-8405d9cf3d81" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure><img src="2-garmin.webp" alt="Garmin Connect 상태 토글 화면"><figcaption><span class="tag">A</span><b>Garmin Connect</b><p>라벨 아래 'Off' + 토글. 상태를 글과 토글로 두 번 보여 줘요(지금 우리와 같음).</p><a href="https://mobbin.com/screens/a1fc94c2-6007-445e-944d-d6a2236002ab" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure><img src="3-keeta.webp" alt="Keeta 알림 설정 화면"><figcaption><span class="tag">A</span><b>Keeta</b><p>라벨 아래는 값이 아니라 설명 글 + 토글. 아래 글은 설명일 때만 쓰는 예.</p><a href="https://mobbin.com/screens/4d62c4c3-4f22-4546-a0dc-bf9d780e5836" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure><img src="4-stoic.webp" alt="stoic. 알림음 설정 화면"><figcaption><span class="tag">B</span><b>stoic.</b><p>값 오른쪽 'none' + 화살표, 토글 없음. 끈 상태도 값 글자로 보여 줘요. 알라미와 같은 방식.</p><a href="https://mobbin.com/screens/dc0fd4aa-75f4-4179-bd27-a0003df21655" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure><img src="5-reminders.webp" alt="iOS 미리 알림 세부 화면"><figcaption><span class="tag">섞어 쓰기</span><b>Reminders (iOS 기본)</b><p>값 있는 줄은 오른쪽 값('30 minutes', 'None'), 켜고 끄기 줄은 토글만. 줄 사이 연한 구분선.</p><a href="https://mobbin.com/screens/043ffec7-892b-4bee-9ff9-e2950888a77d" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure><img src="6-health.webp" alt="Apple Health 알람 옵션 화면"><figcaption><span class="tag">섞어 쓰기</span><b>Apple Health</b><p>알람 옵션. 알람, 스누즈는 토글, 소리와 스누즈 시간은 값 오른쪽. 알람 앱에 가장 가까운 예.</p><a href="https://mobbin.com/screens/9e51cb62-dfc6-49ee-8a75-561b37378f8b" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+    </div>
+  </section>
+</div>
