@@ -1528,3 +1528,5 @@
 {"at": "2026-11-28 14:18:17", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["사용자 2차 피드백: T2 카드 오토레이아웃 가운데, 아이콘 설정 메인과 같게, 가이드에 애니메이션 자리와 1,2 번호 불릿 위계. T6 탭 색이 bg에 묻힘"]]}}
 {"at": "2026-11-28 14:20:05", "by": "Leader", "id": "TSK-318", "action": "create", "changes": {"id": [null, "TSK-318"], "wbs": [null, "3.68"], "parent": [null, "TSK-003"], "title": [null, "푸시 모음에 빠진 알림 그리기(미션 포기 3상태, 다시 확인 기다림, 여러 번 다시 확인, 대신 울림, 수면 음악, 쉬기 안내)"], "area": [null, "design"], "owner": [null, "[디자인 40]"], "reviewer": [null, "Leader"], "status": [null, "todo"]}}
 {"at": "2026-11-28 14:20:26", "by": "Leader", "id": "TSK-318", "action": "comment", "changes": {"comments": [null, ["[디자인 40] local_4f085984-9d16-4e69-a34d-2a1207a37a3f 시작. 사용자 '더 그려 넣어'"]]}}
+{"at": "2026-11-28 14:20:44", "by": "[디자인 40]", "id": "TSK-318", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
+{"at": "2026-11-28 14:21:54", "by": "[디자인 39]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["2차 사용자 피드백 반영(T2 카드 여백, 라인 아이콘, 배터리 가이드 애니메이션 자리+번호, T6 탭 대비). 넘김 노트 design-39-handover.md"]]}}
