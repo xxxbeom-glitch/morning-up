@@ -1625,3 +1625,7 @@
 {"at": "2026-11-28 16:50:38", "by": "[디자인 51]", "id": "TSK-335", "action": "create", "changes": {"id": [null, "TSK-335"], "wbs": [null, "3.83"], "parent": [null, "TSK-003"], "title": [null, "피그마 화면 밖 설명 글 지우기"], "area": [null, "design"], "owner": [null, "[디자인 51]"], "reviewer": [null, "Leader"], "status": [null, "todo"]}}
 {"at": "2026-11-28 16:50:43", "by": "[디자인 51]", "id": "TSK-335", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 16:51:17", "by": "[디자인 51]", "id": "TSK-335", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["화면 밖 설명 글 181개 지움(화면 67, 오늘 모음 36, 디자인 시스템 가이드 12, 보관 66). 내용은 docs/figma-canvas-notes-archive.md로 옮김"]]}}
+{"at": "2026-11-28 16:52:27", "by": "Leader", "id": "TSK-334", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["완료 조건 충족, 애매한 것은 결정함 D42~D46"]]}}
+{"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-335", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["완료 조건 충족, 애매한 것은 결정함 D42~D46"]]}}
+{"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-329", "action": "comment", "changes": {"comments": [null, ["남은 결정 2가지 결정함 D40, D41로 사용자에게 올림"]]}}
+{"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-332", "action": "comment", "changes": {"comments": [null, ["사용자 피드백 결정함 D39로 받음"]]}}
