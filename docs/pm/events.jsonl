@@ -1562,3 +1562,5 @@
 {"at": "2026-11-28 14:46:34", "by": "[디자인 42]", "id": "TSK-321", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 14:47:54", "by": "Leader", "id": "TSK-321", "action": "set", "changes": {"owner": ["[디자인 42]", "[디자인 44]"]}}
 {"at": "2026-11-28 14:48:33", "by": "[디자인 42]", "id": "TSK-321", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["Mobbin 구독 풀페이지 19장(지난 17장과 앱 안 겹침)을 구성 순서 7묶음으로 아티팩트에 올림: https://claude.ai/artifact/Sn4o5veWzAfKhgq86TDMqp . 월 구독 하나 기준 화면 구성 추천 표 포함, 피그마 시안 없음"]]}}
+{"at": "2026-11-28 14:49:01", "by": "Leader", "id": "TSK-321", "action": "set", "changes": {"owner": ["[디자인 44]", "[디자인 42]"]}}
+{"at": "2026-11-28 14:49:02", "by": "Leader", "id": "TSK-321", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["Mobbin 19장 아티팩트와 추천 구성 받음"]]}}
