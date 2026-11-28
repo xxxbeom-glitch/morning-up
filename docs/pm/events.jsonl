@@ -1530,3 +1530,5 @@
 {"at": "2026-11-28 14:20:26", "by": "Leader", "id": "TSK-318", "action": "comment", "changes": {"comments": [null, ["[디자인 40] local_4f085984-9d16-4e69-a34d-2a1207a37a3f 시작. 사용자 '더 그려 넣어'"]]}}
 {"at": "2026-11-28 14:20:44", "by": "[디자인 40]", "id": "TSK-318", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 14:21:54", "by": "[디자인 39]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["2차 사용자 피드백 반영(T2 카드 여백, 라인 아이콘, 배터리 가이드 애니메이션 자리+번호, T6 탭 대비). 넘김 노트 design-39-handover.md"]]}}
+{"at": "2026-11-28 14:22:48", "by": "Leader", "id": "TSK-317", "action": "set", "changes": {"owner": ["[디자인 39]", "[디자인 41]"]}}
+{"at": "2026-11-28 14:23:05", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["[디자인 39] 2차 피드백 반영(00b05ad), 넘김. [디자인 41] local_ce87eae9-4b66-40a0-aed0-f533e81e81ca 이어받음. 사용자: FAQ 질문마다 연한 구분선"]]}}
