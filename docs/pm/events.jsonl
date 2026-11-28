@@ -1501,3 +1501,5 @@
 {"at": "2026-11-28 11:43:56", "by": "[디자인 36]", "id": "TSK-315", "action": "comment", "changes": {"comments": [null, ["사용자 '추천대로'로 홈 권한 띠 H2-9 전원 종료 방지 꺼짐 1318:11276을 같은 작은 구역에 더함(버튼 '켜기'). 확정되면 홈 권한 안내 모음 1314:11208로."]]}}
 {"at": "2026-11-28 11:48:06", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"owner": ["[디자인 33]", "[디자인 36]"], "status": ["waiting_user", "todo"]}}
 {"at": "2026-11-28 11:48:06", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["사용자 피드백: 구독 칸은 '구독 뒤' 한 줄 방식, 카드 배경은 사용자가 잡은 그라데이션, 라벨 너무 큼. 알람 울림 최적화+전원 종료 방지 한 카드, 알람 자동 해제~언어 한 카드"]]}}
+{"at": "2026-11-28 11:48:08", "by": "[디자인 36]", "id": "TSK-310", "action": "claim", "changes": {"status": ["todo", "doing"]}}
+{"at": "2026-11-28 11:49:39", "by": "[디자인 36]", "id": "TSK-310", "action": "submit", "changes": {"status": ["doing", "waiting_user"], "comments": [null, ["사용자 피드백 반영: 구독 칸 한 줄 카드(구독 전, 뒤), 카드 배경 plus 라벨 원본 그라데이션, 라벨 Plus Label Small, 알람 자동 해제~언어 한 카드로 합침."]]}}
