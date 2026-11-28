@@ -1,0 +1,60 @@
+<title>설정 하위 화면 레퍼런스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 화면 묶음 2개(언어 시트, 구독 관리)를 위에서 아래로, 묶음마다 우리 안 한 줄 + 화면 카드 그리드 */
+:root{
+  --bg:#F3F5F9; --surface:#FFFFFF; --fg:#14202E; --muted:#5E6A7A; --line:#DFE4EC; --accent:#1F6FEB;
+  --sans:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F141B; --surface:#18202A; --fg:#E8EDF4; --muted:#9AA6B6; --line:#2A3442; --accent:#6FA8FF; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F141B; --surface:#18202A; --fg:#E8EDF4; --muted:#9AA6B6; --line:#2A3442; --accent:#6FA8FF; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1160px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:56px}
+header h1{font-size:28px;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:65ch}
+section{display:grid;gap:16px}
+h2{font-size:20px;margin:0;text-wrap:balance}
+.plan{margin:0;color:var(--muted);max-width:70ch}
+.plan b{color:var(--fg)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:grid}
+figure img{width:100%;display:block;aspect-ratio:1179/2676;object-fit:cover}
+figcaption{padding:12px 14px;display:grid;gap:4px;min-width:0}
+figcaption strong{font-size:15px}
+figcaption span{font-size:13px;color:var(--muted)}
+figcaption a{font-size:13px;color:var(--accent)}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+<div class="wrap">
+<header>
+  <h1>설정 하위 화면 레퍼런스</h1>
+  <p>TSK-317에서 새로 그린 언어 선택 시트와 구독 관리 화면의 참고 화면이에요. 모두 Mobbin에서 골랐어요.</p>
+</header>
+
+<section>
+  <h2>언어 선택 시트</h2>
+  <p class="plan"><b>우리 안:</b> 제목만 있는 시트에 '기기 설정', '한국어', 'English' 세 줄. 고르면 바로 바뀌고 시트가 닫혀서 '완료' 버튼이 없어요.</p>
+  <div class="grid">
+    <figure><img src="01_kraken.jpg" alt="Kraken 언어 시트: 제목 Language, 언어 이름만 있는 목록, 고른 줄에 체크" loading="lazy">
+      <figcaption><strong>Kraken</strong><span>제목만 있는 시트, 이름만 있는 줄, 고르면 바로 반영</span><a href="https://mobbin.com/screens/a4c74391-6f64-4b8f-ab76-bb04bc36b5a8" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+    <figure><img src="02_vivid.jpg" alt="Vivid 언어 시트: 라디오 버튼 목록과 아래 확인 버튼" loading="lazy">
+      <figcaption><strong>Vivid</strong><span>오른쪽 라디오 표시, 아래 확인 버튼이 있는 안</span><a href="https://mobbin.com/screens/8136abb3-4ce6-40a0-86fd-1a995fff072c" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+    <figure><img src="03_notion.jpg" alt="Notion 언어 시트: 언어 이름 아래 영어 이름이 한 줄 더 있는 목록" loading="lazy">
+      <figcaption><strong>Notion</strong><span>그 나라 글자로 이름을 쓰는 방식('English'를 영어로 둔 근거)</span><a href="https://mobbin.com/screens/efd159f7-2317-46c1-bca2-bfc495769903" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2>구독 관리</h2>
+  <p class="plan"><b>우리 안:</b> 위 카드에 상품과 다음 결제일, 아래 카드에 'Play 스토어에서 구독 관리'(앱 밖으로 나가는 표시)와 '구매 복원'.</p>
+  <div class="grid">
+    <figure><img src="04_slopes.jpg" alt="Slopes 구독 화면: 현재 상품과 갱신일 카드, 아래 구독 관리 줄 카드" loading="lazy">
+      <figcaption><strong>Slopes</strong><span>상태 카드와 행동 카드 둘로 나눔. 우리 안의 바탕</span><a href="https://mobbin.com/screens/68bd28d4-b6b1-4a29-baec-63d54c0dbd69" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+    <figure><img src="05_dailyart.jpg" alt="DailyArt 구독 화면: 종류와 갱신일, 변경과 해지 버튼" loading="lazy">
+      <figcaption><strong>DailyArt</strong><span>종류, 갱신일 두 값만 보여 주는 짧은 화면</span><a href="https://mobbin.com/screens/dab7c3f3-fd36-4c42-a09f-81bc5596970f" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+    <figure><img src="06_centr.jpg" alt="Centr 구독 화면: 상품 카드와 스토어 설정에서 관리하라는 안내" loading="lazy">
+      <figcaption><strong>Centr</strong><span>해지는 스토어에서 하도록 넘기는 방식</span><a href="https://mobbin.com/screens/c1baf894-16c0-4a9d-89db-413df4efb5e6" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+  </div>
+</section>
+</div>
