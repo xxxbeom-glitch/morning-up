@@ -1,0 +1,92 @@
+<title>Crazy Mode 타이포 레퍼런스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@1,900&family=Unbounded:wght@900&family=Permanent+Marker&display=swap">
+<style>
+/* 레이아웃: 방향 4개를 위에서 아래로, 방향마다 견본 글자 한 줄 + 화면 카드 그리드 */
+:root{
+  --bg:#F4F3F8; --surface:#FFFFFF; --fg:#1A1830; --muted:#6B6880; --line:#E2E0EC;
+  --night-a:#120E2E; --night-b:#3A2A7A; --link:#4B3BB5;
+  --sans:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E0C1C; --surface:#18152B; --fg:#EDEBF7; --muted:#A19DB8; --line:#2A2645; --link:#B3A6FF; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E0C1C; --surface:#18152B; --fg:#EDEBF7; --muted:#A19DB8; --line:#2A2645; --link:#B3A6FF; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1160px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:56px}
+header h1{font-size:28px;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:65ch}
+section{display:grid;gap:20px}
+.head{display:grid;gap:12px}
+.head h2{font-size:20px;margin:0}
+.sample{background:linear-gradient(120deg,var(--night-a),var(--night-b));border-radius:16px;padding:20px 24px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;color:#fff}
+.sample .word{font-size:30px;line-height:1.1}
+.sample .meta{font-size:13px;color:#D8D2FF;min-width:0}
+.a{font-family:"Barlow Condensed",var(--sans);font-weight:900;font-style:italic;font-size:36px!important;letter-spacing:.01em}
+.b{font-family:"Unbounded",var(--sans);font-weight:900;background:linear-gradient(90deg,#C7B3FF,#FF8FB8 55%,#FFB872);-webkit-background-clip:text;background-clip:text;color:transparent}
+.c .m{font-family:"Permanent Marker",cursive;font-size:34px}
+.c .n{font-family:var(--sans);font-weight:700;font-size:26px}
+.d{font-family:"Unbounded",var(--sans);font-weight:900;color:transparent;-webkit-text-stroke:1.2px #D9CCFF;text-shadow:0 0 14px rgba(168,140,255,.65)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+figure img{display:block;width:100%;aspect-ratio:1180/2676;object-fit:cover;max-width:100%}
+figcaption{padding:12px 14px 14px;display:grid;gap:4px;font-size:13px;min-width:0}
+figcaption b{font-size:15px}
+figcaption .note{color:var(--fg)}
+figcaption a{color:var(--link);word-break:break-all;font-size:12px}
+a:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+footer{color:var(--muted);font-size:13px}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Crazy Mode 제목 타이포 레퍼런스</h1>
+  <p>설정 맨 위 구독 카드의 제목을 로고처럼 보이게 할 방향 네 가지예요. 방향마다 깊은 밤 배경에 추천 글자를 먼저 보여 주고, 그 아래에 모은 화면을 붙였어요. 화면은 모두 Mobbin에서 가져왔어요.</p>
+</header>
+
+<section>
+  <div class="head">
+    <h2>A. 굵고 좁은 글자, 기울임</h2>
+    <div class="sample"><span class="word a">CRAZY MODE</span><span class="meta">추천: Barlow Condensed Black Italic, 대문자<br>폰트 라이선스: SIL OFL 1.1 (상업적 무료)</span></div>
+  </div>
+  <div class="grid">
+    <figure><img src="01_fixtured.jpg" alt="Fixtured 구독 화면" loading="lazy"><figcaption><b>Fixtured</b><span class="note">'TRY FIXTURED+'를 굵고 좁은 대문자로, 짙은 남색 위 흰 글자</span><a href="https://mobbin.com/screens/2a57e9a6-87c6-4c4c-8695-133b87b376ef">mobbin.com/screens/2a57e9a6…</a></figcaption></figure>
+    <figure><img src="02_brainly.jpg" alt="Brainly 구독 화면" loading="lazy"><figcaption><b>Brainly</b><span class="note">기울인 검은 띠 위 흰 대문자와 원 속 플러스, 도장 같은 느낌</span><a href="https://mobbin.com/screens/b94d9e77-9c05-4d61-baf1-5a5e03392f6f">mobbin.com/screens/b94d9e77…</a></figcaption></figure>
+    <figure><img src="08_talabat.jpg" alt="talabat 구독 화면" loading="lazy"><figcaption><b>talabat</b><span class="note">주황 로고 옆 보라 상자 속 굵은 소문자 pro</span><a href="https://mobbin.com/screens/9324749e-14aa-45af-85f7-9bf13b708e8a">mobbin.com/screens/9324749e…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>B. 그라데이션 글자</h2>
+    <div class="sample"><span class="word b">Crazy Mode</span><span class="meta">추천: Unbounded Black, 보라에서 분홍, 주황(새벽빛)<br>폰트 라이선스: SIL OFL 1.1 (상업적 무료)</span></div>
+  </div>
+  <div class="grid">
+    <figure><img src="03_crouton.jpg" alt="Crouton 업그레이드 화면" loading="lazy"><figcaption><b>Crouton</b><span class="note">요금제 이름 'Discover'만 보라에서 분홍으로 번지는 글자</span><a href="https://mobbin.com/screens/d377dafe-6c91-42c7-b3df-0b1688db4b12">mobbin.com/screens/d377dafe…</a></figcaption></figure>
+    <figure><img src="04_brilliant.jpg" alt="Brilliant 구독 화면" loading="lazy"><figcaption><b>Brilliant</b><span class="note">문장 속 'Premium' 한 단어만 보라에서 주황 그라데이션</span><a href="https://mobbin.com/screens/4769fa19-5abe-4bd9-8b9e-e1260ace9d56">mobbin.com/screens/4769fa19…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>C. 손글씨, 마커</h2>
+    <div class="sample c"><span class="word"><span class="m">Crazy</span> <span class="n">Mode</span></span><span class="meta">추천: Crazy만 Permanent Marker, Mode는 Pretendard Bold<br>폰트 라이선스: Apache 2.0 (상업적 무료)</span></div>
+  </div>
+  <div class="grid">
+    <figure><img src="05_insight.jpg" alt="Insight Timer 구독 화면" loading="lazy"><figcaption><b>Insight Timer</b><span class="note">'Plus'를 노란 손글씨 기울임으로, 제목 위에 작게 얹음</span><a href="https://mobbin.com/screens/8c9eef4f-abe6-40b0-995a-964ff729da84">mobbin.com/screens/8c9eef4f…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head">
+    <h2>D. 테두리 글자, 네온 라벨</h2>
+    <div class="sample"><span class="word d">Crazy Mode</span><span class="meta">추천: Unbounded Black 테두리만 + 보라 빛 번짐<br>폰트 라이선스: SIL OFL 1.1 (상업적 무료)</span></div>
+  </div>
+  <div class="grid">
+    <figure><img src="06_hatch.jpg" alt="Hatch Sleep 구독 화면" loading="lazy"><figcaption><b>Hatch Sleep</b><span class="note">가늘고 넓은 'Hatch' 옆에 작은 +, 밤하늘 위 흰 글자</span><a href="https://mobbin.com/screens/e956459e-49dd-4768-bce7-5bb72d0472e3">mobbin.com/screens/e956459e…</a></figcaption></figure>
+    <figure><img src="07_matter.jpg" alt="Matter 구독 화면" loading="lazy"><figcaption><b>Matter</b><span class="note">'PRO'를 분홍 네온 테두리 라벨로, 보라 번짐 배경</span><a href="https://mobbin.com/screens/80c24394-68a9-4cd9-adce-350177e44b90">mobbin.com/screens/80c24394…</a></figcaption></figure>
+    <figure><img src="09_letterboxd.jpg" alt="Letterboxd 구독 화면" loading="lazy"><figcaption><b>Letterboxd</b><span class="note">'PRO', 'PATRON'을 색 상자 속 굵은 대문자로</span><a href="https://mobbin.com/screens/a651ea87-debb-4678-b972-e5cbfc8bf222">mobbin.com/screens/a651ea87…</a></figcaption></figure>
+  </div>
+</section>
+
+<footer>TSK-316. 시안 A(굵은 기울임), B(그라데이션)는 피그마 '결정 필요' 구역에 실제 카드로 올려 두었어요.</footer>
+</div>
