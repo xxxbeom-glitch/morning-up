@@ -1518,3 +1518,4 @@
 {"at": "2026-11-28 13:41:58", "by": "Leader", "id": "TSK-316", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["레퍼런스 모음까지. 제목 방향은 사용자가 추후 결정"]]}}
 {"at": "2026-11-28 13:42:01", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"status": ["doing", "review"]}}
 {"at": "2026-11-28 13:42:01", "by": "Leader", "id": "TSK-310", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["사용자: 설정 메인 픽스. 결정 210"]]}}
+{"at": "2026-11-28 13:42:58", "by": "Leader", "id": "TSK-317", "action": "create", "changes": {"id": [null, "TSK-317"], "wbs": [null, "3.67"], "parent": [null, "TSK-003"], "title": [null, "설정 하위 화면 그리기와 다듬기(자동 해제, 언어, 앱 정보, 구독 관리, 권한, 이어폰, FAQ 등)"], "area": [null, "design"], "owner": [null, "[디자인 38]"], "reviewer": [null, "Leader"], "status": [null, "todo"]}}
