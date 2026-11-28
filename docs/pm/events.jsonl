@@ -1572,3 +1572,4 @@
 {"at": "2026-11-28 15:02:54", "by": "Leader", "id": "TSK-323", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["소개 화면 20장, A+D 추천 받음"]]}}
 {"at": "2026-11-28 15:05:21", "by": "Leader", "id": "TSK-324", "action": "set", "changes": {"status": ["todo", "review"], "commits": [[], ["515f2af"]]}}
 {"at": "2026-11-28 15:05:45", "by": "Leader", "id": "TSK-324", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["진단 표, 줄 모양 아티팩트, 아이콘 뺀 T1 두 장 받음"]]}}
+{"at": "2026-11-28 15:06:41", "by": "Leader", "id": "TSK-325", "action": "create", "changes": {"id": [null, "TSK-325"], "wbs": [null, "3.75"], "parent": [null, "TSK-003"], "title": [null, "Crazy Mode 구독 소개 풀페이지 러프 구성"], "area": [null, "design"], "owner": [null, "[디자인 44]"], "reviewer": [null, "Leader"], "status": [null, "todo"], "due": [null, "2026-11-28"], "relates": [[], ["TSK-323"]], "acceptance": [[], ["A+D 구성 러프 한 장을 결정 필요 구역에"]]}}
