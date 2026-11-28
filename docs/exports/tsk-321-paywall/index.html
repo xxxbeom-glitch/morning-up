@@ -1,0 +1,99 @@
+<title>TSK-321 구독 소개 풀페이지 레퍼런스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 위 소개, 구성 순서별 묶음(그림부터 작은 글까지), 맨 아래 우리 화면 추천 표 */
+:root{--bg:#F6F6FA;--fg:#14142B;--muted:#5C5C78;--card:#FFFFFF;--line:#E3E3EE;--accent:#3A2E8C;
+--display:"Space Grotesk","Pretendard",system-ui,sans-serif;--body:"Pretendard","Apple SD Gothic Neo",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F0E1C;--fg:#EDEBFA;--muted:#A3A1BE;--card:#1A1830;--line:#2C2A48;--accent:#B9AEFF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F0E1C;--fg:#EDEBFA;--muted:#A3A1BE;--card:#1A1830;--line:#2C2A48;--accent:#B9AEFF;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);line-height:1.6;margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);font-size:1.6rem;margin:0 0 8px;text-wrap:balance}
+h2{font-family:var(--display);font-size:1.15rem;margin:48px 0 6px;display:flex;gap:10px;align-items:baseline}
+h2 .no{color:var(--accent);font-variant-numeric:tabular-nums}
+.lead,.sub{color:var(--muted);margin:0 0 20px;max-width:68ch}
+.lead{margin-bottom:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+figure{margin:0;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-width:0}
+figure img{width:100%;border-radius:10px;display:block}
+figcaption{font-size:13px;color:var(--muted)}
+figcaption b{color:var(--fg);display:block;font-size:14px}
+a{color:var(--accent)}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.scroll{overflow-x:auto}
+</style>
+<div class="wrap">
+<h1>구독 소개 풀페이지 레퍼런스 2차</h1>
+<p class="lead">월 구독 하나, 무료 체험이 있는 풀페이지를 위에서 아래 구성 순서대로 묶었어요. 알람, 수면, 습관, 건강 앱 위주이고, 지난 17장(TSK-320)에 나온 앱은 뺐어요. 모두 Mobbin에서 모았어요.</p>
+
+<h2><span class="no">1</span>맨 위 그림</h2>
+<p class="sub">첫눈에 앱의 기분을 보여 주는 자리예요. 수면, 아침 앱은 하늘과 해, 밤 그림을 많이 써요.</p>
+<div class="grid">
+<figure><img src="headspace.jpg" alt="Headspace 체험 안내 화면"><figcaption><b>Headspace</b>해 뜨는 그림이 위를 채우고 바로 아래 제목. 아침 앱인 우리와 결이 가까워요. <a href="https://mobbin.com/screens/a9bf58c3-250a-4565-9808-c4722933ea54">Mobbin</a></figcaption></figure>
+<figure><img src="hatch.jpg" alt="Hatch Sleep 체험 화면"><figcaption><b>Hatch Sleep</b>밤하늘 그림 위에 로고, 아래는 짙은 남색으로 이어져요. 월 요금 하나만 파는 수면 앱이에요. <a href="https://mobbin.com/screens/ad140361-7af2-4a71-b0e9-aab9849075f0">Mobbin</a></figcaption></figure>
+<figure><img src="stardust.jpg" alt="Stardust 체험 화면"><figcaption><b>Stardust</b>보라 밤 그라데이션에 별, 달 빛망울. Crazy Mode 깊은 밤 칠을 풀페이지로 넓힌 모습에 가까워요. <a href="https://mobbin.com/screens/414bbd15-0f01-4af3-a325-4d08448d746d">Mobbin</a></figcaption></figure>
+<figure><img src="yazio.jpg" alt="Yazio 구독 화면"><figcaption><b>Yazio</b>캐릭터 그림이 화면 반을 차지해요. 그림이 크면 가격 칸이 아래로 밀리는 점은 주의해요. <a href="https://mobbin.com/screens/d444f04c-d1b9-4872-a056-a0dff266f600">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">2</span>제목</h2>
+<p class="sub">무엇을 얻는지보다 "무료로 시작"을 먼저 말하는 제목이 많아요.</p>
+<div class="grid">
+<figure><img src="origin.jpg" alt="Origin 구독 화면"><figcaption><b>Origin</b>"일주일 무료로 시작하세요" 한 줄 제목. 짧고 부담이 없어요. <a href="https://mobbin.com/screens/b3ebe000-42ff-431e-9d6b-8b27338ba9c5">Mobbin</a></figcaption></figure>
+<figure><img src="breathwrk.jpg" alt="Breathwrk 구독 화면"><figcaption><b>Breathwrk</b>"이번 주 무료로 써 보세요" 제목 아래 이번 달 시작한 사람 수. 사람 수는 우리에겐 아직 없어요. <a href="https://mobbin.com/screens/3b7ad501-545e-439e-a1a0-4feeb6d3a4c5">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">3</span>혜택</h2>
+<p class="sub">체크 목록, 아이콘 목록, 무료와 유료 비교표 세 가지예요.</p>
+<div class="grid">
+<figure><img src="hevy.jpg" alt="Hevy 구독 화면"><figcaption><b>Hevy</b>체크 표시 한 줄씩 여섯 개. 가장 빨리 읽혀요. <a href="https://mobbin.com/screens/63d360d1-fe60-4834-b349-832dab2a7d56">Mobbin</a></figcaption></figure>
+<figure><img src="bevel.jpg" alt="Bevel 구독 화면"><figcaption><b>Bevel</b>맨 위 혜택 하나를 크게, 나머지는 "함께 들어 있어요"로 묶어요. 누른 기능을 맨 위에 두는 우리 안과 같아요. <a href="https://mobbin.com/screens/b2703b8b-a495-41ff-86a7-521c5568194a">Mobbin</a></figcaption></figure>
+<figure><img src="withings.jpg" alt="Withings 구독 화면"><figcaption><b>Withings Health Mate</b>아이콘 원과 두 줄 설명 세 개. 혜택이 적을 때 자리가 넉넉해 보여요. <a href="https://mobbin.com/screens/7b41cd44-0ac0-4ddc-b4a1-479b5b3585e9">Mobbin</a></figcaption></figure>
+<figure><img src="givingli.jpg" alt="Givingli 비교표"><figcaption><b>Givingli</b>무료와 유료 비교표. 미션 포기처럼 무료에도 있는 기능이 섞이면 표가 헷갈릴 수 있어요. <a href="https://mobbin.com/screens/db5cc1d0-9d46-4b3f-b8b9-facb66175670">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">4</span>체험 일정</h2>
+<p class="sub">오늘, 끝나기 전 알림, 결제 시작 3단이 거의 표준이에요.</p>
+<div class="grid">
+<figure><img src="pillowtalk.jpg" alt="pillowtalk 체험 일정"><figcaption><b>pillowtalk</b>어두운 바탕에 세로 줄과 단계 아이콘, 그 아래 사용 후기 한 장. <a href="https://mobbin.com/screens/2f9bcce8-e4bd-4cf1-9027-3b8f44eb4ca6">Mobbin</a></figcaption></figure>
+<figure><img src="oura.jpg" alt="Oura 체험 일정"><figcaption><b>Oura</b>요일 대신 실제 날짜와 결제 금액을 적어요. 자동 결제 전 알림 규정에 가장 또렷한 방식이에요. <a href="https://mobbin.com/screens/ebace6f9-08e5-411a-9511-1f5916645668">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">5</span>가격</h2>
+<p class="sub">상품이 하나면 고르는 칸 없이 문장 한 줄로 끝나요.</p>
+<div class="grid">
+<figure><img src="uxcel.jpg" alt="Uxcel 가격 문구"><figcaption><b>Uxcel</b>버튼 바로 위 "오늘 구독하면 월 얼마가 결제돼요. 언제든 해지" 한 문장. 월 금액을 굵게 써요. <a href="https://mobbin.com/screens/b8992369-75a4-4d0e-9d00-1bd734c254d3">Mobbin</a></figcaption></figure>
+<figure><img src="oneyear.jpg" alt="one year 가격 버튼"><figcaption><b>one year</b>월 금액을 버튼 안에 그대로 써요. 버튼을 누르면 얼마인지 바로 알아요. <a href="https://mobbin.com/screens/df0d769a-48b0-46b0-beb4-9f8225d4ce5a">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">6</span>버튼</h2>
+<p class="sub">버튼 글에 체험 기간을 넣고, 닫기 말고 '나중에' 버튼을 두는 앱도 있어요.</p>
+<div class="grid">
+<figure><img src="structured.jpg" alt="Structured 버튼 두 개"><figcaption><b>Structured</b>'무료 체험 시작' 아래 옅은 '나중에 할게요'. 닫기 X를 찾지 않아도 돼서 부담이 줄어요. <a href="https://mobbin.com/screens/8b2e9920-9725-4e5a-b9be-6d30365dfd17">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">7</span>작은 글</h2>
+<p class="sub">구매 복원, 약관, 개인정보와 함께 자동 결제와 해지 안내를 정직하게 쓰는 앱이 늘고 있어요.</p>
+<div class="grid">
+<figure><img src="lifereset.jpg" alt="Life Reset 작은 글"><figcaption><b>Life Reset</b>버튼 아래 체험 뒤 금액, 자동 갱신, 해지 기한을 두 줄로 적어요. Play 정책에 가까운 모양이에요. <a href="https://mobbin.com/screens/7a6f1935-2b81-47dd-8dcf-5223e9d519b1">Mobbin</a></figcaption></figure>
+<figure><img src="atoms.jpg" alt="Atoms 체험 안내 카드"><figcaption><b>Atoms</b>"체험이 끝나도 자동으로 결제되지 않아요" 노란 카드. 자동 결제를 하지 않는 체험이면 가장 강한 안심 문구예요. <a href="https://mobbin.com/screens/5a57b74f-c49a-4125-910b-60055fe9108c">Mobbin</a></figcaption></figure>
+<figure><img src="bloom.jpg" alt="Bloom 환불 안내"><figcaption><b>Bloom</b>"해지를 잊으셨나요? 묻지 않고 환불해 드려요." 일정표 마지막 줄에 붙여요. <a href="https://mobbin.com/screens/db6e7f44-adcb-48a5-a585-48df56e93efe">Mobbin</a></figcaption></figure>
+<figure><img src="timespent.jpg" alt="timespent 개발자 편지"><figcaption><b>timespent</b>무료 기능은 계속 무료, 속이는 화면 없음을 약속하는 편지. 1인 개발 앱의 말투 참고예요. <a href="https://mobbin.com/screens/b00fa672-0e18-4d18-8040-8912c0af8ca7">Mobbin</a></figcaption></figure>
+</div>
+
+<h2><span class="no">→</span>우리 화면 구성 추천 (월 구독 하나)</h2>
+<p class="sub">두 진입점(알람 편집 plus 기능, 설정 '시작하기')이 같은 풀페이지를 써요. 시안은 아직 그리지 않았어요.</p>
+<div class="scroll"><table>
+<tr><th>순서</th><th>추천</th><th>참고</th></tr>
+<tr><td>닫기</td><td>왼쪽 위 X, 오른쪽 위 '구매 복원'</td><td>Hatch, Life Reset</td></tr>
+<tr><td>그림</td><td>Crazy Mode 깊은 밤 그라데이션이 화면 위 1/3을 채우고 아래로 옅어짐. 따로 그림은 넣지 않음</td><td>Stardust, Hatch</td></tr>
+<tr><td>제목</td><td>'Crazy Mode'와 PLUS+ 라벨, 아래에 '2주 무료로 시작해요' 한 줄</td><td>Origin</td></tr>
+<tr><td>혜택</td><td>아이콘 목록 2~3줄. 알람 편집에서 들어오면 누른 기능을 맨 위에. 비교표는 쓰지 않음</td><td>Bevel, Withings</td></tr>
+<tr><td>체험 일정</td><td>3단: 오늘, 끝나기 전 알림, 결제 시작. 단계마다 실제 날짜</td><td>Oura, pillowtalk</td></tr>
+<tr><td>가격</td><td>고르는 칸 없이 문장으로: 2주 무료, 첫 달 100원, 그 뒤 월 정가. 정가도 같은 크기</td><td>Uxcel</td></tr>
+<tr><td>버튼</td><td>흰 알약 '2주 무료로 시작하기', 아래 옅은 글 버튼 '나중에 할게요'</td><td>Structured</td></tr>
+<tr><td>작은 글</td><td>자동 결제와 해지 방법 두 줄, 그 아래 이용약관, 개인정보 처리방침</td><td>Life Reset</td></tr>
+</table></div>
+</div>
