@@ -1,6 +1,10 @@
 <style>
 .memo{margin:12px 24px 0;padding:14px 16px;border-radius:12px;background:var(--ask-soft)}
-.memo h2{font-size:14px;font-weight:700;color:var(--ask-text);margin:0 0 8px}
+.memo .hd{display:flex;align-items:center;gap:8px;width:100%;text-align:left;font-size:14px;font-weight:700;color:var(--ask-text);margin:0}
+.memo .hd .cnt{font-weight:600;font-size:12px;padding:1px 7px;border-radius:999px;background:var(--ask);color:#fff}
+.memo .hd .arw{margin-left:auto;font-size:12px;font-weight:600}
+.memo .body{margin-top:8px}
+.memo .body[hidden]{display:none}
 .memo .row{display:flex;gap:8px}
 .memo textarea{flex:1;min-height:56px;resize:vertical;font:inherit;font-size:14px;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
 .memo .send{align-self:flex-end;padding:8px 14px;border-radius:8px;background:var(--ask);color:#fff;font-weight:600;font-size:14px}
@@ -13,41 +17,83 @@
 .memo li .st.new{background:var(--ask);color:#fff}
 .memo li .st.done{background:var(--ok-soft);color:var(--ok-text)}
 .memo li .txt{white-space:pre-wrap;word-break:break-word}
+.memo li .txt.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .memo li .rep{margin-top:4px;padding-left:8px;border-left:2px solid var(--line);color:var(--muted);white-space:pre-wrap}
-.memo li .del{margin-left:auto;color:var(--faint);font-size:12px}
+.memo li .acts{margin-left:auto;display:flex;gap:10px}
+.memo li .acts button,.memo li .tog{color:var(--faint);font-size:12px}
+.memo li .tog{margin-top:4px;color:var(--ask-text)}
+.memo li .ed{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.memo li .ed textarea{min-height:120px}
+.memo li .ed .btns{display:flex;gap:8px;justify-content:flex-end}
+.memo li .ed .btns button{padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;background:var(--raised);color:var(--body)}
+.memo li .ed .btns .save{background:var(--ask);color:#fff}
 .memo .more{margin-top:6px;font-size:13px;color:var(--ask-text)}
 </style>
 <section class="memo" id="memo" aria-label="Leader에게 메모">
-  <h2>Leader에게 메모</h2>
-  <div class="row"><textarea id="memoIn" placeholder="QA하면서 본 것, 내일 할 일을 적어 두세요. 매일 10시에 읽고 처리해요."></textarea><button class="send" id="memoSend">남기기</button></div>
-  <div class="msg" id="memoMsg">메모 칸을 불러오는 중이에요.</div>
-  <ul id="memoList"></ul>
-  <button class="more" id="memoMore" hidden>지난 메모 더 보기</button>
+  <button class="hd" id="memoHd" aria-expanded="true" aria-controls="memoBody">Leader에게 메모 <span class="cnt" id="memoCnt" hidden></span><span class="arw" id="memoArw">접기</span></button>
+  <div class="body" id="memoBody">
+    <div class="row"><textarea id="memoIn" placeholder="QA하면서 본 것, 내일 할 일을 적어 두세요. 매일 10시에 읽고 처리해요."></textarea><button class="send" id="memoSend">남기기</button></div>
+    <div class="msg" id="memoMsg">메모 칸을 불러오는 중이에요.</div>
+    <ul id="memoList"></ul>
+    <button class="more" id="memoMore" hidden>지난 메모 더 보기</button>
+  </div>
 </section>
 <script>
 (async function(){
   const $=id=>document.getElementById(id);
   const inp=$("memoIn"), btn=$("memoSend"), msg=$("memoMsg"), list=$("memoList"), more=$("memoMore");
+  const hd=$("memoHd"), body=$("memoBody"), arw=$("memoArw"), cnt=$("memoCnt");
+  hd.onclick=()=>{const open=body.hidden;body.hidden=!open;hd.setAttribute("aria-expanded",String(open));arw.textContent=open?"접기":"펼치기";};
   btn.disabled=true;
   let showAll=false, rows=[];
+  const opened=new Set();
+  let editId=null, draft="";
   const t=setTimeout(()=>{msg.textContent="메모 칸을 불러오지 못했어요. 새로고침해 주세요.";},10000);
   const db=await claude.use("db");
   if(!db){clearTimeout(t);msg.textContent="이 화면에서는 메모를 남길 수 없어요. claude.ai에서 열어 주세요.";return;}
   const col=db.collection("memos");
   const fmt=ms=>{const d=new Date(ms);return (d.getMonth()+1)+"-"+d.getDate()+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");};
   const ST={new:"새 메모",read:"읽음",done:"처리함"};
+  const isLong=s=>(s||"").length>160||(s||"").split("\n").length>3;
   function render(){
     list.textContent="";
+    const nNew=rows.filter(r=>(r.status||"new")==="new").length;
+    cnt.hidden=!nNew; cnt.textContent="새 메모 "+nNew;
     const vis=showAll?rows:rows.filter(r=>r.status!=="done").concat(rows.filter(r=>r.status==="done").slice(0,3));
     for(const r of vis){
       const li=document.createElement("li");
       const meta=document.createElement("div");meta.className="meta";
       const st=document.createElement("span");st.className="st "+(r.status||"new");st.textContent=ST[r.status]||ST.new;
-      const at=document.createElement("span");at.textContent=fmt(r.at);
+      const at=document.createElement("span");at.textContent=fmt(r.at)+(r.edited?" (고침)":"");
       meta.append(st,at);
-      if((r.status||"new")==="new"){const d=document.createElement("button");d.className="del";d.textContent="지우기";d.onclick=async()=>{d.disabled=true;try{await col.doc(r.id).delete();}catch(e){d.disabled=false;msg.textContent="지우지 못했어요.";}};meta.append(d);}
-      const tx=document.createElement("div");tx.className="txt";tx.textContent=r.text||"";
-      li.append(meta,tx);
+      const isNew=(r.status||"new")==="new";
+      if(editId!==r.id){
+        const acts=document.createElement("span");acts.className="acts";
+        const e=document.createElement("button");e.textContent="고치기";e.onclick=()=>{editId=r.id;draft=r.text||"";render();};
+        acts.append(e);
+        if(isNew){const d=document.createElement("button");d.textContent="지우기";d.onclick=async()=>{if(!d.dataset.sure){d.dataset.sure="1";d.textContent="한 번 더 누르면 지워요";return;}d.disabled=true;try{await col.doc(r.id).delete();}catch(err){d.disabled=false;msg.textContent="지우지 못했어요.";}};
+        acts.append(d);}meta.append(acts);
+      }
+      li.append(meta);
+      if(editId===r.id){
+        const ed=document.createElement("div");ed.className="ed";
+        const ta=document.createElement("textarea");ta.value=draft;ta.oninput=()=>{draft=ta.value;};
+        const bs=document.createElement("div");bs.className="btns";
+        const c=document.createElement("button");c.textContent="취소";c.onclick=()=>{editId=null;render();};
+        const s=document.createElement("button");s.className="save";s.textContent="저장";
+        s.onclick=async()=>{const v=draft.trim();if(!v)return;s.disabled=true;try{await col.doc(r.id).update({text:v,edited:Date.now()});editId=null;msg.textContent="고쳤어요.";render();}catch(err){s.disabled=false;msg.textContent="고치지 못했어요. 다시 눌러 주세요.";}};
+        bs.append(c,s);ed.append(ta,bs);li.append(ed);
+      }else{
+        const tx=document.createElement("div");tx.className="txt";tx.textContent=r.text||"";
+        li.append(tx);
+        if(isLong(r.text)){
+          const open=opened.has(r.id);
+          if(!open) tx.classList.add("clamp");
+          const tg=document.createElement("button");tg.className="tog";tg.textContent=open?"접기":"펼치기";
+          tg.onclick=()=>{open?opened.delete(r.id):opened.add(r.id);render();};
+          li.append(tg);
+        }
+      }
       if(r.reply){const rp=document.createElement("div");rp.className="rep";rp.textContent="Leader: "+r.reply;li.append(rp);}
       list.append(li);
     }
@@ -58,6 +104,7 @@
   col.orderBy("at","desc").limit(100).onSnapshot(s=>{
     clearTimeout(t);
     rows=s.docs.map(d=>Object.assign({id:d.id},d.data()));
+    if(editId&&!rows.some(r=>r.id===editId)) editId=null;
     msg.textContent=rows.length?"":"아직 남긴 메모가 없어요.";
     btn.disabled=!inp.value.trim();
     render();
