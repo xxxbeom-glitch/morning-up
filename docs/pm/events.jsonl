@@ -1629,3 +1629,6 @@
 {"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-335", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["완료 조건 충족, 애매한 것은 결정함 D42~D46"]]}}
 {"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-329", "action": "comment", "changes": {"comments": [null, ["남은 결정 2가지 결정함 D40, D41로 사용자에게 올림"]]}}
 {"at": "2026-11-28 16:52:28", "by": "Leader", "id": "TSK-332", "action": "comment", "changes": {"comments": [null, ["사용자 피드백 결정함 D39로 받음"]]}}
+{"at": "2026-11-28 16:59:07", "by": "[디자인 52]", "id": "TSK-336", "action": "create", "changes": {"id": [null, "TSK-336"], "wbs": [null, "3.84"], "parent": [null, "TSK-003"], "title": [null, "피그마 보드 장 간격과 구역 묶음 정리"], "area": [null, "design"], "owner": [null, "[디자인 52]"], "reviewer": [null, "Leader"], "status": [null, "todo"]}}
+{"at": "2026-11-28 16:59:23", "by": "[디자인 52]", "id": "TSK-336", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
+{"at": "2026-11-28 17:02:49", "by": "[디자인 52]", "id": "TSK-336", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["화면 페이지 구역 22개 장 간격(80/160/안쪽 80)과 구역 크기 맞춤, 확정 1~9 x 0에 200 간격으로 다시 쌓음(6 잠들기 제자리로), 작업 중 덩어리 x 7480(800 띄움), 오늘 모음 구역 셋 안 간격, 보관은 겹침 없음. 겹침 0 확인"]]}}
