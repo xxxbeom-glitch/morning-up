@@ -1584,3 +1584,6 @@
 {"at": "2026-11-28 15:50:57", "by": "Leader", "id": "TSK-322", "action": "set", "changes": {"decisions": [[], ["225"]]}}
 {"at": "2026-11-28 15:50:58", "by": "Leader", "id": "TSK-322", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["사용자 확정(결정 225)"]]}}
 {"at": "2026-11-28 16:00:31", "by": "Leader", "id": "TSK-328", "action": "create", "changes": {"id": [null, "TSK-328"], "wbs": [null, "2.70"], "parent": [null, "TSK-002"], "title": [null, "좀비모드 알람 끄기 버튼 n초 뒤 활성화 아이디어 검토"], "area": [null, "plan"], "owner": [null, "Leader"], "reviewer": [null, "Leader"], "status": [null, "todo"], "acceptance": [[], ["디자인 일이 끝나고 여유 있을 때 검토만. 바로 적용하지 않음(11-28 사용자 대기 과제)"]]}}
+{"at": "2026-11-28 16:07:57", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["T6 질문 줄 23곳을 Q 칸과 제목 칸으로 나눔. 두 줄 질문 6곳의 둘째 줄이 첫 줄 글자 시작선에 맞음. 화면 높이 2268 그대로"]]}}
+{"at": "2026-11-28 16:13:17", "by": "Leader", "id": "TSK-327", "action": "set", "changes": {"decisions": [[], ["228", "229", "230"]]}}
+{"at": "2026-11-28 16:13:17", "by": "Leader", "id": "TSK-327", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["결정 228~230 반영본(버전 2) 확인"]]}}
