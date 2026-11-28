@@ -1548,3 +1548,4 @@
 {"at": "2026-11-28 14:34:11", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["사용자: T2와 T6 아코디언 카드 규칙 통일(버튼 위 16, 라인형 버튼, 하나만 펼침, 카드 사이 12), 확정 규칙과 어긋난 곳 점검"]]}}
 {"at": "2026-11-28 14:35:27", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["아코디언 카드 규칙 T2, T6에 통일하고 design-system.md에 기록. 확정 설정 화면 규칙 점검 표 Leader에 보고"]]}}
 {"at": "2026-11-28 14:36:47", "by": "[디자인 42]", "id": "TSK-319", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["알람 편집 새 시안 5장(S0 구독 전/뒤 미루기 한 줄, 미루기 시트 2장, 깊은 밤 구독 안내 시트)을 결정 필요 안 작은 구역 1380:10827에 올림. 레퍼런스 아티팩트 NZVQLTaSMxW7A65exygRRX"]]}}
+{"at": "2026-11-28 14:38:55", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["아코디언 글자 세 단계 T2 다섯 장, T6 반영"]]}}
