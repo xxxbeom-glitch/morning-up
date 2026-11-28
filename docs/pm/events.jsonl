@@ -1571,3 +1571,4 @@
 {"at": "2026-11-28 15:02:39", "by": "[디자인 44]", "id": "TSK-323", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["Mobbin 상품 소개 화면 20장을 방향 4개(A 상품 이름 로고, B 큰 그림 환영, C 굵은 문장 제목, D 기능 카드)로 묶어 아티팩트에 올림: https://claude.ai/artifact/BebMdukoe2JXdWsqaUvJWw . 추천 A+D, 지난 세 아티팩트와 앱 안 겹침, 커밋 94e6f2f"]]}}
 {"at": "2026-11-28 15:02:54", "by": "Leader", "id": "TSK-323", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["소개 화면 20장, A+D 추천 받음"]]}}
 {"at": "2026-11-28 15:05:21", "by": "Leader", "id": "TSK-324", "action": "set", "changes": {"status": ["todo", "review"], "commits": [[], ["515f2af"]]}}
+{"at": "2026-11-28 15:05:45", "by": "Leader", "id": "TSK-324", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["진단 표, 줄 모양 아티팩트, 아이콘 뺀 T1 두 장 받음"]]}}
