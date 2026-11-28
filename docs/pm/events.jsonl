@@ -1465,3 +1465,8 @@
 {"at": "2026-11-28 10:50:46", "by": "[디자인 31]", "id": "TSK-309", "action": "comment", "changes": {"comments": [null, ["11-28 마무리: Pop Quiz A안을 실제 시트 S1-6A 1218:21244에 반영(칩 줄 1292:22719, 1292:22720), B안 1290:29413은 '[보관] 안 씀'. S9 미루기 1218:20263 횟수를 Count Stepper 1292:22727로. 화면 페이지 옛 S0 복제본 36장에서 다시 울림 줄 지움, 미루기 값 4곳 '번'. T3 Dark 1084:13890 캡션 규칙 적용."]]}}
 {"at": "2026-11-28 11:01:58", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"owner": ["[디자인 31]", "[디자인 32]"]}}
 {"at": "2026-11-28 11:01:58", "by": "Leader", "id": "TSK-309", "action": "approve", "changes": {"status": ["waiting_user", "done"]}}
+{"at": "2026-11-28 11:04:44", "by": "[디자인 32]", "id": "TSK-310", "action": "claim", "changes": {"status": ["todo", "doing"]}}
+{"at": "2026-11-28 11:11:07", "by": "[디자인 32]", "id": "TSK-310", "action": "submit", "changes": {"status": ["doing", "waiting_user"], "comments": [null, ["피그마 11-27 모음 오른쪽: 설정 세 층 구독 전 1296:22536, 구독 뒤 1296:22680, 앱 정보 1296:22821, 알람 자동 해제 시트 1296:22960, 레퍼런스 4장 1296:23097. T1-3과 한 주 시작 줄 보관 표시. 기록 5d94500. Crazy Mode 카드 문구는 자리 글자"]]}}
+{"at": "2026-11-28 11:13:48", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["사용자 11-28 추천대로: 앱 정보 안 '버전' 줄 넣기, 자주 묻는 질문과 앱 정보 한 카드로 합치기, 자동 해제 카운트 이름 '시간'. Crazy Mode 카드 문구는 아직 사용자 답 전(자리 글자 유지)"]]}}
+{"at": "2026-11-28 11:13:49", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"owner": ["[디자인 32]", "[디자인 33]"], "status": ["waiting_user", "in_progress"]}}
+{"at": "2026-11-28 11:13:51", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"status": ["in_progress", "doing"]}}
