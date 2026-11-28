@@ -1523,3 +1523,4 @@
 {"at": "2026-11-28 13:47:51", "by": "Leader", "id": "TSK-317", "action": "set", "changes": {"owner": ["[디자인 38]", "[디자인 39]"]}}
 {"at": "2026-11-28 13:50:02", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["[디자인 39] local_ef7c659f-45a7-481a-8e5a-129d5bcab018 이어받음"]]}}
 {"at": "2026-11-28 14:04:30", "by": "[디자인 39]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["1차 5장(언어 시트, 구독 관리, 자동 해제 안 함, 앱 정보 약관 둘로, 이어폰 팝업)을 결정 필요 1363:17039에 올림. 레퍼런스 아티팩트 PahCyuYcdLPVZSSFpuKAve. 남은 것: T2 알람 울림 최적화, T6 FAQ, 전원 종료 방지, 다음 알람 항상 표시, 날씨 테마"]]}}
+{"at": "2026-11-28 14:12:22", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["사용자 1차 5장 추천대로 확정(결정 211). 2차 T2, T6 진행"]]}}
