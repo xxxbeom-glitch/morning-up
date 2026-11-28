@@ -471,13 +471,257 @@ td a{color:var(--primary-text);text-decoration:none;font-weight:600}
 @keyframes labPop{40%{scale:1.08}}
 .ctl-rec{margin:0;font-weight:600;color:var(--fg)}
 
+
+/* 설정 설명 그림 (타입 5 그림 칸 312x176) */
+.gsec .spot{gap:10px}
+.gpair{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;align-items:start}
+.gst{position:relative;width:312px;max-width:100%;height:176px;margin:0 auto;border-radius:20px;background:var(--bg);overflow:hidden}
+.gst *{box-sizing:border-box}
+.paused .gst *{animation-play-state:paused!important}
+@media (prefers-reduced-motion: reduce){.gst *{animation-play-state:paused}.running .gst *{animation-play-state:running}}
+.gst .cam{position:absolute;inset:0;transform-origin:0 0}
+.gph{position:absolute;left:114px;top:12px;width:84px;height:152px;border-radius:16px;background:var(--card);box-shadow:0 0 0 3px var(--sk2);overflow:hidden}
+.gph>*{position:absolute}
+.gst .ico{width:100%;height:100%}
+.gst .touch{z-index:9;left:0;top:0}
+.gdim{inset:0;background:rgba(11,15,22,.74);opacity:0}
+.lt{color:#F2F5FA}
+.ring{width:100%;height:100%;transform:rotate(-90deg);fill:none;stroke-width:3}
+.ring .trk{stroke:rgba(242,245,250,.2)}
+.ring .prg{stroke:#8AB8FB;stroke-linecap:round;stroke-dasharray:100.6;stroke-dashoffset:100.6}
+.gbtn{left:12px;width:60px;border-radius:10px}
+.gtime{left:0;right:0;top:28px;height:22px;overflow:hidden;font-weight:700;font-size:16px;color:var(--fg);text-align:center;font-variant-numeric:tabular-nums}
+.gtime span{display:block;height:22px;line-height:22px}
+.ghd{left:12px;top:12px;height:7px;border-radius:4px;background:var(--sk)}
+
+/* g1 미루기 6000 */
+.g1 .cam{animation:g1cam 6000ms infinite}
+@keyframes g1cam{0%,22%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}32%,46%{transform:translate(-156px,-142px) scale(2);animation-timing-function:cubic-bezier(.2,0,0,1)}56%,100%{transform:translate(0px,0px) scale(1)}}
+.g1 .gph{animation:phUp 6000ms infinite}
+@keyframes phUp{0%{transform:translateY(170px);opacity:1;animation-timing-function:var(--sp-gentle)}9%,92%{transform:translateY(0);opacity:1}97%,100%{transform:translateY(0);opacity:0}}
+.g1 .bl{left:33px;top:8px;width:18px;height:18px;color:var(--primary);animation:g1bl 6000ms infinite}
+@keyframes g1bl{0%,40%{opacity:1;transform:scale(1)}43%,79%{opacity:0;transform:scale(.4);animation-timing-function:var(--sp-bouncy)}89%,100%{opacity:1;transform:scale(1)}}
+.bl .ico{transform-origin:50% 15%;animation:ringSw 6000ms infinite}
+@keyframes ringSw{0%,9%{transform:rotate(0)}11%{transform:rotate(12deg)}13%{transform:rotate(-12deg)}15%{transform:rotate(8deg)}17%{transform:rotate(-8deg)}19%,82%{transform:rotate(0)}84%{transform:rotate(12deg)}86%{transform:rotate(-12deg)}88%{transform:rotate(6deg)}90%,100%{transform:rotate(0)}}
+.g1 .gtime div{animation:g1t 6000ms infinite}
+@keyframes g1t{0%,78%{transform:translateY(0);animation-timing-function:var(--sp-bouncy)}88%,100%{transform:translateY(-22px)}}
+.g1 .snz{top:94px;height:18px;background:var(--sk);animation:g1snz 6000ms infinite}
+@keyframes g1snz{0%,37.9%{transform:scale(1);background:var(--sk)}39%{transform:scale(.9);background:var(--primary-soft);animation-timing-function:var(--sp-bouncy)}49%,100%{transform:scale(1);background:var(--sk)}}
+.g1 .mn{top:118px;height:20px;background:var(--primary)}
+.g1 .touch{opacity:0;animation:g1tc 6000ms infinite}
+@keyframes g1tc{0%,32%{opacity:0;transform:translate(170px,150px)}36%{opacity:1;transform:translate(143px,102px)}38.5%{transform:translate(143px,102px) scale(.8)}40.5%{opacity:1;transform:translate(143px,102px)}44%,100%{opacity:0;transform:translate(143px,102px)}}
+.g1 .gdim{animation:g1dim 6000ms infinite}
+@keyframes g1dim{0%,43%{opacity:0}47%,78%{opacity:1}82%,100%{opacity:0}}
+.g1 .mo{left:22px;top:54px;width:40px;height:40px;transform:scale(0);animation:g1mo 6000ms infinite}
+.g1 .mo .ico{position:absolute;left:12px;top:12px;width:16px;height:16px}
+@keyframes g1mo{0%,45%{transform:scale(0);animation-timing-function:var(--sp-bouncy)}55%,77%{transform:scale(1);opacity:1}80%,100%{transform:scale(1);opacity:0}}
+.g1 .prg{animation:g1prg 6000ms infinite}
+@keyframes g1prg{0%,50%{stroke-dashoffset:100.6}77%,100%{stroke-dashoffset:0}}
+
+/* g2 다시 잠들기 방지 7000 */
+.g2 .gph{animation:phUp2 7000ms infinite}
+@keyframes phUp2{0%{transform:translateY(170px);opacity:1;animation-timing-function:var(--sp-gentle)}8%,93%{transform:translateY(0);opacity:1}97%,100%{opacity:0}}
+.g2 .cam{animation:g2cam 7000ms infinite}
+@keyframes g2cam{0%,55%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}64%,80%{transform:translate(-140px,-77px) scale(1.9);animation-timing-function:cubic-bezier(.2,0,0,1)}88%,100%{transform:translate(0px,0px) scale(1)}}
+.g2 .bl{left:30px;top:44px;width:24px;height:24px;color:var(--primary);animation:g2bl 7000ms infinite}
+.g2 .bl .ico{animation:ringSw2 7000ms infinite}
+@keyframes ringSw2{0%,8%{transform:rotate(0)}9.5%{transform:rotate(12deg)}11%{transform:rotate(-12deg)}12.5%{transform:rotate(6deg)}14%,82%{transform:rotate(0)}83.5%{transform:rotate(12deg)}85%{transform:rotate(-12deg)}86.5%{transform:rotate(6deg)}88%,100%{transform:rotate(0)}}
+@keyframes g2bl{0%,16%{opacity:1;transform:scale(1)}17.5%,80%{opacity:0;transform:scale(.4);animation-timing-function:var(--sp-bouncy)}88%,100%{opacity:1;transform:scale(1)}}
+.g2 .ck{left:30px;top:44px;width:24px;height:24px;color:var(--success);opacity:0;animation:g2ck 7000ms infinite}
+@keyframes g2ck{0%,17%{opacity:0;transform:scale(0);animation-timing-function:var(--sp-bouncy)}18%{opacity:1}25%{opacity:1;transform:scale(1)}28%,100%{opacity:0;transform:scale(1)}}
+.g2 .mn{top:118px;height:20px;background:var(--primary);animation:g2mn 7000ms infinite}
+@keyframes g2mn{0%,14.9%{transform:scale(1)}16%{transform:scale(.9);animation-timing-function:var(--sp-bouncy)}24%,100%{transform:scale(1)}}
+.g2 .touch{opacity:0;animation:g2tc 7000ms infinite}
+@keyframes g2tc{0%,10%{opacity:0;transform:translate(170px,175px)}14%{opacity:1;transform:translate(143px,127px)}15.5%{transform:translate(143px,127px) scale(.8)}17%{opacity:1;transform:translate(143px,127px)}20%,100%{opacity:0;transform:translate(143px,127px)}}
+.g2 .gdim{animation:g2dim 7000ms infinite}
+@keyframes g2dim{0%,27%{opacity:0}31%,80%{opacity:1}84%,100%{opacity:0}}
+.g2 .mo{left:22px;top:46px;width:40px;height:40px;opacity:0;animation:g2mo 7000ms infinite}
+.g2 .mo .ico{position:absolute;left:12px;top:12px;width:16px;height:16px}
+@keyframes g2mo{0%,29%{opacity:0;transform:scale(.6);animation-timing-function:var(--sp-gentle)}36%,52%{opacity:1;transform:scale(1)}55%,100%{opacity:0;transform:scale(1)}}
+.g2 .prg{animation:g2prg 7000ms infinite}
+@keyframes g2prg{0%,33%{stroke-dashoffset:100.6}52%,100%{stroke-dashoffset:0}}
+.g2 .q{left:8px;top:42px;width:68px;height:70px;border-radius:12px;background:var(--card);padding:8px;display:flex;flex-direction:column;gap:6px;transform:translateY(120px);animation:g2q 7000ms infinite}
+@keyframes g2q{0%,54%{transform:translateY(120px);opacity:1;animation-timing-function:var(--sp-bouncy)}63%,80%{transform:translateY(0);opacity:1}84%,100%{transform:translateY(0);opacity:0}}
+.g2 .q i{display:block;height:6px;border-radius:3px;background:var(--sk)}
+.g2 .q b{display:block;height:14px;border-radius:7px;background:var(--primary);margin-top:auto}
+.g2 .cd{height:3px;border-radius:2px;background:var(--sk);overflow:hidden}
+.g2 .cd u{display:block;height:100%;background:var(--error);transform-origin:left;animation:g2cd 7000ms infinite linear}
+@keyframes g2cd{0%,64%{transform:scaleX(1)}80%,100%{transform:scaleX(0)}}
+
+/* g3 다시 울림 6500 */
+.g3 .gph{animation:phIn 6500ms infinite}
+@keyframes phIn{0%{transform:translateX(220px);opacity:1;animation-timing-function:var(--sp-gentle)}8%,92%{transform:translateX(0);opacity:1}97%,100%{opacity:0}}
+.g3 .bl{left:24px;top:40px;width:36px;height:36px;color:var(--primary);animation:g3bl 6500ms infinite}
+.g3 .bl .ico{animation:ringSw3 6500ms infinite}
+@keyframes ringSw3{0%,9%{transform:rotate(0)}11%{transform:rotate(12deg)}13%{transform:rotate(-12deg)}15%{transform:rotate(6deg)}17%,57%{transform:rotate(0)}59%{transform:rotate(12deg)}61%{transform:rotate(-12deg)}63%{transform:rotate(6deg)}65%,100%{transform:rotate(0)}}
+@keyframes g3bl{0%,31%{opacity:1;transform:scale(1)}34%,51%{opacity:.25;transform:scale(.8);color:var(--muted);animation-timing-function:var(--sp-bouncy)}60%,79%{opacity:1;transform:scale(1);color:var(--primary)}82%,100%{opacity:.25;transform:scale(.8);color:var(--muted)}}
+.g3 .bar{left:12px;top:112px;width:60px;height:6px;border-radius:3px;background:var(--sk);overflow:hidden}
+.g3 .bar u{display:block;height:100%;background:var(--primary);transform-origin:left;animation:g3bar 6500ms infinite}
+@keyframes g3bar{0%,9%{transform:scaleX(1);background:var(--primary);animation-timing-function:linear}31%{transform:scaleX(0);background:var(--primary)}32%{transform:scaleX(0);background:var(--muted);animation-timing-function:linear}51%{transform:scaleX(1);background:var(--muted)}52%{transform:scaleX(1);background:var(--primary);animation-timing-function:linear}79%{transform:scaleX(0);background:var(--primary)}80%{transform:scaleX(0);background:var(--muted);animation-timing-function:linear}100%{transform:scaleX(.5);background:var(--muted)}}
+.g3 .dots{left:76px;top:56px;display:flex;flex-direction:column;gap:12px}
+.g3 .dots i{width:10px;height:10px;border-radius:50%;background:var(--sk2)}
+.g3 .dots i:nth-child(1){animation:g3d1 6500ms infinite}.g3 .dots i:nth-child(2){animation:g3d2 6500ms infinite}.g3 .dots i:nth-child(3){animation:g3d3 6500ms infinite}
+@keyframes g3d1{0%,8%{background:var(--sk2);transform:scale(.6);animation-timing-function:var(--sp-bouncy)}17%,94%{background:var(--primary);transform:scale(1)}100%{background:var(--sk2)}}
+@keyframes g3d2{0%,52%{background:var(--sk2);transform:scale(.6);animation-timing-function:var(--sp-bouncy)}61%,94%{background:var(--primary);transform:scale(1)}100%{background:var(--sk2)}}
+@keyframes g3d3{0%,100%{background:var(--sk2);transform:scale(.6)}}
+.g3 .rp{left:216px;top:72px;width:28px;height:28px;color:var(--muted);animation:g3rp 6500ms infinite}
+@keyframes g3rp{0%,32%{transform:rotate(0);animation-timing-function:var(--sp-gentle)}44%,100%{transform:rotate(180deg)}}
+
+/* g4 볼륨 천천히 올리기 5500 */
+.g4 .gph{animation:phPop 5500ms infinite}
+@keyframes phPop{0%{transform:scale(.85);opacity:0;animation-timing-function:var(--sp-gentle)}9%,92%{transform:scale(1);opacity:1}97%,100%{opacity:0}}
+.g4 .cam{animation:g4cam 5500ms infinite}
+@keyframes g4cam{0%,12%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}22%,80%{transform:translate(-187px,-147px) scale(2.2);animation-timing-function:cubic-bezier(.2,0,0,1)}90%,100%{transform:translate(0px,0px) scale(1)}}
+.g4 .sp{left:28px;top:36px;width:28px;height:28px;color:var(--fg)}
+.g4 .sp .w1{animation:g4w1 5500ms infinite}.g4 .sp .w2{animation:g4w2 5500ms infinite}
+@keyframes g4w1{0%,40%{opacity:.15}48%,90%{opacity:1}96%,100%{opacity:.15}}
+@keyframes g4w2{0%,58%{opacity:.15}66%,90%{opacity:1}96%,100%{opacity:.15}}
+.g4 .vb{left:15px;top:92px;width:54px;height:24px;display:flex;gap:3px;align-items:flex-end}
+.g4 .vb i{flex:1;border-radius:2px;background:var(--sk2);transform-origin:bottom;animation:g4v 5500ms infinite;animation-delay:calc(var(--i)*420ms)}
+@keyframes g4v{0%,24%{background:var(--sk2);transform:scaleY(1);animation-timing-function:var(--sp-bouncy)}25%{background:var(--primary);transform:scaleY(.6);animation-timing-function:var(--sp-bouncy)}34%,72%{background:var(--primary);transform:scaleY(1)}80%,100%{background:var(--sk2);transform:scaleY(1)}}
+
+/* g5 진동 4000 */
+.g5 .gph{animation:phPop5 4000ms infinite,g5sh 4000ms infinite}
+@keyframes phPop5{0%{opacity:0;animation-timing-function:var(--sp-gentle)}8%,94%{opacity:1}100%{opacity:0}}
+@keyframes g5sh{0%,14%{translate:0}15%{translate:-2px}16%{translate:2px}17%{translate:-2px}18%{translate:2px}19%{translate:-2px}20%{translate:2px}21%{translate:-2px}22%{translate:2px}23%,31%{translate:0}32%{translate:-2px}33%{translate:2px}34%{translate:-2px}35%,41%{translate:0}42%{translate:-2px}43%{translate:2px}44%{translate:-2px}45%{translate:2px}46%{translate:-2px}47%{translate:2px}48%{translate:-2px}49%{translate:2px}50%,100%{translate:0}}
+.g5 .vl{top:64px;width:3px;height:24px;border-radius:2px;background:var(--primary);opacity:0;animation:g5vl 4000ms infinite}
+@keyframes g5vl{0%,14%{opacity:0}15%,22%{opacity:1}23%,31%{opacity:0}32%,34%{opacity:1}35%,41%{opacity:0}42%,49%{opacity:1}50%,100%{opacity:0}}
+.g5 .pt{left:222px;top:80px;display:flex;gap:5px;align-items:center}
+.g5 .pt i{height:10px;border-radius:5px;background:var(--sk2)}
+.g5 .pt i:nth-child(1){width:32px;animation:g5p1 4000ms infinite}.g5 .pt i:nth-child(2){width:12px;animation:g5p2 4000ms infinite}.g5 .pt i:nth-child(3){width:32px;animation:g5p3 4000ms infinite}
+@keyframes g5p1{0%,14%{background:var(--sk2)}15%,22%{background:var(--primary)}24%,100%{background:var(--sk2)}}
+@keyframes g5p2{0%,31%{background:var(--sk2)}32%,34%{background:var(--primary)}36%,100%{background:var(--sk2)}}
+@keyframes g5p3{0%,41%{background:var(--sk2)}42%,49%{background:var(--primary)}51%,100%{background:var(--sk2)}}
+.g5 .vi{left:56px;top:70px;width:32px;height:32px;color:var(--muted)}
+.g5 .bl{left:30px;top:44px;width:24px;height:24px;color:var(--primary)}
+
+/* g6 Quick Math 7000 */
+.g6 .gph{animation:phUp6 7000ms infinite}
+@keyframes phUp6{0%{transform:translateY(170px);opacity:1;animation-timing-function:var(--sp-gentle)}7%,93%{transform:translateY(0);opacity:1}97%,100%{opacity:0}}
+.g6 .cam{animation:g6cam 7000ms infinite}
+@keyframes g6cam{0%,8%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}16%,26%{transform:translate(-125px,-27px) scale(1.8);animation-timing-function:cubic-bezier(.2,0,0,1)}34%,54%{transform:translate(-113px,-116px) scale(1.7);animation-timing-function:cubic-bezier(.2,0,0,1)}62%,74%{transform:translate(-125px,-27px) scale(1.8);animation-timing-function:cubic-bezier(.2,0,0,1)}84%,100%{transform:translate(0px,0px) scale(1)}}
+.g6 .pd{left:30px;top:10px;display:flex;gap:4px}
+.g6 .pd i{width:6px;height:6px;border-radius:50%;background:var(--sk2)}
+.g6 .pd i:first-child{background:var(--primary)}
+.g6 .pd i:nth-child(2){animation:g6pd 7000ms infinite}
+@keyframes g6pd{0%,82%{background:var(--sk2);transform:scale(.6);animation-timing-function:var(--sp-bouncy)}90%,100%{background:var(--primary);transform:scale(1)}}
+.g6 .eq{left:0;right:0;top:24px;height:20px;overflow:hidden}
+.g6 .eq div{display:flex;animation:g6eq 7000ms infinite}
+.g6 .eq span{flex:none;width:84px;text-align:center;font-weight:700;font-size:13px;line-height:20px;color:var(--fg);font-variant-numeric:tabular-nums}
+@keyframes g6eq{0%,78%{transform:translateX(0);animation-timing-function:cubic-bezier(.2,0,0,1)}86%,100%{transform:translateX(-84px)}}
+.g6 .an{left:17px;top:48px;width:50px;height:22px;border-radius:8px;background:var(--sk);display:flex;align-items:center;justify-content:center;gap:1px;font-weight:700;font-size:13px;color:var(--fg);animation:g6an 7000ms infinite}
+@keyframes g6an{0%,63%{background:var(--sk)}65%,78%{background:var(--success);color:#FFFFFF}84%,100%{background:var(--sk);color:var(--fg)}}
+.g6 .an span{opacity:0}
+.g6 .an span:nth-child(1){animation:g6a1 7000ms infinite}.g6 .an span:nth-child(2){animation:g6a2 7000ms infinite}
+@keyframes g6a1{0%,40%{opacity:0;transform:translateY(8px);animation-timing-function:var(--sp-bouncy)}41%{opacity:1}50%,80%{opacity:1;transform:translateY(0)}82%,100%{opacity:0}}
+@keyframes g6a2{0%,50%{opacity:0;transform:translateY(8px);animation-timing-function:var(--sp-bouncy)}51%{opacity:1}60%,80%{opacity:1;transform:translateY(0)}82%,100%{opacity:0}}
+.g6 .kp{left:12px;top:82px;width:60px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.g6 .kp i{height:14px;border-radius:4px;background:var(--sk);font-style:normal;font-size:8px;line-height:14px;text-align:center;color:var(--muted);font-weight:700}
+.g6 .kp i.k1{animation:g6k1 7000ms infinite}.g6 .kp i.k9{animation:g6k9 7000ms infinite}
+@keyframes g6k1{0%,38.9%{transform:scale(1);background:var(--sk)}40%{transform:scale(.85);background:var(--primary-soft);animation-timing-function:var(--sp-bouncy)}48%,100%{transform:scale(1);background:var(--sk)}}
+@keyframes g6k9{0%,48.9%{transform:scale(1);background:var(--sk)}50%{transform:scale(.85);background:var(--primary-soft);animation-timing-function:var(--sp-bouncy)}58%,100%{transform:scale(1);background:var(--sk)}}
+.g6 .touch{opacity:0;animation:g6tc 7000ms infinite}
+@keyframes g6tc{0%,34%{opacity:0;transform:translate(190px,170px)}38%{opacity:1;transform:translate(121px,88px)}39.5%{transform:translate(121px,88px) scale(.8)}41%{transform:translate(121px,88px)}47%{transform:translate(169px,124px)}49.5%{transform:translate(169px,124px) scale(.8)}51%{opacity:1;transform:translate(169px,124px)}55%,100%{opacity:0;transform:translate(169px,124px)}}
+.g6 .ck{left:58px;top:42px;width:16px;height:16px;border-radius:50%;background:var(--card);color:var(--success);padding:3px;transform:scale(0);animation:g6ck 7000ms infinite}
+@keyframes g6ck{0%,64%{transform:scale(0);animation-timing-function:var(--sp-bouncy)}72%,79%{transform:scale(1);opacity:1}82%,100%{transform:scale(1);opacity:0}}
+
+/* g7 캐치미 5000 */
+.g7 .gph{animation:phUp7 5000ms infinite}
+@keyframes phUp7{0%{transform:translateY(170px);opacity:1;animation-timing-function:var(--sp-gentle)}8%,93%{transform:translateY(0);opacity:1}97%,100%{opacity:0}}
+.g7 .cam{animation:g7cam 5000ms infinite}
+@keyframes g7cam{0%,68%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}76%,86%{transform:translate(-125px,-153px) scale(1.8);animation-timing-function:cubic-bezier(.2,0,0,1)}94%,100%{transform:translate(0px,0px) scale(1)}}
+.g7 .cb{left:0;top:0;width:50px;height:20px;border-radius:10px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#FFFFFF;animation:g7mv 5000ms infinite}
+.g7 .cb.gh{opacity:.22;animation-delay:50ms}
+.g7 .cb .ico{width:12px;height:12px;opacity:0;animation:g7ci 5000ms infinite}
+.g7 .cb.gh .ico{display:none}
+@keyframes g7mv{0%,15%{transform:translate(17px,112px);background:var(--primary);animation-timing-function:var(--sp-fast)}20%,33%{transform:translate(30px,36px);animation-timing-function:var(--sp-fast)}38%,51%{transform:translate(6px,74px);animation-timing-function:var(--sp-fast)}56%,66%{transform:translate(17px,112px);background:var(--primary)}67%{transform:translate(17px,112px) scale(.88);animation-timing-function:var(--sp-bouncy)}68%{background:var(--success)}78%,92%{transform:translate(17px,112px) scale(1);background:var(--success)}100%{transform:translate(17px,112px);background:var(--primary)}}
+@keyframes g7ci{0%,67%{opacity:0;transform:scale(0);animation-timing-function:var(--sp-bouncy)}68%{opacity:1}78%,92%{opacity:1;transform:scale(1)}100%{opacity:0}}
+.g7 .touch{animation:g7tc 5000ms infinite ease-in-out}
+@keyframes g7tc{0%,6%{opacity:0;transform:translate(220px,176px)}9%{opacity:1}15%{transform:translate(143px,121px)}22%{transform:translate(150px,110px)}33%{transform:translate(156px,45px)}40%{transform:translate(160px,60px)}51%{transform:translate(132px,83px)}58%{transform:translate(140px,105px)}66%{transform:translate(143px,121px)}67%{transform:translate(143px,121px) scale(.8)}68.5%{opacity:1;transform:translate(143px,121px)}74%,100%{opacity:0;transform:translate(143px,121px)}}
+
+/* g8 좀비모드 7000 */
+.g8 .gph{animation:phPop8 7000ms infinite}
+@keyframes phPop8{0%{transform:scale(.85);opacity:0;animation-timing-function:var(--sp-gentle)}7%,93%{transform:scale(1);opacity:1}97%,100%{opacity:0}}
+.g8 .bl{left:30px;top:44px;width:24px;height:24px;color:var(--primary);animation:g8bl 7000ms infinite}
+@keyframes g8bl{0%,10.5%{opacity:1;transform:scale(1)}11.5%,25%{opacity:0;transform:scale(.3);animation-timing-function:var(--sp-bouncy)}33%,38.5%{opacity:1;transform:scale(1)}39.5%,53%{opacity:0;transform:scale(.3);animation-timing-function:var(--sp-bouncy)}61%,66.5%{opacity:1;transform:scale(1)}67.5%,100%{opacity:0;transform:scale(.3)}}
+.g8 .ck{left:30px;top:44px;width:24px;height:24px;color:var(--success);animation:g8ck 7000ms infinite}
+@keyframes g8ck{0%,11%{opacity:0;transform:scale(0) rotate(0)}12%{opacity:1;transform:scale(0);animation-timing-function:var(--sp-bouncy)}18%{opacity:1;transform:scale(1)}21%,39%{opacity:0;transform:scale(0) rotate(-90deg)}40%{opacity:1;transform:scale(0);animation-timing-function:var(--sp-bouncy)}46%{opacity:1;transform:scale(1)}49%,67%{opacity:0;transform:scale(0) rotate(-90deg)}68%{opacity:1;transform:scale(0);animation-timing-function:var(--sp-bouncy)}76%,92%{opacity:1;transform:scale(1.5)}96%,100%{opacity:0;transform:scale(1.5)}}
+.g8 .mn{top:118px;height:20px;background:var(--primary);animation:g8mn 7000ms infinite}
+@keyframes g8mn{0%,9.9%,37.9%,65.9%{transform:scale(1)}11%,39%,67%{transform:scale(.9);animation-timing-function:var(--sp-bouncy)}19%,47%,75%,100%{transform:scale(1)}}
+.g8 .gdim{animation:g8dim 7000ms infinite}
+@keyframes g8dim{0%,19%{opacity:0}22%,27%{opacity:.6}31%,47%{opacity:0}50%,55%{opacity:.6}59%,100%{opacity:0}}
+.g8 .touch{opacity:0;animation:g8tc 7000ms infinite}
+@keyframes g8tc{0%,6%{opacity:0;transform:translate(170px,175px)}9%{opacity:1;transform:translate(143px,127px)}10.5%{transform:translate(143px,127px) scale(.8)}12%{opacity:1;transform:translate(143px,127px)}14%,34%{opacity:0;transform:translate(143px,127px)}37%{opacity:1;transform:translate(143px,127px)}38.5%{transform:translate(143px,127px) scale(.8)}40%{opacity:1;transform:translate(143px,127px)}42%,62%{opacity:0;transform:translate(143px,127px)}65%{opacity:1;transform:translate(143px,127px)}66.5%{transform:translate(143px,127px) scale(.8)}68%{opacity:1;transform:translate(143px,127px)}70%,100%{opacity:0;transform:translate(143px,127px)}}
+.g8 .cnt{left:216px;top:72px;width:52px;height:32px;border-radius:16px;background:var(--card);display:flex;align-items:center;gap:6px;padding:0 10px;color:var(--muted);animation:g8cnt 7000ms infinite}
+@keyframes g8cnt{0%,67%{background:var(--card)}72%,94%{background:var(--success);color:#FFFFFF}100%{background:var(--card)}}
+.g8 .cnt .ico{width:14px;height:14px;flex:none}
+.g8 .cw{height:20px;overflow:hidden;font-weight:700;font-size:14px;line-height:20px;color:inherit;font-variant-numeric:tabular-nums}
+.g8 .cw div{animation:g8cw 7000ms infinite}
+.g8 .cw span{display:block;height:20px}
+@keyframes g8cw{0%,25%{transform:translateY(0);animation-timing-function:var(--sp-bouncy)}33%,53%{transform:translateY(-20px);animation-timing-function:var(--sp-bouncy)}61%,94%{transform:translateY(-40px)}100%{transform:translateY(0)}}
+.g8 .lp{left:46px;top:68px;width:40px;height:40px;color:var(--muted);animation:g8lp 7000ms infinite}
+@keyframes g8lp{0%,22%{transform:rotate(0);animation-timing-function:var(--sp-gentle)}32%,50%{transform:rotate(180deg);animation-timing-function:var(--sp-gentle)}60%,100%{transform:rotate(360deg)}}
+
+/* g9 권한 알림 팝업형 6000 */
+.g9 .gph{animation:phPop9 6000ms infinite}
+@keyframes phPop9{0%{opacity:0;transform:scale(.9);animation-timing-function:var(--sp-gentle)}7%,93%{opacity:1;transform:scale(1)}97%,100%{opacity:0}}
+.g9 .cam{animation:g9cam 6000ms infinite}
+@keyframes g9cam{0%,20%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}30%,42%{transform:translate(-220px,-147px) scale(2.2);animation-timing-function:cubic-bezier(.2,0,0,1)}52%,100%{transform:translate(0px,0px) scale(1)}}
+.g9 .sc{inset:0;background:rgba(11,15,22,.45);opacity:0;animation:g9sc 6000ms infinite}
+@keyframes g9sc{0%,9%{opacity:0}13%,41%{opacity:1}45%,100%{opacity:0}}
+.g9 .pp{left:8px;top:44px;width:68px;height:64px;border-radius:12px;background:var(--card);padding:7px 6px;opacity:0;animation:g9pp 6000ms infinite}
+@keyframes g9pp{0%,9%{opacity:0;transform:scale(.88);animation-timing-function:var(--sp-gentle)}11%{opacity:1}19%,40%{opacity:1;transform:scale(1);animation-timing-function:cubic-bezier(.3,0,.8,.15)}44%,100%{opacity:0;transform:scale(.95)}}
+.g9 .pp .ic{width:12px;height:12px;color:var(--primary);margin:0 auto 5px}
+.g9 .pp i{display:block;height:5px;border-radius:3px;background:var(--sk);margin:0 auto 4px}
+.g9 .pp .bt{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:4px}
+.g9 .pp .bt b{flex:1;height:14px;border-radius:7px;background:var(--sk)}
+.g9 .pp .bt b+b{background:var(--primary);animation:g9al 6000ms infinite}
+@keyframes g9al{0%,35.9%{transform:scale(1)}37%{transform:scale(.88);animation-timing-function:var(--sp-bouncy)}44%,100%{transform:scale(1)}}
+.g9 .touch{opacity:0;animation:g9tc 6000ms infinite}
+@keyframes g9tc{0%,30%{opacity:0;transform:translate(200px,176px)}34%{opacity:1;transform:translate(158px,94px)}36.5%{transform:translate(158px,94px) scale(.8)}38.5%{opacity:1;transform:translate(158px,94px)}42%,100%{opacity:0;transform:translate(158px,94px)}}
+.g9 .nb{left:6px;top:6px;width:72px;height:22px;border-radius:8px;background:var(--card);box-shadow:0 3px 10px rgba(20,32,46,.18);display:flex;align-items:center;gap:5px;padding:0 6px;transform:translateY(-40px);animation:g9nb 6000ms infinite}
+@keyframes g9nb{0%,54%{transform:translateY(-40px);animation-timing-function:var(--sp-gentle)}63%,86%{transform:translateY(0);animation-timing-function:cubic-bezier(.3,0,.8,.15)}91%,100%{transform:translateY(-40px)}}
+.g9 .nb .ico{width:11px;height:11px;color:var(--primary);flex:none}
+.g9 .nb i{flex:1;height:5px;border-radius:3px;background:var(--sk)}
+
+/* g10 권한 설정 스위치형 7000 */
+.g10 .gph{animation:phPop10 7000ms infinite}
+@keyframes phPop10{0%{opacity:0;transform:scale(.9);animation-timing-function:var(--sp-gentle)}6%,93%{opacity:1;transform:scale(1)}97%,100%{opacity:0}}
+.g10 .cam{animation:g10cam 7000ms infinite}
+@keyframes g10cam{0%,34%{transform:translate(0px,0px) scale(1);animation-timing-function:cubic-bezier(.2,0,0,1)}43%,56%{transform:translate(-236px,-139px) scale(2.2);animation-timing-function:cubic-bezier(.2,0,0,1)}64%,100%{transform:translate(0px,0px) scale(1)}}
+.g10 .mn{top:118px;height:20px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:#FFFFFF;animation:g10mn 7000ms infinite}
+@keyframes g10mn{0%,9.9%{transform:scale(1);background:var(--primary)}11%{transform:scale(.9);animation-timing-function:var(--sp-bouncy)}19%,79%{transform:scale(1);background:var(--primary)}80%{background:var(--success)}92%,100%{background:var(--success)}}
+.g10 .mn .ico{width:12px;height:12px;opacity:0;animation:g10mi 7000ms infinite}
+@keyframes g10mi{0%,79%{opacity:0;transform:scale(0);animation-timing-function:var(--sp-bouncy)}80%{opacity:1}90%,100%{opacity:1;transform:scale(1)}}
+.g10 .touch{opacity:0;animation:g10tc 7000ms infinite}
+@keyframes g10tc{0%,4%{opacity:0;transform:translate(170px,175px)}8%{opacity:1;transform:translate(143px,127px)}10.5%{transform:translate(143px,127px) scale(.8)}12%{opacity:1;transform:translate(143px,127px)}15%,44%{opacity:0;transform:translate(170px,140px)}48%{opacity:1;transform:translate(165px,90px)}50%{transform:translate(165px,90px) scale(.8)}52%{opacity:1;transform:translate(165px,90px)}55%,100%{opacity:0;transform:translate(165px,90px)}}
+.g10 .set{inset:0;background:var(--card);transform:translateX(90px);animation:g10set 7000ms infinite}
+@keyframes g10set{0%,12%{transform:translateX(90px);animation-timing-function:cubic-bezier(.2,0,0,1)}17%,70%{transform:translateX(0);animation-timing-function:cubic-bezier(.3,0,.8,.15)}75%,100%{transform:translateX(90px)}}
+.g10 .set>*{position:absolute}
+.g10 .set .bk{left:6px;top:8px;width:12px;height:12px;color:var(--fg)}
+.g10 .set .tt{left:22px;top:11px;width:34px;height:6px;border-radius:3px;background:var(--sk2)}
+.g10 .rows{left:6px;right:6px;top:34px;animation:g10sc 7000ms infinite}
+@keyframes g10sc{0%,19%{transform:translateY(0);animation-timing-function:cubic-bezier(.2,.8,.2,1)}31%,100%{transform:translateY(-48px)}}
+.g10 .rw{position:relative;height:18px;margin-bottom:6px;border-radius:6px;display:flex;align-items:center;gap:5px;padding:0 4px}
+.g10 .rw i{width:8px;height:8px;border-radius:2px;background:var(--sk)}
+.g10 .rw u{height:5px;border-radius:3px;background:var(--sk)}
+.g10 .rw s{margin-left:auto;width:16px;height:10px;border-radius:5px;background:var(--sk2);position:relative}
+.g10 .rw s::after{content:"";position:absolute;left:1.5px;top:1.5px;width:7px;height:7px;border-radius:50%;background:#FFFFFF}
+.g10 .rw.me{z-index:3;animation:g10me 7000ms infinite}
+@keyframes g10me{0%,31%{background:transparent;transform:scale(1);animation-timing-function:var(--sp-gentle)}38%,58%{background:var(--card);transform:scale(1.05);animation-timing-function:cubic-bezier(.2,0,0,1)}64%,100%{background:transparent;transform:scale(1)}}
+.g10 .rw.me s{animation:g10sw 7000ms infinite}.g10 .rw.me s::after{animation:g10sk 7000ms infinite}
+@keyframes g10sw{0%,49.9%{background:var(--sk2)}51%,100%{background:var(--primary)}}
+@keyframes g10sk{0%,49.9%{transform:translateX(0);animation-timing-function:var(--sp-bouncy)}58%,100%{transform:translateX(6px)}}
+.g10 .sd{inset:0;background:rgba(11,15,22,.5);opacity:0;z-index:2;animation:g10sd 7000ms infinite}
+@keyframes g10sd{0%,31%{opacity:0}36%,58%{opacity:1}64%,100%{opacity:0}}
+
 </style>
 
 <div class="wrap" id="root">
   <header>
     <div>
       <h1>일어나 움직임 견본</h1>
-      <p class="lead">Mobbin 레퍼런스 19장을 보고 맨 위 누르는 컨트롤 네 가지는 직접 눌러 볼 수 있어요. 그 아래 우리 화면 16자리마다 기본안과 힘 준 안을 나란히 두었어요. 둘 다 회색 스켈레톤이고 실제 속도로 움직여요. 스프링은 질량 1 기준 강도와 감쇠로 적었어요. Mobbin은 멈춘 화면이라 움직임은 화면 구성을 보고 짐작했어요.</p>
+      <p class="lead">Mobbin 레퍼런스 25장을 보고 맨 위 누르는 컨트롤 네 가지는 직접 눌러 볼 수 있어요. 그 아래 우리 화면 16자리마다 기본안과 힘 준 안을 나란히 두었어요. 둘 다 회색 스켈레톤이고 실제 속도로 움직여요. 스프링은 질량 1 기준 강도와 감쇠로 적었어요. Mobbin은 멈춘 화면이라 움직임은 화면 구성을 보고 짐작했어요.</p>
     </div>
     <button class="playbtn" id="playbtn" type="button" aria-pressed="false">
       <svg class="ico" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/></svg><span>멈춤</span>
@@ -491,6 +735,23 @@ td a{color:var(--primary-text);text-decoration:none;font-weight:600}
       <article class="spot" id="c2"><div class="hd"><h3>라디오</h3></div><div class="pair"><div class="opt"><div class="optlbl">기본안</div><div class="cst"><div class="clist rb" role="radiogroup"><button class="crow on" role="radio" aria-checked="true" data-press><span class="mk rd"></span><span class="t" style="width:90px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:120px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">고른 원이 칠해지고 가운데 점이 나타나요.</p><div class="spec">칠과 점 150ms cubic-bezier(.2,0,0,1)</div></div><div class="opt strong"><div class="optlbl">힘 준 안 A · 점이 튕겨 들어옴</div><div class="cst"><div class="clist ra" role="radiogroup"><button class="crow on" role="radio" aria-checked="true" data-press><span class="mk rd"></span><span class="t" style="width:90px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:120px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">누르면 원이 움찔 작아지고, 놓으면 점이 튕기며 들어와요. 전에 고른 점은 빠르게 빠져요.</p><div class="spec">눌림 0.82배 100ms · 점 스프링 강도 300, 감쇠 18, 600ms, 40ms 늦게 · 빠지는 점 120ms (.3,0,.8,.15)</div></div><div class="opt strong picked"><div class="optlbl">힘 준 안 B · 점이 옮겨 감<span class="pick">추천</span></div><div class="cst"><div class="clist rm" role="radiogroup"><span class="ind"></span><button class="crow on" role="radio" aria-checked="true" data-press><span class="mk rd"></span><span class="t" style="width:90px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:120px"></span></button><button class="crow" role="radio" aria-checked="false" data-press><span class="mk rd"></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">고른 표시 하나가 새 줄로 미끄러져 가고, 가는 동안 세로로 늘었다가 돌아와요.</p><div class="spec">이동 스프링 강도 400, 감쇠 30(감쇠비 0.75), 500ms · 늘어남 세로 1.4배, 가로 0.86배, 420ms · 눌림 0.82배</div></div></div><p class="rec ctl-rec">추천: 힘 준 안 B. 고른 것이 바뀌었다는 걸 이동으로 보여 줘서, 미루기 간격이나 소리 고르기처럼 하나만 고르는 자리에 잘 맞아요.</p></article>
       <article class="spot" id="c3"><div class="hd"><h3>체크박스</h3></div><div class="pair"><div class="opt"><div class="optlbl">기본안</div><div class="cst"><div class="clist cbb"><button class="crow on" role="checkbox" aria-checked="true" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:90px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:120px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">칸이 칠해지고 체크가 나타나요. 안 고른 칸은 라인형 사각이에요.</p><div class="spec">칠과 체크 150ms cubic-bezier(.2,0,0,1)</div></div><div class="opt strong picked"><div class="optlbl">힘 준 안 A · 체크가 그려짐<span class="pick">추천</span></div><div class="cst"><div class="clist cba"><button class="crow on" role="checkbox" aria-checked="true" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:90px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:120px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">눌리면 칸이 움찔하고, 칠이 가운데서 튀어 커진 뒤 체크가 한 획으로 그려져요.</p><div class="spec">눌림 0.84배 100ms → 스프링 강도 300, 감쇠 18 · 칠 스프링 강도 2000, 감쇠 50, 240ms · 체크 그리기 220ms (.2,0,0,1), 90ms 늦게 · 끌 때 100~150ms</div></div><div class="opt strong"><div class="optlbl">힘 준 안 B · 줄까지 칠</div><div class="cst"><div class="clist cbc"><button class="crow on" role="checkbox" aria-checked="true" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:90px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:120px"></span></button><button class="crow" role="checkbox" aria-checked="false" data-press><span class="mk cb"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span><span class="t" style="width:70px"></span></button></div></div><p class="odesc">체크가 돌며 튀어나오고, 줄 전체가 왼쪽부터 연하게 칠해져요.</p><div class="spec">눌림 0.8배 · 체크 회전 −25° → 0, 스프링 강도 300, 감쇠 18 · 줄 칠 340ms (.2,0,0,1), 끌 때 200ms</div></div></div><p class="rec ctl-rec">추천: 힘 준 안 A. 체크를 그리는 한 획이 '했다'는 느낌을 주고, 줄은 그대로라 여러 개를 연달아 눌러도 깔끔해요.</p></article>
       <article class="spot" id="c4"><div class="hd"><h3>탭 (세그먼트 탭)</h3></div><div class="pair"><div class="opt"><div class="optlbl">기본안</div><div class="cst"><div class="seg sgb" role="tablist"><span class="pill"></span><button class="on" role="tab" aria-selected="true" data-press>평일</button><button role="tab" aria-selected="false" data-press>주말</button><button role="tab" aria-selected="false" data-press>매일</button></div></div><p class="odesc">바탕이 다음 칸으로 미끄러져요.</p><div class="spec">이동 250ms cubic-bezier(.2,0,0,1) · 글자색 200ms</div></div><div class="opt strong picked"><div class="optlbl">힘 준 안 A · 늘었다 줄며 이동<span class="pick">추천</span></div><div class="cst"><div class="seg sga" role="tablist"><span class="pill"></span><button class="on" role="tab" aria-selected="true" data-press>평일</button><button role="tab" aria-selected="false" data-press>주말</button><button role="tab" aria-selected="false" data-press>매일</button></div></div><p class="odesc">가는 쪽 끝이 먼저 뻗고 뒤쪽 끝이 따라붙어서, 바탕이 늘었다 줄며 옮겨 가요.</p><div class="spec">앞 끝 220ms cubic-bezier(.2,.8,.2,1) · 뒤 끝 스프링 강도 400, 감쇠 30, 500ms, 60ms 늦게 · 글자색 200ms</div></div><div class="opt strong"><div class="optlbl">힘 준 안 B · 튕기는 바탕</div><div class="cst"><div class="seg sgc" role="tablist"><span class="pill"></span><button class="on" role="tab" aria-selected="true" data-press>평일</button><button role="tab" aria-selected="false" data-press>주말</button><button role="tab" aria-selected="false" data-press>매일</button></div></div><p class="odesc">누른 칸이 움찔하고, 바탕이 살짝 지나쳤다 돌아오며 글자가 한 번 커져요.</p><div class="spec">눌림 0.92배 100ms · 바탕 스프링 강도 300, 감쇠 18, 600ms · 글자 1.08배 360ms</div></div></div><p class="rec ctl-rec">추천: 힘 준 안 A. 늘었다 줄어드는 바탕이 어디서 어디로 갔는지 또렷하게 보여 주면서도 튕김이 없어 차분해요.</p></article>
+    </div>
+  </section>
+
+  <section class="gsec">
+    <h2>설정 설명 그림</h2>
+    <p class="lead">바텀 모달 그림 칸(312×176, 결정 239)에 들어갈 설명 움직임이에요. 필요한 자리는 화면이 들어오는 움직임과 확대 축소로 보여 줘요. 앞 견본의 보류였던 '설정 설명 그림' 자리를 이어 받아요.</p>
+    <div class="gpair">
+      <article class="spot" id="g1"><div class="hd"><h3>미루기</h3></div><div class="gst g1" aria-hidden="true"><div class="cam"><div class="gph"><div class="bl"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div><div class="gtime"><div><span>07:00</span><span>07:05</span></div></div><div class="gbtn snz"></div><div class="gbtn mn"></div><div class="gdim"></div><div class="mo lt"><svg class="ring" viewBox="0 0 36 36"><circle class="trk" cx="18" cy="18" r="16"/><circle class="prg" cx="18" cy="18" r="16"/></svg><svg class="ico " viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div></div><div class="a touch"></div></div></div><p class="odesc">울리는 화면이 아래에서 올라오고, 카메라가 '미루기' 버튼으로 다가가 눌러요. 화면이 어두워지며 달 둘레 시계가 한 바퀴 차고, 시각이 07:00에서 07:05로 굴러간 뒤 다시 울려요.</p><div class="spec">화면 진입 스프링 강도 400, 감쇠 30(감쇠비 0.75), 500ms · 확대 2배, 600ms (.2,0,0,1) · 눌림 0.9배 → 스프링 강도 300, 감쇠 18 · 기다림 원 1600ms · 시각 굴림 강도 300, 감쇠 18 · 한 바퀴 6000ms</div><div class="refs"><a href="#r23">Pillow 미루기 시간</a><a href="#r21">BMW 스포트라이트 확대</a></div></article>
+      <article class="spot" id="g2"><div class="hd"><h3>다시 잠들기 방지</h3></div><div class="gst g2" aria-hidden="true"><div class="cam"><div class="gph"><div class="ghd" style="width:40px"></div><div class="bl"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div><div class="ck"><svg class="ico " viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="gbtn mn"></div><div class="gdim"></div><div class="mo lt"><svg class="ring" viewBox="0 0 36 36"><circle class="trk" cx="18" cy="18" r="16"/><circle class="prg" cx="18" cy="18" r="16"/></svg><svg class="ico " viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></div><div class="q"><i style="width:40px"></i><i style="width:52px"></i><div class="cd"><u></u></div><b></b></div></div><div class="a touch"></div></div></div><p class="odesc">알람을 끄면 체크가 튀고 화면이 잠들어요. 시간이 한 바퀴 흐른 뒤 확인 카드가 튕겨 올라오고, 카메라가 카드로 다가가요. 카드 속 막대가 다 줄어도 답이 없으면 종이 다시 울려요.</p><div class="spec">끄기 눌림 0.9배 → 강도 300, 감쇠 18 · 기다림 원 1330ms · 확인 카드 스프링 강도 300, 감쇠 18 · 확대 1.9배, 630ms (.2,0,0,1) · 남은 시간 막대 1120ms linear(빨강) · 한 바퀴 7000ms</div><div class="refs"><a href="#r23">Pillow 알람 옵션</a><a href="#r20">Quizlet 설명 그림</a></div></article>
+      <article class="spot" id="g3"><div class="hd"><h3>다시 울림</h3></div><div class="gst g3" aria-hidden="true"><div class="cam"><div class="a dots"><i></i><i></i><i></i></div><div class="a rp"><svg class="ico " viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div><div class="gph"><div class="ghd" style="width:40px"></div><div class="bl"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div><div class="bar"><u></u></div></div></div></div><p class="odesc">울리는 화면이 옆에서 들어오고, 아래 막대가 다 줄어들면 종이 흐려지며 쉬어요. 쉬는 막대가 다시 차면 종이 튕기며 또 울리고, 옆 점이 하나씩 칠해져 몇 번째인지 보여요.</p><div class="spec">화면 진입 옆에서, 강도 400, 감쇠 30 · 울림 막대 1430ms linear, 쉼 막대 1240ms linear · 종 다시 나옴 강도 300, 감쇠 18 · 점 칠 같은 스프링 · 반복 아이콘 180° 강도 400, 감쇠 30 · 한 바퀴 6500ms</div><div class="refs"><a href="#r23">Pillow 알람 옵션</a></div></article>
+      <article class="spot" id="g4"><div class="hd"><h3>볼륨 천천히 올리기</h3></div><div class="gst g4" aria-hidden="true"><div class="cam"><div class="gph"><div class="ghd" style="width:40px"></div><div class="sp"><svg class="ico " viewBox="0 0 24 24"><path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/><path class="w1" d="M16 9a5 5 0 0 1 0 6"/><path class="w2" d="M19.364 18.364a9 9 0 0 0 0-12.728"/></svg></div><div class="vb"><i style="--i:0;height:6px"></i><i style="--i:1;height:10px"></i><i style="--i:2;height:13px"></i><i style="--i:3;height:17px"></i><i style="--i:4;height:20px"></i><i style="--i:5;height:24px"></i></div></div></div></div><p class="odesc">폰이 떠오른 뒤 카메라가 볼륨 막대로 확대해 들어가요. 막대가 왼쪽부터 하나씩 튕기며 채워지고, 스피커 물결도 따라 늘어나요.</p><div class="spec">확대 2.2배, 550ms (.2,0,0,1) · 막대 사이 420ms, 막대마다 스프링 강도 300, 감쇠 18 · 물결 두 겹 차례로 · 한 바퀴 5500ms</div><div class="refs"><a href="#r23">Pillow 볼륨, 서서히 커짐</a><a href="#r21">BMW 스포트라이트 확대</a></div></article>
+      <article class="spot" id="g5"><div class="hd"><h3>진동</h3></div><div class="gst g5" aria-hidden="true"><div class="cam"><div class="a vi"><svg class="ico " viewBox="0 0 24 24"><path d="m2 8 2 2-2 2 2 2-2 2"/><path d="m22 8-2 2 2 2-2 2 2 2"/><rect width="8" height="14" x="8" y="5" rx="1"/></svg></div><i class="a vl" style="left:104px"></i><i class="a vl" style="left:205px"></i><div class="gph"><div class="ghd" style="width:40px"></div><div class="bl"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div></div><div class="a pt"><i></i><i></i><i></i></div></div></div><p class="odesc">폰이 길게, 짧게, 길게 떨리고 양옆 선과 오른쪽 무늬 막대가 같은 박자로 켜져요. 떨림은 2px만이라 눈이 어지럽지 않아요.</p><div class="spec">떨림 좌우 2px, 40ms 간격 · 박자 길게 320ms, 짧게 120ms, 길게 320ms · 한 바퀴 4000ms</div><div class="refs"><a href="#r23">Pillow 진동 줄</a></div></article>
+      <article class="spot" id="g6"><div class="hd"><h3>미션: Quick Math</h3></div><div class="gst g6" aria-hidden="true"><div class="cam"><div class="gph"><div class="pd"><i></i><i></i><i></i></div><div class="eq"><div><span>12 + 7</span><span>8 × 6</span></div></div><div class="an"><span>1</span><span>9</span></div><div class="kp"><i class="k1">1</i><i class="k2">2</i><i class="k3">3</i><i class="k4">4</i><i class="k5">5</i><i class="k6">6</i><i class="k7">7</i><i class="k8">8</i><i class="k9">9</i></div><div class="ck"><svg class="ico " viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div></div><div class="a touch"></div></div></div><p class="odesc">미션 화면이 올라오면 카메라가 문제로 다가갔다가 숫자판으로 내려가 1, 9를 차례로 눌러요. 다시 답 칸으로 올라가 초록으로 맞았다고 보여 준 뒤, 다음 문제가 옆에서 밀려 들어와요.</p><div class="spec">확대 1.8배, 이동 560ms (.2,0,0,1) · 숫자 누름 0.85배 → 강도 300, 감쇠 18 · 입력 숫자 굴러 들어옴 같은 스프링 · 다음 문제 560ms (.2,0,0,1) · 한 바퀴 7000ms</div><div class="refs"><a href="#r20">Quizlet 게임 방법</a><a href="#r22">Craft 직접 해 보기</a></div></article>
+      <article class="spot" id="g7"><div class="hd"><h3>미션: 캐치미</h3></div><div class="gst g7" aria-hidden="true"><div class="cam"><div class="gph"><div class="ghd" style="width:40px"></div><div class="cb gh"></div><div class="cb"><svg class="ico " viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div></div><div class="a touch"></div></div></div><p class="odesc">손가락이 다가갈 때마다 버튼이 잔상을 남기고 튀어 달아나요. 네 번째에 잡히면 초록으로 바뀌고 카메라가 잡은 버튼으로 다가가요.</p><div class="spec">도망 스프링 강도 2000, 감쇠 50, 240ms 안 도착(레벨 1 140ms, 결정 229) · 잔상 50ms 늦게, 투명도 0.22 · 잡힘 0.88배 → 강도 300, 감쇠 18 · 확대 1.8배 · 한 바퀴 5000ms</div><div class="refs"><a href="#r20">Quizlet 게임 방법</a><a href="#r05">Not Boring 구독</a></div></article>
+      <article class="spot" id="g8"><div class="hd"><h3>미션: 좀비모드</h3></div><div class="gst g8" aria-hidden="true"><div class="cam"><div class="a lp"><svg class="ico " viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div><div class="gph"><div class="ghd" style="width:40px"></div><div class="bl"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div><div class="ck"><svg class="ico " viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="gbtn mn"></div><div class="gdim"></div></div><div class="a cnt"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg><div class="cw"><div><span>1</span><span>2</span><span>3</span></div></div></div><div class="a touch"></div></div></div><p class="odesc">끄면 체크가 돌며 사라지고 잠깐 어두워졌다가 종이 다시 튀어나와요. 그때마다 반복 화살표가 반 바퀴 돌고 오른쪽 횟수가 1, 2, 3으로 굴러요. 정한 횟수를 다 끄면 큰 체크와 초록 칸으로 끝나요.</p><div class="spec">체크 등장 강도 300, 감쇠 18, 사라짐 회전 −90° · 종 다시 나옴 같은 스프링 · 횟수 굴림 같은 스프링 · 반복 화살표 180°, 강도 400, 감쇠 30 · 한 바퀴 7000ms(예: 3번)</div><div class="refs"><a href="#r20">Quizlet 연속 보너스</a><a href="#r17">Finch 진행 선</a></div></article>
+      <article class="spot" id="g9"><div class="hd"><h3>권한: 알림 (팝업형, 결정 228)</h3></div><div class="gst g9" aria-hidden="true"><div class="cam"><div class="gph"><div class="ghd" style="width:40px"></div><div class="ghd" style="top:26px;width:56px"></div><div class="ghd" style="top:40px;width:30px"></div><div class="sc"></div><div class="pp"><div class="ic"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg></div><i style="width:44px"></i><i style="width:34px"></i><div class="bt"><b></b><b></b></div></div><div class="nb"><svg class="ico " viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M22 8c0-2.3-.8-4.3-2-6"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/><path d="M4 2C2.8 3.7 2 5.7 2 8"/></svg><i></i></div></div><div class="a touch"></div></div></div><p class="odesc">앱 위로 시스템 팝업이 커지며 뜨고, 카메라가 '허용' 버튼으로 다가가 눌러요. 팝업이 닫히고 멀어지면 화면 위에서 알림 띠가 내려와 '이렇게 와요'를 보여 줘요.</p><div class="spec">팝업 0.88 → 1, 강도 400, 감쇠 30 · 확대 2.2배, 600ms (.2,0,0,1) · 허용 눌림 0.88배 → 강도 300, 감쇠 18 · 닫힘 240ms (.3,0,.8,.15) · 알림 띠 강도 400, 감쇠 30 · 한 바퀴 6000ms</div><div class="refs"><a href="#r24">Discord 알림 허용</a><a href="#r10">Cash App 단계</a></div></article>
+      <article class="spot" id="g10"><div class="hd"><h3>권한: 설정 스위치형 (전체 화면 알림, 다른 앱 위에 표시, 결정 228)</h3></div><div class="gst g10" aria-hidden="true"><div class="cam"><div class="gph"><div class="ghd" style="width:40px"></div><div class="ghd" style="top:26px;width:56px;height:60px;border-radius:10px"></div><div class="gbtn mn"><svg class="ico " viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div><div class="set"><div class="bk"><svg class="ico " viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></div><div class="tt"></div><div class="sd"></div><div class="rows"><div class="rw"><i></i><u style="width:30px"></u><s></s></div><div class="rw"><i></i><u style="width:22px"></u><s></s></div><div class="rw"><i></i><u style="width:34px"></u><s></s></div><div class="rw"><i></i><u style="width:26px"></u><s></s></div><div class="rw me"><i></i><u style="width:30px"></u><s></s></div><div class="rw"><i></i><u style="width:24px"></u><s></s></div><div class="rw"><i></i><u style="width:28px"></u><s></s></div></div></div></div><div class="a touch"></div></div></div><p class="odesc">앱에서 버튼을 누르면 설정 화면이 옆에서 밀려 들어와요. 목록이 스르륵 올라가 멈추고, 나머지는 어두워지며 우리 줄만 떠올라요. 카메라가 스위치로 다가가 켜고, 설정이 다시 밀려 나가며 앱 버튼이 초록 체크로 바뀌어요.</p><div class="spec">설정 진입 350ms (.2,0,0,1) · 목록 멈춤 840ms (.2,.8,.2,1) · 스포트라이트 어둡게 50%, 줄 1.05배 강도 400, 감쇠 30 · 확대 2.2배, 630ms · 스위치 강도 300, 감쇠 18 · 돌아옴 350ms (.3,0,.8,.15) · 한 바퀴 7000ms</div><div class="refs"><a href="#r25">Cal AI 설정 단계</a><a href="#r21">BMW 스포트라이트</a><a href="#r09">AllTrails 연결됨</a></div></article>
     </div>
   </section>
 
@@ -760,6 +1021,12 @@ td a{color:var(--primary-text);text-decoration:none;font-weight:600}
       <figure class="ref" id="r17"><img src="17-finch-milestone.jpg" alt="Finch 주간 목표 진행 막대와 별" loading="lazy"><figcaption><span class="rid">R17</span><b>Finch</b><p>진행 선이 칸을 지나 별에 닿으면 별이 튀어나오는 흐름이에요.</p><a href="https://mobbin.com/flows/06c82412-8f84-4bda-acda-e9bb065ca508" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
       <figure class="ref" id="r18"><img src="18-notboring-vibes.jpg" alt="Not Boring Vibes 겹친 층 풍경" loading="lazy"><figcaption><span class="rid">R18</span><b>(Not Boring) Vibes</b><p>하늘, 언덕, 돌이 겹친 층으로 따로 움직여 깊이가 생겨요.</p><a href="https://mobbin.com/flows/846f6107-a873-497c-a609-25df7c7a5e92" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
       <figure class="ref" id="r19"><img src="19-alan-widget.jpg" alt="Alan 위젯 숫자 0에서 1로" loading="lazy"><figcaption><span class="rid">R19</span><b>Alan</b><p>위젯 숫자가 0에서 1로 바뀌며 캐릭터가 튀어 올라요.</p><a href="https://mobbin.com/flows/a7a37ef3-051c-4bf8-874d-532e70bec93d" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r20"><img src="20-quizlet-howto.jpg" alt="Quizlet 게임 방법" loading="lazy"><figcaption><span class="rid">R20</span><b>Quizlet</b><p>게임 화면을 잘라 확대하고 화살표로 짚어 하는 법을 보여 줘요.</p><a href="https://mobbin.com/flows/9e5b29cf-5f9c-46e7-9502-8852e7ba7a47" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r21"><img src="21-bmw-spotlight.jpg" alt="My BMW 스포트라이트" loading="lazy"><figcaption><span class="rid">R21</span><b>My BMW</b><p>나머지를 어둡게 하고 한 줄만 밝혀 짚어 주는 안내예요.</p><a href="https://mobbin.com/flows/c329076f-a46e-4ec7-9078-eda8f57a4e82" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r22"><img src="22-craft-trydrag.jpg" alt="Craft 직접 해 보기" loading="lazy"><figcaption><span class="rid">R22</span><b>Craft</b><p>설명 안에서 바로 끌어 보게 해 손으로 익히게 해요.</p><a href="https://mobbin.com/flows/261e0d10-aa8e-4396-af24-3bae256990de" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r23"><img src="23-pillow-options.jpg" alt="Pillow 알람 옵션" loading="lazy"><figcaption><span class="rid">R23</span><b>Pillow</b><p>알람 앱의 볼륨, 서서히 커짐, 진동, 미루기 설정 줄이에요.</p><a href="https://mobbin.com/flows/de3b3f89-65d2-4683-b590-22c94ecd6f10" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r24"><img src="24-discord-allow.jpg" alt="Discord 알림 허용" loading="lazy"><figcaption><span class="rid">R24</span><b>Discord</b><p>그림 위에 허용 팝업을 띄우고 손가락이 '허용'을 짚어요.</p><a href="https://mobbin.com/screens/2d88d668-7593-4267-a9b9-4ab65908c2a9" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
+      <figure class="ref" id="r25"><img src="25-calai-steps.jpg" alt="Cal AI 설정 단계" loading="lazy"><figcaption><span class="rid">R25</span><b>Cal AI</b><p>설정 앱에서 켜는 길을 단계별 아이콘으로 보여 줘요.</p><a href="https://mobbin.com/screens/2bcefec4-6036-44fb-8862-7f7bcd383f3e" target="_blank" rel="noopener">Mobbin에서 보기</a></figcaption></figure>
     </div>
   </section>
 </div>
