@@ -1515,3 +1515,6 @@
 {"at": "2026-11-28 13:35:14", "by": "Leader", "id": "TSK-316", "action": "comment", "changes": {"comments": [null, ["[디자인 38] local_9dd8c2aa-fe76-43e7-921f-2fdcf07fa769 시작"]]}}
 {"at": "2026-11-28 13:35:31", "by": "[디자인 38]", "id": "TSK-316", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 13:39:15", "by": "[디자인 38]", "id": "TSK-316", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["Mobbin 레퍼런스 9개를 방향 4가지(굵은 압축 기울임, 그라데이션, 손글씨, 아웃라인 네온)로 묶어 레퍼런스 보드 1353:1706에 출처, 폰트 라이선스와 함께 올림. 카드 시안 A(Barlow Condensed Black Italic), B(Unbounded Black 그라데이션)를 결정 필요 1353:12301에 올림. 기록 docs/references/crazy-mode-title-type-refs.md"]]}}
+{"at": "2026-11-28 13:41:58", "by": "Leader", "id": "TSK-316", "action": "approve", "changes": {"status": ["review", "done"], "due": [null, "2026-11-28"], "comments": [null, ["레퍼런스 모음까지. 제목 방향은 사용자가 추후 결정"]]}}
+{"at": "2026-11-28 13:42:01", "by": "Leader", "id": "TSK-310", "action": "set", "changes": {"status": ["doing", "review"]}}
+{"at": "2026-11-28 13:42:01", "by": "Leader", "id": "TSK-310", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["사용자: 설정 메인 픽스. 결정 210"]]}}
