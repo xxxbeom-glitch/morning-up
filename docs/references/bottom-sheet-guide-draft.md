@@ -53,7 +53,7 @@
 |---|---|---|
 | 시트 | 폭 360, 높이는 내용 따라 가변, 위 모서리 24, fill `background/elevated`, 자체 padding 0, gap 0 | EX 전부 |
 | 스크림 | #142030 40% | EX 전부 |
-| 헤더 | **Sheet Header 부품(137:696)** h80, 12/24/16/24, 손잡이와 제목 줄 사이 16, **제목 + 오른쪽 닫기 X**(제목 `Title/Large` 20, 보조 글과 스위치 끔. X는 지름 32 원형 `background/raised` 칠, 테두리 없음, Lucide `x` 16, 제목과 세로 가운데. 불리언 `Show Close` 처음 켬). 두 번째 페이지는 Sheet Page Header(1244:22313) h80, 12/24/12/12, 왼쪽 < + 제목(`Title/Large`) + 오른쪽 같은 X (11-28 결정 240) | EX1-a, EX5-b |
+| 헤더 | **Sheet Header 부품(137:696)** h80, 12/24/16/24, 손잡이와 제목 줄 사이 16, **제목 + 오른쪽 닫기 X**(제목 `Title/Large` 20, 보조 글과 스위치 끔. X는 지름 32 원형 `background/base` 칠(11-28 사용자 '좀 더 연하게'로 raised에서 바꿈), 테두리 없음, Lucide `x` 16, 제목과 세로 가운데. 불리언 `Show Close` 처음 켬). 두 번째 페이지는 Sheet Page Header(1244:22313) h80, 12/24/12/12, 왼쪽 < + 제목(`Title/Large`) + 오른쪽 같은 X (11-28 결정 240) | EX1-a, EX5-b |
 | 본문 | 좌우 24 고정. 위 여백은 헤더 아래 8(목록) 또는 4(그림, 슬라이더 먼저) | EX1-a 8, EX4 4 |
 | 아래 버튼 | footer h96, 24/16/16/16, Button Large(112:55) | EX 전부 |
 | 버튼 없는 시트 | 빈 footer를 두지 않고 본문 아래 여백 `space/24` 뒤 바로 Nav Bar (11-27 사용자 피드백) | EX8 |
