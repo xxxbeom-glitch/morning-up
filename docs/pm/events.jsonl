@@ -1617,3 +1617,4 @@
 {"at": "2026-11-28 16:41:56", "by": "Leader", "id": "TSK-333", "action": "approve", "changes": {"status": ["review", "done"], "due": ["2026-11-29", "2026-11-28"], "comments": [null, ["완료 조건 충족: Dialog 부품 2개와 확정 11곳 312, 깨진 곳 없음, 바텀시트 그대로 (8c1ea45)"]]}}
 {"at": "2026-11-28 16:41:58", "by": "[디자인 49]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["3차 세 장(P6 전원 종료 방지 바텀 모달, 다음 알람 항상 표시 켬+알림 창, P5 날씨 테마 바텀 모달)을 결정 필요 1418:71757에 올림. 사용자 확인 기다림"]]}}
 {"at": "2026-11-28 16:42:14", "by": "[디자인 51]", "id": "TSK-334", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["피그마 전 페이지 점검. 옮길 옛 장, 복제 없음. 보관 구역 안 빈 구역 1158:23343 하나 지움. 애매한 6건은 목록으로 남김(design-system.md 기록)"]]}}
+{"at": "2026-11-28 16:42:43", "by": "Leader", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["사용자 3차 세 장 추천대로 확정(결정 250), [디자인 49]에 확정 구역 이동 지시"]]}}
