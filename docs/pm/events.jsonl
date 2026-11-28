@@ -1503,3 +1503,5 @@
 {"at": "2026-11-28 11:48:06", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["사용자 피드백: 구독 칸은 '구독 뒤' 한 줄 방식, 카드 배경은 사용자가 잡은 그라데이션, 라벨 너무 큼. 알람 울림 최적화+전원 종료 방지 한 카드, 알람 자동 해제~언어 한 카드"]]}}
 {"at": "2026-11-28 11:48:08", "by": "[디자인 36]", "id": "TSK-310", "action": "claim", "changes": {"status": ["todo", "doing"]}}
 {"at": "2026-11-28 11:49:39", "by": "[디자인 36]", "id": "TSK-310", "action": "submit", "changes": {"status": ["doing", "waiting_user"], "comments": [null, ["사용자 피드백 반영: 구독 칸 한 줄 카드(구독 전, 뒤), 카드 배경 plus 라벨 원본 그라데이션, 라벨 Plus Label Small, 알람 자동 해제~언어 한 카드로 합침."]]}}
+{"at": "2026-11-28 11:52:59", "by": "[디자인 36]", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["2차: 구독 카드 볼륨감(Joi 레퍼런스) A 라벨색 1296:22536, B 깊은 밤 1322:11376 나란히. 구독 뒤 A, 시트 뒤 배경 A로 맞춤. 레퍼런스 1322:13312."]]}}
+{"at": "2026-11-28 13:00:57", "by": "Leader", "id": "TSK-310", "action": "comment", "changes": {"comments": [null, ["사용자 B안(깊은 밤) 선택, 결정 209. [디자인 36] 반영 중"]]}}
