@@ -1591,3 +1591,6 @@
 {"at": "2026-11-28 16:15:08", "by": "[디자인 47]", "id": "TSK-329", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 16:16:07", "by": "Leader", "id": "TSK-327", "action": "set", "changes": {"status": ["done", "doing"]}}
 {"at": "2026-11-28 16:16:38", "by": "Leader", "id": "TSK-330", "action": "create", "changes": {"id": [null, "TSK-330"], "wbs": [null, "3.78"], "parent": [null, "TSK-003"], "title": [null, "11-28 고치고 확정한 화면과 못 한 화면 모음 프레임"], "area": [null, "design"], "owner": [null, "[디자인 45]"], "reviewer": [null, "Leader"], "status": [null, "todo"], "due": [null, "2026-11-28"], "acceptance": [[], ["1. 피그마 새 페이지에 사본으로 모음(원본 위치 그대로) 2. 오늘 확정, 오늘 고침(확인 대기), 아직 못 함 세 묶음 3. 장마다 결정 번호"]]}}
+{"at": "2026-11-28 16:17:11", "by": "[디자인 45]", "id": "TSK-330", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
+{"at": "2026-11-28 16:18:14", "by": "[디자인 45]", "id": "TSK-330", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["피그마 새 페이지 '11-28 오늘 모음' 1414:44781: 오늘 확정 12장, 확인 대기 15장, 아직 못 함 9칸(빈 자리). 사본만, 원본 그대로"]]}}
+{"at": "2026-11-28 16:18:26", "by": "Leader", "id": "TSK-330", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["모음 페이지 1414:44781 확인"]]}}
