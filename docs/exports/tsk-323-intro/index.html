@@ -1,0 +1,102 @@
+<title>Crazy Mode 구독 소개 레퍼런스</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 방향 4개를 위에서 아래로, 방향마다 한 줄 설명 + 화면 카드 그리드, 맨 아래 추천 표 */
+:root{
+  --bg:#F4F3F8; --surface:#FFFFFF; --fg:#1A1830; --muted:#6B6880; --line:#E2E0EC;
+  --night-a:#120E2E; --night-b:#3A2A7A; --link:#4B3BB5; --pick:#EDE8FF;
+  --sans:"Pretendard","Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E0C1C; --surface:#18152B; --fg:#EDEBF7; --muted:#A19DB8; --line:#2A2645; --link:#B3A6FF; --pick:#2A2450; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0E0C1C; --surface:#18152B; --fg:#EDEBF7; --muted:#A19DB8; --line:#2A2645; --link:#B3A6FF; --pick:#2A2450; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.55}
+.wrap{max-width:1160px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:56px}
+header h1{font-size:28px;margin:0 0 8px;text-wrap:balance}
+header p{margin:0;color:var(--muted);max-width:68ch}
+section{display:grid;gap:20px}
+.head{background:linear-gradient(120deg,var(--night-a),var(--night-b));border-radius:16px;padding:20px 24px;color:#fff;display:grid;gap:6px}
+.head h2{font-size:20px;margin:0;text-wrap:balance}
+.head p{margin:0;font-size:14px;color:#D8D2FF;max-width:70ch}
+.head .tag{justify-self:start;font-size:12px;font-weight:700;letter-spacing:.04em;background:#fff;color:#120E2E;border-radius:999px;padding:2px 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px}
+figure{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+figure img{display:block;width:100%;height:auto;max-width:100%}
+figcaption{padding:12px 14px 14px;display:grid;gap:4px;font-size:13px;min-width:0}
+figcaption b{font-size:15px}
+figcaption a{color:var(--link);word-break:break-all;font-size:12px}
+a:focus-visible{outline:2px solid var(--link);outline-offset:2px}
+h2.rec{font-size:20px;margin:0}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--line);font-size:14px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{white-space:nowrap}
+tr:last-child td{border-bottom:0}
+footer{color:var(--muted);font-size:13px}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Crazy Mode 구독 소개 레퍼런스</h1>
+  <p>결제 칸보다 '이 구독이 어떤 상품인지'를 보여 주는 소개 화면만 모았어요. 상품 이름을 로고처럼 크게 쓰고, 그림과 짧은 글로 느낌을 전하는 화면이에요. 방향 네 가지로 묶었고, 지난 세 아티팩트(구독 안내 1차, 2차, 타이포)에 나온 앱은 뺐어요. 모두 Mobbin에서 가져왔어요.</p>
+</header>
+
+<section>
+  <div class="head"><span class="tag">추천</span><h2>A. 상품 이름을 로고처럼 크게</h2><p>앱 이름 옆이나 아래에 PLUS, Premium을 붙여 하나의 로고로 만들어요. 화면의 주인공이 상품 이름이라 'Crazy Mode' 타이포와 바로 이어져요.</p></div>
+  <div class="grid">
+    <figure><img src="youtube.jpg" alt="YouTube Premium 소개 화면" loading="lazy"><figcaption><b>YouTube</b><span>빈 화면 가운데 로고와 'Premium'만. 아래 환영 한 줄과 넘김 점 3개로 소개를 여러 장 넘겨요</span><a href="https://mobbin.com/screens/9a389617-5ecd-4f0f-b3bd-fcac30361f1d">mobbin.com/screens/9a389617…</a></figcaption></figure>
+    <figure><img src="weatherchannel.jpg" alt="The Weather Channel Premium 소개 화면" loading="lazy"><figcaption><b>The Weather Channel</b><span>로고 상자 옆 굵은 대문자 PREMIUM, 아래 세리프 'Welcome'. 글자만으로 고급스러움을 줘요</span><a href="https://mobbin.com/screens/4894e295-5046-407c-9c7e-d8e27cd3d7b5">mobbin.com/screens/4894e295…</a></figcaption></figure>
+    <figure><img src="cosmos.jpg" alt="Cosmos Premium 화면" loading="lazy"><figcaption><b>Cosmos</b><span>어두운 바탕에 굵은 대문자 COSMOS와 알약 라벨 PREMIUM. 우리 'Crazy Mode' + plus 라벨 짝과 가장 닮았어요</span><a href="https://mobbin.com/screens/399667d5-a8d4-42d4-bc4c-ca00e9e4fc60">mobbin.com/screens/399667d5…</a></figcaption></figure>
+    <figure><img src="unfold.jpg" alt="Unfold PLUS 화면" loading="lazy"><figcaption><b>Unfold</b><span>사진 위 흰 로고 옆에 상자 속 PLUS, 그 아래 손글씨 밑줄. 무대 조명 같은 사진이 상품의 기분을 줘요</span><a href="https://mobbin.com/screens/602eb74c-e29c-4236-8451-06ce393b6a1f">mobbin.com/screens/602eb74c…</a></figcaption></figure>
+    <figure><img src="zalando.jpg" alt="Zalando Plus 화면" loading="lazy"><figcaption><b>Zalando</b><span>맨 위 로고 + PLUS 알약, 큰 사진 위에 세리프 한 줄 'Faster delivery. Free. Every time.'</span><a href="https://mobbin.com/screens/4db3df07-df62-4f95-bb64-8c9750089b76">mobbin.com/screens/4db3df07…</a></figcaption></figure>
+    <figure><img src="snapchat.jpg" alt="Snapchat Lens+ 화면" loading="lazy"><figcaption><b>Snapchat</b><span>'Lens+'를 큰 제목으로, 아래 기능을 큰 카드로 하나씩. 가입한 뒤 보는 상품 홈에 가까워요</span><a href="https://mobbin.com/screens/cffa97b3-3d1f-4149-a955-f72bb9637436">mobbin.com/screens/cffa97b3…</a></figcaption></figure>
+    <figure><img src="fuse.jpg" alt="Fuse Plus 화면" loading="lazy"><figcaption><b>Fuse</b><span>'Fuse Plus' 흰 글자 아래 'Membership' 회색. 혜택 카드는 두 장만, 버튼 글 끝에 작은 +를 반짝이게</span><a href="https://mobbin.com/screens/7cf6e0bd-5976-43c3-a785-d252febfc5a7">mobbin.com/screens/7cf6e0bd…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>B. 큰 그림으로 여는 환영 화면</h2><p>위 절반을 상징 그림이 채우고, 아래에 'Introducing ○○', 'Welcome to ○○' 제목. 소개를 몇 장 넘기는 첫 장으로 많이 써요.</p></div>
+  <div class="grid">
+    <figure><img src="spotify.jpg" alt="Spotify Premium 환영 화면" loading="lazy"><figcaption><b>Spotify</b><span>기울어진 색 카드 세 장 그림, 작은 Premium 라벨, 'Welcome to Premium', 버튼 아래 'Not now'</span><a href="https://mobbin.com/screens/ffdd79c4-84cb-4f10-82c1-91f7190d707c">mobbin.com/screens/ffdd79c4…</a></figcaption></figure>
+    <figure><img src="vivid.jpg" alt="Vivid Plus 소개 화면" loading="lazy"><figcaption><b>Vivid</b><span>금속 V 글자와 보라 꽃 3D 그림, 'Introducing Vivid Plus'. 글자 자체를 그림으로 만든 예예요</span><a href="https://mobbin.com/screens/6a5fb139-16f8-4155-b7dc-ed60d34c026d">mobbin.com/screens/6a5fb139…</a></figcaption></figure>
+    <figure><img src="paired.jpg" alt="Paired Premium 환영 화면" loading="lazy"><figcaption><b>Paired</b><span>보라 바탕 전체에 하트 왕관 하나와 별 반짝임. 가장 단순한 축하 화면이에요</span><a href="https://mobbin.com/screens/307a3a1f-23a4-4d33-b09e-33bb58fa787a">mobbin.com/screens/307a3a1f…</a></figcaption></figure>
+    <figure><img src="replika.jpg" alt="Replika 구독 화면" loading="lazy"><figcaption><b>Replika</b><span>파랑에서 남보라로 내려가는 밤빛 그라데이션과 실루엣. 우리 깊은 밤 칠과 색이 가까워요</span><a href="https://mobbin.com/screens/68cc7d89-7efa-4044-bee9-3b908f3a5f83">mobbin.com/screens/68cc7d89…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>C. 굵은 문장 제목</h2><p>상품 이름 대신 상품의 성격을 한 문장으로 크게 말해요. 말투가 세면 'Crazy'한 느낌을 글로 줄 수 있어요.</p></div>
+  <div class="grid">
+    <figure><img src="notboring.jpg" alt="(Not Boring) Weather 구독 화면" loading="lazy"><figcaption><b>(Not Boring) Weather</b><span>'More play. Less routine.' 아주 굵은 두 줄 아래 큰 금화 그림과 아이콘 혜택 5줄. 장난스러운 앱 성격이 글에서 나와요</span><a href="https://mobbin.com/screens/f3216dab-df7f-445b-b3ad-b87a5c6e8fd4">mobbin.com/screens/f3216dab…</a></figcaption></figure>
+    <figure><img src="bless.jpg" alt="bless. 구독 화면" loading="lazy"><figcaption><b>bless.</b><span>검은 바탕에 큰 색 도형들, 'Unlock bless.' 한 줄과 체크 혜택. 도형만으로 분위기를 만들어요</span><a href="https://mobbin.com/screens/fd110266-4c8b-4673-9b51-48de70a4ae51">mobbin.com/screens/fd110266…</a></figcaption></figure>
+    <figure><img src="pof.jpg" alt="Plenty of Fish Prestige 화면" loading="lazy"><figcaption><b>Plenty of Fish</b><span>'Double your chances with POF Prestige'에서 상품 이름만 금색. 혜택은 손그림 아이콘 4줄</span><a href="https://mobbin.com/screens/bae2cabc-2179-4da6-93a8-223ed042b25d">mobbin.com/screens/bae2cabc…</a></figcaption></figure>
+    <figure><img src="ytmusic.jpg" alt="YouTube Music 소개 화면" loading="lazy"><figcaption><b>YouTube Music</b><span>큰 문장 제목 아래 기능마다 그림 하나 + 설명 한 줄, 세 줄. 기능을 그림으로 설명하는 소개 장이에요</span><a href="https://mobbin.com/screens/9ba02db7-3230-4cbf-b716-0bfc61905e89">mobbin.com/screens/9ba02db7…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <div class="head"><h2>D. 기능을 카드로 하나씩</h2><p>어두운 바탕에 기능마다 카드 한 장(아이콘, 이름, 설명 한 줄). 기능이 적은 우리는 카드 두 장(캐치미, 좀비모드)이 크게 들어가요.</p></div>
+  <div class="grid">
+    <figure><img src="fotmob.jpg" alt="FotMob 구독 기능 화면" loading="lazy"><figcaption><b>FotMob</b><span>노란 아이콘 상자 + 굵은 이름 + 회색 설명 카드 5장, 버튼은 노란 빛 테두리</span><a href="https://mobbin.com/screens/c4342d14-9aae-4a9b-b1e9-b0fc312cdf88">mobbin.com/screens/c4342d14…</a></figcaption></figure>
+    <figure><img src="characterai.jpg" alt="Character AI c.ai+ 기능 화면" loading="lazy"><figcaption><b>Character AI</b><span>짙은 남색 카드에 선 아이콘과 작은 라벨. 버튼 글에 월 금액을 그대로 넣어요</span><a href="https://mobbin.com/screens/fcc95941-3971-4a4b-ad65-07f1897bedf6">mobbin.com/screens/fcc95941…</a></figcaption></figure>
+    <figure><img src="stake.jpg" alt="Stake Black 기능 화면" loading="lazy"><figcaption><b>Stake</b><span>'STAKE BLACK FEATURES' 고정폭 대문자, 세로 라벨로 묶음을 나눠요. 기계 같은 단단한 글자 느낌</span><a href="https://mobbin.com/screens/91fc02a8-f731-4868-b98e-ff00a5bcb2cd">mobbin.com/screens/91fc02a8…</a></figcaption></figure>
+    <figure><img src="badoo.jpg" alt="Badoo Premium 기능 화면" loading="lazy"><figcaption><b>Badoo</b><span>맨 위 'Badoo Premium' 워드마크, 연보라 큰 카드 안에 기능을 묶음 제목과 함께 나열</span><a href="https://mobbin.com/screens/2d6e3d16-e923-4ae8-ac5e-dc4e256e83e2">mobbin.com/screens/2d6e3d16…</a></figcaption></figure>
+    <figure><img src="garmin.jpg" alt="Garmin Connect+ 기능 화면" loading="lazy"><figcaption><b>Garmin Connect</b><span>위는 넘기는 기능 목록, 아래 고정 칸에 Connect+ 로고와 체험, 가격, 버튼. 소개와 결제를 한 장에 나눠 담아요</span><a href="https://mobbin.com/screens/5876bb80-6efb-4c3e-aa89-ee54b49cdc6f">mobbin.com/screens/5876bb80…</a></figcaption></figure>
+  </div>
+</section>
+
+<section>
+  <h2 class="rec">우리 Crazy Mode 소개 추천: A 로고 + D 기능 카드</h2>
+  <div class="scroll"><table>
+    <tr><th>자리</th><th>추천</th><th>참고</th></tr>
+    <tr><td>바탕</td><td>Crazy Mode 깊은 밤 그라데이션을 풀페이지 전체에</td><td>Replika, Cosmos</td></tr>
+    <tr><td>맨 위 로고</td><td>'Crazy Mode'를 크게(타이포 방향 A~D 중 고른 것) + plus 알약 라벨. 화면의 주인공</td><td>Cosmos, Weather Channel, Fuse</td></tr>
+    <tr><td>한 줄 소개</td><td>로고 아래 상품 성격을 말하는 한 문장(예: '초강력 잠깨우기')</td><td>(Not Boring) Weather</td></tr>
+    <tr><td>기능 카드</td><td>카드 2장: 캐치미, 좀비모드. 카드마다 움직이는 그림 자리, 이름, 설명 한 줄. 알람 편집에서 들어오면 누른 기능 카드를 위에</td><td>FotMob, Snapchat, YouTube Music</td></tr>
+    <tr><td>아래 고정 칸</td><td>'2주 무료, 첫 달 100원' 한 줄과 '2주 무료로 시작하기' 버튼. 체험 일정과 작은 글은 이 칸 아래로 짧게</td><td>Garmin Connect</td></tr>
+  </table></div>
+  <p style="margin:0;color:var(--muted);max-width:70ch">B(큰 그림 환영)는 그림을 새로 그려야 하고, C(문장 제목)는 상품 이름이 약해져요. A는 이미 정한 Crazy Mode 타이포를 그대로 살릴 수 있어서 추천해요.</p>
+</section>
+
+<footer>TSK-323. 피그마 시안은 그리지 않았어요.</footer>
+</div>
