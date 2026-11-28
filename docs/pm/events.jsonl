@@ -1554,3 +1554,4 @@
 {"at": "2026-11-28 14:39:32", "by": "[디자인 42]", "id": "TSK-320", "action": "claim", "changes": {"status": ["todo", "doing"], "start": [null, "2026-11-28"]}}
 {"at": "2026-11-28 14:41:27", "by": "[디자인 41]", "id": "TSK-317", "action": "comment", "changes": {"comments": [null, ["아코디언 카드 안 항목 사이 12, 펼침 여백 20/24 맞춤"]]}}
 {"at": "2026-11-28 14:42:31", "by": "[디자인 42]", "id": "TSK-320", "action": "submit", "changes": {"status": ["doing", "review"], "comments": [null, ["구독 안내 리서치 아티팩트 G7zzyyWKYeSZj8gHGATE75 (Mobbin 17장, Play 정책, 전자상거래법). 추천: 두 진입점이 같은 풀페이지, 혜택 2줄+체험 일정표, 정가 같은 크기"]]}}
+{"at": "2026-11-28 14:43:10", "by": "Leader", "id": "TSK-320", "action": "approve", "changes": {"status": ["review", "done"], "comments": [null, ["아티팩트와 추천안 받음, 사용자에게 보고"]]}}
