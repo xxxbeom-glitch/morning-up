@@ -1,0 +1,72 @@
+<title>섞어 쓰기 설명</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 레이아웃: 위 한 줄 요약, 가운데 지금/바꾸면 두 폰 카드 나란히, 아래 규칙 세 줄 */
+:root{--bg:#F1F3F8;--card:#FFFFFF;--fg:#14202E;--sub:#6B7686;--off:#AEB6C2;--line:#E6EAF0;--accent:#2F6BFF;--soft:#E7EEFF;--toggle-off:#D5DAE2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0F141B;--card:#1A222C;--fg:#E8EDF4;--sub:#9AA6B5;--off:#5E6976;--line:#2A3441;--accent:#7FA2FF;--soft:#1E2A44;--toggle-off:#3A4452;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0F141B;--card:#1A222C;--fg:#E8EDF4;--sub:#9AA6B5;--off:#5E6976;--line:#2A3441;--accent:#7FA2FF;--soft:#1E2A44;--toggle-off:#3A4452;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:"Pretendard","Noto Sans KR",system-ui,sans-serif;line-height:1.6}
+.wrap{max-width:900px;margin:0 auto;padding-block:32px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:24px}
+h1{margin:0;font-size:1.6rem;text-wrap:balance}
+.lead{margin:6px 0 0;color:var(--sub)}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
+.col h2{font-size:1rem;margin:0 0 10px}
+.col h2 span{font-size:.8rem;color:var(--sub);font-weight:500;margin-left:6px}
+.sheet{background:var(--card);border-radius:24px;padding:4px 24px}
+.row{display:flex;align-items:center;gap:12px;min-height:52px;padding-block:8px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.txt{flex:1;min-width:0}
+.lbl{font-size:14px;font-weight:500}
+.val{font-size:12px;color:var(--sub)}
+.val.off,.rv.off{color:var(--off)}
+.rv{font-size:13px;color:var(--sub);white-space:nowrap}
+.chev{width:16px;height:16px;flex:none;color:var(--sub)}
+.tg{width:40px;height:24px;border-radius:12px;background:var(--toggle-off);position:relative;flex:none}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff}
+.tg.on{background:var(--accent)}.tg.on::after{left:19px}
+.note{font-size:.86rem;color:var(--sub);margin:10px 4px 0}
+.rules{background:var(--soft);border-radius:16px;padding:18px 22px}
+.rules ol{margin:6px 0 0;padding-left:1.3em}
+.rules b{color:var(--accent)}
+</style>
+<div class="wrap">
+  <header>
+    <h1>섞어 쓰기 설명</h1>
+    <p class="lead">줄 하나에 상태 표시를 하나만 두자는 뜻이에요. 같은 다섯 줄을 지금 모양과 섞어 쓰기 모양으로 그렸어요(예시 값).</p>
+  </header>
+
+  <div class="pair">
+    <section class="col">
+      <h2>지금<span>라벨 아래 값 + 오른쪽 토글</span></h2>
+      <div class="sheet">
+        <div class="row"><div class="txt"><div class="lbl">미루기</div><div class="val">5분, 3번</div></div><div class="tg on"></div></div>
+        <div class="row"><div class="txt"><div class="lbl">다시 잠들기 방지</div><div class="val off">꺼짐</div></div><div class="tg"></div></div>
+        <div class="row"><div class="txt"><div class="lbl">좀비모드</div><div class="val">3분, 3번</div></div><div class="tg on"></div></div>
+        <div class="row"><div class="txt"><div class="lbl">다음 알람 항상 표시</div><div class="val">상태 바에 보여요</div></div><div class="tg on"></div></div>
+        <div class="row"><div class="txt"><div class="lbl">이어폰, 블루투스로 울리기</div><div class="val off">꺼짐</div></div><div class="tg"></div></div>
+      </div>
+      <p class="note">켜짐을 토글과 값 글자로 두 번 보여 줘요. 줄을 누를지 토글을 누를지 헷갈려요.</p>
+    </section>
+
+    <section class="col">
+      <h2>섞어 쓰기<span>줄마다 표시 하나</span></h2>
+      <div class="sheet">
+        <div class="row"><div class="txt"><div class="lbl">미루기</div></div><span class="rv">5분, 3번</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="row"><div class="txt"><div class="lbl">다시 잠들기 방지</div></div><span class="rv off">끔</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="row"><div class="txt"><div class="lbl">좀비모드</div></div><span class="rv">3분, 3번</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>
+        <div class="row"><div class="txt"><div class="lbl">다음 알람 항상 표시</div></div><div class="tg on"></div></div>
+        <div class="row"><div class="txt"><div class="lbl">이어폰, 블루투스로 울리기</div></div><div class="tg"></div></div>
+      </div>
+      <p class="note">위 세 줄은 누르면 시트가 열리고, 끄기는 시트의 '안 함'. 아래 두 줄은 토글만 눌러요.</p>
+    </section>
+  </div>
+
+  <section class="rules">
+    <b>섞어 쓰기 규칙 세 가지</b>
+    <ol>
+      <li>고를 값이 있는 줄: 값은 오른쪽, 화살표, 토글 없음. 끄면 값이 '끔' 또는 '안 함'(연한 글자색).</li>
+      <li>켜고 끄기만 있는 줄: 토글만, 아래 글 없음.</li>
+      <li>그래서 모든 줄이 한 줄 높이(52)로 같아지고, 지금 설정 메인과 같은 모양이 돼요.</li>
+    </ol>
+  </section>
+</div>
